@@ -29,7 +29,7 @@
 
     <groupId>org.jboss.universe</groupId>
     <artifactId>universe</artifactId>
-    <version>1.0.0.Alpha-SNAPSHOT</version>
+    <version>1.0.0.Alpha1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Universe</name>
