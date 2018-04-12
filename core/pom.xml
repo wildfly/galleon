@@ -23,11 +23,11 @@
 
   <parent>
     <groupId>org.jboss.galleon</groupId>
-    <artifactId>pm-parent</artifactId>
+    <artifactId>galleon-parent</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>core</artifactId>
+  <artifactId>galleon-core</artifactId>
   <packaging>jar</packaging>
 
   <name>Galleon Core</name>

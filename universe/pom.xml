@@ -28,7 +28,7 @@
     </parent>
 
     <groupId>org.jboss.galleon.universe</groupId>
-    <artifactId>universe</artifactId>
+    <artifactId>galleon-universe</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
     <packaging>jar</packaging>
 

@@ -23,14 +23,14 @@
 
   <parent>
     <groupId>org.jboss.galleon</groupId>
-    <artifactId>pm-parent</artifactId>
+    <artifactId>galleon-parent</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>feature-pack-build-maven-plugin</artifactId>
+  <artifactId>galleon-pack-build-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>Feature Pack building Maven plugin</name>
+  <name>Galleon feature pack building Maven plugin</name>
 
   <dependencies>
 
@@ -76,7 +76,7 @@
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>galleon-core</artifactId>
     </dependency>
 
     <dependency>

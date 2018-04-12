@@ -25,7 +25,7 @@ import org.jboss.galleon.ArtifactCoords;
 public class UniverseLocation {
     private static final String UNIVERSE_VERSION_RANGE = "[0,)";
     public static UniverseLocation DEFAULT = new UniverseLocation("default",
-            ArtifactCoords.newInstance("org.jboss.galleon.universe", "universe", null, "jar"));
+            ArtifactCoords.newInstance("org.jboss.galleon.universe", "galleon-universe", null, "jar"));
     private final String name;
     private ArtifactCoords coords;
 

@@ -23,11 +23,11 @@
 
   <parent>
     <groupId>org.jboss.galleon</groupId>
-    <artifactId>pm-parent</artifactId>
+    <artifactId>galleon-parent</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>cli</artifactId>
+  <artifactId>galleon-cli</artifactId>
   <packaging>jar</packaging>
 
   <name>Galleon CLI</name>
@@ -58,7 +58,7 @@
       <groupId>org.eclipse.aether</groupId>
       <artifactId>aether-transport-http</artifactId>
     </dependency>
-  
+
     <dependency>
       <groupId>org.aesh</groupId>
       <artifactId>aesh</artifactId>
@@ -70,12 +70,12 @@
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>galleon-core</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>feature-pack-build-maven-plugin</artifactId>
+      <artifactId>galleon-pack-build-maven-plugin</artifactId>
     </dependency>
 
     <!-- Currently not required by any dependencies. However since aether uses slf4j using the slf4j binding with
@@ -102,7 +102,7 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>com.io7m.xom</groupId>
       <artifactId>xom</artifactId>

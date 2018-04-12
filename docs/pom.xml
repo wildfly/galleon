@@ -23,11 +23,11 @@
 
   <parent>
     <groupId>org.jboss.galleon</groupId>
-    <artifactId>pm-parent</artifactId>
+    <artifactId>galleon-parent</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>docs</artifactId>
+  <artifactId>galleon-docs</artifactId>
   <packaging>pom</packaging>
 
   <name>Galleon Docs</name>

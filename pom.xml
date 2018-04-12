@@ -28,7 +28,7 @@
   </parent>
 
   <groupId>org.jboss.galleon</groupId>
-  <artifactId>pm-parent</artifactId>
+  <artifactId>galleon-parent</artifactId>
   <version>1.0.0.Alpha1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -129,19 +129,19 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>core</artifactId>
+        <artifactId>galleon-core</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>feature-pack-build-maven-plugin</artifactId>
+        <artifactId>galleon-pack-build-maven-plugin</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>cli</artifactId>
+        <artifactId>galleon-cli</artifactId>
         <version>${project.version}</version>
       </dependency>
 
