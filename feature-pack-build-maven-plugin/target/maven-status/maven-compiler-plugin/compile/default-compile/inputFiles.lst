@@ -1,9 +1,0 @@
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/util/FeaturePackInstaller.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/util/ConfigurationId.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/util/LoggerMessageWriter.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/util/ArtifactItem.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/FeaturePackInstallMojo.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/FeaturePackProvisioningMojo.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/util/MavenArtifactRepositoryManager.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/FpMavenErrors.java
-/home/aloubyansky/git/galleon/feature-pack-build-maven-plugin/src/main/java/org/jboss/galleon/maven/plugin/util/MavenPluginUtil.java
