@@ -35,7 +35,7 @@ public class UserChosenPackagesOverrideDependencyOnOriginalSetTestCase extends P
     @Override
     protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
         repoManager.installer()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha-SNAPSHOT"))
+            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
                 .addDependency(FeaturePackConfig.forGav(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final")))
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "p1")
@@ -61,7 +61,7 @@ public class UserChosenPackagesOverrideDependencyOnOriginalSetTestCase extends P
             throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(
-                        FeaturePackConfig.forGav(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha-SNAPSHOT")))
+                        FeaturePackConfig.forGav(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha")))
                 .addFeaturePackDep(
                         FeaturePackConfig
                                 .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final"))
@@ -74,7 +74,7 @@ public class UserChosenPackagesOverrideDependencyOnOriginalSetTestCase extends P
     protected ProvisionedState provisionedState() {
         return ProvisionedState.builder()
                 .addFeaturePack(
-                        ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha-SNAPSHOT"))
+                        ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
                         .addPackage("p1")
                         .build())
                 .addFeaturePack(

@@ -35,7 +35,7 @@ public class ExcludeRequiredLocalDependencyOfOptionalPackageTestCase extends PmI
     @Override
     protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
         repoManager.installer()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha-SNAPSHOT"))
+            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
                 .newPackage("a", true)
                     .addDependency("b", true)
                     .writeContent("a.txt", "a")
@@ -55,7 +55,7 @@ public class ExcludeRequiredLocalDependencyOfOptionalPackageTestCase extends PmI
     protected FeaturePackConfig featurePackConfig()
             throws ProvisioningDescriptionException {
         return FeaturePackConfig
-                .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha-SNAPSHOT"))
+                .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
                 .excludePackage("c")
                 .build();
     }
@@ -63,7 +63,7 @@ public class ExcludeRequiredLocalDependencyOfOptionalPackageTestCase extends PmI
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha-SNAPSHOT"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
                         .addPackage("a")
                         .build())
                 .build();

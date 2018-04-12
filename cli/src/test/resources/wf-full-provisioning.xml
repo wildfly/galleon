@@ -17,7 +17,7 @@
 
 -->
 <installation xmlns="urn:wildfly:pm-provisioning:1.0">
-  <feature-pack groupId="org.wildfly" artifactId="wildfly-feature-pack-new" version="11.0.0.Alpha1-SNAPSHOT">
+  <feature-pack groupId="org.wildfly" artifactId="wildfly-feature-pack-new" version="11.0.0.Final">
   <!--
     <excludes>
       <package name="appclient"/>

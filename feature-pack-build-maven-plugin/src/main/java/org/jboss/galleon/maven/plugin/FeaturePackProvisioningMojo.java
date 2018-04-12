@@ -175,9 +175,9 @@ public class FeaturePackProvisioningMojo extends AbstractMojo {
         //collectDependencies(artifact);
         //resolveDependencies(artifact);
         //versionRequest(artifact);
-        //artifactRequest(new DefaultArtifact("org.wildfly.core", "wildfly-cli", "jar", "3.0.0.Alpha3-SNAPSHOT"));
+        //artifactRequest(new DefaultArtifact("org.wildfly.core", "wildfly-cli", "jar", "3.0.0.Final"));
         //artifactRequest(new DefaultArtifact("org.wildfly.core", "wildfly-cli", "jar", "LATEST"));
-        //artifactRequest(new DefaultArtifact("org.wildfly.feature-pack", "wildfly", "zip", "10.1.0.Final-SNAPSHOT"));
+        //artifactRequest(new DefaultArtifact("org.wildfly.feature-pack", "wildfly", "zip", "10.1.0.Final"));
     }
 /*
     private static void printDeps(DependencyNode dep) {
