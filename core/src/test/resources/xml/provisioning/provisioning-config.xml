@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright ${license.git.copyrightYears} Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+  <feature-pack groupId="org.jboss.group1" artifactId="fp1" version="0.0.1">
+    <default-configs inherit="false">
+      <include model="model1"/>
+      <exclude name="name1" model="model1"/>
+      <include name="name2" model="model2"/>
+      <exclude model="model2"/>
+    </default-configs>
+    <config>
+      <feature-group name="dep1"/>
+      <feature-group name="dep2" inherit-features="false"/>
+      <feature-group name="dep3" inherit-features="false">
+        <include spec="spec1"/>
+        <include feature-id="spec2:p1=v1,p2=v2"/>
+        <include feature-id="spec3:p1=v1">
+          <depends feature-id="spec4:p1=v1,p2=v2"/>
+          <depends feature-id="spec5:p1=v1,p2=v2"/>
+          <param name="p1" value="v1"/>
+          <param name="p2" value="v2"/>
+        </include>
+        <exclude spec="spec6"/>
+        <exclude spec="spec7"/>
+        <exclude feature-id="spec8:p1=v1"/>
+        <exclude feature-id="spec8:p1=v2"/>
+      </feature-group>
+      <origin name="source4">
+        <feature-group name="dep4"/>
+      </origin>
+      <feature spec="spec1">
+        <param name="p1" value="v1"/>
+        <param name="p2" value="v2"/>
+      </feature>
+      <feature spec="spec1">
+        <depends feature-id="spec2:p1=v1,p2=v2"/>
+        <depends feature-id="spec3:p3=v3"/>
+        <param name="p1" value="v3"/>
+        <param name="p2" value="v4"/>
+      </feature>
+    </config>
+  </feature-pack>
+</installation>

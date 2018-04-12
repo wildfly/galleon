@@ -1,0 +1,99 @@
+### Content of the config element
+
+The `config` element is basically an extended version of the <<_feature_groups,`feature-group` element>>. Meaning that everything that is allowed in the body of the `feature-group` is allowed in the `config` element. Which means the `feature` and the `feature-group` elements (as well as the `feature-pack` element for dependencies).
+
+Besides that the config element supports already mentioned in an earlier chapter the <<_configuration_model_attributes, config attributes>> and the `props` element.
+
+The `props` element allows to attach various properties to the configuration described by the `config` element that can be meaningful for the provisioning plugin processing the configuration. E.g.
+[source,xml]
+----
+<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+              groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
+  <config name="main" model="modelA">
+    <props>
+      <prop name="save-to-file" value="model-a.xml"/>
+      <prop name="other" value="thing"/>
+    </props>
+    <feature spec="feature1">
+      <param name="id" value="1"/>
+      <param name="a" value="fp1-modelA"/>
+    </feature>
+  </config>
+</feature-pack>
+----
+
+NOTE: The config properties are not used by the generic provisioning mechanism itself (only the relevant plugins).
+
+#### Overwriting properties during config inclusion
+
+When a default config is included, its properties can be overwritten, e.g.
+[source,xml]
+----
+<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+    <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">
+        <default-configs>
+            <include name="main" model="modelA">
+              <props>
+                <prop name="save-to-file" value="main-model-a.xml"/>
+              </props>
+            </include>
+        </default-configs>
+    </feature-pack>
+</installation>
+----
+
+The resolved config will include the following properties:
+
+* save-to-file=main-model-a.xml;
+
+* other=thing.
+
+#### Overwriting properties when merging configs
+
+When the <<_configuration_model_merges,configs are merged>>, their properties are also merged. The config that is included later into the installation overwrites the properties of the config which was added before. E.g.
+[source,xml]
+----
+<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+              groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
+  <config model="modelA">
+    <props>
+      <prop name="save-to-file" value="model-a.xml"/>
+      <prop name="other" value="thing"/>
+    </props>
+    <feature spec="feature1">
+      <param name="id" value="1"/>
+      <param name="a" value="fp1-modelA"/>
+    </feature>
+  </config>
+</feature-pack>
+----
+
+[source,xml]
+----
+<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+              groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
+  <dependencies>
+    <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
+      <name>fp1-dep</name>
+    </dependency>
+  </dependencies>
+  <config name="main" model="modelA">
+    <props>
+      <prop name="save-to-file" value="main-model-a.xml"/>
+    </props>
+    <feature-pack dependency="fp1-dep">
+      <feature spec="feature1">
+        <param name="id" value="1"/>
+        <param name="a" value="fp2-modelA"/>
+      </feature>
+    <feature-pack>
+  </config>
+</feature-pack>
+----
+
+The resolve configuration *modelA:main* will contain the following properties:
+
+* save-to-file=main-model-a.xml;
+
+* other=thing.
+

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright ${license.git.copyrightYears} Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<feature-spec name="logging-rotating-file-handler" xmlns="urn:wildfly:pm-feature-spec:1.0">
+  <refs>
+    <ref feature="logging">
+      <param name="profile" maps-to="profile"/>
+    </ref>
+    <ref feature="logging-formatter">
+      <param name="profile" maps-to="profile"/>
+      <param name="formatters" maps-to="name"/>
+    </ref>
+  </refs>
+  <params>
+    <param name="profile" feature-id="true"/>
+    <param name="name" feature-id="true" default="FILE"/>
+    <param name="level" default="DEBUG"/>
+    <param name="formatters" default="PATTERN"/>
+    <param name="relative-to" default="jboss.server.log.dir"/>
+    <param name="path" default="server.log"/>
+    <param name="suffix" default=".yyyy-MM-dd"/>
+    <param name="append" default="true"/>
+    <param name="autoflush" default="true"/>
+  </params>
+</feature-spec>

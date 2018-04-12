@@ -1,0 +1,25 @@
+= Galleon Documentation
+Alexey Loubyansky
+:revnumber: {version}
+:revdate: {localdate}
+:toc: left
+:icons: font
+:imagesdir: images
+:linkattrs:
+:sectnums:
+
+:ec2-pub-ip-dash: 1-2-3-4
+:ec2-pub-ip: 1.2.3.4
+
+(C) 2017 The original authors.
+
+
+include::overview/index.adoc[]
+
+include::feature-packs/index.adoc[]
+
+include::provisioning-content/index.adoc[]
+
+include::provisioned-config/index.adoc[]
+
+include::tool/index.adoc[]

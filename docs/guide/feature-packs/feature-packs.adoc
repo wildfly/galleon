@@ -1,0 +1,28 @@
+## Feature-packs
+
+Feature-pack represents a released unit of software that can be installed or uninstalled using the provisioning tool. Feature-packs are Maven artifacts identified by GAV (groupId, artifactId and version).
+
+Feature-pack contains:
+
+* metadata describing
+
+** the feature-pack;
+
+** default distribution spec;
+
+** what and how can be customized;
+
+** dependencies on other featurepacks;
+
+* _(optional)_ a set of content packages;
+
+* _(optional)_ a set of configuration features;
+
+* _(optional)_ various resources required to properly assemble and setup the installation;
+
+* _(optional)_ custom provisioning plug-ins.
+
+
+Feature-pack may declare dependencies on other feature-packs. Before a feature-pack is installed the tool will make sure its dependencies are satisifed (installing the missing ones).
+
+Conceptually, any software installation can be described as one or more feature-packs installed at a specific location.

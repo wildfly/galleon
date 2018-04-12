@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="7.8.2">
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmSession.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ProvisionSpecCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmExitCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/AbstractCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmOptionActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/StreamCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmCommandInvocation.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/UniverseLocation.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ChangesCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ProvisionedSpecExportCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/GavCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ProvisioningCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/AbstractFeaturePackCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/path/FeatureContainerPathConsumer.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/path/PathParserException.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/path/PathParser.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/path/PathConsumerException.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/UninstallCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmSessionCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/Universes.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/MavenArtifactRepositoryManager.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/Group.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/PackageGroupsBuilder.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeatureGroupsBuilder.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeatureContainers.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/ProvisioningInfo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/Identity.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/ConfigInfo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/Caches.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/state/FeaturePackProvisioning.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/state/ConfigProvisioning.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/state/State.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeatureSpecInfo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeatureContainer.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/PackageInfo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeatureInfo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeaturePackInfo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/model/FeatureSpecsBuilder.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ProvisionedSpecCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/Configuration.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/AbstractCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/Universe.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/UpgradeCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/Demo.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/UniverseListCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ProvisioningFeaturePackCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/UniverseCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/ProvisionedSpecDisplayCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/InstalledStreamCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/CliMain.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/AbstractPathCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/ResetConfigCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/StateRemoveExcludedConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/StateIncludeConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/AbstractDefaultConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/AbstractProvisionedDefaultConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/ProvisionedDefaultConfigCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/StateResetConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/ConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/ConfigurationUtil.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/StateExcludeConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/StateRemoveIncludedConfigCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/configuration/ProvisionedConfigurationCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateExploreCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateNewCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateEditCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/FPDependentCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/StateRemoveExcludedPackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/AbstractProvisionedPackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/StateIncludePackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/AbstractPackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/PackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/StateExcludePackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/ProvisionedPackageCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/PackagesUtil.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/pkg/StateRemoveIncludedPackageCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/UndoCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateInfoUtil.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateNoExplorationActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateEditCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateUndoCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateInfoCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateProvisionCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateSearchCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateLeaveCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateInfoTypeCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/fp/FeaturePackCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/fp/StateRemoveFeaturePackCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/fp/StateAddFeaturePackCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/fp/RemoveFeaturePackCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/AbstractStateCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/AbstractFPProvisioningCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/NoStateCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/feature/StateAddFeatureCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/feature/StateRemoveFeatureCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/feature/FeatureCommandActivator.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/feature/FeatureCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/AbstractFPProvisionedDependentCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/AbstractFPProvisionedCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/state/StateExportCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/StateFullPathCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/plugin/InstallCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/plugin/AbstractPluginsCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/plugin/DiffCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/AbstractDynamicCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/filesystem/LsCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/filesystem/PmRm.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/filesystem/FileAndNodeCompleter.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/filesystem/PmMkdir.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/filesystem/CdCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/cmd/filesystem/PwdCommand.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/Util.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/PmCompleterInvocation.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/CommandExecutionException.java">
+</file>
+<file name="/home/aloubyansky/git/galleon/cli/src/main/java/org/jboss/galleon/cli/FromInstallationCommand.java">
+</file>
+</checkstyle>

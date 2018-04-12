@@ -1,0 +1,39 @@
+##### Including features and feature groups from other feature-packs
+
+Feature groups, as well as *config* elements in the *feature-pack.xml*, may include features and feature groups from other feature-packs. This is done by including one or more `feature-pack` element and specifying the origin of the included features and feature groups in its `dependency` attribute. For example
+
+[source,xml]
+----
+<feature-group-spec name="group1" xmlns="urn:wildfly:pm-feature-group:1.0">
+
+  <feature spec="feature1">
+    <param name="id" value="a1"/>
+  </feature>
+
+  <feature-pack dependency="another-feature-pack">
+    <feature-group name="group2"/>
+    <feature spec="feature2">
+      <param name="id" value="b1"/>
+    </feature>
+  </feature-pack>
+
+  <feature-group name="group3"/>
+
+  <feature-pack dependency="another-feature-pack">
+    <feature-group name="group3"/>
+  </feature-pack>
+
+</feature-group-spec>
+----
+
+In this case, the order of the features in the resolved feature group will be
+
+. _feature1:id=a1_ from the local feature-pack;
+
+. features from _group2_ from *another-feature-pack*;
+
+. _feature2:id=b1_ from *another-feature-pack*;
+
+. features from _group3_ from the local feature-pack;
+
+. features from _group3_ from *another-feature-pack*.

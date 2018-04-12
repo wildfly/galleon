@@ -1,0 +1,59 @@
+##### Explicit vs transitive dependency on a feature-pack
+
+Consider a case when feature-pack *fp1* depends on feature-packs *fp2* and *fp3*. And *fp2* in its turn also depends on *fp3*. In this case *fp3* is both transitive and explicit dependency of *fp1*.
+
+The rule is that the package set of an explicit dependency overrides the package sets of a transitive dependency. In our case it means that installing *fp1*, the *fp3* package set *fp1* explicitly depends on will become the effective package set of *fp3* ignoring the package set of *fp3* inherited by *fp2* (whether it is a dependency on the original *fp3* or a custom set of its packages).
+
+For example:
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+                groupId="org.jboss.fp.group1" artifactId="fp1" version="1.0.0" >
+    <dependencies>
+        <dependency groupId="org.jboss.fp.group2" artifactId="fp2" version="2.0.0"/>
+        <dependency groupId="org.jboss.fp.group2" artifactId="fp3" version="2.0.0"/>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+                groupId="org.jboss.fp.group1" artifactId="fp2" version="1.0.0" >
+    <dependencies>
+        <dependency groupId="org.jboss.fp.group2" artifactId="fp3" version="2.0.0">
+            <packages>
+                <exclude name="p1"/>
+                <exclude name="p3"/>
+            </packages>
+        </dependency>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+                groupId="org.jboss.fp.group1" artifactId="fp3" version="1.0.0" >
+    <default-packages>
+        <package name="p1"/>
+        <package name="p2"/>
+        <package name="p3"/>
+    </default-packages>
+ </feature-pack>
+----
+
+Installing *fp1* without further customizations the following packages will be installed:
+
+* *fp1:p1* and its dependencies;
+
+* *fp2:p1* and its dependencies;
+
+* *p1*, *p2* and *p3* from *fp3* and their dependencies.

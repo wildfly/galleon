@@ -1,0 +1,26 @@
+### Feature-pack archive structure
+
+Feature-packs are distributed as ZIP archives with the following root entries:
+
+[options="nowrap"]
+ feature-pack.zip
+ |- feature_groups/
+ |- features/
+ |- packages/
+ |- plugins/
+ |- resources/
+ `- feature-pack.xml
+
+Where
+
+* *feature_groups* - optional directory containing feature group descriptions;
+
+* *features* - optional directory containing configuration feature specs;
+
+* *packages* - optional directory containing content packages;
+
+* *resources* - optional directory containing various resources needed to properly setup the installation;
+
+* *plugins* - optional directory containing project/product-specific provisioning plug-ins;
+
+* *feature-pack.xml* - metadata describing the feature-pack and the default distribution.

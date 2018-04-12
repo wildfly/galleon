@@ -1,0 +1,67 @@
+#### Package dependencies
+
+[[package-deps]]Package dependency may be required or optional.
+
+*Required dependency* means that a package cannot be installed unless all its required dependencies are satisfied, i.e. installed. If any required dependency cannot be satisfied (perhaps because a package that happens to be a required dependency has been explicitly excluded from the installation), the provisioning process will fail with an error.
+
+*Optional dependency* means that the dependency does not have to be satisfied for the package to be installed. For example if package *p1* declares an optional dependency on package *p2* and *p2* is explicitly excluded by the user, *p1* will still be installed. An example of an optional dependency could be a package called *documentation* which declares an optional dependency on package *examples*. If a user is not interested in the *examples*, the rest of the *documentation* could still be installed.
+
+Package dependencies are also used to determine the <<_feature_pack_without_dependencies,effective package set of a feature-pack>> to be installed described later.
+
+#### Local package dependencies
+
+If a package depends on another package from the same feature-pack, the dependency is called a local package dependency. Here is an example of how local dependencies are expressed in the XML metadata:
+
+[source,xml]
+----
+ <package-spec xmlns="urn:wildfly:pm-package:1.0" name="p1">
+    <dependencies>
+        <package name="p2"/>
+        <package name="p3" optional=”true”/>
+    </dependencies>
+ </package-spec>
+----
+
+In this example *p2* is a required dependency of *p1* while *p3* is an optional one.
+
+#### External package dependencies
+
+If a package depends on a package from another feature-pack, the dependency is called an external package dependency.
+
+Although a package may declare a dependency on a package from another feature-pack, it cannot specify the version of the feature-pack in the package dependency declaration.
+
+Feature-pack containing a package with an external dependency must declare an explicit dependency on the feature-pack (specifying its version) the target package of the external dependency belongs to. This feature-pack dependency must also be assigned a name which will be used as a reference to the that dependency in the *package.xml* file where the external package dependency is declared.
+
+For example, suppose feature-pack *fp1* depends on feature-pack *fp2* and package *fp1:p1* depends on packages *fp2:p1* and *fp2:p10*. The *feature-pack.xml* of *fp1* might look like this:
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+                groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
+    <dependencies>
+        <dependency groupId="org.jboss.pm.test" artifactId="fp2" version="2.0.0">
+            <name>fp2-dep</name>
+        </dependency>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+And the *package.xml* file of *fp1:p1* might look like this:
+
+[source,xml]
+----
+ <package-spec xmlns="urn:wildfly:pm-package:1.0" name="p1">
+    <dependencies>
+        <package name="p2" />
+        <feature-pack dependency=”fp2-dep”>
+            <package name=”p1” />
+            <package name=”p10” />
+        </feature-pack>
+        <package name="p3" />
+    </dependencies>
+ </package-spec>
+----
+

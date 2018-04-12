@@ -1,0 +1,19 @@
+##### Feature annotations
+
+[[feature-annotations]]Feature specs may include a list of annotations. The provisioning mechanism does not include pre-defined annotations yet and does not use them for processing features and configurations. Annotations are simply parsed and attached to feature specs and made available to the provisioning plugins for processing. Here is an example of an annotated feature spec:
+
+[source,xml]
+----
+ <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="feature1">
+   <annotation name="name1">
+     <elem name="elem1" value="value1"/>
+   </annotation>
+   <annotation name="name2">
+     <elem name="elem1" value="value1"/>
+     <elem name="elem1" value="value1"/>
+   </annotation>
+   <params>
+     <param name="id" feature-id="true"/>
+   </params>
+ </feature-spec>
+----

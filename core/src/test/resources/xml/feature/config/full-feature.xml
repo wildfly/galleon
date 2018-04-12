@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright ${license.git.copyrightYears} Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<feature spec="feature-spec" parent-ref="parent-spec" xmlns="urn:wildfly:pm-feature-group:1.0">
+  <depends feature-id="spec1:p1=v1"/>
+  <depends feature-id="spec2:p1=v1,p2=v2"/>
+  <param name="param1" value="value1"/>
+  <param name="param2" value="value2"/>
+  <feature spec="child-spec" parent-ref="feature-spec-ref">
+    <depends feature-id="spec3:p1=v1"/>
+    <param name="param3" value="value3"/>
+    <feature spec="grandchild-spec">
+      <param name="param4" value="value4"/>
+    </feature>
+  </feature>
+  <feature-group name="group1">
+    <include feature-id="spec3:p1=v1">
+      <depends feature-id="spec4:p1=v1,p2=v2"/>
+      <depends feature-id="spec5:p1=v1,p2=v2"/>
+      <param name="p1" value="v1"/>
+      <param name="p2" value="v2"/>
+      <feature spec="spec9">
+        <param name="p1" value="v1"/>
+        <feature spec="spec10">
+          <feature spec="spec11" parent-ref="spec10-ref">
+            <param name="p1" value="v1"/>
+          </feature>
+        </feature>
+      </feature>
+    </include>
+    <exclude spec="spec6"/>
+    <exclude feature-id="spec8:p1=v1"/>
+  </feature-group>
+  <feature spec="child-spec" parent-ref="feature-spec-ref">
+    <param name="param5" value="value5"/>
+  </feature>
+  <origin name="fp2">
+    <feature-group name="group2">
+      <include feature-id="spec1:p1=v1" parent-ref="parent1">
+        <depends feature-id="spec4:p1=v1,p2=v2"/>
+        <param name="p1" value="v1"/>
+        <param name="p2" value="v2"/>
+      </include>
+      <exclude feature-id="spec2:p1=v1" parent-ref="parent2"/>
+    </feature-group>
+    <feature spec="spec2">
+      <param name="p1" value="v1"/>
+      <param name="p2" value="v2"/>
+    </feature>      
+  </origin>
+  <feature spec="another-spec">
+    <param name="param6" value="value6"/>
+  </feature>
+</feature>

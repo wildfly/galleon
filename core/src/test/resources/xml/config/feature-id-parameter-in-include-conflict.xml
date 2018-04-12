@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright ${license.git.copyrightYears} Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<feature-group-spec name="groupName" xmlns="urn:wildfly:pm-feature-group:1.0">
+  <feature-group name="dep3" inherit-features="false">
+    <include spec="spec1"/>
+    <include feature-id="spec2:p1=v1,p2=v2">
+      <!--  p1 is initialized from the feature-id -->
+      <param name="p2" value="v22"/> <!-- as long as the value matches the one from the feature-id -->
+    </include>
+  </feature-group>
+</feature-group-spec>

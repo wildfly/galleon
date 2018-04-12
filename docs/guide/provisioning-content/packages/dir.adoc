@@ -1,0 +1,30 @@
+#### Package directory structure
+
+Packages are stored in the directories (named after the packages) under the feature-pack *packages* directory.
+
+Package directory contains the following entries:
+
+*   *package.xml* - the metadata describing the package;
+*   _(optional)_ *content* - directory containing the content of the package which will be copied to the installation when the package is installed;
+*   _(optional)_ *pm* - directory containing various resources needed to properly provision the content of the package.
+
+Here is an illustration of the *packages* entry from a feature-pack archive containing packages p1, p2, p3 and p4:
+
+[options="nowrap"]
+ packages/
+ |-p1/
+ | |-content/
+ | | `-...
+ | |-pm/
+ | | `-...
+ | `-package.xml
+ |-p2/
+ | |-content/
+ | | `-...
+ | `-package.xml
+ |-p3/
+ | |-pm/
+ | | `-...
+ | `-package.xml
+ `-p4/
+   `-package.xml

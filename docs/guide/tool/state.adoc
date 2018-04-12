@@ -1,0 +1,177 @@
+## Pm tool
+A set of commands is offered to observe, explore, edit, diff, export, provision or create a new provisioning state.
+
+### Observing an installation or feature-pack.
+
+_[my-dir]$ state info <stream name | --dir=installation> --type=[configs|dependencies]_
+
+Display the set of dependencies and/or configurations. All is displayed by default.
+
+### Exporting an installation to xml
+
+_[my-dir]$ state export <new generated xml file> --dir=<installation>_
+
+###  Provisioning an installation from xml
+
+_[my-dir]$ state provision <target installation directory> --file=<xml file>_
+
+### Exploring an installation or a feature-pack.
+
+_[my-dir]$ state explore <[stream name|--fp=coords] | --dir=installation> +
+[/]$ ls +
+configs +
+feature-specs +
+packages +
+[/]$ state leave +
+[my-dir]$_ +
+
+Once exploring, prompt, ls, cd and pwd commands are bound to the feature-pack (or installation) exposed file-system. +
+The fs is composed of: +
+/configs/final/<model>/<name>/<features> +
+/feature-specs/<origin>/<feature-specs> +
+/packages/<origin>/<packages> + 
+Features and feature-specs are organized as a file system with containment. +
+The set of available commands is limited when in “navigation mode”. 
+Only “cd, ls, pwd and state info|leave” are available. Use state leave to exit this mode.
+
+TIP: Use ‘ls’ to visualize any item. Use ‘cd’ to navigate to a given node.
+
+### Searching the current state
+
+When exploring, editing or composing a new state, one can search the packages and features.
+
+_[/]$state search [--query=<some text> | --package=<package name>]_
+
+When searching with _--query_ all packages and features are looked-up for a match. If packages are matched, the features
+that depend directly or indirectly on these packages will be shown in the result.
+
+When searching with _--package_, the package completer can be used. The features that depend directly or 
+indirectly on this package will be shown in the result.
+
+### Creating a new state (or editing an existing state from an installation or provisioning XML file)
+
+This allow to start from an empty installation or re-use an installation and iteratively add/suppress content. +
+
+_[my-dir]$ state new  | state edit <path to installation | path to provisioning XML file> +
+[/]$ <TAB> +
+cd feature-pack ls pwd state +
+[/]$ ls +
+configs +
+dependencies +
+feature-specs +
+packages_
+
+The filesystem is similar to explore, with the addition of dependencies that contains full content of all added feature-packs. 
+
+NB: Each action as the effect to build a runtime with the current state. The filesystem reflects the current state.
+
+NB: Each action applied to a state in edition can be undone: state undo. Use state leave to exit the composition mode.
+
+NB: The set of exposed commands by completer is dynamic and is adjusted according to the current state.
+
+### Exporting or provisioning the current state
+
+At any time, one can export the provisioning XML file or directly provision from the current state:
+
+_[/]$ state export <path to generated xml file> | state provision <dir of new installation>_
+
+TIP: Use state export to validate that what you get in the XML is in sync with the expose state. In case you find something wrong, shout to me ;-)!
+
+TIP: The command state info can be used to get high level information. I am wandering if we shouldn’t have a flag to display the full XML in the console instead of heaving to read an external file. Possible TODO.
+
+### Adding a feature-pack
+
+_[/]$ feature-pack add <stream | --fp=coords> [--default-configs-inherit] [--packages-inherit]_ +
+
+By default nothing is inherited. Once at least one feature-pack has been added, configurations or packages can be handled. 
+
+NB: A runtime based on the added full feature-pack is built in order to retrieve dependencies content and some completion content. This structure is cached for re-use.
+
+### Removing a feature-pack
+
+_[/]$ feature-pack remove <fpcoord for now>_
+
+### Including a default configuration
+
+_[/]$ config include <model>/<name> [--origin=<fp coords>]_
+
+Origin is optional, by default will be included from all fp that expose it.
+
+### Removing an included default configuration
+
+_[/]$ config remove-included <model>/<name> [--origin=<fp coords>]_
+
+The completer only proposes the set of configurations that have been previously included. Same for fp.
+Origin is optional, by default will be remove from all fp that include it.
+
+
+### Excluding a default configuration
+
+_[/]$ config exclude <model>/<name> [--origin=<fp coords>]_
+
+Origin is optional, by default will be excluded from all fp that expose it.
+
+### Removing an excluded default configuration
+
+_[/]$ config remove-excluded <model>/<name> [--origin=<fp coords>]_
+
+The completer only proposes the set of configurations that have been previously excluded. Same for fp.
+Origin is optional, by default will be remove from all fp that exclude it.
+
+
+### Reseting a configuration
+
+_[/]$ config reset <model>/<name>_
+
+The custom content of this configuration is removed.
+
+NB: This has no effect on included/excluded configurations.
+
+### Including a default package
+
+_[/]$ packages include <fpcoord for now>/<package name>_
+
+### Removing an included default package
+
+_[/]$ packages remove-included <package name> [--origin=<fp coords>]_
+
+The completer only proposes the set of packages that have been previously included.
+The origin is optional, the package will be removed from all fp that exclude it.
+
+### Excluding a default package
+
+_[/]$ packages exclude <fpcoord for now>/<package name>_
+
+### Removing an excluded default package
+
+_[/]$ packages remove-excluded <package name> [--origin=<fp coords>]_
+
+The completer only proposes the set of packages that have been previously excluded.
+The origin is optional, the package will be removed from all fp that exclude it.
+
+### Adding a new feature
+
+_[/]$ feature add <config model/name> <path to feature-spec>  <dynamic set of feature param=<value>>_
+
+For example: +
+_feature add standalone/standalone.xml org.wildfly.core:wildfly-core-feature-pack-new/interface --interface=toto --inet-address=127.0.0.1_
+
+NB: All parameters are exposed as command option.
+ 
+NB: All parameters that are not nillable and have no default values are required. The command being aborted if there are missing required parameters. 
+
+NB: If the parameter is not present, its default value is injected when creating the feature.
+
+NB: The current location (thanks to cd) is not yet taken into account when completing/adding the feature. That is a TODO.
+
+NB: A feature with the same feature-id can’t exist. A single feature with the given feature-id per config.
+
+### Removing a feature
+_[/]$ feature remove <full path to feature inside a configuration>_
+
+For example: +
+_feature remove standalone/standalone.xml/interface/toto_
+
+
+
+
