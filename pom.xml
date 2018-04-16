@@ -44,7 +44,7 @@
 
   <modules>
     <module>core</module>
-    <module>feature-pack-build-maven-plugin</module>
+    <module>maven-plugins</module>
     <module>cli</module>
     <module>universe</module>
   </modules>
@@ -135,7 +135,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>galleon-pack-build-maven-plugin</artifactId>
+        <artifactId>galleon-maven-plugins</artifactId>
         <version>${project.version}</version>
       </dependency>
 

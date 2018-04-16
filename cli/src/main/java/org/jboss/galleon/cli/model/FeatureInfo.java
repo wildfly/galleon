@@ -111,7 +111,7 @@ public class FeatureInfo {
 //        List<String> res = new ArrayList<>();
 //        for (String param : feature.getParamNames()) {
 //            Object val = feature.getConfigParam(param);
-//            //if (!feature.getId().getParams().containsKey(param) && !PM_UNDEFINED.equals(val)) {
+//            //if (!feature.getId().getParams().containsKey(param) && !GLN_UNDEFINED.equals(val)) {
 //                res.add(param + "=" + val);
 //            //}
 //        }

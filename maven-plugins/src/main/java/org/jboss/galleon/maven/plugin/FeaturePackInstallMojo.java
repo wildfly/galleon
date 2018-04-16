@@ -17,8 +17,10 @@
 package org.jboss.galleon.maven.plugin;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -38,8 +40,9 @@ import org.jboss.galleon.maven.plugin.util.FeaturePackInstaller;
 /**
  * Maven plugin to install a feature pack.
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
+ * @author Alexey Loubyansky (c) 2017 Red Hat, inc.
  */
-@Mojo(name = "provision", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_TEST_RESOURCES)
+@Mojo(name = "install", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_TEST_RESOURCES)
 public class FeaturePackInstallMojo extends AbstractMojo {
 
     private static final String SYSPROP_KEY_JBOSS_SERVER_BASE_DIR = "jboss.server.base.dir";
@@ -68,48 +71,50 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
-    @Parameter(required = true)
-    private File outputDirectory;
+    @Parameter(alias = "install-dir", required = true)
+    private File installDir;
 
-    @Parameter(required = false)
-    private File modelConfiguration;
+    @Parameter(alias = "custom-config", required = false)
+    private File customConfig;
 
-    @Parameter(required = false, defaultValue = "false")
-    private Boolean inheritPackages;
+    @Parameter(alias = "inherit-packages", required = false, defaultValue = "true")
+    private boolean inheritPackages;
 
-    @Parameter(required = false, defaultValue = "false")
-    private Boolean inheritConfigs;
+    @Parameter(alias = "inherit-configs", required = false, defaultValue = "true")
+    private boolean inheritConfigs;
 
-    @Parameter(required = true)
+    @Parameter(alias = "feature-pack", required = true)
     private ArtifactItem featurePack;
 
-    @Parameter(required = false)
-    private List<ConfigurationId> configs;
+    @Parameter(alias = "included-configs", required = false)
+    private List<ConfigurationId> includedConfigs = Collections.emptyList();;
 
-    @Parameter(required = false)
-    private List<String> excludedPackages;
+    @Parameter(alias = "exluded-packages", required = false)
+    private List<String> excludedPackages = Collections.emptyList();;
 
-    @Parameter(required = false)
-    private List<String> includedPackages;
+    @Parameter(alias = "included-packages", required = false)
+    private List<String> includedPackages = Collections.emptyList();
 
-    @Parameter(required = false)
-    private Map<String, String> options;
+    @Parameter(alias = "plugin-options", required = false)
+    private Map<String, String> pluginOptions = Collections.emptyMap();
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         resetProperties();
-        FeaturePackInstaller installer = new FeaturePackInstaller(
+        final FeaturePackInstaller fpInstaller = FeaturePackInstaller.newInstance(
                 repoSession.getLocalRepository().getBasedir().toPath(),
-                outputDirectory.toPath(),
-                modelConfiguration == null ? null : modelConfiguration.toPath().toAbsolutePath(),
-                configs,
-                featurePack.getArtifactCoords().toGav().toString(),
-                inheritConfigs,
-                inheritPackages,
-                includedPackages,
-                excludedPackages,
-                options);
-        installer.install();
+                installDir.toPath(),
+                featurePack.getArtifactCoords().toGav())
+                .setInheritConfigs(inheritConfigs)
+                .includeConfigs(includedConfigs)
+                .setInheritPackages(inheritPackages)
+                .includePackages(includedPackages)
+                .excludePackages(excludedPackages)
+                .setPluginOptions(pluginOptions);
+        if(customConfig != null) {
+            fpInstaller.setCustomConfig(customConfig.toPath().toAbsolutePath());
+        }
+        fpInstaller.install();
     }
 
     private static void resetProperties() {
