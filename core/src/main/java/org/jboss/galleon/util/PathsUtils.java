@@ -18,7 +18,6 @@ package org.jboss.galleon.util;
 
 import java.nio.file.Path;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 
 /**
@@ -39,14 +38,5 @@ public class PathsUtils {
 
     public static Path getProvisionedStateXml(Path installationDir) {
         return getProvisionedStateDir(installationDir).resolve(Constants.PROVISIONED_STATE_XML);
-    }
-
-    public static Path getFeaturePackXml(Path installationDir, ArtifactCoords.Gav fpGav) {
-        return getProvisionedStateDir(installationDir)
-                .resolve(Constants.FEATURE_PACKS)
-                .resolve(fpGav.getGroupId())
-                .resolve(fpGav.getArtifactId())
-                .resolve(fpGav.getVersion())
-                .resolve(Constants.FEATURE_PACK_XML);
     }
 }

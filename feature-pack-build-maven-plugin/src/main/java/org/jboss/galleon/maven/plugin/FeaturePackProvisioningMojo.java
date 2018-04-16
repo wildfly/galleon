@@ -98,9 +98,10 @@ public class FeaturePackProvisioningMojo extends AbstractMojo {
             throw new MojoExecutionException(Errors.pathDoesNotExist(provXml));
         }
 
-        final String installDirArg = repoSession.getSystemProperties().get(Constants.PM_INSTALL_DIR);
+        final String installDirProp = "galleon.target.dir";
+        final String installDirArg = repoSession.getSystemProperties().get(installDirProp);
         if(installDirArg == null) {
-            throw new MojoExecutionException(FpMavenErrors.propertyMissing(Constants.PM_INSTALL_DIR));
+            throw new MojoExecutionException(FpMavenErrors.propertyMissing(installDirProp));
         }
         final Path installDir = Paths.get(installDirArg);
 
