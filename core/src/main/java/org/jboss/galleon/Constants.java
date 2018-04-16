@@ -41,7 +41,7 @@ public interface Constants {
     String SPEC_XML = "spec.xml";
     String THIS = "this";
 
-    String PROVISIONED_STATE_DIR = ".pm";
+    String PROVISIONED_STATE_DIR = ".galleon";
     String PROVISIONED_STATE_XML = "provisioned.xml";
 
     String PM_UNDEFINED = "PM_UNDEFINED";
@@ -50,7 +50,7 @@ public interface Constants {
     String BUILT_IN_TYPE_STRING = "String";
 
     // SYSTEM PROPERTIES
-    String PROP_CONFIG_ARRANGER = "pm.config.arranger";
+    String PROP_CONFIG_ARRANGER = "galleon.config.arranger";
 
     // CONFIG ARRANGERS
     String CONFIG_ARRANGER_SPEC_ONLY = "spec-only";
