@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ArtifactCoords;
@@ -31,54 +32,94 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
 /**
  *
  * @author Emmanuel Hugonnet (c) 2018 Red Hat, inc.
+ * @author Alexey Loubyansky (c) 2018 Red Hat, inc.
  */
 public class FeaturePackInstaller {
 
+    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, ArtifactCoords.Gav fpGav) {
+        return new FeaturePackInstaller(repoHome, installationDir, fpGav);
+    }
+
     private final Path repoHome;
     private final Path installationDir;
-    private final Path configuration;
-    private final List<ConfigurationId> configs;
-    private final String featurePackGav;
-    private final boolean inheritPackages;
-    private final boolean inheritConfigs;
-    private final List<String> includedPackages;
-    private final List<String> excludedPackages;
-    private final Map<String, String> options;
+    private final ArtifactCoords.Gav fpGav;
+    private boolean inheritConfigs = true;
+    private List<ConfigurationId> includedConfigs = Collections.emptyList();
+    private Path customConfig;
+    private boolean inheritPackages = true;
+    private List<String> includedPackages = Collections.emptyList();
+    private List<String> excludedPackages = Collections.emptyList();
+    private Map<String, String> pluginOptions = Collections.emptyMap();
 
-    public FeaturePackInstaller(Path repoHome, Path installationDir, Path configuration,
-            List<ConfigurationId> configs, String featurePackGav, boolean inheritConfigs, boolean inheritPackages,
-            List<String> includedPackages, List<String> excludedPackages, Map<String, String> options) {
+    private FeaturePackInstaller(Path repoHome, Path installationDir, ArtifactCoords.Gav fpGav) {
         this.repoHome = repoHome;
         this.installationDir = installationDir;
-        this.configuration = configuration;
+        this.fpGav = fpGav;
+    }
+
+    public FeaturePackInstaller setInheritConfigs(boolean inheritConfigs) {
         this.inheritConfigs = inheritConfigs;
+        return this;
+    }
+
+    public FeaturePackInstaller includeConfig(ConfigurationId configId) {
+        includedConfigs = CollectionUtils.add(includedConfigs, configId);
+        return this;
+    }
+
+    public FeaturePackInstaller includeConfigs(List<ConfigurationId> configIds) {
+        includedConfigs = CollectionUtils.addAll(includedConfigs, configIds);
+        return this;
+    }
+
+    public FeaturePackInstaller setCustomConfig(Path customConfig) {
+        this.customConfig = customConfig;
+        return this;
+    }
+
+    public FeaturePackInstaller setInheritPackages(boolean inheritPackages) {
         this.inheritPackages = inheritPackages;
-        this.featurePackGav = featurePackGav;
-        if (configs == null) {
-            this.configs = Collections.emptyList();
-        } else {
-            this.configs = configs;
-        }
-        if (includedPackages == null) {
-            this.includedPackages = Collections.emptyList();
-        } else {
-            this.includedPackages = includedPackages;
-        }
-        if (excludedPackages == null) {
-            this.excludedPackages = Collections.emptyList();
-        } else {
-            this.excludedPackages = excludedPackages;
-        }
-        if (options == null) {
-            this.options = Collections.emptyMap();
-        } else {
-            this.options = options;
-        }
+        return this;
+    }
+
+    public FeaturePackInstaller includePackage(String packageName) {
+        includedPackages = CollectionUtils.add(includedPackages, packageName);
+        return this;
+    }
+
+    public FeaturePackInstaller includePackages(List<String> packageNames) {
+        includedPackages = CollectionUtils.addAll(includedPackages, packageNames);
+        return this;
+    }
+
+    public FeaturePackInstaller excludePackage(String packageName) {
+        excludedPackages = CollectionUtils.add(excludedPackages, packageName);
+        return this;
+    }
+
+    public FeaturePackInstaller excludePackages(List<String> packageNames) {
+        excludedPackages = CollectionUtils.addAll(excludedPackages, packageNames);
+        return this;
+    }
+
+    public FeaturePackInstaller setPluginOption(String option) {
+        return setPluginOption(option, null);
+    }
+
+    public FeaturePackInstaller setPluginOption(String option, String value) {
+        pluginOptions = CollectionUtils.put(pluginOptions, option, value);
+        return this;
+    }
+
+    public FeaturePackInstaller setPluginOptions(Map<String, String> options) {
+        this.pluginOptions = CollectionUtils.putAll(pluginOptions, options);
+        return this;
     }
 
     public void install() {
@@ -86,18 +127,18 @@ public class FeaturePackInstaller {
             ProvisioningManager manager = getManager();
             System.setProperty("org.wildfly.logging.skipLogManagerCheck", "true");
             ConfigModel config = null;
-            if (configuration != null && Files.exists(configuration)) {
-                try (BufferedReader reader = Files.newBufferedReader(configuration)) {
+            if (customConfig != null && Files.exists(customConfig)) {
+                try (BufferedReader reader = Files.newBufferedReader(customConfig)) {
                     config = ConfigXmlParser.getInstance().parse(reader);
                 } catch (XMLStreamException | IOException ex) {
-                    throw new IllegalArgumentException("Couldn't load the customization configuration " + configuration, ex);
+                    throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
                 }
             }
-            FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(ArtifactCoords.newGav(featurePackGav))
+            FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(fpGav)
                     .setInheritPackages(inheritPackages)
                     .setInheritConfigs(inheritConfigs);
-            if(configs != null && ! configs.isEmpty()) {
-                for(ConfigurationId configId : configs) {
+            if(includedConfigs != null && ! includedConfigs.isEmpty()) {
+                for(ConfigurationId configId : includedConfigs) {
                     if(configId.isModelOnly()) {
                         fpConfigBuilder.includeConfigModel(configId.getId().getModel());
                     } else {
@@ -118,9 +159,9 @@ public class FeaturePackInstaller {
                     fpConfigBuilder.excludePackage(excludedPackage);
                 }
             }
-            manager.install(fpConfigBuilder.build(), options);
+            manager.install(fpConfigBuilder.build(), pluginOptions);
         } catch (ProvisioningException ex) {
-            throw new IllegalArgumentException("Couldn't install the feature pack " + featurePackGav, ex);
+            throw new IllegalArgumentException("Couldn't install the feature pack " + fpGav, ex);
         } finally {
             System.clearProperty("org.wildfly.logging.skipLogManagerCheck");
         }

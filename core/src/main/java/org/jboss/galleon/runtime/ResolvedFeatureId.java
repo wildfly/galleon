@@ -163,7 +163,7 @@ public class ResolvedFeatureId {
         this.specId = specId;
         Map<String, Object> filtered = Collections.emptyMap(); // TODO
         for(Map.Entry<String, Object> entry : params.entrySet()) {
-            if(!Constants.PM_UNDEFINED.equals(entry.getValue())) {
+            if(!Constants.GLN_UNDEFINED.equals(entry.getValue())) {
                 filtered = CollectionUtils.put(filtered, entry.getKey(), entry.getValue());
             }
         }

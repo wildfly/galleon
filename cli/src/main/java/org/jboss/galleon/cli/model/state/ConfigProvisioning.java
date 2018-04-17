@@ -93,7 +93,7 @@ public class ConfigProvisioning {
                 FeatureParameterSpec p = spec.getSpec().getParams().get(opt);
                 String value = options.get(opt);
                 if (p.isFeatureId()) {
-                    if (!Constants.PM_UNDEFINED.equals(value)) {
+                    if (!Constants.GLN_UNDEFINED.equals(value)) {
                         ids.put(opt, value);
                     }
                 } else if (!value.equals(p.getDefaultValue())) {

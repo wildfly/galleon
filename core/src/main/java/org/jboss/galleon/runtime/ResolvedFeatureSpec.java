@@ -498,7 +498,7 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
                         return Collections.emptyList();
                     }
                 }
-                if(paramValue.equals(Constants.PM_UNDEFINED)) {
+                if(paramValue.equals(Constants.GLN_UNDEFINED)) {
                     continue;
                 }
                 if(resolvedParam.type.isCollection()) {
@@ -518,7 +518,7 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
                         final Map<String, Object> idParams = paramsList.get(i);
                         int colI = 0;
                         for(Object item : col) {
-                            if(item.equals(Constants.PM_UNDEFINED)) {
+                            if(item.equals(Constants.GLN_UNDEFINED)) {
                                 continue;
                             }
                             if(colI++ == 0) {
@@ -556,7 +556,7 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
                         return Collections.emptyList();
                     }
                 }
-                if(paramValue.equals(Constants.PM_UNDEFINED)) {
+                if(paramValue.equals(Constants.GLN_UNDEFINED)) {
                     continue;
                 }
 
@@ -577,7 +577,7 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
                         final Map<String, Object> idParams = paramsList.get(i);
                         int colI = 0;
                         for(Object item : col) {
-                            if(item.equals(Constants.PM_UNDEFINED)) {
+                            if(item.equals(Constants.GLN_UNDEFINED)) {
                                 continue;
                             }
                             if(colI++ == 0) {

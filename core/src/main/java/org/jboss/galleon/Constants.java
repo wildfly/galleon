@@ -22,11 +22,6 @@ package org.jboss.galleon;
  */
 public interface Constants {
 
-    String FEATURE_PACKS = "featurepacks";
-    String PM_INSTALL_DIR = "pm.target.dir";
-    String PM_INSTALL_WORK_DIR = "pm.install.workdir";
-    String PM_TOOL_HOME_DIR = "pm.tool.home";
-
     String DOT_XML = ".xml";
     String CONTENT = "content";
     String FEATURE_GROUPS = "feature_groups";
@@ -41,16 +36,16 @@ public interface Constants {
     String SPEC_XML = "spec.xml";
     String THIS = "this";
 
-    String PROVISIONED_STATE_DIR = ".pm";
+    String PROVISIONED_STATE_DIR = ".galleon";
     String PROVISIONED_STATE_XML = "provisioned.xml";
 
-    String PM_UNDEFINED = "PM_UNDEFINED";
+    String GLN_UNDEFINED = "GLN_UNDEFINED";
 
     // BUILT-IN TYPES
     String BUILT_IN_TYPE_STRING = "String";
 
     // SYSTEM PROPERTIES
-    String PROP_CONFIG_ARRANGER = "pm.config.arranger";
+    String PROP_CONFIG_ARRANGER = "galleon.config.arranger";
 
     // CONFIG ARRANGERS
     String CONFIG_ARRANGER_SPEC_ONLY = "spec-only";
