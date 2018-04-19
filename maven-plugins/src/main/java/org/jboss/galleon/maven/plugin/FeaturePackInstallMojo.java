@@ -89,7 +89,7 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Parameter(alias = "included-configs", required = false)
     private List<ConfigurationId> includedConfigs = Collections.emptyList();;
 
-    @Parameter(alias = "exluded-packages", required = false)
+    @Parameter(alias = "excluded-packages", required = false)
     private List<String> excludedPackages = Collections.emptyList();;
 
     @Parameter(alias = "included-packages", required = false)
