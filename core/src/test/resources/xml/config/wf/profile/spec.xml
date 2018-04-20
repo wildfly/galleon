@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature-spec name="profile" xmlns="urn:wildfly:pm-feature-spec:1.0">
+<feature-spec name="profile" xmlns="urn:jboss:galleon:feature-spec:1.0">
   <params>
     <param name="name" feature-id="true"/>
   </params>

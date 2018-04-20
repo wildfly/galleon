@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature spec="feature-spec" parent-ref="parent-spec" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature spec="feature-spec" parent-ref="parent-spec" xmlns="urn:jboss:galleon:feature-group:1.0">
   <depends feature-id="spec1:p1=v1"/>
   <depends feature-id="spec2:p1=v1,p2=v2"/>
   <param name="param1" value="value1"/>

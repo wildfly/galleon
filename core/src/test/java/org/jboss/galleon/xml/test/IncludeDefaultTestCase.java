@@ -33,7 +33,7 @@ import org.junit.Test;
 public class IncludeDefaultTestCase {
 
     private static final XmlParserValidator<ProvisioningConfig> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
 
     @Test
     public void testMain() throws Exception {

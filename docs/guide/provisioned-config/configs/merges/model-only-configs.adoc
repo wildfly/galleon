@@ -14,7 +14,7 @@ Here is an example:
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
   <config model="modelA">
     <feature spec="feature1">
@@ -34,7 +34,7 @@ Here is an example:
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
@@ -112,7 +112,7 @@ NOTE: Config model designers are encouraged to design the configs in a way that 
 In a previous chapter it was described how the default configs could be excluded from the provisioned installation by <<excl-configs-by-model,specifying their model name>>. Here is the example snipped again
 [source,xml]
 ----
-<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+<installation xmlns="urn:jboss:galleon:provisioning:1.0">
     <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">
         <default-configs>
             <exclude model="model1"/>
@@ -125,7 +125,7 @@ The `exclude` element above *does not* affect the model-only configs. It affects
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
   <config model="modelA">
     <feature spec="feature1">
@@ -146,7 +146,7 @@ The `exclude` element above *does not* affect the model-only configs. It affects
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
@@ -174,7 +174,7 @@ If we install these feature-packs the resulting config will contain
 If, we exclude the *modelA* like it was shown in the previous example *in the declaration of the dependency on the fp1*, i.e.
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
@@ -205,7 +205,7 @@ If we install the *fp2*, the provisioned configuration will contain
 The model-only config from *fp1* is still effective because it is considered as an essential for any named config of the *modelA*. In case it still has to be excluded from the provisioned config you can add the `named-only-models="false"` attribute to the `exclude` element, e.g.
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
@@ -243,7 +243,7 @@ In an earlier chapter it was shown <<disable-def-configs,how the default configs
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
   <config model="modelA">
     <feature spec="feature1">
@@ -264,7 +264,7 @@ In an earlier chapter it was shown <<disable-def-configs,how the default configs
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
@@ -290,7 +290,7 @@ IMPORTANT: The `inherit-unnamed-models` attributes of the `default-configs` elem
 Here is an example that disables the inheritance of all the anonymous, named and model-only configs:
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">

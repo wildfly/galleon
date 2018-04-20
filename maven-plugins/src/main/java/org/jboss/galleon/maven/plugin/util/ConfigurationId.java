@@ -45,4 +45,19 @@ public class ConfigurationId {
     public boolean isModelOnly() {
         return name == null || name.isEmpty();
     }
+
+    public String toString() {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("{");
+        if(model != null) {
+            buf.append("model=").append(model);
+        }
+        if(name != null) {
+            if(buf.length() > 1) {
+                buf.append(' ');
+            }
+            buf.append("name=").append(name);
+        }
+        return buf.append('}').toString();
+    }
 }

@@ -40,7 +40,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  */
 public class FeaturePackXmlParser10 implements PlugableXmlParser<FeaturePackSpec.Builder> {
 
-    public static final String NAMESPACE_1_0 = "urn:wildfly:pm-feature-pack:1.0";
+    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:feature-pack:1.0";
     public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.FEATURE_PACK.getLocalName());
 
     public enum Element implements XmlNameProvider {

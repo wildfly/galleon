@@ -138,7 +138,7 @@ class DefaultBranchedConfigArranger {
             }
         }
 /*
-        final Path file = Paths.get(System.getProperty("user.home")).resolve("pm-scripts").resolve(configStack.id.getName() + "-branches.txt");
+        final Path file = Paths.get(System.getProperty("user.home")).resolve("galleon-scripts").resolve(configStack.id.getName() + "-branches.txt");
         try {
             Files.createDirectories(file.getParent());
         } catch (IOException e) {

@@ -36,7 +36,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  */
 class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.Builder> {
 
-    public static final String NAMESPACE_1_0 = "urn:wildfly:pm-provisioned-state:1.0";
+    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:provisioned-state:1.0";
     public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.INSTALLATION.getLocalName());
 
     enum Element implements XmlNameProvider {

@@ -34,7 +34,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  */
 public class PackageXmlParser10 implements PlugableXmlParser<PackageSpec.Builder> {
 
-    public static final String NAMESPACE_1_0 = "urn:wildfly:pm-package:1.0";
+    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:package:1.0";
     public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.PACKAGE_SPEC.getLocalName());
 
     public enum Element implements XmlNameProvider {

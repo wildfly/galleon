@@ -39,7 +39,7 @@ import org.junit.Test;
 public class FeaturePackXmlParserTestCase  {
 
     private static final XmlParserValidator<FeaturePackSpec> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-feature-pack-1_0.xsd"), FeaturePackXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-feature-pack-1_0.xsd"), FeaturePackXmlParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 
@@ -55,11 +55,11 @@ public class FeaturePackXmlParserTestCase  {
     @Test
     public void readBadNamespace() throws Exception {
         /*
-         * urn:wildfly:pm-feature-pack:1.0.1 used in feature-pack-1.0.1.xml is not registered in ProvisioningXmlParser
+         * urn:jboss:galleon:feature-pack:1.0.1 used in feature-pack-1.0.1.xml is not registered in ProvisioningXmlParser
          */
         validator.validateAndParse("xml/feature-pack/feature-pack-1.0.1.xml",
                 "Cannot find the declaration of element 'feature-pack'.",
-                "Message: Unexpected element '{urn:wildfly:pm-feature-pack:1.0.1}feature-pack'");
+                "Message: Unexpected element '{urn:jboss:galleon:feature-pack:1.0.1}feature-pack'");
     }
 
     @Test
@@ -85,14 +85,14 @@ public class FeaturePackXmlParserTestCase  {
     @Test
     public void readEmptyDependencies() throws Exception {
         validator.validateAndParse("xml/feature-pack/feature-pack-1.0-empty-dependencies.xml",
-                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:wildfly:pm-feature-pack:1.0\":dependency}' is expected.",
+                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:jboss:galleon:feature-pack:1.0\":dependency}' is expected.",
                 "The content of element 'dependencies' is not complete. One of 'dependency' is expected.");
     }
 
     @Test
     public void readEmptyPackages() throws Exception {
         validator.validateAndParse("xml/feature-pack/feature-pack-1.0-empty-packages.xml",
-                "cvc-complex-type.2.4.b: The content of element 'default-packages' is not complete. One of '{\"urn:wildfly:pm-feature-pack:1.0\":package}' is expected.",
+                "cvc-complex-type.2.4.b: The content of element 'default-packages' is not complete. One of '{\"urn:jboss:galleon:feature-pack:1.0\":package}' is expected.",
                 "The content of element 'default-packages' is not complete. One of 'package' is expected.");
     }
 

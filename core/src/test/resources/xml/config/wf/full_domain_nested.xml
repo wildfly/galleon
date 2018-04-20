@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature-group-spec name="full_domain" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature-group-spec name="full_domain" xmlns="urn:jboss:galleon:feature-group:1.0">
   <feature spec="extension">
     <param name="name" value="org.jboss.as.logging"/>
   </feature>

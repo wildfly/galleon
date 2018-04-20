@@ -6,7 +6,7 @@ Feature ID consists of a feature spec name plus one or more feature parameters. 
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="feature1">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="feature1">
    <params>
      <param name="name" feature-id="true"/>
      <param name="b" default="bb"/>
@@ -23,7 +23,7 @@ Here is an example of a feature spec with multiple feature ID parameters:
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="feature2">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="feature2">
    <params>
      <param name="p1" feature-id="true"/>
      <param name="p2" feature-id="true"/>

@@ -42,7 +42,7 @@ import org.jboss.galleon.maven.plugin.util.FeaturePackInstaller;
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  * @author Alexey Loubyansky (c) 2017 Red Hat, inc.
  */
-@Mojo(name = "install", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_TEST_RESOURCES)
+@Mojo(name = "install-feature-pack", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_TEST_RESOURCES)
 public class FeaturePackInstallMojo extends AbstractMojo {
 
     private static final String SYSPROP_KEY_JBOSS_SERVER_BASE_DIR = "jboss.server.base.dir";
@@ -89,7 +89,7 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Parameter(alias = "included-configs", required = false)
     private List<ConfigurationId> includedConfigs = Collections.emptyList();;
 
-    @Parameter(alias = "exluded-packages", required = false)
+    @Parameter(alias = "excluded-packages", required = false)
     private List<String> excludedPackages = Collections.emptyList();;
 
     @Parameter(alias = "included-packages", required = false)

@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature spec="feature-spec" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature spec="feature-spec" xmlns="urn:jboss:galleon:feature-group:1.0">
   <param name="param1" value="value1"/>
   <param name="param2" value="value2"/>
 </feature>

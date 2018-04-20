@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+<installation xmlns="urn:jboss:galleon:provisioning:1.0">
   <feature-pack groupId="org.jboss.group1" artifactId="fp1" version="0.0.1">
     <packages inherit="true"/>
   </feature-pack>

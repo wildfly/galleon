@@ -5,7 +5,7 @@
 Package dependencies are configured under the *packages* element of the feature spec which is equivalent to the <<package-deps,*dependencies* element of the package spec metadata>>. Here is an example
 [source,xml]
 ----
- <feature-spec name="feature1" xmlns="urn:wildfly:pm-feature-spec:1.0">
+ <feature-spec name="feature1" xmlns="urn:jboss:galleon:feature-spec:1.0">
    <params>
      <param name="id" feature-id="true"/>
    </params>

@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature-spec name="logging-formatter" xmlns="urn:wildfly:pm-feature-spec:1.0">
+<feature-spec name="logging-formatter" xmlns="urn:jboss:galleon:feature-spec:1.0">
   <refs>
     <ref feature="logging">
       <param name="profile" maps-to="profile"/>

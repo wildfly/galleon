@@ -5,7 +5,7 @@ Feature groups allow to group a set of features that represent a certain part of
 
 [source,xml]
 ----
- <feature-group-spec name="group1" xmlns="urn:wildfly:pm-feature-group:1.0">
+ <feature-group-spec name="group1" xmlns="urn:jboss:galleon:feature-group:1.0">
    <feature spec="feature1">
      <param name="id" value="a1"/>
      <feature spec="feature2">
@@ -20,7 +20,7 @@ Feature groups allow to group a set of features that represent a certain part of
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
    <config>
      <feature-group name="group1"/>
@@ -36,7 +36,7 @@ Besides features, feature groups may also include other feature groups. Continui
 
 [source,xml]
 ----
- <feature-group-spec name="group2" xmlns="urn:wildfly:pm-feature-group:1.0">
+ <feature-group-spec name="group2" xmlns="urn:jboss:galleon:feature-group:1.0">
    <feature-group name="group1"/>
    <feature spec="feature4">
      <param name="id" value="d1"/>
@@ -46,7 +46,7 @@ Besides features, feature groups may also include other feature groups. Continui
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
    <config>
      <feature-group name="group2"/>

@@ -32,7 +32,7 @@ import org.junit.Test;
 public class ProvisionedXmlParserTestCase {
 
     private static final XmlParserValidator<ProvisionedState> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-provisioned-state-1_0.xsd"), ProvisionedStateXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioned-state-1_0.xsd"), ProvisionedStateXmlParser.getInstance());
 
     @Test
     public void readValid() throws Exception {

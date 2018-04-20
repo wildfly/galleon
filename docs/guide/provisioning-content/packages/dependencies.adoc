@@ -14,7 +14,7 @@ If a package depends on another package from the same feature-pack, the dependen
 
 [source,xml]
 ----
- <package-spec xmlns="urn:wildfly:pm-package:1.0" name="p1">
+ <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
     <dependencies>
         <package name="p2"/>
         <package name="p3" optional=”true”/>
@@ -36,7 +36,7 @@ For example, suppose feature-pack *fp1* depends on feature-pack *fp2* and packag
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
     <dependencies>
         <dependency groupId="org.jboss.pm.test" artifactId="fp2" version="2.0.0">
@@ -53,7 +53,7 @@ And the *package.xml* file of *fp1:p1* might look like this:
 
 [source,xml]
 ----
- <package-spec xmlns="urn:wildfly:pm-package:1.0" name="p1">
+ <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
     <dependencies>
         <package name="p2" />
         <feature-pack dependency=”fp2-dep”>

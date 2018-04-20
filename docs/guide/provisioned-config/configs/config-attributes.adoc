@@ -9,7 +9,7 @@ Configuration models are described in the `feature-pack.xml` file under the `con
 In the XML it could look like this (the content of the `config` elements has been left out as not important in this example):
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
   <config>
     <!-- anonymous config -->

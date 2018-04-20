@@ -35,7 +35,7 @@ import org.junit.Test;
 public class ProvisioningXmlParserTestCase {
 
     private static final XmlParserValidator<ProvisioningConfig> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 
@@ -51,11 +51,11 @@ public class ProvisioningXmlParserTestCase {
     @Test
     public void readBadNamespace() throws Exception {
         /*
-         * urn:wildfly:pm-provisioning:1.0.1 used in provisioning-1.0.1.xml is not registered in ProvisioningXmlParser
+         * urn:jboss:galleon:provisioning:1.0.1 used in provisioning-1.0.1.xml is not registered in ProvisioningXmlParser
          */
         validator.validateAndParse("xml/provisioning/provisioning-1.0.1.xml",
                 "Cannot find the declaration of element 'installation'.",
-                "Message: Unexpected element '{urn:wildfly:pm-provisioning:1.0.1}installation'");
+                "Message: Unexpected element '{urn:jboss:galleon:provisioning:1.0.1}installation'");
     }
 
     @Test
@@ -75,7 +75,7 @@ public class ProvisioningXmlParserTestCase {
     @Test
     public void readNoFp() throws Exception {
         validator.validateAndParse("xml/provisioning/provisioning-1.0-no-fp.xml",
-                "cvc-complex-type.2.4.b: The content of element 'installation' is not complete. One of '{\"urn:wildfly:pm-provisioning:1.0\":feature-pack}' is expected.",
+                "cvc-complex-type.2.4.b: The content of element 'installation' is not complete. One of '{\"urn:jboss:galleon:provisioning:1.0\":feature-pack}' is expected.",
                 "The content of element 'installation' is not complete. One of 'feature-pack' is expected.");
     }
 

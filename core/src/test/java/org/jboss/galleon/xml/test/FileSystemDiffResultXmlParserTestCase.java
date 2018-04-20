@@ -35,7 +35,7 @@ import org.junit.Test;
  */
 public class FileSystemDiffResultXmlParserTestCase {
      private static final XmlParserValidator<FileSystemDiffResult> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-diff-result-1_0.xsd"), FileSystemDiffResultParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-diff-result-1_0.xsd"), FileSystemDiffResultParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 
