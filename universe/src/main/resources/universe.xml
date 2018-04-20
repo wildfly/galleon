@@ -20,10 +20,7 @@
 
 <universe xmlns="urn:jboss:universe:1.0">
     <!-- Should be a reference to an actual stream artifact, for now version range -->
-    <stream name="wildfly-core:4" group-id="org.wildfly.core" artifact-id="wildfly-core-feature-pack-new" version-range="[4.0.0-alpha,5.0.0-alpha)"/>
-    <stream name="wildfly-core:5" group-id="org.wildfly.core" artifact-id="wildfly-core-feature-pack-new" version-range="[5.0.0-alpha,6.0.0-alpha)"/>
-    <stream name="wildfly-servlet:12" group-id="org.wildfly" artifact-id="wildfly-servlet-feature-pack-new" version-range="[12.0.0-alpha,13.0.0-alpha)"/>
-    <stream name="wildfly:12" group-id="org.wildfly" artifact-id="wildfly-feature-pack-new" version-range="[12.0.0-alpha,13.0.0-alpha)"/>
-    <stream name="wildfly-servlet:13" group-id="org.wildfly" artifact-id="wildfly-servlet-feature-pack-new" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
-    <stream name="wildfly:13" group-id="org.wildfly" artifact-id="wildfly-feature-pack-new" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
+    <stream name="wildfly-core:5" group-id="org.wildfly.core" artifact-id="wildfly-core-galleon-pack" version-range="[5.0.0-alpha,6.0.0-alpha)"/>
+    <stream name="wildfly-servlet:13" group-id="org.wildfly" artifact-id="wildfly-servlet-galleon-pack" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
+    <stream name="wildfly:13" group-id="org.wildfly" artifact-id="wildfly-galleon-pack" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
 </universe>
