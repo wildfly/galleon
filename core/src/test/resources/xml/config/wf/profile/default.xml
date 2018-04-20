@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature spec="default" xmlns="urn:wildfly:pm-config:1.0">
+<feature spec="default" xmlns="urn:jboss:galleon:config:1.0">
   <parameters>
     <parameter name="name" value="default"/>
   </parameters>

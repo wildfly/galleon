@@ -5,7 +5,7 @@
 Suppose, we have the following group spec:
 [source,xml]
 ----
-<feature-group-spec name="group1" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature-group-spec name="group1" xmlns="urn:jboss:galleon:feature-group:1.0">
 
   <feature spec="feature1">
     <param name="id" value="a1"/>

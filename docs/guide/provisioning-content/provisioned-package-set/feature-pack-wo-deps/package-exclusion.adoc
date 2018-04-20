@@ -4,7 +4,7 @@ A package may be explicitly excluded from the feature-pack's effective package s
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.fp.group1" artifactId="fp1" version="1.0.0" >
     <default-packages>
         <package name="p1" />

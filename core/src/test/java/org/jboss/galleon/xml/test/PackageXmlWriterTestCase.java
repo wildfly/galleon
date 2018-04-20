@@ -38,7 +38,7 @@ import static org.junit.Assert.assertTrue;
  * @author Bartosz Spyrko-Smietanko (bspyrkos@redhat.com)
  */
 public class PackageXmlWriterTestCase {
-    private static final String SCHEMA = "schema/pm-package-1_0.xsd";
+    private static final String SCHEMA = "schema/galleon-package-1_0.xsd";
 
     private static XmlParserValidator<PackageSpec> validator;
     private static Path tmpDir;

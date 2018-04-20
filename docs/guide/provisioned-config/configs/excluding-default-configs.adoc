@@ -4,7 +4,7 @@ To be able to exclude a config, it needs to be identifiable. I.e. it must have a
 
 [source,xml]
 ----
-<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+<installation xmlns="urn:jboss:galleon:provisioning:1.0">
     <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">
 
         <default-configs inherit="false"/>
@@ -43,7 +43,7 @@ In case there are multiple named configs that are associated with the same model
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
 
   <config model="model1" name="config1">
@@ -66,7 +66,7 @@ In case there are multiple named configs that are associated with the same model
 [[excl-configs-by-model]]They can be excluded altogether by specifying the model name, e.g.
 [source,xml]
 ----
-<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+<installation xmlns="urn:jboss:galleon:provisioning:1.0">
     <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">
         <default-configs>
             <exclude model="model1"/>

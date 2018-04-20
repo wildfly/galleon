@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<package-spec xmlns="urn:wildfly:pm-package:1.0.1" name="package1">
+<package-spec xmlns="urn:jboss:galleon:package:1.0.1" name="package1">
   <dependencies>
     <package name="dep1" />
     <package name="dep2" />

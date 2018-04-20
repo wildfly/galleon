@@ -6,7 +6,7 @@ In a feature spec a simple feature reference would look like
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP"/>
    </refs>
@@ -53,7 +53,7 @@ Suppose we want to explicitly map parameters in the reference declaration. The e
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP">
        <param name="p" maps-to="p"/>
@@ -70,7 +70,7 @@ Now let's suppose that *featureP*'s ID parameter is in fact *name* but we still 
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP">
        <param name="p" maps-to="name"/>
@@ -87,7 +87,7 @@ If *featureP* had more than one ID parameter, e.g.
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureP">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureP">
    <params>
      <param name="id1" feature-id="true"/>
      <param name="id2" feature-id="true"/>
@@ -99,7 +99,7 @@ Then the reference parameter mapping in *featureC* could look like:
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP">
        <param name="p1" maps-to="id1"/>
@@ -121,7 +121,7 @@ Feature reference resolves to null if one of the feature reference parameters is
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP" nillable="true">
        <param name="p1" maps-to="id1"/>
@@ -145,7 +145,7 @@ For example, suppose, feature-pack *fp1* depends on feature-pack *fp2*.
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
     <dependencies>
         <dependency groupId="org.jboss.pm.test" artifactId="fp2" version="2.0.0">
@@ -159,7 +159,7 @@ For example, suppose, feature-pack *fp1* depends on feature-pack *fp2*.
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureP">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureP">
    <params>
      <param name="p" feature-id="true"/>
    </params>
@@ -170,7 +170,7 @@ And *fp1* includes a feature spec *featureC* which declares a reference to *feat
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref dependency="fp2-dep" feature="featureP"/>
    </refs>
@@ -188,7 +188,7 @@ And *fp1* includes a feature spec *featureC* which declares a reference to *feat
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureP">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureP">
    <params>
      <param name="parentId" feature-id="true"/>
    </params>
@@ -197,7 +197,7 @@ And *fp1* includes a feature spec *featureC* which declares a reference to *feat
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP"/>
    </refs>
@@ -244,7 +244,7 @@ IMPORTANT: When a feature is nested, the tool will look in the feature spec of t
 In case the reference name is different from the referenced feature spec name, i.e. it was explicitly set in the reference spec, e.g.
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref feature="featureP" name="parent"/>
    </refs>
@@ -276,7 +276,7 @@ It is possible to configure feature references so that when the resolved referen
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureC">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureC">
    <refs>
      <ref dependency="fp2-dep" feature="featureP" include="true"/>
    </refs>
@@ -294,7 +294,7 @@ Suppose a feature needs to declare more than one reference to the same feature s
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="link">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="link">
    <refs>
      <ref feature="link">
        <param name="prev-id" maps-to="id"/>
@@ -315,7 +315,7 @@ Feature references must have a unique name. In this case, both reference names a
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="link">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="link">
    <refs>
      <ref name="prev" feature="link">
        <param name="prev-id" maps-to="id"/>

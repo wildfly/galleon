@@ -49,7 +49,7 @@ import org.junit.Test;
  */
 public class ProvisionedStateXmlWriterTestCase {
 
-    private static final String SCHEMA = "schema/pm-provisioned-state-1_0.xsd";
+    private static final String SCHEMA = "schema/galleon-provisioned-state-1_0.xsd";
 
     private static XmlParserValidator<ProvisionedState> validator;
     private static Path tmpDir;

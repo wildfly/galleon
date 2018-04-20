@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature-spec name="socket-binding" xmlns="urn:wildfly:pm-feature-spec:1.0">
+<feature-spec name="socket-binding" xmlns="urn:jboss:galleon:feature-spec:1.0">
   <refs>
     <ref feature="socket-binding-group"/>
     <ref feature="interface" nillable="true"/>

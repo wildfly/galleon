@@ -34,7 +34,7 @@ import org.junit.Test;
 public class ProvisioningXmlExcludesIncludesTestCase {
 
     private static final XmlParserValidator<ProvisioningConfig> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
 
     @Test
     public void readExcludes() throws Exception {
@@ -77,7 +77,7 @@ public class ProvisioningXmlExcludesIncludesTestCase {
     @Test
     public void readExcludeIncludeSamePackage() throws Exception {
         /*
-         * urn:wildfly:pm-provisioning:1.0.1 used in provisioning-1.0.1.xml is not registered in ProvisioningXmlParser
+         * urn:jboss:galleon:provisioning:1.0.1 used in provisioning-1.0.1.xml is not registered in ProvisioningXmlParser
          */
         validator.validateAndParse("xml/provisioning/exclude-include-same-package.xml",
                 null,

@@ -27,7 +27,7 @@ import java.util.List;
  */
 public class Configuration {
 
-    private static final File DEFAULT_HISTORY_FILE = new File(System.getProperty("user.home"), ".pm-history");
+    private static final File DEFAULT_HISTORY_FILE = new File(System.getProperty("user.home"), ".galleon-history");
     private final List<UniverseLocation> universes = new ArrayList<>();
     private String mavenRepositoryURL;
     private File historyFile = DEFAULT_HISTORY_FILE;

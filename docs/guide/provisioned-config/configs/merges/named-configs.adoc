@@ -4,7 +4,7 @@ The simplest way to provide an identity for the configuration is to give it a na
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
   <config name="config1">
     <feature spec="feature1">
@@ -22,7 +22,7 @@ The simplest way to provide an identity for the configuration is to give it a na
 Now if another feature-pack provides a config with the same name, e.g.
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <config name="config1">
     <feature spec="feature1">
@@ -39,7 +39,7 @@ Now if another feature-pack provides a config with the same name, e.g.
 And we include both of these feature packs into the same installation
 [source,xml]
 ----
-<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+<installation xmlns="urn:jboss:galleon:provisioning:1.0">
   <feature-pack groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final"/>
   <feature-pack groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final"/>
 </installation>
@@ -79,7 +79,7 @@ NOTE: The features of the *feature1* spec are not merged although they appear to
 Here is how the *fp2* feature-pack.xml had to be written so that the *feature1* spec could be re-used in the *fp2* config.
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">

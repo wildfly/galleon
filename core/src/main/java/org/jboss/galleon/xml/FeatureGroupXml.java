@@ -48,7 +48,7 @@ public class FeatureGroupXml {
         return INSTANCE;
     }
 
-    public static final String NAMESPACE_1_0 = "urn:wildfly:pm-feature-group:1.0";
+    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:feature-group:1.0";
 
     public enum Element implements XmlNameProvider {
 

@@ -33,7 +33,7 @@ import org.junit.Test;
 public class PackageXmlParserTestCase {
 
     private static final XmlParserValidator<PackageSpec> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/pm-package-1_0.xsd"), PackageXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-package-1_0.xsd"), PackageXmlParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 
@@ -49,11 +49,11 @@ public class PackageXmlParserTestCase {
     @Test
     public void readBadNamespace() throws Exception {
         /*
-         * urn:wildfly:pm-provisioning:1.0.1 used in provisioning-1.0.1.xml is not registered in ProvisioningXmlParser
+         * urn:jboss:galleon:provisioning:1.0.1 used in provisioning-1.0.1.xml is not registered in ProvisioningXmlParser
          */
         validator.validateAndParse("xml/package/package-1.0.1.xml",
                 "Cannot find the declaration of element 'package-spec'.",
-                "Message: Unexpected element '{urn:wildfly:pm-package:1.0.1}package-spec'");
+                "Message: Unexpected element '{urn:jboss:galleon:package:1.0.1}package-spec'");
     }
 
     @Test
@@ -73,7 +73,7 @@ public class PackageXmlParserTestCase {
     @Test
     public void readEmptyDependencies() throws Exception {
         validator.validateAndParse("xml/package/package-1.0-empty-dependencies.xml",
-                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:wildfly:pm-package:1.0\":package, \"urn:wildfly:pm-package:1.0\":origin}' is expected.",
+                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:jboss:galleon:package:1.0\":package, \"urn:jboss:galleon:package:1.0\":origin}' is expected.",
                 "The content of element 'dependencies' is not complete. One of 'package', 'origin' is expected.");
     }
 

@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<diff-result xmlns="urn:wildfly:pm-diff-result:1.0">
+<diff-result xmlns="urn:jboss:galleon:diff-result:1.0">
   <added-files>
     <path>wildlfly_logo.png</path>
     <path>netbeans.pdf</path>
@@ -44,7 +44,7 @@
   <unified-diffs>
     <diff path="standalone/configuration/application-users.properties"><![CDATA[
 --- /tmp/059ef74b-5670-4c33-91bb-598c23674b7d/standalone/configuration/application-users.properties
-+++ /home/ehsavoie/tmp/core-pm-standalone/standalone/configuration/application-users.properties
++++ /home/ehsavoie/tmp/core-galleon-standalone/standalone/configuration/application-users.properties
 @@ -25,1 +25,1 @@
 -#admin=2a0923285184943425d1f53ddd58ec7a
 +admin=ea04b45b55c24eea921ba4d8dff408dc
@@ -52,7 +52,7 @@
     </diff>
     <diff path="standalone/configuration/application-roles.properties"><![CDATA[
 --- /tmp/059ef74b-5670-4c33-91bb-598c23674b7d/standalone/configuration/application-roles.properties
-+++ /home/ehsavoie/tmp/core-pm-standalone/standalone/configuration/application-roles.properties
++++ /home/ehsavoie/tmp/core-galleon-standalone/standalone/configuration/application-roles.properties
 @@ -22,1 +22,1 @@
 -#admin=PowerUser,BillingAdmin,
 +admin=guest
@@ -60,7 +60,7 @@
     </diff>
     <diff path="domain/configuration/application-roles.properties"><![CDATA[
 --- /tmp/059ef74b-5670-4c33-91bb-598c23674b7d/domain/configuration/application-roles.properties
-+++ /home/ehsavoie/tmp/core-pm-standalone/domain/configuration/application-roles.properties
++++ /home/ehsavoie/tmp/core-galleon-standalone/domain/configuration/application-roles.properties
 @@ -22,1 +22,1 @@
 -#admin=PowerUser,BillingAdmin,
 +admin=guest
@@ -68,7 +68,7 @@
     </diff>
     <diff path="domain/configuration/application-users.properties"><![CDATA[
 --- /tmp/059ef74b-5670-4c33-91bb-598c23674b7d/domain/configuration/application-users.properties
-+++ /home/ehsavoie/tmp/core-pm-standalone/domain/configuration/application-users.properties
++++ /home/ehsavoie/tmp/core-galleon-standalone/domain/configuration/application-users.properties
 @@ -25,1 +25,1 @@
 -#admin=2a0923285184943425d1f53ddd58ec7a
 +admin=ea04b45b55c24eea921ba4d8dff408dc

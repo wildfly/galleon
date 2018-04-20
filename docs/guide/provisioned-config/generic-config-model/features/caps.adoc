@@ -9,7 +9,7 @@
 Capabilities are represented as strings with a dot serving as a word separator. Here is an example of a feature providing a capability:
 [source,xml]
 ----
- <feature-spec name="interface" xmlns="urn:wildfly:pm-feature-spec:1.0">
+ <feature-spec name="interface" xmlns="urn:jboss:galleon:feature-spec:1.0">
    <provides>
      <capability name="org.wildfly.network.interface"/>
    </provides>
@@ -23,7 +23,7 @@ Capabilities are represented as strings with a dot serving as a word separator. 
 And here is a feature that expresses a requirement on the capability provided above
 [source,xml]
 ----
- <feature-spec name="socket-binding" xmlns="urn:wildfly:pm-feature-spec:1.0">
+ <feature-spec name="socket-binding" xmlns="urn:jboss:galleon:feature-spec:1.0">
    <requires>
      <capability name="org.wildfly.network.interface"/>
    </requires>
@@ -43,7 +43,7 @@ It is also possible, however, to provide or require a capability that depends on
 
 [source,xml]
 ----
- <feature-spec name="interface" xmlns="urn:wildfly:pm-feature-spec:1.0">
+ <feature-spec name="interface" xmlns="urn:jboss:galleon:feature-spec:1.0">
    <provides>
      <capability name="org.wildfly.network.interface.$name"/>
    </provides>
@@ -56,7 +56,7 @@ It is also possible, however, to provide or require a capability that depends on
 
 [source,xml]
 ----
- <feature-spec name="socket-binding" xmlns="urn:wildfly:pm-feature-spec:1.0">
+ <feature-spec name="socket-binding" xmlns="urn:jboss:galleon:feature-spec:1.0">
    <requires>
      <capability name="org.wildfly.network.interface.$interface"/>
    </requires>
@@ -72,7 +72,7 @@ Let's see how it will look like in an actual configuration
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
    <config>
      <feature spec="interface">

@@ -37,7 +37,7 @@ public class ConfigXml {
         return INSTANCE;
     }
 
-    public static final String NAMESPACE_1_0 = "urn:wildfly:pm-config:1.0";
+    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:config:1.0";
 
     public enum Element implements XmlNameProvider {
 

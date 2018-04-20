@@ -7,7 +7,7 @@ IMPORTANT: In that case the feature configurations will be merged. The features 
 For example, suppose we have these feature specs:
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureA">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureA">
    <params>
      <param name="name" feature-id="true"/>
      <param name="p1" default="feature-spec"/>
@@ -19,7 +19,7 @@ For example, suppose we have these feature specs:
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="featureB">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="featureB">
    <params>
      <param name="name" feature-id="true"/>
      <param name="p1" default="feature-spec"/>
@@ -32,7 +32,7 @@ For example, suppose we have these feature specs:
 and these feature groups
 [source,xml]
 ----
-<feature-group-spec name="group1" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature-group-spec name="group1" xmlns="urn:jboss:galleon:feature-group:1.0">
 
   <feature spec="featureA">
     <param name="name" value="a1"/>
@@ -61,7 +61,7 @@ and these feature groups
 
 [source,xml]
 ----
-<feature-group-spec name="group2" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature-group-spec name="group2" xmlns="urn:jboss:galleon:feature-group:1.0">
 
   <feature-group name="group1">
     <include feature-id="featureA:name="a1">
@@ -80,7 +80,7 @@ and these feature groups
 
 [source,xml]
 ----
-<feature-group-spec name="group3" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature-group-spec name="group3" xmlns="urn:jboss:galleon:feature-group:1.0">
 
   <feature-group name="group1">
     <include feature-id="featureA:name="a1">

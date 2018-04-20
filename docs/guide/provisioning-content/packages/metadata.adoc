@@ -9,7 +9,7 @@ Here is an illustration of how a *package.xml* might look like:
 
 [source,xml]
 ----
- <package-spec xmlns="urn:wildfly:pm-package:1.0" name="p1">
+ <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
     <dependencies>
         <package name="p2"/>
         <package name="p3" optional="true"/>

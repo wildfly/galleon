@@ -6,7 +6,7 @@ For example:
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.fp.group1" artifactId="fp1" version="1.0.0" >
     <dependencies>
         <dependency groupId="org.jboss.fp.group2" artifactId="fp2" version="2.0.0"/>
@@ -20,7 +20,7 @@ For example:
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.fp.group1" artifactId="fp2" version="1.0.0" >
     <dependencies>
         <dependency groupId="org.jboss.fp.group2" artifactId="fp4" version="2.0.0">
@@ -38,7 +38,7 @@ For example:
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.fp.group1" artifactId="fp3" version="1.0.0" >
     <dependencies>
         <dependency groupId="org.jboss.fp.group2" artifactId="fp4" version="2.0.0">
@@ -56,7 +56,7 @@ For example:
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
                 groupId="org.jboss.fp.group1" artifactId="fp4" version="1.0.0" >
     <default-packages>
         <package name="p1"/>

@@ -7,7 +7,7 @@ Besides that the config element supports already mentioned in an earlier chapter
 The `props` element allows to attach various properties to the configuration described by the `config` element that can be meaningful for the provisioning plugin processing the configuration. E.g.
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
   <config name="main" model="modelA">
     <props>
@@ -29,7 +29,7 @@ NOTE: The config properties are not used by the generic provisioning mechanism i
 When a default config is included, its properties can be overwritten, e.g.
 [source,xml]
 ----
-<installation xmlns="urn:wildfly:pm-provisioning:1.0">
+<installation xmlns="urn:jboss:galleon:provisioning:1.0">
     <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">
         <default-configs>
             <include name="main" model="modelA">
@@ -53,7 +53,7 @@ The resolved config will include the following properties:
 When the <<_configuration_model_merges,configs are merged>>, their properties are also merged. The config that is included later into the installation overwrites the properties of the config which was added before. E.g.
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">
   <config model="modelA">
     <props>
@@ -70,7 +70,7 @@ When the <<_configuration_model_merges,configs are merged>>, their properties ar
 
 [source,xml]
 ----
-<feature-pack xmlns="urn:wildfly:pm-feature-pack:1.0"
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
               groupId="org.jboss.pm.test" artifactId="fp2" version="1.0.0.Final">
   <dependencies>
     <dependency groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0.Final">

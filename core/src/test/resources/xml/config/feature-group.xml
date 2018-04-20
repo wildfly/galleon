@@ -17,7 +17,7 @@
     limitations under the License.
 
 -->
-<feature-group-spec name="groupName" xmlns="urn:wildfly:pm-feature-group:1.0">
+<feature-group-spec name="groupName" xmlns="urn:jboss:galleon:feature-group:1.0">
   <feature-group name="dep1"/>
   <feature-group name="dep2" inherit-features="false"/>
   <feature-group name="dep3" inherit-features="false">

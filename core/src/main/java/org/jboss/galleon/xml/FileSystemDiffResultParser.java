@@ -30,7 +30,7 @@ import org.jboss.galleon.diff.FileSystemDiffResult;
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
 public class FileSystemDiffResultParser implements XmlParser<FileSystemDiffResult> {
-    public static final String NAMESPACE_1_0 = "urn:wildfly:pm-diff-result:1.0";
+    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:diff-result:1.0";
 
     enum Element implements XmlNameProvider {
         ADDED("added-files"),

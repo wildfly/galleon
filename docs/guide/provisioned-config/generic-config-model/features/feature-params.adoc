@@ -9,7 +9,7 @@ Feature parameters are described in feature specs. A parameter is identified by 
 
 [source,xml]
 ----
- <feature-spec xmlns="urn:wildfly:pm-feature-spec:1.0" name="feature1">
+ <feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="feature1">
    <params>
      <param name="a" feature-id="true"/>
      <param name="b" default="bb"/>
