@@ -29,7 +29,7 @@
 
     <groupId>org.jboss.galleon.universe</groupId>
     <artifactId>galleon-universe</artifactId>
-    <version>1.0.0.Alpha3-SNAPSHOT</version>
+    <version>1.0.0.Alpha3</version>
     <packaging>jar</packaging>
 
     <name>Universe</name>
