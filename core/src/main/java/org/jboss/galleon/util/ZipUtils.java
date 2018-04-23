@@ -18,6 +18,7 @@ package org.jboss.galleon.util;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
@@ -39,7 +40,7 @@ import java.util.Map;
  */
 public class ZipUtils {
 
-    private static final String JAR_FILE_PREFIX = "jar:file:";
+    private static final String JAR_URI_PREFIX = "jar:";
     private static final Map<String, String> CREATE_ENV = Collections.singletonMap("create", "true");
 
     public static void unzip(Path zipFile, Path targetDir) throws IOException {
@@ -78,8 +79,15 @@ public class ZipUtils {
     }
 
     public static void zip(Path src, Path zipFile) throws IOException {
-        final URI uri = URI.create(JAR_FILE_PREFIX + zipFile.toAbsolutePath().toString());
-        try (FileSystem zipfs = FileSystems.newFileSystem(uri, CREATE_ENV)) {
+        final URI fileUri = zipFile.toUri();
+        final URI zipUri;
+        try {
+            zipUri = new URI(JAR_URI_PREFIX + fileUri.getScheme(), fileUri.getPath(), null);
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to create a JAR URI for " + fileUri, e);
+        }
+        try (FileSystem zipfs = FileSystems.newFileSystem(zipUri,
+                Files.exists(zipFile) ? Collections.emptyMap() : CREATE_ENV)) {
             if(Files.isDirectory(src)) {
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(src)) {
                     for(Path srcPath : stream) {
