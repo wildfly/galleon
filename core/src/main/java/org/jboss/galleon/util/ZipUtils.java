@@ -39,20 +39,29 @@ import java.util.Map;
  * @author Alexey Loubyansky
  */
 public class ZipUtils {
+
     private static final String JAR_URI_PREFIX = "jar:";
     private static final Map<String, String> CREATE_ENV = Collections.singletonMap("create", "true");
-    private static final Map<String, String> READ_ENV = Collections.emptyMap();
 
     public static void unzip(Path zipFile, Path targetDir) throws IOException {
         if(!Files.exists(targetDir)) {
             Files.createDirectories(targetDir);
         }
-        final URI uri = URI.create(JAR_URI_PREFIX + zipFile.toUri().toString());
-        try (FileSystem zipfs = FileSystems.newFileSystem(uri, READ_ENV)) {
+        try (FileSystem zipfs = FileSystems.newFileSystem(toZipUri(zipFile), Collections.emptyMap())) {
             for(Path zipRoot : zipfs.getRootDirectories()) {
                 copyFromZip(zipRoot, targetDir);
             }
         }
+    }
+
+    private static URI toZipUri(Path zipFile) throws IOException {
+        URI zipUri = zipFile.toUri();
+        try {
+            zipUri = new URI(JAR_URI_PREFIX + zipUri.getScheme(), zipUri.getPath(), null);
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to create a JAR URI for " + zipFile, e);
+        }
+        return zipUri;
     }
 
     public static void copyFromZip(Path source, Path target) throws IOException {
@@ -80,15 +89,7 @@ public class ZipUtils {
     }
 
     public static void zip(Path src, Path zipFile) throws IOException {
-        final URI fileUri = zipFile.toUri();
-        final URI zipUri;
-        try {
-            zipUri = new URI(JAR_URI_PREFIX + fileUri.getScheme(), fileUri.getPath(), null);
-        } catch (URISyntaxException e) {
-            throw new IOException("Failed to create a JAR URI for " + fileUri, e);
-        }
-        try (FileSystem zipfs = FileSystems.newFileSystem(zipUri,
-                Files.exists(zipFile) ? Collections.emptyMap() : CREATE_ENV)) {
+        try (FileSystem zipfs = FileSystems.newFileSystem(toZipUri(zipFile), Files.exists(zipFile) ? Collections.emptyMap() : CREATE_ENV)) {
             if(Files.isDirectory(src)) {
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(src)) {
                     for(Path srcPath : stream) {

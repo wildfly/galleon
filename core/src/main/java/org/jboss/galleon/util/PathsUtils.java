@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.util;
 
+import java.io.File;
 import java.nio.file.Path;
 
 import org.jboss.galleon.Constants;
@@ -38,5 +39,12 @@ public class PathsUtils {
 
     public static Path getProvisionedStateXml(Path installationDir) {
         return getProvisionedStateDir(installationDir).resolve(Constants.PROVISIONED_STATE_XML);
+    }
+
+    public static String toForwardSlashSeparator(String path) {
+        if(File.separatorChar == '/') {
+            return path;
+        }
+        return path.replace(File.separatorChar, '/');
     }
 }

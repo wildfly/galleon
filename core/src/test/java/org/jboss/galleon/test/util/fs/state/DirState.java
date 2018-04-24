@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.jboss.galleon.test.util.TestUtils;
 import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.PathsUtils;
 import org.junit.Assert;
 
 /**
@@ -40,6 +41,8 @@ import org.junit.Assert;
  * @author Alexey Loubyansky
  */
 public class DirState extends PathState {
+
+    public static final String SEPARATOR = "/";
 
     public static class DirBuilder extends PathState.Builder {
 
@@ -56,7 +59,7 @@ public class DirState extends PathState {
 
         public DirBuilder addDir(String relativePath) {
             DirState.DirBuilder dirBuilder = this;
-            final String[] parts = relativePath.split("/");
+            final String[] parts = relativePath.split(SEPARATOR);
             int i = 0;
             while (i < parts.length) {
                 dirBuilder = dirBuilder.dirBuilder(parts[i++]);
@@ -66,7 +69,7 @@ public class DirState extends PathState {
 
         public DirBuilder addFile(String relativePath, String content) {
             DirState.DirBuilder dirBuilder = this;
-            final String[] parts = relativePath.split("/");
+            final String[] parts = relativePath.split(SEPARATOR);
             int i = 0;
             if(parts.length > 1) {
                 while(i < parts.length - 1) {
@@ -89,7 +92,7 @@ public class DirState extends PathState {
 
         public DirBuilder skip(String relativePath) {
             DirState.DirBuilder dirBuilder = this;
-            final String[] parts = relativePath.split("/");
+            final String[] parts = relativePath.split(SEPARATOR);
             int i = 0;
             if(parts.length > 1) {
                 while(i < parts.length - 1) {
@@ -111,14 +114,14 @@ public class DirState extends PathState {
                         @Override
                         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                             if(path != dir) {
-                                addDir(path.relativize(dir).toString());
+                                addDir(PathsUtils.toForwardSlashSeparator(path.relativize(dir).toString()));
                             }
                             return FileVisitResult.CONTINUE;
                         }
                         @Override
                         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                             throws IOException {
-                            addFile(path.relativize(file).toString(), TestUtils.read(file));
+                            addFile(PathsUtils.toForwardSlashSeparator(path.relativize(file).toString()), TestUtils.read(file));
                             return FileVisitResult.CONTINUE;
                         }
                     });
@@ -164,20 +167,20 @@ public class DirState extends PathState {
         if(!Files.isDirectory(path)) {
             Assert.fail("Path is a directory: " + path);
         }
+        Set<String> actualPaths = new HashSet<>();
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-            Set<String> actualPaths = new HashSet<>();
             for(Path child : stream) {
                 actualPaths.add(child.getFileName().toString());
             }
-            for(Map.Entry<String, PathState> entry : childStates.entrySet()) {
-                entry.getValue().assertState(path);
-                actualPaths.remove(entry.getKey());
-            }
-            if(!actualPaths.isEmpty()) {
-                Assert.fail("Dir " + path + " does not contain " + actualPaths);
-            }
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read directory " + path, e);
+        }
+        for (Map.Entry<String, PathState> entry : childStates.entrySet()) {
+            entry.getValue().assertState(path);
+            actualPaths.remove(entry.getKey());
+        }
+        if (!actualPaths.isEmpty()) {
+            Assert.fail("Dir " + path + " does not contain " + actualPaths);
         }
     }
 }
