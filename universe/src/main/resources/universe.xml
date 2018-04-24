@@ -19,8 +19,8 @@
 -->
 
 <universe xmlns="urn:jboss:universe:1.0">
-    <!-- Should be a reference to an actual stream artifact, for now version range -->
-    <stream name="wildfly-core:5" group-id="org.wildfly.core" artifact-id="wildfly-core-galleon-pack" version-range="[5.0.0-alpha,6.0.0-alpha)"/>
-    <stream name="wildfly-servlet:13" group-id="org.wildfly" artifact-id="wildfly-servlet-galleon-pack" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
-    <stream name="wildfly:13" group-id="org.wildfly" artifact-id="wildfly-galleon-pack" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
+  <!-- Should be a reference to an actual stream artifact, for now version range -->
+  <stream name="wildfly-core:5" group-id="org.wildfly.core" artifact-id="wildfly-core-galleon-pack" version-range="[5.0.0-alpha,6.0.0-alpha)"/>
+  <stream name="wildfly-servlet:13" group-id="org.wildfly" artifact-id="wildfly-servlet-galleon-pack" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
+  <stream name="wildfly:13" group-id="org.wildfly" artifact-id="wildfly-galleon-pack" version-range="[13.0.0-alpha,14.0.0-alpha)"/>
 </universe>
