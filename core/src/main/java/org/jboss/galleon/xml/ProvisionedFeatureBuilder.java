@@ -72,6 +72,10 @@ public class ProvisionedFeatureBuilder implements ProvisionedFeature {
 
     /**
      * Sets the parameter's configuration value
+     *
+     * @param name  configuration parameter name
+     * @param value  configuration parameter value
+     * @return this builder
      */
     public ProvisionedFeatureBuilder setConfigParam(String name, String value) {
         configParams = CollectionUtils.put(configParams, name, value);
@@ -80,6 +84,9 @@ public class ProvisionedFeatureBuilder implements ProvisionedFeature {
 
     /**
      * Sets the ID parameter's resolved value.
+     * @param name  id parameter name
+     * @param value  id parameter value
+     * @return this builder
      */
     public ProvisionedFeatureBuilder setIdParam(String name, String value) {
         if(idBuilder == null) {

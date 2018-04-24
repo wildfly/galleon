@@ -339,7 +339,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     /**
      * Returns a resource path for the provisioning setup.
      *
-     * @param path
+     * @param path  path to the resource relative to the global resources directory
      * @return  file-system path for the resource
      */
     public Path getResource(String... path) {
@@ -359,6 +359,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     /**
      * Returns a path for a temporary file-system resource.
      *
+     * @param path  path relative to the global tmp directory
      * @return  temporary file-system path
      */
     public Path getTmpPath(String... path) {

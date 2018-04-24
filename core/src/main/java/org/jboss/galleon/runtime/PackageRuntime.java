@@ -67,8 +67,6 @@ public class PackageRuntime implements ProvisionedPackage {
     /**
      * Returns a resource path for a package.
      *
-     * @param fpGav  GAV of the feature-pack containing the package
-     * @param pkgName  name of the package
      * @param path  path to the resource relative to the package resources directory
      * @return  file-system path for the resource
      * @throws ProvisioningDescriptionException  in case the feature-pack or package were not found in the layout

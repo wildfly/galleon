@@ -57,7 +57,7 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
      *
      * @param provisioningConfig  initial state of the configuration to be built
      * @return  this builder instance
-     * @throws ProvisioningDescriptionException
+     * @throws ProvisioningDescriptionException  in case the config couldn't be built
      */
     public static Builder builder(ProvisioningConfig provisioningConfig) throws ProvisioningDescriptionException {
         return new Builder(provisioningConfig);

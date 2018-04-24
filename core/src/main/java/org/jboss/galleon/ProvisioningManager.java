@@ -252,6 +252,7 @@ public class ProvisioningManager {
      * (Re-)provisions the current installation to the desired specification.
      *
      * @param provisioningConfig  the desired installation specification
+     * @param options  feature-pack plug-ins options
      * @throws ProvisioningException  in case the re-provisioning fails
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
