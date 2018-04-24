@@ -58,7 +58,7 @@ public interface PathFilter {
 
         @Override
         public boolean accept(Path path) {
-            final String current = path.toString();
+            final String current = PathsUtils.toForwardSlashSeparator(path.toString());
             boolean acceptDirectory = !this.directories.stream().anyMatch(new Predicate<Pattern>() {
                 @Override
                 public boolean test(Pattern pattern) {
@@ -109,7 +109,7 @@ public interface PathFilter {
             if (expr == null) {
                 throw new IllegalArgumentException("expr is null");
             }
-            String regex = expr.replaceAll("([(){}\\[\\].+^$])", "\\\\$1"); // escape regex characters
+            String regex = PathsUtils.toForwardSlashSeparator(expr).replaceAll("([(){}\\[\\].+^$])", "\\\\$1"); // escape regex characters
             regex = regex.replaceAll("\\*", ".*"); // replace * with .*
             regex = regex.replaceAll("\\?", "."); // replace ? with .
             return Pattern.compile(regex);
