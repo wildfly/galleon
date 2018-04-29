@@ -125,8 +125,8 @@ public class IoUtils {
                 @Override
                 public void accept(String line) {
                     try {
-                        bw.newLine();
                         bw.append(line);
+                        bw.newLine();
                     } catch (IOException ioex) {
                         throw new RuntimeException(ioex);
                     }
