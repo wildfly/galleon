@@ -53,6 +53,10 @@ public class FeaturePackLayout {
             return this;
         }
 
+        public boolean hasPackage(String name) {
+            return packages.containsKey(name);
+        }
+
         public FeaturePackSpec.Builder getSpecBuilder() {
             return spec;
         }
