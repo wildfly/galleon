@@ -29,7 +29,7 @@ import org.jboss.galleon.cli.PmCompleterInvocation;
  *
  * @author jdenise@redhat.com
  */
-public class StateInfoTypeCompleter extends AbstractCompleter {
+public class InfoTypeCompleter extends AbstractCompleter {
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
         return Arrays.asList(CONFIGS, DEPENDENCIES);

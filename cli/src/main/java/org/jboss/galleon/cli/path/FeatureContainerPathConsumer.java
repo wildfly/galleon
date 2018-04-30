@@ -259,6 +259,9 @@ public class FeatureContainerPathConsumer implements PathConsumer {
         Group next = null;
         if (current == null) {
             current = info.getPackages().get(packagesGav);
+            if (current == null) {
+                throw new PathConsumerException("no package in " + packagesGav);
+            }
         }
         for (Group info : current.getGroups()) {
             if (info.getIdentity().getName().equals(node.getName())) {
@@ -286,6 +289,9 @@ public class FeatureContainerPathConsumer implements PathConsumer {
         Group next = null;
         if (current == null) {
             current = info.getFeatureSpecs().get(featuresGav);
+            if (current == null) {
+                throw new PathConsumerException("no feature in " + featuresGav);
+            }
         }
         for (Group info : current.getGroups()) {
             if (info.getIdentity().getName().equals(node.getName())) {
@@ -313,6 +319,9 @@ public class FeatureContainerPathConsumer implements PathConsumer {
         Group next = null;
         if (current == null) {
             current = config.getRoot();
+            if (current == null) {
+                throw new PathConsumerException("no content in config " + config.getName());
+            }
         }
         for (Group info : current.getGroups()) {
             if (info.getIdentity().getName().equals(node.getName())) {
@@ -660,6 +669,9 @@ public class FeatureContainerPathConsumer implements PathConsumer {
             case PACKAGES_CONTENT: {
                 if (current == null) {
                     Group grp = Group.fromString("", packagesGav);
+                    if (grp == null) {
+                        throw new PathConsumerException("no package in " + packagesGav);
+                    }
                     grp.getGroups().addAll(info.getPackages().get(packagesGav).getGroups());
                     current = grp;
                 }
@@ -667,6 +679,9 @@ public class FeatureContainerPathConsumer implements PathConsumer {
             case FEATURES_CONTENT: {
                 if (current == null) {
                     Group grp = Group.fromString("", featuresGav);
+                    if (grp == null) {
+                        throw new PathConsumerException("no package in " + packagesGav);
+                    }
                     grp.getGroups().addAll(info.getFeatureSpecs().get(featuresGav).getGroups());
                     current = grp;
                 }
@@ -674,6 +689,9 @@ public class FeatureContainerPathConsumer implements PathConsumer {
             case CONFIG_CONTENT: {
                 if (current == null) {
                     Group grp = Group.fromString("", config.getName());
+                    if (grp == null) {
+                        throw new PathConsumerException("not a valid config " + config.getName());
+                    }
                     grp.getGroups().addAll(config.getRoot().getGroups());
                     current = grp;
                 }

@@ -54,14 +54,15 @@ public class StateProvisionCommand extends PmSessionCommand {
         }
     }
 
-    @Argument(completer = FileOptionCompleter.class, required = true,
+    @Option(completer = FileOptionCompleter.class, required = false,
             description = "Directory to install the current configuration.")
-    protected String directory;
+    protected String dir;
 
     @Option(required = false, hasValue = false)
     private Boolean verbose;
 
-    @Option(description = "File describing the desired provisioned state.", activator = FileActivator.class)
+    @Argument(description = "File describing the desired provisioned state.",
+            activator = FileActivator.class, required = false)
     private Resource file;
 
     @Override
@@ -90,7 +91,7 @@ public class StateProvisionCommand extends PmSessionCommand {
         }
 
         Path home = getInstallationHome(invoc.getAeshContext());
-        if (Files.exists(home)) {
+        if (Files.exists(home) && invoc.getPmSession().getState() != null) {
             try {
                 invoc.println("Installation done in " + home.toFile().getCanonicalPath());
             } catch (IOException ex) {
@@ -111,6 +112,6 @@ public class StateProvisionCommand extends PmSessionCommand {
 
     protected Path getInstallationHome(AeshContext context) {
         Path workDir = PmSession.getWorkDir(context);
-        return directory == null ? PmSession.getWorkDir(context) : workDir.resolve(directory);
+        return dir == null ? PmSession.getWorkDir(context) : workDir.resolve(dir);
     }
 }

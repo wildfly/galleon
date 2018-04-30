@@ -79,6 +79,7 @@ public class ConfigProvisioning {
         private FeatureId featId;
         private boolean newConfig;
         private boolean isExcluded;
+        private FeatureConfig existingFeature;
         AddFeatureAction(ConfigId id, FeatureSpecInfo spec, Map<String, String> options) {
             this.id = id;
             this.spec = spec;
@@ -106,8 +107,9 @@ public class ConfigProvisioning {
             for (ConfigModel cm : current.getDefinedConfigs()) {
                 if (cm.getName().equals(id.getName()) && cm.getModel().equals(id.getModel())) {
                     targetConfig = cm.getBuilder();
-                    if (featureExists(cm, featId)) {
-                        throw new ProvisioningException("Feature " + featId + "already exists in config " + id);
+                    existingFeature = getExistingFeature(cm, featId);
+                    if (existingFeature != null) {
+                        targetConfig.removeFeature(featId);
                     }
                     isExcluded = cm.getExcludedFeatures().containsKey(featId);
                     break;
@@ -139,6 +141,9 @@ public class ConfigProvisioning {
                 targetConfig.excludeFeature(featId);
             } else {
                 targetConfig.removeFeature(featId);
+                if (existingFeature != null) {
+                    targetConfig.addFeature(existingFeature);
+                }
             }
             builder.removeConfig(id);
             if (!newConfig) {
@@ -165,7 +170,7 @@ public class ConfigProvisioning {
             for (ConfigModel cm : current.getDefinedConfigs()) {
                 if (cm.getName().equals(id.getName()) && cm.getModel().equals(id.getModel())) {
                     targetConfig = cm.getBuilder();
-                    exclude = !featureExists(cm, feature.getFeatureId());
+                    exclude = getExistingFeature(cm, feature.getFeatureId()) == null;
                     break;
                 }
             }
@@ -207,7 +212,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private static boolean featureExists(ConfigModel cm, FeatureId featId) {
+    private static FeatureConfig getExistingFeature(ConfigModel cm, FeatureId featId) {
         for (ConfigItem ci : cm.getItems()) {
             if (ci instanceof FeatureConfig) {
                 FeatureConfig fi = (FeatureConfig) ci;
@@ -221,12 +226,12 @@ public class ConfigProvisioning {
                         }
                     }
                     if (eq) {
-                        return true;
+                        return fi;
                     }
                 }
             }
         }
-        return false;
+        return null;
     }
 
     State.Action resetConfiguration(ConfigId id) {

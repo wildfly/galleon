@@ -114,14 +114,6 @@ public abstract class FeatureContainer {
         return modulesRoots;
     }
 
-    protected void addDependency(Gav gav) {
-        dependencies.add(gav);
-    }
-
-    public Set<Gav> getDependencies() {
-        return Collections.unmodifiableSet(dependencies);
-    }
-
     public Map<ResolvedSpecId, FeatureSpecInfo> getAllSpecs() {
         return Collections.unmodifiableMap(allSpecs);
     }

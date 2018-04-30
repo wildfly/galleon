@@ -21,7 +21,6 @@ import static org.jboss.galleon.cli.model.FeatureContainer.ROOT;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 
@@ -70,23 +69,17 @@ public class FeatureGroupsBuilder {
         currentPath = "/";
         for (int it = 0; it < groups.length; it++) {
             String g = groups[it];
-            String[] subs = g.split("_");
-            if (subs.length > 1) { // complex features.
-                for (int i = 0; i < subs.length; i++) {
-                    String value = (String) id.getParams().get(subs[i]);
-                    if (value != null) {
-                        current = addGroup(value, current, pathItems, subs[i]);
-                    } else {
-                        current = addGroup(current, pathItems, subs[i]);
+            String value = (String) id.getParams().get(g);
+            if (value != null) {
+                current = addGroup(value, current, pathItems, g);
+                if (it < groups.length - 1) {
+                    String next = groups[it + 1];
+                    if (next.equals(value)) {
+                        it += 1;
                     }
                 }
             } else {
-                String value = (String) id.getParams().get(g);
-                if (value != null) {
-                    current = addGroup(value, current, pathItems, g);
-                } else {
-                    // Not a naming node.
-                }
+                current = addGroup(current, pathItems, g);
             }
         }
         return current;
@@ -98,46 +91,11 @@ public class FeatureGroupsBuilder {
     Group buildFeatureSpecGroups(String name, FeatureSpecInfo info,
             boolean wildflyModel, List<String> pathItems) {
         String[] groups = name.split("\\.");
-
         Group current = allgroups.get(ROOT);
         currentPath = "/";
-        Set<String> params = info.getAllParameters();
         for (int it = 0; it < groups.length; it++) {
             String g = groups[it];
-            String[] subs = g.split("_");
-            if (subs.length > 1) {
-                // Simply add nodes, no more naming
-                for (int i = 0; i < subs.length; i++) {
-                    current = addGroup(current, pathItems, subs[i]);
-                }
-            } else {
-//            else if (it == groups.length - 1) { // we are at the end. add a node
-//                current = addGroup(current, pathItems, g);
-//            } else {
-//                boolean containsParam = params.contains(g);
-//                if (containsParam) {
-//                    if (it == groups.length - 1) {
-//                        current = addGroup(current, pathItems, g);
-//                    } else {
-//                        // The next in groups can contain '_', must be removed
-//                        String[] filtered = groups[it + 1].split("_");
-//                        String n = filtered[0];
-//                        if (params.contains(n)) {
-//                            // The next is a param, not a value, add a group.
-//                            current = addGroup(current, pathItems, g);
-//                        } else {
-//                            it = it + 1;
-//                            current = addGroup(n, current, pathItems, g, wildflyModel);
-//                            // Then all remaining complex
-//                            for (int j = 1; j < filtered.length; j++) {
-//                                current = addGroup(current, pathItems, filtered[j]);
-//                            }
-//                        }
-//                    }
-//                } else {
-                current = addGroup(current, pathItems, g);
-                //}
-            }
+            current = addGroup(current, pathItems, g);
         }
         return current;
     }
