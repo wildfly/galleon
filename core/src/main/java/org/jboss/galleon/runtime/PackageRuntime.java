@@ -38,8 +38,8 @@ public class PackageRuntime implements ProvisionedPackage {
             this.spec = spec;
         }
 
-        PackageRuntime build() {
-            return new PackageRuntime(this);
+        PackageRuntime build(FeaturePackRuntime fp) {
+            return new PackageRuntime(this, fp);
         }
     }
 
@@ -47,12 +47,18 @@ public class PackageRuntime implements ProvisionedPackage {
         return new Builder(spec, dir);
     }
 
+    private final FeaturePackRuntime fp;
     private final PackageSpec spec;
     private final Path layoutDir;
 
-    private PackageRuntime(Builder builder) {
+    private PackageRuntime(Builder builder, FeaturePackRuntime fp) {
+        this.fp = fp;
         this.spec = builder.spec;
         this.layoutDir = builder.dir;
+    }
+
+    public FeaturePackRuntime getFeaturePackRuntime() {
+        return fp;
     }
 
     public PackageSpec getSpec() {

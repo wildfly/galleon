@@ -194,7 +194,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         this.startTime = builder.startTime;
         this.artifactResolver = builder.artifactResolver;
         this.config = builder.config;
-        this.fpRuntimes = builder.getFpRuntimes();
+        this.fpRuntimes = builder.getFpRuntimes(this);
         this.pluginsDir = builder.pluginsDir; // the pluginsDir is initialized during the getFpRuntimes() invocation, atm
         this.configs = builder.getResolvedConfigs();
         options = builder.options;

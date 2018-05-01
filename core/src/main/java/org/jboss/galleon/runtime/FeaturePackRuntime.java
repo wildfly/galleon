@@ -45,12 +45,14 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
         return new FeaturePackRuntimeBuilder(spec, dir);
     }
 
+    private final ProvisioningRuntime runtime;
     private final FeaturePackSpec spec;
     private final Path dir;
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
 
-    FeaturePackRuntime(FeaturePackRuntimeBuilder builder) throws ProvisioningException {
+    FeaturePackRuntime(FeaturePackRuntimeBuilder builder, ProvisioningRuntime runtime) throws ProvisioningException {
+        this.runtime = runtime;
         this.spec = builder.spec;
         this.dir = builder.dir;
         this.featureSpecs = builder.featureSpecs;
@@ -58,10 +60,14 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
         Map<String, PackageRuntime> tmpPackages = new LinkedHashMap<>();
         for(String pkgName : builder.pkgOrder) {
             final PackageRuntime.Builder pkgRtBuilder = builder.pkgBuilders.get(pkgName);
-            tmpPackages.put(pkgName, pkgRtBuilder.build());
+            tmpPackages.put(pkgName, pkgRtBuilder.build(this));
         }
 
         packages = Collections.unmodifiableMap(tmpPackages);
+    }
+
+    public ProvisioningRuntime getProvisioningRuntime() {
+        return runtime;
     }
 
     public FeaturePackSpec getSpec() {

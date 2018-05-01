@@ -153,7 +153,7 @@ class FeaturePackRuntimeBuilder {
         return null;
     }
 
-    FeaturePackRuntime build() throws ProvisioningException {
-        return new FeaturePackRuntime(this);
+    FeaturePackRuntime build(ProvisioningRuntime runtime) throws ProvisioningException {
+        return new FeaturePackRuntime(this, runtime);
     }
 }
