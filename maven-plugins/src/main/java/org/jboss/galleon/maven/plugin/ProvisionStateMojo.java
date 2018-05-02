@@ -46,6 +46,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
 /**
@@ -171,7 +172,9 @@ public class ProvisionStateMojo extends AbstractMojo {
                 .setArtifactResolver(
                         FeaturePackRepositoryManager.newInstance(repoSession.getLocalRepository().getBasedir().toPath()))
                 .setInstallationHome(installDir.toPath()).build();
-
+        if(installDir.exists()) {
+            IoUtils.recursiveDelete(installDir.toPath());
+        }
         pm.provision(state.build(), pluginOptions);
     }
 
