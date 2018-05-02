@@ -65,6 +65,7 @@ public class GavCompleter implements OptionCompleter<PmCompleterInvocation> {
                         }
                     }
                 }
+                ci.setAppendSpace(false);
             } else {
                 final int artifactSeparator = currentValue.indexOf(':', groupSeparator + 1);
                 if(artifactSeparator > 0) {

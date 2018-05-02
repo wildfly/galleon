@@ -40,11 +40,11 @@ import org.jboss.galleon.cli.path.PathParserException;
  */
 public abstract class AbstractPackageCommand extends AbstractFPProvisionedCommand {
 
-    private static class AllPackagesContainer extends FeatureContainer {
+    public static class AllPackagesContainer extends FeatureContainer {
 
         private final FeatureContainer container;
 
-        AllPackagesContainer(FeatureContainer container) {
+        public AllPackagesContainer(FeatureContainer container) {
             super(null, null);
             this.container = container;
         }

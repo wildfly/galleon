@@ -25,7 +25,7 @@ import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.model.state.State;
 
 @CommandDefinition(name = "undo", description = "Undo the last action", activator = UndoCommandActivator.class)
-public class StateUndoCommand extends PmSessionCommand {
+public class UndoCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {

@@ -41,7 +41,8 @@ import org.jboss.galleon.config.PackageConfig;
 public class PackagesUtil {
 
     public static String getPackage(PmSession session, ArtifactCoords.Gav gav, String pkg) throws PathParserException, PathConsumerException, ProvisioningException, Exception {
-        String path = FeatureContainerPathConsumer.PACKAGES_PATH + pkg + PathParser.PATH_SEPARATOR;
+        String path = FeatureContainerPathConsumer.PACKAGES_PATH
+                + pkg + (pkg.endsWith("" + PathParser.PATH_SEPARATOR) ? "" : PathParser.PATH_SEPARATOR);
         FeatureContainer full = FeatureContainers.fromFeaturePackGav(session, ProvisioningManager.builder()
                 .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build(), gav, null);
 

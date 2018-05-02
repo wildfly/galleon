@@ -36,11 +36,4 @@ public class FeaturePackInfo extends FeatureContainer {
     public String getDescription() {
         return description;
     }
-
-    @Override
-    protected void addDependency(Gav gav) {
-        if (!gav.equals(getGav())) {
-            dependencies.add(gav);
-        }
-    }
 }

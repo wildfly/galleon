@@ -29,16 +29,15 @@ import org.aesh.utils.Config;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
-import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
+import org.jboss.galleon.cli.cmd.state.pkg.AbstractPackageCommand;
+import org.jboss.galleon.cli.cmd.state.pkg.AbstractPackageCommand.PackageCompleter;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureInfo;
 import org.jboss.galleon.cli.model.FeatureSpecInfo;
 import org.jboss.galleon.cli.model.Group;
 import org.jboss.galleon.cli.model.Identity;
 import org.jboss.galleon.cli.model.PackageInfo;
-import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
@@ -50,7 +49,8 @@ import org.jboss.galleon.runtime.ResolvedSpecId;
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "search", description = "search the state for the provided content", activator = StateCommandActivator.class)
-public class StateSearchCommand extends PmSessionCommand {
+public class SearchCommand extends PmSessionCommand {
+
     public static class QueryActivator implements OptionActivator {
 
         @Override
@@ -69,38 +69,67 @@ public class StateSearchCommand extends PmSessionCommand {
         }
     }
 
-    public static class PackagesCompleter extends AbstractPathCompleter {
-
-        @Override
-        protected String getCurrentPath(PmCompleterInvocation session) throws Exception {
-            return FeatureContainerPathConsumer.PACKAGES_PATH;
-        }
-
-        @Override
-        protected void filterCandidates(FeatureContainerPathConsumer consumer, List<String> candidates) {
-            // NO-OP.
-        }
-
-        @Override
-        protected FeatureContainer getContainer(PmCompleterInvocation completerInvocation) throws Exception {
-            return completerInvocation.getPmSession().getContainer();
-        }
-    }
     @Option(required = false, activator = QueryActivator.class)
     private String query;
 
-    @Option(required = false, name = "package", completer = PackagesCompleter.class, activator = PackageActivator.class)
+    @Option(required = false, name = "package", completer = PackageCompleter.class, activator = PackageActivator.class)
     private String pkg;
+
+    @Option(required = false, name = "include-dependencies", hasValue = false)
+    private Boolean inDependencies;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
+            if (query == null && pkg == null) {
+                throw new CommandExecutionException("One of --query or --package must be set");
+            }
             FeatureContainer container = invoc.getPmSession().getContainer();
+            run(invoc.getPmSession().getContainer(), invoc, false);
 
-            if (pkg != null) {
-                PackageInfo spec = getPackage(invoc.getPmSession().getState(), pkg);
-                Set<ResolvedSpecId> fspecs = findFeatures(spec, container);
-                invoc.println("Reachable from features:");
+            if (inDependencies) {
+                if (!container.getFullDependencies().isEmpty()) {
+                    invoc.println("");
+                    invoc.println("Search in dependencies");
+                    for (FeatureContainer c : container.getFullDependencies().values()) {
+                        invoc.println("dependency: " + c.getGav());
+                        run(c, invoc, true);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new CommandExecutionException(ex);
+        }
+    }
+
+    private void run(FeatureContainer container, PmCommandInvocation invoc, boolean dependencySearch) throws PathParserException,
+            PathConsumerException, ProvisioningException {
+        if (pkg != null) {
+            PackageInfo spec = getPackage(dependencySearch ? container : new AbstractPackageCommand.AllPackagesContainer(container), pkg);
+            invoc.println("As a direct dependency of a package:");
+            StringBuilder pBuilder = new StringBuilder();
+            for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
+                Group root = pkgs.getValue();
+                for (Group g : root.getGroups()) {
+                    for (Group dep : g.getGroups()) {
+                        if (dep.getIdentity().equals(spec.getIdentity())) {
+                            pBuilder.append("  " + g.getIdentity()).append(Config.getLineSeparator());
+                            break;
+                        }
+                    }
+                }
+            }
+            if (pBuilder.length() != 0) {
+                invoc.println(pBuilder.toString());
+            } else {
+                invoc.println("NONE");
+            }
+            Set<ResolvedSpecId> fspecs = findFeatures(spec, container);
+            invoc.println("Reachable from features:");
+            if (fspecs.isEmpty()) {
+                invoc.println("NONE");
+            } else {
                 for (ResolvedSpecId id : fspecs) {
                     List<FeatureInfo> features = container.getAllFeatures().get(id);
                     // Can be null if we have all specs whatever the set of features.
@@ -112,18 +141,23 @@ public class StateSearchCommand extends PmSessionCommand {
                         invoc.println("      [spec only] " + toPath(id));
                     }
                 }
-                return;
             }
-            invoc.println("In packages:");
-            StringBuilder pBuilder = new StringBuilder();
-            for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
-                Group root = pkgs.getValue();
-                for (Group g : root.getGroups()) {
-                    PackageInfo p = g.getPackage();
-                    if (p.getIdentity().toString().contains(query)) {
-                        pBuilder.append("  " + FeatureContainerPathConsumer.PACKAGES_PATH + p.getIdentity()).append(Config.getLineSeparator());
+            return;
+        }
+        invoc.println("In packages:");
+        StringBuilder pBuilder = new StringBuilder();
+        for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
+            Group root = pkgs.getValue();
+            for (Group g : root.getGroups()) {
+                PackageInfo p = g.getPackage();
+                if (p.getIdentity().toString().contains(query)) {
+                    pBuilder.append("  " + FeatureContainerPathConsumer.PACKAGES_PATH + p.getIdentity()).append(Config.getLineSeparator());
+                    if (!dependencySearch) {
                         pBuilder.append("    Reachable from features:").append(Config.getLineSeparator());
                         Set<ResolvedSpecId> fspecs = findFeatures(p, container);
+                        if (fspecs.isEmpty()) {
+                            pBuilder.append("      NONE" + Config.getLineSeparator());
+                        }
                         for (ResolvedSpecId id : fspecs) {
                             List<FeatureInfo> features = container.getAllFeatures().get(id);
                             // Can be null if we have all specs whatever the set of features.
@@ -132,43 +166,64 @@ public class StateSearchCommand extends PmSessionCommand {
                                     pBuilder.append("      " + fi.getPath()).append(Config.getLineSeparator());
                                 }
                             } else {
-                                pBuilder.append("      [spec only] " + toPath(id)).append(Config.getLineSeparator());
+                                pBuilder.append("  [spec only] " + toPath(id)).append(Config.getLineSeparator());
                             }
                         }
                     }
                 }
             }
-            if (pBuilder.length() != 0) {
-                invoc.println(pBuilder.toString());
-            } else {
-                invoc.println("Not found in any packages.");
-            }
-            pBuilder = new StringBuilder();
-            // Features?
-            invoc.println("In features:");
-            for (Entry<ResolvedSpecId, List<FeatureInfo>> features : container.getAllFeatures().entrySet()) {
-                ResolvedSpecId id = features.getKey();
-                List<FeatureInfo> fs = features.getValue();
-                if (fs == null) {
-                    if (id.getName().contains(query)) {
-                        pBuilder.append("  [spec only] " + toPath(id)).append(Config.getLineSeparator());
+        }
+        if (pBuilder.length() != 0) {
+            invoc.println(pBuilder.toString());
+        } else {
+            invoc.println("NONE");
+        }
+
+        pBuilder = new StringBuilder();
+        for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
+            Group root = pkgs.getValue();
+            for (Group g : root.getGroups()) {
+                StringBuilder depBuilder = new StringBuilder();
+                for (Group dep : g.getGroups()) {
+                    if (dep.getIdentity().toString().contains(query)) {
+                        depBuilder.append("  " + dep.getIdentity()).append(Config.getLineSeparator());
+                        break;
                     }
-                } else {
-                    for (FeatureInfo fi : fs) {
-                        if (fi.getPath().contains(query)) {
-                            pBuilder.append("  " + fi.getPath()).append(Config.getLineSeparator());
-                        }
+                }
+                if (depBuilder.length() != 0) {
+                    pBuilder.append("Found in direct dependencies of " + g.getIdentity()).append(Config.getLineSeparator());
+                    pBuilder.append(depBuilder);
+                }
+            }
+        }
+        if (pBuilder.length() != 0) {
+            invoc.println(pBuilder.toString());
+        } else {
+            invoc.println("NONE");
+        }
+
+        pBuilder = new StringBuilder();
+        // Features?
+        invoc.println("In features:");
+        for (Entry<ResolvedSpecId, List<FeatureInfo>> features : container.getAllFeatures().entrySet()) {
+            ResolvedSpecId id = features.getKey();
+            List<FeatureInfo> fs = features.getValue();
+            if (fs == null) {
+                if (id.getName().contains(query)) {
+                    pBuilder.append("  [spec only] " + toPath(id)).append(Config.getLineSeparator());
+                }
+            } else {
+                for (FeatureInfo fi : fs) {
+                    if (fi.getPath().contains(query)) {
+                        pBuilder.append("  " + fi.getPath()).append(Config.getLineSeparator());
                     }
                 }
             }
-            if (pBuilder.length() != 0) {
-                invoc.println(pBuilder.toString());
-            } else {
-                invoc.println("Not found in any feature or feature-spec names.");
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new CommandExecutionException(ex);
+        }
+        if (pBuilder.length() != 0) {
+            invoc.println(pBuilder.toString());
+        } else {
+            invoc.println("NONE");
         }
     }
 
@@ -194,9 +249,9 @@ public class StateSearchCommand extends PmSessionCommand {
         return fspecs;
     }
 
-    private PackageInfo getPackage(State state, String id) throws PathParserException, PathConsumerException, ProvisioningException {
+    private PackageInfo getPackage(FeatureContainer container, String id) throws PathParserException, PathConsumerException, ProvisioningException {
         String path = FeatureContainerPathConsumer.PACKAGES_PATH + id;
-        FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(state.getContainer(), false);
+        FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(container, false);
         PathParser.parse(path, consumer);
         Group grp = consumer.getCurrentNode(path);
         if (grp == null) {

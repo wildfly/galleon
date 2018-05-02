@@ -54,7 +54,8 @@ public class StateRemoveFeatureCommand extends AbstractStateCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
         try {
-            String path = FeatureContainerPathConsumer.FINAL_CONFIGS_PATH + feature + PathParser.PATH_SEPARATOR;
+            String path = FeatureContainerPathConsumer.FINAL_CONFIGS_PATH
+                    + (feature.endsWith("" + PathParser.PATH_SEPARATOR) ? feature : feature + PathParser.PATH_SEPARATOR);
             FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(session.getContainer(), false);
             PathParser.parse(path, consumer);
             ConfigInfo ci = consumer.getConfig();
