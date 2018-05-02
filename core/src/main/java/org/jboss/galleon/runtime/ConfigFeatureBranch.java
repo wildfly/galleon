@@ -31,7 +31,8 @@ import org.jboss.galleon.ProvisioningException;
  */
 class ConfigFeatureBranch {
 
-    final int id;
+    final Object id;
+    final boolean defaultId;
     private List<ResolvedFeature> list = new ArrayList<>();
     private boolean batch;
     private Set<ConfigFeatureBranch> deps = Collections.emptySet();
@@ -42,6 +43,13 @@ class ConfigFeatureBranch {
     ConfigFeatureBranch(int index, boolean batch) {
         this.id = index;
         this.batch = batch;
+        this.defaultId = true;
+    }
+
+    ConfigFeatureBranch(Object id, boolean batch) {
+        this.id = id;
+        this.batch = batch;
+        this.defaultId = false;
     }
 
     List<ResolvedFeature> getFeatures() {
@@ -75,14 +83,14 @@ class ConfigFeatureBranch {
     }
 
     void setSpecId(ResolvedSpecId specId) throws ProvisioningException {
-        if(!list.isEmpty()) {
-            throw new ProvisioningException("Can't start a spec branch in middle of the branch");
-        }
+//        if(!list.isEmpty()) {
+//            throw new ProvisioningException("Can't start a spec branch in the middle of a branch");
+//        }
         this.specId = specId;
     }
 
-    ResolvedSpecId getSpecId() {
-        return specId;
+    boolean isSpecBranch() {
+        return specId != null;
     }
 
     boolean hasDeps() {
@@ -143,7 +151,7 @@ class ConfigFeatureBranch {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + id;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
         return result;
     }
 
@@ -156,7 +164,10 @@ class ConfigFeatureBranch {
         if (getClass() != obj.getClass())
             return false;
         ConfigFeatureBranch other = (ConfigFeatureBranch) obj;
-        if (id != other.id)
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
             return false;
         return true;
     }

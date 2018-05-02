@@ -28,7 +28,6 @@ import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureAnnotation;
 import org.jboss.galleon.spec.FeatureParameterSpec;
-import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
@@ -42,7 +41,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class DefaultBranchIsBatchTrueTestCase extends PmInstallFeaturePackTestBase {
+public class BasicBranchesWithIdTestCase extends PmInstallFeaturePackTestBase {
 
     private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
 
@@ -59,31 +58,18 @@ public class DefaultBranchIsBatchTrueTestCase extends PmInstallFeaturePackTestBa
         protected String[] initEvents() throws Exception {
             return new String[] {
                     branchStartEvent(),
-                    batchStartEvent(),
                     featurePackEvent(FP1_GAV),
+                    specEvent("specD"),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specD").setParam("d", "1").build()),
+                    specEvent("specB"),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specB").setParam("b", "1").build()),
+                    branchEndEvent(),
+
+                    branchStartEvent(),
+                    specEvent("specC"),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specC").setParam("c", "1").build()),
                     specEvent("specA"),
                     featureEvent(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1")),
-                    specEvent("specB"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specB").setParam("b", "1").setParam("a", "1").build()),
-                    batchEndEvent(),
-                    branchEndEvent(),
-
-                    branchStartEvent(),
-                    batchStartEvent(),
-                    specEvent("specA"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "2")),
-                    specEvent("specB"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specB").setParam("b", "2").setParam("a", "2").build()),
-                    batchEndEvent(),
-                    branchEndEvent(),
-
-                    branchStartEvent(),
-                    batchStartEvent(),
-                    specEvent("specC"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "1")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "2")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "3")),
-                    batchEndEvent(),
                     branchEndEvent()
             };
         }
@@ -95,31 +81,26 @@ public class DefaultBranchIsBatchTrueTestCase extends PmInstallFeaturePackTestBa
         .newFeaturePack(FP1_GAV)
 
             .addSpec(FeatureSpec.builder("specA")
-                    .addAnnotation(FeatureAnnotation.parentChildrenBranch()
-                            .setElement(FeatureAnnotation.FEATURE_BRANCH_SPEC, "false"))
+                    .addAnnotation(FeatureAnnotation.featureBranch("branch1"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
             .addSpec(FeatureSpec.builder("specB")
-                    .addFeatureRef(FeatureReferenceSpec.create("specA"))
-                    .addParam(FeatureParameterSpec.createId("a"))
+                    .addAnnotation(FeatureAnnotation.featureBranch("branch2"))
                     .addParam(FeatureParameterSpec.createId("b"))
                     .build())
             .addSpec(FeatureSpec.builder("specC")
+                    .addAnnotation(FeatureAnnotation.featureBranch("branch1"))
                     .addParam(FeatureParameterSpec.createId("c"))
                     .build())
+            .addSpec(FeatureSpec.builder("specD")
+                    .addAnnotation(FeatureAnnotation.featureBranch("branch2"))
+                    .addParam(FeatureParameterSpec.createId("d"))
+                    .build())
             .addConfig(ConfigModel.builder()
-                    .setProperty(ConfigModel.BRANCH_IS_BATCH, "true")
-
-                    .addFeature(new FeatureConfig("specA").setParam("a", "1"))
+                    .addFeature(new FeatureConfig("specD").setParam("d", "1"))
                     .addFeature(new FeatureConfig("specC").setParam("c", "1"))
-                    .addFeature(new FeatureConfig("specC").setParam("c", "2"))
-
-                    .addFeature(new FeatureConfig("specA").setParam("a", "2"))
-
-                    .addFeature(new FeatureConfig("specB").setParam("b", "1").setParam("a", "1"))
-                    .addFeature(new FeatureConfig("specC").setParam("c", "3"))
-                    .addFeature(new FeatureConfig("specB").setParam("b", "2").setParam("a", "2"))
-
+                    .addFeature(new FeatureConfig("specB").setParam("b", "1"))
+                    .addFeature(new FeatureConfig("specA").setParam("a", "1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
             .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
@@ -138,18 +119,21 @@ public class DefaultBranchIsBatchTrueTestCase extends PmInstallFeaturePackTestBa
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .setProperty(ConfigModel.BRANCH_IS_BATCH, "true")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specD")
+                                .setParam("d", "1")
+                                .build())
+                                .build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specB")
+                                .setParam("b", "1")
+                                .build())
+                                .build())
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specB").setParam("b", "1").setParam("a", "1").build()).build())
-
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specB").setParam("b", "2").setParam("a", "2").build()).build())
-
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "3")).build())
-
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specC")
+                                .setParam("c", "1")
+                                .build())
+                                .build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1"))
+                                .build())
                         .build())
                 .build();
     }

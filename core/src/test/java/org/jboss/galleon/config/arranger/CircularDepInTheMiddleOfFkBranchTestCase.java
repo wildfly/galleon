@@ -110,7 +110,8 @@ public class CircularDepInTheMiddleOfFkBranchTestCase extends PmInstallFeaturePa
         .newFeaturePack(FP1_GAV)
 
             .addSpec(FeatureSpec.builder("specA")
-                    .addAnnotation(FeatureAnnotation.parentChildrenBranch())
+                    .addAnnotation(FeatureAnnotation.parentChildrenBranch()
+                            .setElement(FeatureAnnotation.FEATURE_BRANCH_SPEC, "false"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
             .addSpec(FeatureSpec.builder("specA1")

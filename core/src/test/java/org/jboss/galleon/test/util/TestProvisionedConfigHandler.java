@@ -134,6 +134,7 @@ public abstract class TestProvisionedConfigHandler implements ProvisionedConfigH
         if(logEvents) {
             System.out.println(actual);
         }
+        Assert.assertTrue("There are more events than expected", i < events.length);
         Assert.assertEquals(events[i++], actual);
     }
 }
