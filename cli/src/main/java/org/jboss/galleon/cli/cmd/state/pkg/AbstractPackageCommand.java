@@ -19,6 +19,7 @@ package org.jboss.galleon.cli.cmd.state.pkg;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -28,11 +29,13 @@ import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
 import org.jboss.galleon.cli.cmd.state.AbstractFPProvisionedCommand;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.Group;
+import org.jboss.galleon.cli.model.Identity;
 import org.jboss.galleon.cli.model.PackageInfo;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
+import org.jboss.galleon.config.FeaturePackConfig;
 
 /**
  *
@@ -119,5 +122,38 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
         } catch (PathParserException | PathConsumerException ex) {
             throw new CommandExecutionException(ex);
         }
+    }
+
+    @Override
+    public FeaturePackConfig getProvisionedFP(PmSession session) throws CommandExecutionException {
+        FeaturePackConfig config = super.getProvisionedFP(session);
+        if (config == null) {
+            // Problem, the package is not directly part of the added FP. Must retrieve it in the packages of
+            // its internal dependencies.
+            int i = getPackage().indexOf("/");
+            String orig = getPackage().substring(0, i);
+            String name = getPackage().substring(i + 1);
+            ArtifactCoords.Gav gav = null;
+            for (Entry<String, FeatureContainer> entry : session.getContainer().getFullDependencies().entrySet()) {
+                FeatureContainer container = entry.getValue();
+                if (container.getAllPackages().containsKey(Identity.fromString(orig, name))) {
+                    gav = container.getGav();
+                    break;
+                }
+            }
+            if (gav == null) {
+                throw new CommandExecutionException("No package found for " + getPackage());
+            }
+            for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
+                if (c.getGav().equals(gav)) {
+                    config = c;
+                    break;
+                }
+            }
+        }
+        if (config == null) {
+            throw new CommandExecutionException("No feature pack found for " + getPackage());
+        }
+        return config;
     }
 }

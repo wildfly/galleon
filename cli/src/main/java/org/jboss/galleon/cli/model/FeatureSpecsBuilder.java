@@ -24,7 +24,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import static java.nio.file.FileVisitResult.CONTINUE;
-import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -89,9 +88,6 @@ public class FeatureSpecsBuilder {
 
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                        if (dir.getFileName().toString().equals("wildfly/")) {
-                            return SKIP_SUBTREE;
-                        }
                         return CONTINUE;
                     }
 
@@ -149,7 +145,7 @@ public class FeatureSpecsBuilder {
 
                                 String fullSpecName = resolved.getName();
                                 List<String> path = new ArrayList<>();
-                                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, specInfo, false, path);
+                                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, specInfo, path);
                                 parent.setFeatureSpec(specInfo);
                             }
                         }
@@ -177,7 +173,7 @@ public class FeatureSpecsBuilder {
                 allspecs.put(spec.getSpecId(), spec);
                 String fullSpecName = spec.getSpecId().getName();
                 List<String> path = new ArrayList<>();
-                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, spec, false, path);
+                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, spec, path);
                 parent.setFeatureSpec(spec);
             }
         }

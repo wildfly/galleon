@@ -17,18 +17,14 @@
 package org.jboss.galleon.cli.model;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
@@ -37,10 +33,12 @@ import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.plugin.CliPlugin;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.PackageRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.runtime.ProvisioningRuntime.PluginVisitor;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
@@ -50,8 +48,6 @@ import org.jboss.galleon.state.ProvisionedFeature;
  * @author jdenise@redhat.com
  */
 public abstract class FeatureContainers {
-
-    private static final String VERSIONS_PATH = "wildfly/artifact-versions.properties";
 
     public static FeatureContainer fromFeaturePackGav(PmSession session, ProvisioningManager manager, Gav gav,
             String name) throws ProvisioningException, IOException {
@@ -79,20 +75,26 @@ public abstract class FeatureContainers {
         Map<String, FeaturePackRuntime> gavs = new HashMap<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
             gavs.put(Identity.buildOrigin(rt.getGav()), rt);
+            fp.addDependency(rt.getGav());
         }
-
+        List<CliPlugin> cliPlugins = new ArrayList<>();
+        PluginVisitor visitor = new ProvisioningRuntime.PluginVisitor<CliPlugin>() {
+            @Override
+            public void visitPlugin(CliPlugin plugin) throws ProvisioningException {
+                cliPlugins.add(plugin);
+            }
+        };
+        runtime.visitePlugins(visitor, CliPlugin.class);
+        CliPlugin plugin = cliPlugins.isEmpty() ? null : cliPlugins.get(0);
         PackageGroupsBuilder pkgBuilder = new PackageGroupsBuilder();
         FeatureSpecsBuilder specsBuilder = new FeatureSpecsBuilder();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
-            Path props = rt.getResource(VERSIONS_PATH);
-            Map<String, String> variables = getVariables(props);
             pkgBuilder.resetRoots();
             for (PackageRuntime pkg : rt.getPackages()) {
-                pkgBuilder.buildGroups(new PackageInfo(rt.getGav(), Identity.
+                pkgBuilder.buildGroups(new PackageInfo(rt, rt.getGav(), Identity.
                         fromGav(rt.getGav(), pkg.getName()),
                         pkg.getContentDir(),
-                        pkg.getSpec(),
-                        variables), new PackageGroupsBuilder.PackageInfoBuilder() {
+                        pkg.getSpec(), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
                     @Override
                     public PackageInfo build(Identity identity) {
                         try {
@@ -102,11 +104,11 @@ public abstract class FeatureContainers {
                             }
                             PackageRuntime p = extRt.getPackage(identity.getName());
                             if (p == null) {
-                                throw new RuntimeException("Treating module " + pkg.getName()
+                                throw new RuntimeException("Package " + pkg.getName()
                                         + ", unknown dependency " + identity + " local is " + rt.getGav());
                             }
-                            return new PackageInfo(extRt.getGav(), identity,
-                                    p.getContentDir(), p.getSpec(), variables);
+                            return new PackageInfo(rt, extRt.getGav(), identity,
+                                    p.getContentDir(), p.getSpec(), plugin);
                         } catch (IOException | ProvisioningException e) {
                             throw new RuntimeException(e);
                         }
@@ -114,7 +116,6 @@ public abstract class FeatureContainers {
                 }, Identity.buildOrigin(rt.getGav()));
             }
             fp.setPackagesRoot(Identity.buildOrigin(rt.getGav()), pkgBuilder.getPackagesRoot());
-            fp.setModulesRoot(Identity.buildOrigin(rt.getGav()), pkgBuilder.getModulesRoot());
             // Attach the full set, this targets the container dependency that expose them all.
             if (allSpecs) {
                 Group specsRoot = specsBuilder.buildTree(session, rt.getGav(), fp.getGav(), pkgBuilder.getPackages(), allSpecs, null);
@@ -184,23 +185,4 @@ public abstract class FeatureContainers {
         ProvisioningRuntime runtime = manager.getRuntime(provisioning, null, Collections.emptyMap());
         return runtime;
     }
-
-    private static Map<String, String> getVariables(Path props) throws ProvisioningException, IOException {
-        HashMap variables = new HashMap<>();
-        if (Files.exists(props)) {
-            try (Stream<String> lines = Files.lines(props)) {
-                final Iterator<String> iterator = lines.iterator();
-                while (iterator.hasNext()) {
-                    final String line = iterator.next();
-                    final int i = line.indexOf('=');
-                    if (i < 0) {
-                        throw new ProvisioningException("Failed to locate '=' character in " + line);
-                    }
-                    variables.put(line.substring(0, i), line.substring(i + 1));
-                }
-            }
-        }
-        return variables;
-    }
-
 }

@@ -16,9 +16,7 @@
  */
 package org.jboss.galleon.cli.model;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import java.nio.file.Files;
@@ -29,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -37,12 +34,9 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.spec.PackageSpec;
 
-import nu.xom.Attribute;
-import nu.xom.Builder;
-import nu.xom.Document;
-import nu.xom.Element;
-import nu.xom.Elements;
-import nu.xom.ParsingException;
+import org.jboss.galleon.plugin.CliPlugin;
+import org.jboss.galleon.plugin.CliPlugin.CustomPackageContent;
+import org.jboss.galleon.runtime.FeaturePackRuntime;
 
 /**
  *
@@ -50,15 +44,8 @@ import nu.xom.ParsingException;
  */
 public class PackageInfo {
 
-    private static String MODULE_PATH = "pm/wildfly/module";
-    private static String MODULE_XML = "module.xml";
-
     private final Path contentDir;
     private final PackageSpec spec;
-
-    private final List<String> artifacts = new ArrayList<>();
-    private String moduleVersion;
-    private boolean isModule;
     private boolean hasContent;
     List<String> content = new ArrayList<>();
 
@@ -66,25 +53,25 @@ public class PackageInfo {
 
     private Set<Identity> providers = new HashSet<>();
     private final Gav gav;
+    private final CustomPackageContent customContent;
 
-    PackageInfo(Gav gav, Identity identity, Path contentDir, PackageSpec spec,
-            Map<String, String> variables) throws IOException, ProvisioningException {
+    PackageInfo(FeaturePackRuntime rt, Gav gav, Identity identity, Path contentDir, PackageSpec spec,
+            CliPlugin plugin) throws IOException, ProvisioningException {
         this.gav = gav;
         this.identity = identity;
         this.contentDir = contentDir;
         this.spec = spec;
-        Path modulePath = contentDir.getParent().resolve(MODULE_PATH);
-        isModule = Files.exists(modulePath);
-        hasContent = Files.exists(contentDir);
-        if (isModule()) {
-            try {
-                parseModuleDescriptor(variables);
-            } catch (ParsingException ex) {
-                throw new ProvisioningException(ex);
-            }
-        } else if (hasContent()) {
+        if (hasContent()) {
             fillContent();
         }
+        customContent = plugin == null ? null : plugin.handlePackageContent(rt, spec, contentDir);
+    }
+
+    public String getCustomContent() {
+        if (customContent == null) {
+            return null;
+        }
+        return customContent.getInfo();
     }
 
     public Gav getGav() {
@@ -124,95 +111,6 @@ public class PackageInfo {
         Collections.sort(content);
     }
 
-    private void parseModuleDescriptor(Map<String, String> variables) throws IOException, ProvisioningException, ParsingException {
-        Path modulePath = contentDir.getParent().resolve(MODULE_PATH);
-        List<Path> moduleHolder = new ArrayList<>();
-        Files.walkFileTree(modulePath, new SimpleFileVisitor<Path>() {
-
-            @Override
-            public FileVisitResult visitFile(Path file,
-                    BasicFileAttributes attr) {
-                if (file.getFileName().toString().equals(MODULE_XML)) {
-                    moduleHolder.add(file);
-                }
-                return CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                return CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir,
-                    IOException exc) throws IOException {
-
-                return CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file,
-                    IOException exc) {
-                return CONTINUE;
-            }
-        });
-        if (moduleHolder.isEmpty()) {
-            throw new ProvisioningException("No module descriptor for " + getIdentity());
-        }
-        Path p = moduleHolder.get(0);
-        final Builder builder = new Builder(false);
-        final Document document;
-        try (BufferedReader reader = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
-            document = builder.build(reader);
-        }
-        final Element rootElement = document.getRootElement();
-        final Attribute versionAttribute = rootElement.getAttribute("version");
-        if (versionAttribute != null) {
-            final String versionExpr = versionAttribute.getValue();
-            if (versionExpr.startsWith("${") && versionExpr.endsWith("}")) {
-                final String exprBody = versionExpr.substring(2, versionExpr.length() - 1);
-                final int optionsIndex = exprBody.indexOf('?');
-                final String artifactName;
-                if (optionsIndex > 0) {
-                    artifactName = exprBody.substring(0, optionsIndex);
-                } else {
-                    artifactName = exprBody;
-                }
-                String vers = variables.get(artifactName);
-                if (vers != null) {
-                    int i = vers.lastIndexOf(":");
-                    if (i > 0) {
-                        vers = vers.substring(i + 1);
-                    }
-                    moduleVersion = vers;
-                }
-            }
-        }
-        final Element resourcesElement = rootElement.getFirstChildElement("resources", rootElement.getNamespaceURI());
-        if (resourcesElement != null) {
-            final Elements artfs = resourcesElement.getChildElements("artifact", rootElement.getNamespaceURI());
-            final int artifactCount = artfs.size();
-            for (int i = 0; i < artifactCount; i++) {
-                final Element element = artfs.get(i);
-                assert element.getLocalName().equals("artifact");
-                final Attribute attribute = element.getAttribute("name");
-                final String nameExpr = attribute.getValue();
-                if (nameExpr.startsWith("${") && nameExpr.endsWith("}")) {
-                    final String exprBody = nameExpr.substring(2, nameExpr.length() - 1);
-                    final int optionsIndex = exprBody.indexOf('?');
-                    final String artifactName;
-                    if (optionsIndex >= 0) {
-                        artifactName = exprBody.substring(0, optionsIndex);
-                    } else {
-                        artifactName = exprBody;
-                    }
-                    final String resolved = variables.get(artifactName);
-                    this.artifacts.add(resolved);
-                }
-            }
-        }
-    }
-
     public List<String> getContent() {
         return content;
     }
@@ -222,18 +120,6 @@ public class PackageInfo {
      */
     public Identity getIdentity() {
         return identity;
-    }
-
-    public final boolean isModule() {
-        return isModule;
-    }
-
-    public List<String> getArtifacts() {
-        return artifacts;
-    }
-
-    public String getModuleVersion() {
-        return moduleVersion;
     }
 
     public final boolean hasContent() {

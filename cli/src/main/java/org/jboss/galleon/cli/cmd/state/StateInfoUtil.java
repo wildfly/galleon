@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.aesh.utils.Config;
+import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -57,12 +58,7 @@ public class StateInfoUtil {
             } else if (grp.getSpec() != null) {
                 displayFeatureSpec(session, grp);
             } else if (grp.getPackage() != null) {
-                PackageInfo pkg = grp.getPackage();
-                if (pkg.isModule()) {
-                    displayModule(session, grp);
-                } else {
-                    displayPackage(session, grp);
-                }
+                displayPackage(session, grp);
             } else if (!grp.getGroups().isEmpty()) {
                 displayContainmentGroup(session, grp);
             }
@@ -78,27 +74,38 @@ public class StateInfoUtil {
     private static void displayFeature(PmCommandInvocation session, Group grp) throws ProvisioningException {
         // Feature and spec.
         FeatureInfo f = grp.getFeature();
-        session.println("Name       : " + f.getName());
+        session.println("");
         session.println("Type       : " + f.getType());
+        session.println("Path       : " + f.getPath());
         session.println("Origin     : " + f.getSpecId().getGav());
         session.println("Description: " + f.getDescription());
-        session.println("Feature XML extract");
+        session.println("");
+        session.println("Parameters id");
+        for (Entry<String, String> entry : f.getFeatureId().getParams().entrySet()) {
+            session.println(entry.getKey() + "=" + entry.getValue());
+        }
+        session.println(Config.getLineSeparator() + "Feature XML extract");
         StringBuilder xmlBuilder = new StringBuilder();
         /**
          * <feature spec="core-service.vault">
          * <param name="core-service" value="vault"/>
-         * <param name="module" value="toto"/>
-         * <param name="code" value="totocode"/>
+         * <param name="module" value="aValue"/>
+         * <param name="code" value="aValue"/>
          * </feature>
          */
         xmlBuilder.append("<feature spec=\"" + f.getType() + "\">").append(Config.getLineSeparator());
         String tab = "  ";
         for (Entry<String, Object> p : f.getResolvedParams().entrySet()) {
-            xmlBuilder.append(tab + "<param name=\"" + p.getKey() + "\"" + " value=\"" + p.getValue() + "\"/>").append(Config.getLineSeparator());
+            if (!Constants.GLN_UNDEFINED.equals(p.getValue())) {
+                xmlBuilder.append(tab + "<param name=\"" + p.getKey() + "\"" + " value=\"" + p.getValue() + "\"/>").append(Config.getLineSeparator());
+            }
         }
         xmlBuilder.append("</feature>").append(Config.getLineSeparator());
         session.println(xmlBuilder.toString());
         session.println("Unset parameters");
+        if (f.getUndefinedParams().isEmpty()) {
+            session.println("NONE");
+        }
         for (String p : f.getUndefinedParams()) {
             session.println(tab + "<param name=\"" + p + "\"" + " value=\"???\"/>");
         }
@@ -106,6 +113,7 @@ public class StateInfoUtil {
 
     private static void displayFeatureSpec(PmCommandInvocation session, Group grp) throws IOException {
         FeatureSpecInfo f = grp.getSpec();
+        session.println("");
         session.println("Feature type       : " + f.getSpecId().getName());
         session.println("Feature origin     : " + f.getSpecId().getGav());
         session.println("Feature description: " + f.getDescription());
@@ -118,7 +126,7 @@ public class StateInfoUtil {
         }
         List<FeatureParameterSpec> idparams = f.getSpec().getIdParams();
         String tab = "  ";
-        session.println("Feature Id parameters");
+        session.println(Config.getLineSeparator() + "Feature Id parameters");
         if (idparams.isEmpty()) {
             session.println("NONE");
         } else {
@@ -133,7 +141,7 @@ public class StateInfoUtil {
             }
         }
         // Add spec parameters
-        session.println("Feature parameters");
+        session.println(Config.getLineSeparator() + "Feature parameters");
         Map<String, FeatureParameterSpec> params = f.getSpec().getParams();
         if (params.isEmpty()) {
             session.println("NONE");
@@ -152,24 +160,15 @@ public class StateInfoUtil {
             }
         }
 
-        session.println(Config.getLineSeparator() + "Packages (content)");
+        session.println(Config.getLineSeparator() + "Packages");
         if (f.getPackages().isEmpty()) {
             session.println(tab + "NONE");
         } else {
             for (PackageInfo p : f.getPackages()) {
                 session.println(p.getIdentity().toString());
             }
-
         }
-        session.println(Config.getLineSeparator() + "JBOSS Modules (content)");
-        if (f.getModules().isEmpty()) {
-            session.println(tab + "NONE");
-        } else {
-            for (PackageInfo p : f.getModules()) {
-                session.println(p.getIdentity().toString());
-            }
 
-        }
         session.println(Config.getLineSeparator() + "Provided capabilities");
         if (f.getSpec().getProvidedCapabilities().isEmpty()) {
             session.println(tab + "NONE");
@@ -178,6 +177,7 @@ public class StateInfoUtil {
                 session.println(tab + c.toString());
             }
         }
+
         session.println(Config.getLineSeparator() + "Consumed capabilities");
         if (f.getSpec().getRequiredCapabilities().isEmpty()) {
             session.println(tab + "NONE");
@@ -186,6 +186,7 @@ public class StateInfoUtil {
                 session.println(tab + c.toString());
             }
         }
+
         session.println(Config.getLineSeparator() + "Features dependencies");
         if (f.getSpec().getFeatureDeps().isEmpty()) {
             session.println(tab + "NONE");
@@ -194,6 +195,7 @@ public class StateInfoUtil {
                 session.println(tab + c.getFeatureId().toString());
             }
         }
+
         session.println(Config.getLineSeparator() + "Features references");
         if (f.getSpec().getFeatureRefs().isEmpty()) {
             session.println(tab + "NONE");
@@ -202,6 +204,7 @@ public class StateInfoUtil {
                 session.println(tab + c.getFeature());
             }
         }
+
         session.println(Config.getLineSeparator() + "Features Annotations");
         if (f.getSpec().getAnnotations().isEmpty()) {
             session.println(tab + "NONE");
@@ -212,42 +215,13 @@ public class StateInfoUtil {
         }
     }
 
-    private static void displayModule(PmCommandInvocation session, Group grp) throws IOException {
-        PackageInfo pkg = grp.getPackage();
-        session.println("Module name : " + pkg.getIdentity().getName());
-        session.println("Module origin : " + pkg.getIdentity().getOrigin());
-        session.println("Module version : " + (pkg.getModuleVersion() == null ? "none" : pkg.getModuleVersion()));
-        session.println("Module providers (features that depend on this module)");
-        if (pkg.getProviders().isEmpty()) {
-            session.println("default provider");
-        } else {
-            for (Identity id : pkg.getProviders()) {
-                session.println(id.toString());
-            }
-        }
-        session.println("Module dependencies");
-        if (grp.getGroups().isEmpty()) {
-            session.println("NONE");
-        } else {
-            for (Group dep : grp.getGroups()) {
-                session.println(dep.getIdentity().toString());
-            }
-        }
-        session.println("Module artifacts gav");
-        if (pkg.getArtifacts().isEmpty()) {
-            session.println("NONE");
-        } else {
-            for (String art : pkg.getArtifacts()) {
-                session.println(art);
-            }
-        }
-    }
-
     private static void displayPackage(PmCommandInvocation session, Group grp) throws IOException {
         PackageInfo pkg = grp.getPackage();
+        session.println("");
         session.println("Package name : " + pkg.getIdentity().getName());
         session.println("Package origin : " + pkg.getIdentity().getOrigin());
-        session.println("Package providers (features that depend on this package)");
+
+        session.println(Config.getLineSeparator() + "Package providers (features that depend on this package)");
         if (pkg.getProviders().isEmpty()) {
             session.println("default provider");
         } else {
@@ -255,7 +229,8 @@ public class StateInfoUtil {
                 session.println(id.toString());
             }
         }
-        session.println("Package dependencies");
+
+        session.println(Config.getLineSeparator() + "Package dependencies");
         if (grp.getGroups().isEmpty()) {
             session.println("NONE");
         } else {
@@ -268,15 +243,21 @@ public class StateInfoUtil {
                 }
             }
         }
-        session.println("Package content");
-        if (pkg.getContent().isEmpty()) {
-            session.println("NONE");
+        String customContent = pkg.getCustomContent();
+        if (customContent != null) {
+            session.println("");
+            session.println(customContent);
         } else {
-            StringBuilder contentBuilder = new StringBuilder();
-            for (String name : pkg.getContent()) {
-                contentBuilder.append("  " + name + Config.getLineSeparator());
+            session.println(Config.getLineSeparator() + "Package content");
+            if (pkg.getContent().isEmpty()) {
+                session.println("NONE");
+            } else {
+                StringBuilder contentBuilder = new StringBuilder();
+                for (String name : pkg.getContent()) {
+                    contentBuilder.append("  " + name + Config.getLineSeparator());
+                }
+                session.println(contentBuilder.toString());
             }
-            session.println(contentBuilder.toString());
         }
     }
 }
