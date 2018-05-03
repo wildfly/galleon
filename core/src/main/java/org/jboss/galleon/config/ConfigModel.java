@@ -33,6 +33,7 @@ public class ConfigModel extends FeatureGroupSupport {
 
     public static final String BRANCH_PER_SPEC = "config.branch-per-spec";
     public static final String BRANCH_IS_BATCH = "config.branch-is-batch";
+    public static final String ISOLATE_CIRCULAR_DEPS = "config.isolate-circular-deps";
 
     public static class Builder extends FeatureGroupBuilderSupport<Builder> {
 

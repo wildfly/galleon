@@ -55,6 +55,7 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
     private Map<ResolvedFeatureId, FeatureDependencySpec> resolvedDeps;
 
     final boolean parentChildrenBranch;
+    final String branchId;
     private final Boolean branchBatch;
     private final Boolean specBranch;
 
@@ -71,29 +72,32 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
 
         final FeatureAnnotation newFb = xmlSpec.getAnnotation(FeatureAnnotation.FEATURE_BRANCH);
         if(newFb != null) {
-            parentChildrenBranch = newFb.hasElement(FeatureAnnotation.FEATURE_BRANCH_PARENT_CHILDREN);
+            branchId = newFb.getElement(FeatureAnnotation.FEATURE_BRANCH_ID);
 
-            Boolean specBranch = null;
-            String elem = newFb.getElement(FeatureAnnotation.FEATURE_BRANCH_SPEC);
-            if(elem != null) {
-                if(parentChildrenBranch) {
-                    throw new ProvisioningDescriptionException(specId + " can contain either " + FeatureAnnotation.FEATURE_BRANCH_PARENT_CHILDREN + " or " + FeatureAnnotation.FEATURE_BRANCH_SPEC +
-                            " element of " + FeatureAnnotation.FEATURE_BRANCH + " annotation");
+            if(branchId != null) {
+                this.specBranch = true;
+            } else {
+                Boolean specBranch = null;
+                final String elem = newFb.getElement(FeatureAnnotation.FEATURE_BRANCH_SPEC);
+                if(elem != null) {
+                    specBranch = Boolean.parseBoolean(elem);
                 }
-                specBranch = Boolean.parseBoolean(elem);
+                this.specBranch = specBranch;
             }
-            this.specBranch = specBranch;
 
-            elem = newFb.getElement(FeatureAnnotation.FEATURE_BRANCH_BATCH);
+            final String elem = newFb.getElement(FeatureAnnotation.FEATURE_BRANCH_BATCH);
             if(elem == null) {
                 branchBatch = null;
             } else {
                 branchBatch = Boolean.parseBoolean(elem);
             }
+
+            parentChildrenBranch = newFb.hasElement(FeatureAnnotation.FEATURE_BRANCH_PARENT_CHILDREN);
         } else {
+            branchBatch = null;
+            branchId = null;
             parentChildrenBranch = false;
             specBranch = null;
-            branchBatch = null;
         }
     }
 

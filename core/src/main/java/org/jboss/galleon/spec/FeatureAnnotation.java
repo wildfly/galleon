@@ -35,10 +35,20 @@ public class FeatureAnnotation {
     // BUILT-IN ANNOTATIONS
     public static final String FEATURE_BRANCH = "feature-branch";
 
+    public static final String FEATURE_BRANCH_BATCH = "batch";
+    public static final String FEATURE_BRANCH_ID = "id";
     public static final String FEATURE_BRANCH_PARENT_CHILDREN = "parent-children";
     public static final String FEATURE_BRANCH_SPEC = "spec";
 
-    public static final String FEATURE_BRANCH_BATCH = "batch";
+    public static FeatureAnnotation featureBranch(String id) {
+        return new FeatureAnnotation(FEATURE_BRANCH).setElement(FEATURE_BRANCH_ID, id);
+    }
+
+    public static FeatureAnnotation featureBranch(String id, boolean batch) {
+        return new FeatureAnnotation(FEATURE_BRANCH)
+                .setElement(FEATURE_BRANCH_ID, id)
+                .setElement(FEATURE_BRANCH_BATCH, String.valueOf(batch));
+    }
 
     public static FeatureAnnotation parentChildrenBranch() {
         return new FeatureAnnotation(FEATURE_BRANCH).setElement(FEATURE_BRANCH_PARENT_CHILDREN);
