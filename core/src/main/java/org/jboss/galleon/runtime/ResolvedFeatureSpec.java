@@ -218,12 +218,14 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
         Object value = feature.getResolvedParam(paramName);
         if(value == null) {
             value = feature.isUnset(paramName) ? null : resolvedParam.defaultValue;
-            if(value == null) {
-                if(capResolver.getSpec().isOptional()) {
-                    return false;
-                }
-                throw new ProvisioningException(Errors.capabilityMissingParameter(capResolver.getSpec(), paramName));
+        } else if(Constants.GLN_UNDEFINED.equals(value)) {
+            value = null;
+        }
+        if(value == null) {
+            if(capResolver.getSpec().isOptional()) {
+                return false;
             }
+            throw new ProvisioningException(Errors.capabilityMissingParameter(capResolver.getSpec(), paramName));
         }
         return resolvedParam.type.resolveCapabilityElement(capResolver, value);
     }
