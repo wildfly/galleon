@@ -107,7 +107,7 @@ public class SearchCommand extends PmSessionCommand {
             PathConsumerException, ProvisioningException {
         if (pkg != null) {
             PackageInfo spec = getPackage(dependencySearch ? container : new AbstractPackageCommand.AllPackagesContainer(container), pkg);
-            invoc.println("As a direct dependency of a package:");
+            invoc.println(Config.getLineSeparator() + "As a direct dependency of a package:");
             StringBuilder pBuilder = new StringBuilder();
             for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
                 Group root = pkgs.getValue();
@@ -144,7 +144,7 @@ public class SearchCommand extends PmSessionCommand {
             }
             return;
         }
-        invoc.println("In packages:");
+        invoc.println(Config.getLineSeparator() + "Packages:");
         StringBuilder pBuilder = new StringBuilder();
         for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
             Group root = pkgs.getValue();
@@ -180,6 +180,7 @@ public class SearchCommand extends PmSessionCommand {
         }
 
         pBuilder = new StringBuilder();
+        invoc.println(Config.getLineSeparator() + "Package dependencies:");
         for (Entry<String, Group> pkgs : container.getPackages().entrySet()) {
             Group root = pkgs.getValue();
             for (Group g : root.getGroups()) {
@@ -191,7 +192,7 @@ public class SearchCommand extends PmSessionCommand {
                     }
                 }
                 if (depBuilder.length() != 0) {
-                    pBuilder.append("Found in direct dependencies of " + g.getIdentity()).append(Config.getLineSeparator());
+                    pBuilder.append("  Found as a direct dependencies of " + g.getIdentity()).append(Config.getLineSeparator());
                     pBuilder.append(depBuilder);
                 }
             }
@@ -204,7 +205,7 @@ public class SearchCommand extends PmSessionCommand {
 
         pBuilder = new StringBuilder();
         // Features?
-        invoc.println("In features:");
+        invoc.println(Config.getLineSeparator() + "Features:");
         for (Entry<ResolvedSpecId, List<FeatureInfo>> features : container.getAllFeatures().entrySet()) {
             ResolvedSpecId id = features.getKey();
             List<FeatureInfo> fs = features.getValue();
@@ -236,7 +237,7 @@ public class SearchCommand extends PmSessionCommand {
     private Set<ResolvedSpecId> findFeatures(PackageInfo spec, FeatureContainer container) {
         Set<ResolvedSpecId> fspecs = new HashSet<>();
         for (Entry<ResolvedSpecId, FeatureSpecInfo> features : container.getAllSpecs().entrySet()) {
-            for (PackageInfo info : features.getValue().getModules()) {
+            for (PackageInfo info : features.getValue().getPackages()) {
                 Group grp = container.getAllPackages().get(info.getIdentity());
                 Set<Identity> identities = new HashSet<>();
                 visitPkg(grp, identities);

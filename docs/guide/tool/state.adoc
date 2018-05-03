@@ -13,7 +13,7 @@ _[my-dir]$ state export <new generated xml file> --dir=<installation>_
 
 ###  Provisioning an installation from xml
 
-_[my-dir]$ state provision <target installation directory> --file=<xml file>_
+_[my-dir]$ state provision <xml file> --dir=<target installation directory>_
 
 ### Exploring an installation or a feature-pack.
 
@@ -40,7 +40,7 @@ TIP: Use ‘ls’ to visualize any item. Use ‘cd’ to navigate to a given nod
 
 When exploring, editing or composing a new state, one can search the packages and features.
 
-_[/]$state search [--query=<some text> | --package=<package name>]_
+_[/]$search [--query=<some text> | --package=<package name>]_
 
 When searching with _--query_ all packages and features are looked-up for a match. If packages are matched, the features
 that depend directly or indirectly on these packages will be shown in the result.
@@ -65,7 +65,7 @@ The filesystem is similar to explore, with the addition of dependencies that con
 
 NB: Each action as the effect to build a runtime with the current state. The filesystem reflects the current state.
 
-NB: Each action applied to a state in edition can be undone: state undo. Use state leave to exit the composition mode.
+NB: Each action applied to a state in edition can be undone: _undo_. Use _state leave_ to exit the composition mode.
 
 NB: The set of exposed commands by completer is dynamic and is adjusted according to the current state.
 

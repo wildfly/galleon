@@ -98,11 +98,6 @@ public class FeatureInfo {
         return feature.getSpecId();
     }
 
-    public String getName() {
-        // Return last path item.
-        return path.get(path.size() - 1);
-    }
-
     public String getType() {
         return specInfo.getType();
     }

@@ -74,6 +74,7 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
     public List<Command> getCommands() {
         List<Command> commands = new ArrayList<>();
         commands.add(new StateEditCommand());
+        commands.add(new StateInfoCommand());
         commands.add(new StateNewCommand());
         commands.add(new StateExploreCommand());
         commands.add(new StateExportCommand());

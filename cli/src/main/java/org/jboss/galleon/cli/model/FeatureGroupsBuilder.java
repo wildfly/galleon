@@ -88,8 +88,7 @@ public class FeatureGroupsBuilder {
     /**
      *
      */
-    Group buildFeatureSpecGroups(String name, FeatureSpecInfo info,
-            boolean wildflyModel, List<String> pathItems) {
+    Group buildFeatureSpecGroups(String name, FeatureSpecInfo info, List<String> pathItems) {
         String[] groups = name.split("\\.");
         Group current = allgroups.get(ROOT);
         currentPath = "/";

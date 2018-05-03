@@ -37,7 +37,6 @@ public class PackageGroupsBuilder {
     private final Map<Identity, Group> allPackagesGroups = new HashMap<>();
 
     private Group packagesRoot;
-    private Group modulesRoot;
 
     PackageGroupsBuilder() {
         resetRoots();
@@ -46,15 +45,10 @@ public class PackageGroupsBuilder {
 
     final void resetRoots() {
         packagesRoot = Group.fromString(null, ROOT);
-        modulesRoot = Group.fromString(null, ROOT);
     }
 
     Group getPackagesRoot() {
         return packagesRoot;
-    }
-
-    Group getModulesRoot() {
-        return modulesRoot;
     }
 
     Map<Identity, Group> getPackages() {

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
+import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.cli.AbstractFeaturePackCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -35,8 +36,8 @@ import org.jboss.galleon.cli.model.FeaturePackInfo;
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "info", description = "Display information for a "
-        + "feature-pack or installation directory or editing state", activator = StateCommandActivator.class)
-public class InfoCommand extends AbstractFeaturePackCommand {
+        + "feature-pack or installation directory or editing state")
+public class StateInfoCommand extends AbstractFeaturePackCommand {
 
     @Option(completer = InfoTypeCompleter.class)
     private String type;
@@ -85,7 +86,18 @@ public class InfoCommand extends AbstractFeaturePackCommand {
         }
         invoc.println("dependencies");
         if (container.getFullDependencies().isEmpty()) {
-            invoc.println("  NONE");
+            if (container.getDependencies().isEmpty()) {
+                invoc.println("  NONE");
+            } else {
+                for (ArtifactCoords.Gav g : container.getDependencies()) {
+                    if (container instanceof FeaturePackInfo) {
+                        if (((FeaturePackInfo) container).getGav().equals(g)) {
+                            continue;
+                        }
+                    }
+                    invoc.println("  " + g.toString());
+                }
+            }
         } else {
             for (FeatureContainer c : container.getFullDependencies().values()) {
                 invoc.println("  " + c.getGav().toString());

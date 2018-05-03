@@ -36,7 +36,6 @@ public class FeatureSpecInfo {
     private final FeatureSpec spec;
 
     private final List<PackageInfo> packages = new ArrayList<>();
-    private final List<PackageInfo> modules = new ArrayList<>();
 
     private boolean enabled;
     private Set<Identity> missingPackages;
@@ -59,11 +58,7 @@ public class FeatureSpecInfo {
     }
 
     void addPackage(PackageInfo pkg) {
-        if (pkg.hasContent()) {
-            packages.add(pkg);
-        } else if (pkg.isModule()) {
-            modules.add(pkg);
-        }
+        packages.add(pkg);
     }
 
     public String getName() {
@@ -76,10 +71,6 @@ public class FeatureSpecInfo {
 
     public String getType() {
         return spec.getName();
-    }
-
-    public List<PackageInfo> getModules() {
-        return modules;
     }
 
     public FeatureSpec getSpec() {

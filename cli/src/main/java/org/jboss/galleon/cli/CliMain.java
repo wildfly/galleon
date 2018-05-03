@@ -29,7 +29,6 @@ import org.jboss.galleon.cli.cmd.filesystem.PmRm;
 import org.jboss.galleon.cli.cmd.filesystem.PwdCommand;
 import org.jboss.galleon.cli.cmd.plugin.InstallCommand;
 import org.jboss.galleon.cli.cmd.state.StateCommand;
-import org.jboss.galleon.cli.cmd.state.InfoCommand;
 import org.jboss.galleon.cli.cmd.state.SearchCommand;
 import org.jboss.galleon.cli.cmd.state.UndoCommand;
 import org.jboss.galleon.cli.cmd.state.feature.FeatureCommand;
@@ -65,7 +64,6 @@ public class CliMain {
                 .command(PmRm.class)
                 .command(PwdCommand.class)
                 .command(SearchCommand.class)
-                .command(InfoCommand.class)
                 .command(UndoCommand.class)
                 .command(UniverseCommand.class);
 

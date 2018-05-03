@@ -35,11 +35,10 @@ public abstract class FeatureContainer {
 
     public static final String ROOT = "###ROOT";
 
-    protected final Map<String, List<ConfigInfo>> finalConfigs = new HashMap<>();
-    protected final Map<String, Group> packagesRoots = new HashMap<>();
-    protected final Map<String, Group> modulesRoots = new HashMap<>();
-    protected final Map<String, Group> featuresSpecRoots = new HashMap<>();
-    protected final Set<Gav> dependencies = new HashSet<>();
+    private final Map<String, List<ConfigInfo>> finalConfigs = new HashMap<>();
+    private final Map<String, Group> packagesRoots = new HashMap<>();
+    private final Map<String, Group> featuresSpecRoots = new HashMap<>();
+    private final Set<Gav> dependencies = new HashSet<>();
     private Map<String, FeatureContainer> fullDependencies = new HashMap<>();
     private final String name;
     private final Gav gav;
@@ -51,6 +50,14 @@ public abstract class FeatureContainer {
     protected FeatureContainer(String name, Gav gav) {
         this.name = name;
         this.gav = gav;
+    }
+
+    void addDependency(Gav dep) {
+        dependencies.add(dep);
+    }
+
+    public Set<Gav> getDependencies() {
+        return Collections.unmodifiableSet(dependencies);
     }
 
     public Gav getGav() {
@@ -98,20 +105,12 @@ public abstract class FeatureContainer {
         packagesRoots.put(origin, packagesRoot);
     }
 
-    protected void setModulesRoot(String origin, Group packagesRoot) {
-        modulesRoots.put(origin, packagesRoot);
-    }
-
     public Map<String, Group> getFeatureSpecs() {
         return featuresSpecRoots;
     }
 
     public Map<String, Group> getPackages() {
         return packagesRoots;
-    }
-
-    public Map<String, Group> getModules() {
-        return modulesRoots;
     }
 
     public Map<ResolvedSpecId, FeatureSpecInfo> getAllSpecs() {
