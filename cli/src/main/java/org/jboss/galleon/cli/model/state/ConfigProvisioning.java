@@ -43,20 +43,20 @@ public class ConfigProvisioning {
 
         private final ConfigId id;
         private int index;
+        private ConfigModel config;
         ResetConfigurationAction(ConfigId id) {
             this.id = id;
         }
 
         @Override
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
-            boolean found = false;
             for (ConfigModel m : current.getDefinedConfigs()) {
                 if (m.getId().equals(id)) {
-                    found = true;
+                    config = m;
                     break;
                 }
             }
-            if (!found) {
+            if (config == null) {
                 throw new ProvisioningException("Config " + id + " doesn't exist");
             }
             index = builder.getDefinedConfigIndex(id);
@@ -65,7 +65,7 @@ public class ConfigProvisioning {
 
         @Override
         public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
-            builder.addConfig(index, ConfigModel.builder().setModel(id.getModel()).setName(id.getName()).build());
+            builder.addConfig(index, config);
         }
 
     }

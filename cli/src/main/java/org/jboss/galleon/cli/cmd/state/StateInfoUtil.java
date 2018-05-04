@@ -243,21 +243,15 @@ public class StateInfoUtil {
                 }
             }
         }
-        String customContent = pkg.getCustomContent();
-        if (customContent != null) {
-            session.println("");
-            session.println(customContent);
+        session.println(Config.getLineSeparator() + "Package content");
+        if (pkg.getContent().isEmpty()) {
+            session.println("NONE");
         } else {
-            session.println(Config.getLineSeparator() + "Package content");
-            if (pkg.getContent().isEmpty()) {
-                session.println("NONE");
-            } else {
-                StringBuilder contentBuilder = new StringBuilder();
-                for (String name : pkg.getContent()) {
-                    contentBuilder.append("  " + name + Config.getLineSeparator());
-                }
-                session.println(contentBuilder.toString());
+            StringBuilder contentBuilder = new StringBuilder();
+            for (String name : pkg.getContent()) {
+                contentBuilder.append("  " + name + Config.getLineSeparator());
             }
+            session.println(contentBuilder.toString());
         }
     }
 }

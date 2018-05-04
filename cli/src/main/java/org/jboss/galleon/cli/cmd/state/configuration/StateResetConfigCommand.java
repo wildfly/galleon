@@ -35,7 +35,7 @@ import org.jboss.galleon.cli.path.PathParserException;
  */
 @CommandDefinition(name = "reset", description = "Reset a configuration to its default state", activator = ResetConfigCommandActivator.class)
 public class StateResetConfigCommand extends AbstractStateCommand {
-    @Option(required = false, description = "Configuration name",
+    @Option(required = true, description = "Configuration name",
             completer = ProvisionedConfigurationCompleter.class)
     private String configuration;
 
