@@ -17,6 +17,7 @@
 package org.jboss.galleon.xml;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -61,10 +62,14 @@ abstract class BaseXmlWriter<T> {
     }
 
     public void write(T t, Path outputFile) throws XMLStreamException, IOException {
-        final ElementNode root = toElement(t);
         ensureParentDir(outputFile);
+        write(t, Files.newBufferedWriter(outputFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+    }
+
+    public void write(T t, Writer stream) throws XMLStreamException, IOException {
+        final ElementNode root = toElement(t);
         try (FormattingXmlStreamWriter writer = new FormattingXmlStreamWriter(XMLOutputFactory.newInstance()
-                .createXMLStreamWriter(Files.newBufferedWriter(outputFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)))) {
+                .createXMLStreamWriter(stream))) {
             writer.writeStartDocument();
             root.marshall(writer);
             writer.writeEndDocument();

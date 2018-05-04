@@ -89,13 +89,18 @@ public class StateInfoCommand extends AbstractFeaturePackCommand {
             if (container.getDependencies().isEmpty()) {
                 invoc.println("  NONE");
             } else {
+                boolean found = false;
                 for (ArtifactCoords.Gav g : container.getDependencies()) {
                     if (container instanceof FeaturePackInfo) {
                         if (((FeaturePackInfo) container).getGav().equals(g)) {
                             continue;
                         }
                     }
+                    found = true;
                     invoc.println("  " + g.toString());
+                }
+                if (!found) {
+                    invoc.println("  NONE");
                 }
             }
         } else {
