@@ -46,8 +46,7 @@ public class PackageInfo {
 
     private final Path contentDir;
     private final PackageSpec spec;
-    private boolean hasContent;
-    List<String> content = new ArrayList<>();
+    private final List<String> content = new ArrayList<>();
 
     private final Identity identity;
 
@@ -61,10 +60,10 @@ public class PackageInfo {
         this.identity = identity;
         this.contentDir = pkg.getContentDir();
         this.spec = pkg.getSpec();
-        if (hasContent()) {
+        customContent = plugin == null ? null : plugin.handlePackageContent(pkg);
+        if (customContent == null) {
             fillContent();
         }
-        customContent = plugin == null ? null : plugin.handlePackageContent(pkg);
     }
 
     public String getCustomContent() {
@@ -120,10 +119,6 @@ public class PackageInfo {
      */
     public Identity getIdentity() {
         return identity;
-    }
-
-    public final boolean hasContent() {
-        return hasContent;
     }
 
     /**
