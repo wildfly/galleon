@@ -32,7 +32,7 @@ import org.jboss.galleon.ProvisioningException;
 class ConfigFeatureBranch {
 
     final Object id;
-    final boolean defaultId;
+    final boolean anonymous; // anonymous branch is a branch with the default incremental id
     private List<ResolvedFeature> list = new ArrayList<>();
     private boolean batch;
     private Set<ConfigFeatureBranch> deps = Collections.emptySet();
@@ -43,13 +43,13 @@ class ConfigFeatureBranch {
     ConfigFeatureBranch(int index, boolean batch) {
         this.id = index;
         this.batch = batch;
-        this.defaultId = true;
+        this.anonymous = true;
     }
 
     ConfigFeatureBranch(Object id, boolean batch) {
         this.id = id;
         this.batch = batch;
-        this.defaultId = false;
+        this.anonymous = false;
     }
 
     List<ResolvedFeature> getFeatures() {

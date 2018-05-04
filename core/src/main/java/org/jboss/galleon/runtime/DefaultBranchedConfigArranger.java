@@ -51,7 +51,6 @@ class DefaultBranchedConfigArranger {
     private final Map<ResolvedSpecId, SpecFeatures> specFeatures;
     private final Map<ResolvedFeatureId, ResolvedFeature> features;
     private final boolean branchPerSpec;
-    private boolean orderReferencedSpec;
     private final boolean branchIsBatch;
     private final boolean isolateCircularDeps;
 
@@ -62,6 +61,7 @@ class DefaultBranchedConfigArranger {
     private Map<Object, ConfigFeatureBranch> branchesWithId = Collections.emptyMap();
     private ConfigFeatureBranch currentBranch;
 
+    private boolean orderReferencedSpec;
     private boolean onParentChildrenBranch;
     private boolean circularDeps;
 
@@ -128,9 +128,9 @@ class DefaultBranchedConfigArranger {
             }
         }
 
-        currentBranch = new ConfigFeatureBranch(0, branchIsBatch);
+//        currentBranch = new ConfigFeatureBranch(0, branchIsBatch);
         featureBranches = new ArrayList<>();
-        featureBranches.add(currentBranch);
+//        featureBranches.add(currentBranch);
 
         if(branchPerSpec) {
             for(SpecFeatures features : specFeatures.values()) {
@@ -167,7 +167,7 @@ class DefaultBranchedConfigArranger {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        */
+*/
     }
 
     private CapabilityProviders getProviders(String cap, boolean add) throws ProvisioningException {
@@ -314,23 +314,30 @@ class DefaultBranchedConfigArranger {
                 // there could be multiple triggers for the same circle
                 // i.e. cap requirements, refs, etc, the same circle can be detected multiple times
                 // the check is necessary to avoid breaking it into pieces
-                boolean isolate = false;
+                boolean endBranch = false;
                 if(!originalCircularDeps) {
+                    boolean newBranch = false;
                     Object isolateBranchId = null;
                     if(isolateCircularDeps) {
-                        isolate = true;
-                    } else if (currentBranch.defaultId) {
+                        newBranch = true;
+                        endBranch = true;
+                    } else if(currentBranch == null) {
+                        newBranch = true;
+                        endBranch = !branchIsBatch;
+                        isolateBranchId = feature.spec.branchId;
+                    } else if (currentBranch.anonymous) {
                         if (feature.spec.branchId != null) {
-                            isolate = true;
+                            newBranch = true;
                             isolateBranchId = feature.spec.branchId;
-                        } else {
-                            isolate = !currentBranch.isBatch();
+                        } else if(!currentBranch.isBatch()) {
+                            newBranch = true;
+                            endBranch = !branchIsBatch;
                         }
                     } else if (!currentBranch.id.equals(feature.spec.branchId)) {
-                        isolate = true;
+                        newBranch = true;
                         isolateBranchId = feature.spec.branchId;
                     }
-                    if(isolate) {
+                    if(newBranch) {
                         startNewBranch(isolateBranchId, true);
                     }
                 }
@@ -342,7 +349,7 @@ class DefaultBranchedConfigArranger {
                         throw new IllegalStateException();
                     }
                 }
-                if(isolate) {
+                if(endBranch) {
                     startNewBranch(null, branchIsBatch);
                 }
                 circularDeps = originalCircularDeps;
@@ -355,23 +362,25 @@ class DefaultBranchedConfigArranger {
     }
 
     private void ordered(ResolvedFeature feature) throws ProvisioningException {
-
-        ConfigFeatureBranch branch = currentBranch;
-        if(circularDeps) {
-            // stay on the current branch created for the circular dep
-            if(feature.spec.parentChildrenBranch) {
-                branch.setFkBranch();
-            }
-        } else {
-            branch = determineBranch(feature);
-        }
-
-        branch.add(feature);
+        determineBranch(feature).add(feature);
         feature.ordered();
         //System.out.println(feature.getId().toString() + " landed on " + feature.branch);
     }
 
     private ConfigFeatureBranch determineBranch(ResolvedFeature feature) throws ProvisioningException {
+
+        if(circularDeps) {
+            if(currentBranch == null) {
+                throw new IllegalStateException("current branch is null");
+                //startNewBranch(null, true);
+            }
+            // stay on the current branch created for the circular dep
+            if(feature.spec.parentChildrenBranch) {
+                currentBranch.setFkBranch();
+            }
+            return currentBranch;
+        }
+
         if (!feature.branchDeps.isEmpty()) {
             // System.out.println("branch deps for " + feature.id + " are " + feature.branchDeps);
             final Iterator<Map.Entry<ConfigFeatureBranch, Boolean>> branchDepIter = feature.branchDeps.entrySet().iterator();
@@ -420,11 +429,11 @@ class DefaultBranchedConfigArranger {
             return branch;
         }
 
-        if (currentBranch.isSpecBranch() || currentBranch.isFkBranch()) {
-            return startNewBranch(null, feature.spec.isBatchBranch(branchIsBatch));
-        }
-        if (createsDepCircle(currentBranch, feature)) {
-            return startNewBranch(null, branchIsBatch);
+        if (currentBranch == null
+                || currentBranch.isSpecBranch()
+                || currentBranch.isFkBranch()
+                || createsDepCircle(currentBranch, feature)) {
+            startNewBranch(null, feature.spec.isBatchBranch(branchIsBatch));
         }
         return currentBranch;
     }
@@ -474,7 +483,8 @@ class DefaultBranchedConfigArranger {
     }
 
     private ConfigFeatureBranch startNewBranch(Object id, boolean batch) throws ProvisioningException {
-        if(currentBranch.isEmpty() && (currentBranch.defaultId && id == null || id != null && id.equals(currentBranch.id))) {
+        if(currentBranch != null && currentBranch.isEmpty() &&
+                (currentBranch.anonymous && id == null || id != null && id.equals(currentBranch.id))) {
             if (currentBranch.isBatch() == batch) {
                 return currentBranch;
             }
