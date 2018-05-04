@@ -16,7 +16,7 @@
  */
 package org.jboss.galleon.util;
 
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -36,13 +36,15 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  *
  * @author Alexey Loubyansky
  */
 public class IoUtils {
+
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
+    private static char[] charBuffer;
 
     private static final Path TMP_DIR = Paths.get(PropertyUtils.getSystemProperty("java.io.tmpdir"));
 
@@ -119,21 +121,17 @@ public class IoUtils {
     }
 
     public static String readFile(Path file) throws IOException {
-        final StringWriter buf = new StringWriter();
-        try (BufferedWriter bw = new BufferedWriter(buf)) {
-            Files.readAllLines(file).forEach(new Consumer<String>() {
-                @Override
-                public void accept(String line) {
-                    try {
-                        bw.append(line);
-                        bw.newLine();
-                    } catch (IOException ioex) {
-                        throw new RuntimeException(ioex);
-                    }
-                }
-            });
+        if(charBuffer == null) {
+            charBuffer = new char[DEFAULT_BUFFER_SIZE];
         }
-        return buf.toString();
+        int n = 0;
+        final StringWriter output = new StringWriter();
+        try (BufferedReader input = Files.newBufferedReader(file)) {
+            while ((n = input.read(charBuffer)) != -1) {
+                output.write(charBuffer, 0, n);
+            }
+        }
+        return output.getBuffer().toString();
     }
 
     public static void writeFile(Path file, String content) throws IOException {
