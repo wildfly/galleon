@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.runtime;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,6 +64,7 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
 
     private SpecFeatures specFeatures;
     ConfigFeatureBranch branch;
+    List<ResolvedFeature> branchDependees;
     Map<ConfigFeatureBranch, Boolean> branchDeps = new HashMap<>();
 
     ResolvedFeature(ResolvedFeatureId id, ResolvedFeatureSpec spec, int includeNo) {
@@ -136,7 +138,7 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
         orderingState = ORDERED;
         provided(branch);
         spec.provided(branch);
-        branchDeps = null;
+        //branchDeps = null;
     }
 
     void free() {
@@ -148,6 +150,26 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
         final Boolean prevChild = branchDeps.get(branchDep);
         if(prevChild == null || !prevChild && child) {
             branchDeps.put(branchDep, child);
+        }
+        if(branch != null) {
+            branch.addBranchDep(branchDep);
+        }
+    }
+
+    void addBranchDependee(ResolvedFeature feature) {
+        if(branchDependees == null) {
+            branchDependees = new ArrayList<>();
+        }
+        branchDependees.add(feature);
+    }
+
+    void setBranch(ConfigFeatureBranch branch) {
+        this.branch = branch;
+        if(branchDependees != null) {
+            for(ResolvedFeature branchDependee : branchDependees) {
+                branchDependee.addBranchDep(branch, false);
+            }
+            branchDependees.clear();
         }
     }
 
@@ -163,8 +185,16 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
         return batchControl == START;
     }
 
+    void clearBatchStart() {
+        batchControl = 0;
+    }
+
     boolean isBatchEnd() {
         return batchControl == END;
+    }
+
+    void clearBatchEnd() {
+        batchControl = 0;
     }
 
     void startBranch() {

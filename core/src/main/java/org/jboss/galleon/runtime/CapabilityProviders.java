@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.runtime;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -34,8 +35,17 @@ class CapabilityProviders {
     // features providing the capability of specs that don't provide the capability
     List<ResolvedFeature> features = Collections.emptyList();
 
+    private List<ResolvedFeature> branchDependees;
+
     Set<ConfigFeatureBranch> branches = Collections.emptySet();
     private boolean provided;
+
+    void addBranchDependee(ResolvedFeature feature) {
+        if(branchDependees == null) {
+            branchDependees = new ArrayList<>();
+        }
+        branchDependees.add(feature);
+    }
 
     void add(SpecFeatures specFeatures) {
         specs = CollectionUtils.add(specs, specFeatures);
@@ -50,6 +60,12 @@ class CapabilityProviders {
     void provided(ConfigFeatureBranch branch) {
         branches = CollectionUtils.add(branches, branch);
         provided = true;
+        if(branchDependees != null && !branchDependees.isEmpty()) {
+            for(ResolvedFeature branchDependee : branchDependees) {
+                branchDependee.addBranchDep(branch, false);
+            }
+            branchDependees.clear();
+        }
     }
 
     boolean isProvided() {

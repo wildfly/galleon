@@ -119,11 +119,15 @@ class ConfigFeatureBranch {
         final Iterator<ConfigFeatureBranch> iter = feature.branchDeps.keySet().iterator();
         while(iter.hasNext()) {
             final ConfigFeatureBranch dep = iter.next();
-            if(id != dep.id) {
-                deps.add(dep);
-            }
+            addBranchDep(dep);
         }
         //System.out.println("  updated deps " + deps);
+    }
+
+    void addBranchDep(final ConfigFeatureBranch dep) {
+        if(!id.equals(dep.id)) {
+            deps.add(dep);
+        }
     }
 
     boolean isOrdered() {

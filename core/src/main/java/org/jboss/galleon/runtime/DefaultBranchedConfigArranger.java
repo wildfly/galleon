@@ -16,6 +16,11 @@
  */
 package org.jboss.galleon.runtime;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +58,7 @@ class DefaultBranchedConfigArranger {
     private final boolean branchPerSpec;
     private final boolean branchIsBatch;
     private final boolean isolateCircularDeps;
+    private final boolean mergeIndependentBranches;
 
     private CapabilityResolver capResolver = new CapabilityResolver();
     private Map<String, CapabilityProviders> capProviders = Collections.emptyMap();
@@ -65,6 +71,9 @@ class DefaultBranchedConfigArranger {
     private boolean onParentChildrenBranch;
     private boolean circularDeps;
 
+    private List<ResolvedFeature> orderedFeatures = Collections.emptyList();
+    private List<ResolvedFeature> independentBatchBranch = Collections.emptyList();
+    private List<ResolvedFeature> independentNonBatchBranch = Collections.emptyList();
 
     DefaultBranchedConfigArranger(ConfigModelStack configStack) {
         this.configStack = configStack;
@@ -75,6 +84,7 @@ class DefaultBranchedConfigArranger {
         orderReferencedSpec = branchPerSpec;
         branchIsBatch = getBooleanProp(configStack.props, ConfigModel.BRANCH_IS_BATCH, false);
         isolateCircularDeps = getBooleanProp(configStack.props, ConfigModel.ISOLATE_CIRCULAR_DEPS, false);
+        mergeIndependentBranches = getBooleanProp(configStack.props, ConfigModel.MERGE_INDEPENDENT_BRANCHES, false);
     }
 
     List<ResolvedFeature> orderFeatures() throws ProvisioningException {
@@ -84,24 +94,66 @@ class DefaultBranchedConfigArranger {
             throw new ProvisioningException(Errors.failedToBuildConfigSpec(configStack.id.getModel(), configStack.id.getName()), e);
         }
 
-        final List<ResolvedFeature> orderedFeatures = new ArrayList<>(features.size());
+        orderedFeatures = new ArrayList<>(features.size());
         for(ConfigFeatureBranch branch : featureBranches) {
-            orderBranches(branch, orderedFeatures);
+            orderBranches(branch);
         }
-        return orderedFeatures;
+
+        //dumpBranches();
+
+        if(!mergeIndependentBranches) {
+            return orderedFeatures;
+        }
+
+        List<ResolvedFeature> result = new ArrayList<>(features.size());
+        if(!independentNonBatchBranch.isEmpty()) {
+            result.addAll(independentNonBatchBranch);
+        }
+        if(!independentBatchBranch.isEmpty()) {
+            if(independentBatchBranch.size() == 1) {
+                final ResolvedFeature firstFeature = independentBatchBranch.get(0);
+                firstFeature.clearBatchStart();
+                firstFeature.clearBatchEnd();
+            } else {
+                independentBatchBranch.get(0).startBatch();
+                independentBatchBranch.get(independentBatchBranch.size() - 1).endBatch();
+            }
+            result.addAll(independentBatchBranch);
+        }
+        result.addAll(orderedFeatures);
+        return result;
     }
 
-    private void orderBranches(ConfigFeatureBranch branch, List<ResolvedFeature> features) {
+    private void orderBranches(ConfigFeatureBranch branch) {
         if(branch.isOrdered()) {
             return;
         }
         if(branch.hasDeps()) {
             for(ConfigFeatureBranch dep : branch.getDeps()) {
-                orderBranches(dep, features);
+                orderBranches(dep);
             }
+            branch.ordered();
+            orderedFeatures.addAll(branch.getFeatures());
+        } else if(mergeIndependentBranches) {
+            branch.ordered(); // it's important to call ordered on the branch before the batch flags are manipulated
+            if(branch.isBatch()) {
+                if(independentBatchBranch.isEmpty()) {
+                    independentBatchBranch = new ArrayList<>();
+                } else {
+                    final ResolvedFeature lastFeature = independentBatchBranch.get(independentBatchBranch.size() - 1);
+                    if(lastFeature.isBatchEnd()) {
+                        lastFeature.clearBatchEnd();
+                    }
+                    branch.getFeatures().get(0).clearBatchStart();
+                }
+                independentBatchBranch.addAll(branch.getFeatures());
+            } else {
+                independentNonBatchBranch = CollectionUtils.addAll(independentNonBatchBranch, branch.getFeatures());
+            }
+        } else {
+            branch.ordered();
+            orderedFeatures.addAll(branch.getFeatures());
         }
-        features.addAll(branch.getFeatures());
-        branch.ordered();
     }
 
     private void doOrder(ProvisioningRuntimeBuilder rt) throws ProvisioningException {
@@ -128,9 +180,7 @@ class DefaultBranchedConfigArranger {
             }
         }
 
-//        currentBranch = new ConfigFeatureBranch(0, branchIsBatch);
         featureBranches = new ArrayList<>();
-//        featureBranches.add(currentBranch);
 
         if(branchPerSpec) {
             for(SpecFeatures features : specFeatures.values()) {
@@ -141,33 +191,6 @@ class DefaultBranchedConfigArranger {
                 orderFeature(feature);
             }
         }
-/*
-        final Path file = Paths.get(System.getProperty("user.home")).resolve("galleon-scripts").resolve(configStack.id.getName() + "-branches.txt");
-        try {
-            Files.createDirectories(file.getParent());
-        } catch (IOException e) {
-        }
-        try (BufferedWriter writer = Files.newBufferedWriter(file)) {
-            int i = 1;
-            for (ConfigFeatureBranch branch : featureBranches) {
-                writer.write("Branch " + i++ + " id=" + branch.id + " batch=" + branch.isBatch());
-                writer.newLine();
-                int j = 1;
-                for (ResolvedFeature feature : branch.getFeatures()) {
-                    writer.write("    " + j++ + ". " + feature.getId());
-                    if(feature.isBatchStart()) {
-                        writer.write(" start batch");
-                    }
-                    if(feature.isBatchEnd()) {
-                        writer.write(" end batch");
-                    }
-                    writer.newLine();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-*/
     }
 
     private CapabilityProviders getProviders(String cap, boolean add) throws ProvisioningException {
@@ -528,6 +551,8 @@ class DefaultBranchedConfigArranger {
                 if(providers.isProvided()) {
                     feature.addBranchDep(providers.branches.iterator().next(), false);
                     //System.out.println("added branch dep on cap provider " + feature.getId() + " -> " + providers.branches);
+                } else {
+                    providers.addBranchDependee(feature);
                 }
             }
         }
@@ -630,7 +655,47 @@ class DefaultBranchedConfigArranger {
         final List<CircularRefInfo> circularRefs = orderFeature(dep);
         if(dep.branch != null) {
             feature.addBranchDep(dep.branch, refId.isChildRef());
+        } else {
+            dep.addBranchDependee(feature);
         }
         return circularRefs;
+    }
+
+    private void dumpBranches() {
+        final Path file = Paths.get(System.getProperty("user.home")).resolve("galleon-scripts").resolve("branches-" + configStack.id.getName());
+        try {
+            Files.createDirectories(file.getParent());
+        } catch (IOException e) {
+        }
+        try (BufferedWriter writer = Files.newBufferedWriter(file)) {
+            if(!independentNonBatchBranch.isEmpty()) {
+                dumpBranch(writer, independentNonBatchBranch, "Independent non-batch branch");
+            }
+            if(!independentBatchBranch.isEmpty()) {
+                dumpBranch(writer, independentBatchBranch, "Independent batch branch");
+            }
+            int i = 1;
+            for (ConfigFeatureBranch branch : featureBranches) {
+                dumpBranch(writer, branch.getFeatures(), "Branch " + i++ + " id=" + branch.id + " batch=" + branch.isBatch());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void dumpBranch(BufferedWriter writer, List<ResolvedFeature> features, String branchTitle) throws IOException {
+        writer.write(branchTitle);
+        writer.newLine();
+        int j = 1;
+        for (ResolvedFeature feature : features) {
+            writer.write("    " + j++ + ". " + feature.getId());
+            if(feature.isBatchStart()) {
+                writer.write(" start batch");
+            }
+            if(feature.isBatchEnd()) {
+                writer.write(" end batch");
+            }
+            writer.newLine();
+        }
     }
 }
