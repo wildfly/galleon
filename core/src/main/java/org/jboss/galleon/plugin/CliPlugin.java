@@ -40,6 +40,9 @@ public interface CliPlugin extends ProvisioningPlugin {
      * @param spec The package.
      * @param content The package content root directory.
      * @return null if no custom content.
+     * @throws ProvisioningDescriptionException
+     * @throws ProvisioningException
+     * @throws IOException
      */
     CustomPackageContent handlePackageContent(FeaturePackRuntime rt, PackageSpec spec, Path content)
             throws ProvisioningException, ProvisioningDescriptionException, IOException;
