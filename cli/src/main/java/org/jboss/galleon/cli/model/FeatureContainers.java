@@ -91,10 +91,8 @@ public abstract class FeatureContainers {
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
             pkgBuilder.resetRoots();
             for (PackageRuntime pkg : rt.getPackages()) {
-                pkgBuilder.buildGroups(new PackageInfo(rt, rt.getGav(), Identity.
-                        fromGav(rt.getGav(), pkg.getName()),
-                        pkg.getContentDir(),
-                        pkg.getSpec(), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
+                pkgBuilder.buildGroups(new PackageInfo(pkg, Identity.
+                        fromGav(rt.getGav(), pkg.getName()), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
                     @Override
                     public PackageInfo build(Identity identity) {
                         try {
@@ -107,8 +105,7 @@ public abstract class FeatureContainers {
                                 throw new RuntimeException("Package " + pkg.getName()
                                         + ", unknown dependency " + identity + " local is " + rt.getGav());
                             }
-                            return new PackageInfo(rt, extRt.getGav(), identity,
-                                    p.getContentDir(), p.getSpec(), plugin);
+                            return new PackageInfo(p, identity, plugin);
                         } catch (IOException | ProvisioningException e) {
                             throw new RuntimeException(e);
                         }

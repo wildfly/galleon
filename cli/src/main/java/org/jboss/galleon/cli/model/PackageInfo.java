@@ -36,7 +36,7 @@ import org.jboss.galleon.spec.PackageSpec;
 
 import org.jboss.galleon.plugin.CliPlugin;
 import org.jboss.galleon.plugin.CliPlugin.CustomPackageContent;
-import org.jboss.galleon.runtime.FeaturePackRuntime;
+import org.jboss.galleon.runtime.PackageRuntime;
 
 /**
  *
@@ -55,16 +55,16 @@ public class PackageInfo {
     private final Gav gav;
     private final CustomPackageContent customContent;
 
-    PackageInfo(FeaturePackRuntime rt, Gav gav, Identity identity, Path contentDir, PackageSpec spec,
+    PackageInfo(PackageRuntime pkg, Identity identity,
             CliPlugin plugin) throws IOException, ProvisioningException {
-        this.gav = gav;
+        this.gav = pkg.getFeaturePackRuntime().getGav();
         this.identity = identity;
-        this.contentDir = contentDir;
-        this.spec = spec;
+        this.contentDir = pkg.getContentDir();
+        this.spec = pkg.getSpec();
         if (hasContent()) {
             fillContent();
         }
-        customContent = plugin == null ? null : plugin.handlePackageContent(rt, spec, contentDir);
+        customContent = plugin == null ? null : plugin.handlePackageContent(pkg);
     }
 
     public String getCustomContent() {
