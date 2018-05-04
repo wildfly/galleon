@@ -17,11 +17,9 @@
 package org.jboss.galleon.plugin;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.runtime.FeaturePackRuntime;
-import org.jboss.galleon.spec.PackageSpec;
+import org.jboss.galleon.runtime.PackageRuntime;
 
 /**
  * Plugin for CLI
@@ -33,17 +31,16 @@ public interface CliPlugin extends ProvisioningPlugin {
     interface CustomPackageContent {
         String getInfo();
     }
+
     /**
      * Retrieve package custom content.
      *
-     * @param rt The runtime.
-     * @param spec The package.
-     * @param content The package content root directory.
+     * @param pkg The package.
      * @return null if no custom content.
      * @throws ProvisioningDescriptionException
      * @throws ProvisioningException
      * @throws IOException
      */
-    CustomPackageContent handlePackageContent(FeaturePackRuntime rt, PackageSpec spec, Path content)
+    CustomPackageContent handlePackageContent(PackageRuntime pkg)
             throws ProvisioningException, ProvisioningDescriptionException, IOException;
 }
