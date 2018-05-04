@@ -97,7 +97,7 @@ public class StateProvisionCommand extends PmSessionCommand {
             } catch (IOException ex) {
                 throw new CommandExecutionException(ex);
             }
-        } else {
+        } else if (invoc.getPmSession().getState() != null) {
             invoc.println("Nothing to install");
         }
     }

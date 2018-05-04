@@ -16,7 +16,9 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.aesh.command.CommandDefinition;
@@ -36,6 +38,8 @@ import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
 /**
  *
@@ -57,30 +61,44 @@ public class StateExportCommand extends PmSessionCommand {
             description = "Installation directory.")
     private String installationDir;
 
-    @Argument(completer = FileOptionCompleter.class, required = true,
+    @Argument(completer = FileOptionCompleter.class, required = false,
             description = "Xml to generate the provisioning config to.")
     private Resource file;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        final Resource specResource = file.resolve(invoc.getAeshContext().getCurrentWorkingDirectory()).get(0);
-        final Path targetFile = Paths.get(specResource.getAbsolutePath());
-        if (invoc.getPmSession().getState() != null) {
-            State session = invoc.getPmSession().getState();
-            try {
-                session.export(targetFile);
-            } catch (Exception ex) {
-                throw new CommandExecutionException(ex);
+        if (file != null) {
+            final Resource specResource = file.resolve(invoc.getAeshContext().getCurrentWorkingDirectory()).get(0);
+            final Path targetFile = Paths.get(specResource.getAbsolutePath());
+            if (invoc.getPmSession().getState() != null) {
+                State session = invoc.getPmSession().getState();
+                try {
+                    session.export(targetFile);
+                } catch (Exception ex) {
+                    throw new CommandExecutionException(ex);
+                }
+            } else {
+                try {
+                    getManager(invoc).exportProvisioningConfig(targetFile);
+                } catch (ProvisioningException | IOException e) {
+                    throw new CommandExecutionException("Failed to export provisioned state", e);
+                }
             }
+
+            invoc.println("Provisioning file generated in " + targetFile);
         } else {
+            ByteArrayOutputStream output = null;
             try {
-                getManager(invoc).exportProvisioningConfig(targetFile);
-            } catch (ProvisioningException | IOException e) {
+                ProvisioningConfig config = invoc.getPmSession().getState() != null
+                        ? invoc.getPmSession().getState().getConfig() : getManager(invoc).getProvisioningConfig();
+                output = new ByteArrayOutputStream();
+                PrintWriter writer = new PrintWriter(output);
+                ProvisioningXmlWriter.getInstance().write(config, writer);
+            } catch (Exception e) {
                 throw new CommandExecutionException("Failed to export provisioned state", e);
             }
+            invoc.println(output.toString());
         }
-
-        invoc.println("Provisioning file generated in " + targetFile);
     }
 
     private ProvisioningManager getManager(PmCommandInvocation session) {

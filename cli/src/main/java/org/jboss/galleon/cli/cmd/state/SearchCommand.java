@@ -204,6 +204,37 @@ public class SearchCommand extends PmSessionCommand {
         }
 
         pBuilder = new StringBuilder();
+        invoc.println(Config.getLineSeparator() + "Package content:");
+        for (Entry<String, Group> entry : container.getPackages().entrySet()) {
+            Group root = entry.getValue();
+            for (Group g : root.getGroups()) {
+                PackageInfo pkginfo = g.getPackage();
+                StringBuilder contentBuilder = new StringBuilder();
+                String customContent = pkginfo.getCustomContent();
+                if (customContent != null) {
+                    if (customContent.contains(query)) {
+                        contentBuilder.append(customContent).append(Config.getLineSeparator());
+                    }
+                } else {
+                    for (String c : pkginfo.getContent()) {
+                        if (c.contains(query)) {
+                            contentBuilder.append(c).append(Config.getLineSeparator());
+                        }
+                    }
+                }
+                if (contentBuilder.length() != 0) {
+                    pBuilder.append("  Found in content of "
+                            + g.getIdentity()).append(Config.getLineSeparator());
+                    pBuilder.append(contentBuilder);
+                }
+            }
+        }
+        if (pBuilder.length() != 0) {
+            invoc.println(pBuilder.toString());
+        } else {
+            invoc.println("NONE");
+        }
+        pBuilder = new StringBuilder();
         // Features?
         invoc.println(Config.getLineSeparator() + "Features:");
         for (Entry<ResolvedSpecId, List<FeatureInfo>> features : container.getAllFeatures().entrySet()) {
