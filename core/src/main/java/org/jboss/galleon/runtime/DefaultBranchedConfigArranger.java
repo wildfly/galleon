@@ -365,7 +365,8 @@ class DefaultBranchedConfigArranger {
                     }
                 }
 
-                ordered(feature);
+                determineBranch(feature).add(feature);
+
                 initiatedCircularRefs.sort(CircularRefInfo.getNextOnPathComparator());
                 for(CircularRefInfo ref : initiatedCircularRefs) {
                     if(orderFeature(ref.nextOnPath) != null) {
@@ -379,15 +380,9 @@ class DefaultBranchedConfigArranger {
             }
             orderReferencedSpec = prevOrderRefSpec;
         } else {
-            ordered(feature);
+            determineBranch(feature).add(feature);
         }
         return null;
-    }
-
-    private void ordered(ResolvedFeature feature) throws ProvisioningException {
-        determineBranch(feature).add(feature);
-        feature.ordered();
-        //System.out.println(feature.getId().toString() + " landed on " + feature.branch);
     }
 
     private ConfigFeatureBranch determineBranch(ResolvedFeature feature) throws ProvisioningException {
@@ -395,7 +390,6 @@ class DefaultBranchedConfigArranger {
         if(circularDeps) {
             if(currentBranch == null) {
                 throw new IllegalStateException("current branch is null");
-                //startNewBranch(null, true);
             }
             // stay on the current branch created for the circular dep
             if(feature.spec.parentChildrenBranch) {

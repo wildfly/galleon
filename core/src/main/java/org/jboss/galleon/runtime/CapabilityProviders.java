@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.runtime;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -35,16 +34,13 @@ class CapabilityProviders {
     // features providing the capability of specs that don't provide the capability
     List<ResolvedFeature> features = Collections.emptyList();
 
-    private List<ResolvedFeature> branchDependees;
-
+    private ConfigFeatureBranch firstProvided; // this is just a short cut
     Set<ConfigFeatureBranch> branches = Collections.emptySet();
-    private boolean provided;
+
+    private List<ResolvedFeature> branchDependees = Collections.emptyList();
 
     void addBranchDependee(ResolvedFeature feature) {
-        if(branchDependees == null) {
-            branchDependees = new ArrayList<>();
-        }
-        branchDependees.add(feature);
+        branchDependees = CollectionUtils.add(branchDependees, feature);
     }
 
     void add(SpecFeatures specFeatures) {
@@ -58,17 +54,21 @@ class CapabilityProviders {
     }
 
     void provided(ConfigFeatureBranch branch) {
-        branches = CollectionUtils.add(branches, branch);
-        provided = true;
-        if(branchDependees != null && !branchDependees.isEmpty()) {
-            for(ResolvedFeature branchDependee : branchDependees) {
+        if(firstProvided != null) {
+            branches = CollectionUtils.add(branches, branch);
+            return;
+        }
+        firstProvided = branch;
+        branches = Collections.singleton(branch);
+        if (!branchDependees.isEmpty()) {
+            for (ResolvedFeature branchDependee : branchDependees) {
                 branchDependee.addBranchDep(branch, false);
             }
-            branchDependees.clear();
+            branchDependees = Collections.emptyList();
         }
     }
 
     boolean isProvided() {
-        return !branches.isEmpty() || provided;
+        return !branches.isEmpty();
     }
 }
