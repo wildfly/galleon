@@ -100,7 +100,7 @@ public class ProvisioningRuntimeBuilder {
     final Path workDir;
     final Path layoutDir;
     Path pluginsDir = null;
-    Map<String, String> options = Collections.emptyMap();
+    Map<String, String> pluginOptions = Collections.emptyMap();
     private final MessageWriter messageWriter;
 
     private final Map<ArtifactCoords.Ga, FeaturePackRuntimeBuilder> fpRtBuilders = new HashMap<>();
@@ -1051,12 +1051,12 @@ public class ProvisioningRuntimeBuilder {
     }
 
     public ProvisioningRuntimeBuilder setOption(String name, String param) {
-        options = CollectionUtils.put(options, name, param);
+        pluginOptions = CollectionUtils.put(pluginOptions, name, param);
         return this;
     }
 
     public ProvisioningRuntimeBuilder addOptions(Map<String, String> options) {
-        this.options = CollectionUtils.putAll(this.options, options);
+        this.pluginOptions = CollectionUtils.putAll(this.pluginOptions, options);
         return this;
     }
 
