@@ -18,12 +18,12 @@ package org.jboss.galleon.runtime;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
@@ -38,7 +38,7 @@ class ConfigFeatureBranch {
     private Set<ConfigFeatureBranch> deps = Collections.emptySet();
     private boolean ordered;
     private boolean fkBranch;
-    private ResolvedSpecId specId;
+    private boolean specBranch;
 
     ConfigFeatureBranch(int index, boolean batch) {
         this.id = index;
@@ -66,15 +66,12 @@ class ConfigFeatureBranch {
 
     void setBatch(boolean batch) throws ProvisioningException {
         if(!list.isEmpty()) {
-            throw new ProvisioningException("Can't start batch in middle of the branch");
+            throw new ProvisioningException("Can't start batch in the middle of a branch");
         }
         this.batch = batch;
     }
 
     void setFkBranch() throws ProvisioningException {
-        //if(!list.isEmpty()) {
-        //    throw new ProvisioningException("Can't start a foreign key branch in middle of the branch");
-        //}
         fkBranch = true;
     }
 
@@ -82,15 +79,12 @@ class ConfigFeatureBranch {
         return fkBranch;
     }
 
-    void setSpecId(ResolvedSpecId specId) throws ProvisioningException {
-//        if(!list.isEmpty()) {
-//            throw new ProvisioningException("Can't start a spec branch in the middle of a branch");
-//        }
-        this.specId = specId;
+    void setSpecBranch() throws ProvisioningException {
+        specBranch = true;
     }
 
     boolean isSpecBranch() {
-        return specId != null;
+        return specBranch;
     }
 
     boolean hasDeps() {
@@ -105,25 +99,13 @@ class ConfigFeatureBranch {
         return deps.contains(branch);
     }
 
-    void add(ResolvedFeature feature) {
-        feature.branch = this;
-        //System.out.println("ConfiguredFeatureBranch.add " + this + " " + feature.id + " " + feature.branchDeps);
+    void add(ResolvedFeature feature) throws ProvisioningException {
+        feature.setBranch(this);
         list.add(feature);
-        if(feature.branchDeps.isEmpty() ||
-                feature.branchDeps.size() == 1 && feature.branchDeps.containsKey(this)) {
-            return;
-        }
-        if(deps.isEmpty()) {
-            deps = new HashSet<>(feature.branchDeps.size());
-        }
-        final Iterator<ConfigFeatureBranch> iter = feature.branchDeps.keySet().iterator();
-        while(iter.hasNext()) {
-            final ConfigFeatureBranch dep = iter.next();
-            if(id != dep.id) {
-                deps.add(dep);
-            }
-        }
-        //System.out.println("  updated deps " + deps);
+    }
+
+    void addBranchDep(final ConfigFeatureBranch dep) {
+        deps = CollectionUtils.add(deps, dep);
     }
 
     boolean isOrdered() {
@@ -132,18 +114,19 @@ class ConfigFeatureBranch {
 
     void ordered() {
         ordered = true;
-        if(!list.isEmpty()) {
-            ResolvedFeature feature = list.get(0);
-            feature.startBranch();
-            final int size = list.size();
-            if(batch && size > 1) {
-                feature.startBatch();
-            }
-            feature = list.get(list.size() - 1);
-            feature.endBranch();
-            if(batch && size > 1) {
-                feature.endBatch();
-            }
+        if(list.isEmpty()) {
+            return;
+        }
+        ResolvedFeature feature = list.get(0);
+        feature.startBranch();
+        final int size = list.size();
+        if (batch && size > 1) {
+            feature.startBatch();
+        }
+        feature = list.get(list.size() - 1);
+        feature.endBranch();
+        if (batch && size > 1) {
+            feature.endBatch();
         }
     }
 

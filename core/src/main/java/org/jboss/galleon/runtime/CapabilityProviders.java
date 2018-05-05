@@ -34,8 +34,14 @@ class CapabilityProviders {
     // features providing the capability of specs that don't provide the capability
     List<ResolvedFeature> features = Collections.emptyList();
 
+    private ConfigFeatureBranch firstProvided; // this is just a short cut
     Set<ConfigFeatureBranch> branches = Collections.emptySet();
-    private boolean provided;
+
+    private List<ResolvedFeature> branchDependees = Collections.emptyList();
+
+    void addBranchDependee(ResolvedFeature feature) {
+        branchDependees = CollectionUtils.add(branchDependees, feature);
+    }
 
     void add(SpecFeatures specFeatures) {
         specs = CollectionUtils.add(specs, specFeatures);
@@ -48,11 +54,21 @@ class CapabilityProviders {
     }
 
     void provided(ConfigFeatureBranch branch) {
-        branches = CollectionUtils.add(branches, branch);
-        provided = true;
+        if(firstProvided != null) {
+            branches = CollectionUtils.add(branches, branch);
+            return;
+        }
+        firstProvided = branch;
+        branches = Collections.singleton(branch);
+        if (!branchDependees.isEmpty()) {
+            for (ResolvedFeature branchDependee : branchDependees) {
+                branchDependee.addBranchDep(branch, false);
+            }
+            branchDependees = Collections.emptyList();
+        }
     }
 
     boolean isProvided() {
-        return !branches.isEmpty() || provided;
+        return !branches.isEmpty();
     }
 }

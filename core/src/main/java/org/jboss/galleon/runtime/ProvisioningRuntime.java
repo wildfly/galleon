@@ -55,6 +55,7 @@ import org.jboss.galleon.repomanager.FeaturePackBuilder;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.FeaturePackInstallException;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
@@ -183,7 +184,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final Path tmpDir;
     private final Path pluginsDir;
     private final Map<ArtifactCoords.Ga, FeaturePackRuntime> fpRuntimes;
-    private final Map<String, String> options;
+    private final Map<String, String> pluginOptions;
     private final MessageWriter messageWriter;
     private List<ProvisionedConfig> configs = Collections.emptyList();
     private FileSystemDiffResult diff = FileSystemDiffResult.empty();
@@ -197,7 +198,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         this.fpRuntimes = builder.getFpRuntimes(this);
         this.pluginsDir = builder.pluginsDir; // the pluginsDir is initialized during the getFpRuntimes() invocation, atm
         this.configs = builder.getResolvedConfigs();
-        options = builder.options;
+        pluginOptions = CollectionUtils.unmodifiable(builder.pluginOptions);
         this.operation = builder.operation;
 
         this.workDir = builder.workDir;
@@ -377,16 +378,13 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public boolean isOptionSet(PluginOption option) throws ProvisioningException {
-        if(!options.containsKey(option.getName())) {
+        if(!pluginOptions.containsKey(option.getName())) {
             return false;
         }
-        if(option.isAcceptsValue()) {
+        if(option.isAcceptsValue() || pluginOptions.get(option.getName()) == null) {
             return true;
         }
-        if(options.get(option.getName()) == null) {
-            return true;
-        }
-        throw new ProvisioningException("Plugin option " + option.getName() + " is set to " + options.get(option.getName()) + " but does not accept values");
+        throw new ProvisioningException("Plugin option " + option.getName() + " does expect value but is set to " + pluginOptions.get(option.getName()));
     }
 
     public String getOptionValue(PluginOption option) throws ProvisioningException {
@@ -394,7 +392,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public String getOptionValue(PluginOption option, String defaultValue) throws ProvisioningException {
-        final String value = options.get(option.getName());
+        final String value = pluginOptions.get(option.getName());
         if(value == null) {
             if(defaultValue != null) {
                 return defaultValue;
@@ -418,6 +416,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             throw new ProvisioningException(buf.toString());
         }
         return value;
+    }
+
+    public Map<String, String> getPluginOptions() {
+        return pluginOptions;
     }
 
     /**

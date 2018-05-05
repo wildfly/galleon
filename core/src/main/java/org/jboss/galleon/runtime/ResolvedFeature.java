@@ -16,9 +16,11 @@
  */
 package org.jboss.galleon.runtime;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +65,7 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
 
     private SpecFeatures specFeatures;
     ConfigFeatureBranch branch;
+    List<ResolvedFeature> branchDependees;
     Map<ConfigFeatureBranch, Boolean> branchDeps = new HashMap<>();
 
     ResolvedFeature(ResolvedFeatureId id, ResolvedFeatureSpec spec, int includeNo) {
@@ -136,7 +139,6 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
         orderingState = ORDERED;
         provided(branch);
         spec.provided(branch);
-        branchDeps = null;
     }
 
     void free() {
@@ -147,8 +149,37 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
     void addBranchDep(ConfigFeatureBranch branchDep, boolean child) {
         final Boolean prevChild = branchDeps.get(branchDep);
         if(prevChild == null || !prevChild && child) {
-            branchDeps.put(branchDep, child);
+            if(branchDeps.put(branchDep, child) != null && branch != null) {
+                branch.addBranchDep(branchDep);
+            }
         }
+    }
+
+    void addBranchDependee(ResolvedFeature feature) {
+        if(branchDependees == null) {
+            branchDependees = new ArrayList<>();
+        }
+        branchDependees.add(feature);
+    }
+
+    void setBranch(ConfigFeatureBranch branch) throws ProvisioningException {
+        this.branch = branch;
+        if(branchDeps.size() > 1 || !branchDeps.containsKey(branch)) {
+            final Iterator<ConfigFeatureBranch> iter = branchDeps.keySet().iterator();
+            while(iter.hasNext()) {
+                final ConfigFeatureBranch branchDep = iter.next();
+                if(!branch.id.equals(branchDep.id)) {
+                    branch.addBranchDep(branchDep);
+                }
+            }
+        }
+        if(branchDependees != null) {
+            for(ResolvedFeature branchDependee : branchDependees) {
+                branchDependee.addBranchDep(branch, false);
+            }
+            branchDependees = null;
+        }
+        ordered();
     }
 
     void startBatch() {
@@ -163,8 +194,16 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
         return batchControl == START;
     }
 
+    void clearBatchStart() {
+        batchControl = 0;
+    }
+
     boolean isBatchEnd() {
         return batchControl == END;
+    }
+
+    void clearBatchEnd() {
+        batchControl = 0;
     }
 
     void startBranch() {
