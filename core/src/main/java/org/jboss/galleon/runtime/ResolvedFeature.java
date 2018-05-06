@@ -47,9 +47,6 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
     private static final byte SCHEDULED = 1;
     private static final byte ORDERED = 2;
 
-    private static final byte START = 1;
-    private static final byte END = 2;
-
     final int includeNo;
     final ResolvedFeatureId id;
     final ResolvedFeatureSpec spec;
@@ -59,7 +56,8 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
     Map<ResolvedFeatureId, FeatureDependencySpec> deps;
 
     private byte orderingState = FREE;
-    private byte batchControl;
+    private boolean batchStart;
+    private boolean batchEnd;
     private boolean branchStart;
     private boolean branchEnd;
 
@@ -183,27 +181,27 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
     }
 
     void startBatch() {
-        batchControl = START;
+        batchStart = true;
     }
 
     void endBatch() {
-        batchControl = batchControl == START ? 0 : END;
+        batchEnd = true;
     }
 
     boolean isBatchStart() {
-        return batchControl == START;
+        return batchStart;
     }
 
     void clearBatchStart() {
-        batchControl = 0;
+        batchStart = false;
     }
 
     boolean isBatchEnd() {
-        return batchControl == END;
+        return batchEnd;
     }
 
     void clearBatchEnd() {
-        batchControl = 0;
+        batchEnd = false;
     }
 
     void startBranch() {
@@ -418,6 +416,6 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
 
     @Override
     public String toString() {
-        return "ResolvedFeature{" + "includeNo=" + includeNo + ", id=" + id + ", spec=" + spec + ", params=" + params + ", deps=" + deps + ", orderingState=" + orderingState + ", batchControl=" + batchControl + '}';
+        return "ResolvedFeature{" + "includeNo=" + includeNo + ", id=" + id + ", spec=" + spec + ", params=" + params + ", deps=" + deps + ", orderingState=" + orderingState + '}';
     }
 }

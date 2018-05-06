@@ -22,11 +22,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +73,7 @@ class DefaultBranchedConfigArranger {
     private boolean onParentChildrenBranch;
     private boolean circularDeps;
 
+    private Map<List<String>, List<ResolvedFeature>> branchesByDeps = Collections.emptyMap();
     private List<ResolvedFeature> orderedFeatures = Collections.emptyList();
     private List<ResolvedFeature> independentBatchBranch = Collections.emptyList();
     private List<ResolvedFeature> independentNonBatchBranch = Collections.emptyList();
@@ -95,6 +98,26 @@ class DefaultBranchedConfigArranger {
         }
 
         orderedFeatures = new ArrayList<>(features.size());
+        if(getBooleanProp(configStack.props, ConfigModel.MERGE_SAME_DEPS_BRANCHES, false)) {
+            this.branchesByDeps = new LinkedHashMap<>(featureBranches.size());
+            for(ConfigFeatureBranch branch : featureBranches) {
+                orderAndMergeBranchesWithSameDeps(branch);
+            }
+            for(List<ResolvedFeature> features : branchesByDeps.values()) {
+                if(features.size() == 1) {
+                    final ResolvedFeature feature = features.get(0);
+                    if(feature.isBatchStart()) {
+                        feature.clearBatchStart();
+                        feature.clearBatchEnd();
+                    }
+                    orderedFeatures.add(feature);
+                } else {
+                    orderedFeatures.addAll(features);
+                }
+            }
+            return orderedFeatures;
+        }
+
         for(ConfigFeatureBranch branch : featureBranches) {
             orderBranches(branch);
         }
@@ -140,11 +163,8 @@ class DefaultBranchedConfigArranger {
                 if(independentBatchBranch.isEmpty()) {
                     independentBatchBranch = new ArrayList<>();
                 } else {
-                    final ResolvedFeature lastFeature = independentBatchBranch.get(independentBatchBranch.size() - 1);
-                    if(lastFeature.isBatchEnd()) {
-                        lastFeature.clearBatchEnd();
-                    }
                     branch.getFeatures().get(0).clearBatchStart();
+                    independentBatchBranch.get(independentBatchBranch.size() - 1).clearBatchEnd();
                 }
                 independentBatchBranch.addAll(branch.getFeatures());
             } else {
@@ -153,6 +173,62 @@ class DefaultBranchedConfigArranger {
         } else {
             branch.ordered();
             orderedFeatures.addAll(branch.getFeatures());
+        }
+    }
+
+    private void orderAndMergeBranchesWithSameDeps(ConfigFeatureBranch branch) {
+        if(branch.isOrdered()) {
+            return;
+        }
+
+        final List<String> depsId;
+        final Set<ConfigFeatureBranch> branchDeps = branch.getDeps();
+        switch(branchDeps.size()) {
+            case 0:
+                depsId = Collections.emptyList();
+                break;
+            case 1:
+                depsId = Collections.singletonList(branchDeps.iterator().next().id.toString());
+                break;
+            default:
+                final String[] arr = new String[branchDeps.size()];
+                int i = 0;
+                for(ConfigFeatureBranch branchDep : branchDeps) {
+                    arr[i++] = branchDep.id.toString();
+                }
+                Arrays.sort(arr);
+                depsId = Arrays.asList(arr);
+        }
+
+        if(branch.hasDeps()) {
+            for(ConfigFeatureBranch dep : branch.getDeps()) {
+                orderAndMergeBranchesWithSameDeps(dep);
+            }
+        }
+
+        branch.ordered();
+
+        List<ResolvedFeature> features = branchesByDeps.get(depsId);
+        if(features == null) {
+            final List<ResolvedFeature> branchFeatures = branch.getFeatures();
+            branchesByDeps.put(depsId, new ArrayList<>(branchFeatures));
+            if(branch.isBatch()) {
+                branchFeatures.get(0).startBatch();
+                branchFeatures.get(branchFeatures.size() - 1).endBatch();
+            }
+        } else {
+            final List<ResolvedFeature> branchFeatures = branch.getFeatures();
+            if(branch.isBatch()) {
+                final ResolvedFeature lastFeature = features.get(features.size() - 1);
+                if(lastFeature.isBatchEnd()) {
+                    lastFeature.clearBatchEnd();
+                    branchFeatures.get(0).clearBatchStart();
+                } else {
+                    branchFeatures.get(0).startBatch();
+                }
+                branchFeatures.get(branchFeatures.size() - 1).endBatch();
+            }
+            features.addAll(branchFeatures);
         }
     }
 
