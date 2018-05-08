@@ -148,7 +148,7 @@ class DefaultBranchedConfigArranger {
     }
 
     private void orderBranches(ConfigFeatureBranch branch) {
-        if(branch.isOrdered()) {
+        if(branch.isOrdered() || branch.isEmpty() /* TODO look into why there could be an empty branch */) {
             return;
         }
         if(branch.hasDeps()) {
@@ -163,12 +163,24 @@ class DefaultBranchedConfigArranger {
                 if(independentBatchBranch.isEmpty()) {
                     independentBatchBranch = new ArrayList<>();
                 } else {
-                    branch.getFeatures().get(0).clearBatchStart();
-                    independentBatchBranch.get(independentBatchBranch.size() - 1).clearBatchEnd();
+                    final ResolvedFeature firstOnBranch = branch.getFeatures().get(0);
+                    firstOnBranch.clearStartBranch();
+                    firstOnBranch.clearBatchStart();
+                    ResolvedFeature lastOnBranch = independentBatchBranch.get(independentBatchBranch.size() - 1);
+                    lastOnBranch.clearEndBranch();
+                    lastOnBranch.clearBatchEnd();
                 }
                 independentBatchBranch.addAll(branch.getFeatures());
             } else {
-                independentNonBatchBranch = CollectionUtils.addAll(independentNonBatchBranch, branch.getFeatures());
+                if(independentNonBatchBranch.isEmpty()) {
+                    independentNonBatchBranch = new ArrayList<>();
+                } else {
+                    final ResolvedFeature firstOnBranch = branch.getFeatures().get(0);
+                    firstOnBranch.clearStartBranch();
+                    final ResolvedFeature lastOnBranch = independentNonBatchBranch.get(independentNonBatchBranch.size() - 1);
+                    lastOnBranch.clearEndBranch();
+                }
+                independentNonBatchBranch.addAll(branch.getFeatures());
             }
         } else {
             branch.ordered();
@@ -177,12 +189,20 @@ class DefaultBranchedConfigArranger {
     }
 
     private void orderAndMergeBranchesWithSameDeps(ConfigFeatureBranch branch) {
-        if(branch.isOrdered()) {
+        if(branch.isOrdered() || branch.isEmpty()) {
             return;
         }
 
-        final List<String> depsId;
         final Set<ConfigFeatureBranch> branchDeps = branch.getDeps();
+        if(!branchDeps.isEmpty()) {
+            for(ConfigFeatureBranch dep : branchDeps) {
+                orderAndMergeBranchesWithSameDeps(dep);
+            }
+        }
+
+        branch.ordered();
+
+        final List<String> depsId;
         switch(branchDeps.size()) {
             case 0:
                 depsId = Collections.emptyList();
@@ -200,14 +220,6 @@ class DefaultBranchedConfigArranger {
                 depsId = Arrays.asList(arr);
         }
 
-        if(branch.hasDeps()) {
-            for(ConfigFeatureBranch dep : branch.getDeps()) {
-                orderAndMergeBranchesWithSameDeps(dep);
-            }
-        }
-
-        branch.ordered();
-
         List<ResolvedFeature> features = branchesByDeps.get(depsId);
         if(features == null) {
             final List<ResolvedFeature> branchFeatures = branch.getFeatures();
@@ -217,14 +229,17 @@ class DefaultBranchedConfigArranger {
                 branchFeatures.get(branchFeatures.size() - 1).endBatch();
             }
         } else {
+            final ResolvedFeature lastFeature = features.get(features.size() - 1);
+            lastFeature.clearEndBranch();
             final List<ResolvedFeature> branchFeatures = branch.getFeatures();
+            final ResolvedFeature firstFeature = branchFeatures.get(0);
+            firstFeature.clearStartBranch();
             if(branch.isBatch()) {
-                final ResolvedFeature lastFeature = features.get(features.size() - 1);
                 if(lastFeature.isBatchEnd()) {
                     lastFeature.clearBatchEnd();
-                    branchFeatures.get(0).clearBatchStart();
+                    firstFeature.clearBatchStart();
                 } else {
-                    branchFeatures.get(0).startBatch();
+                    firstFeature.startBatch();
                 }
                 branchFeatures.get(branchFeatures.size() - 1).endBatch();
             }

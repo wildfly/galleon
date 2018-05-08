@@ -208,8 +208,16 @@ public class ResolvedFeature extends CapabilityProvider implements ProvisionedFe
         branchStart = true;
     }
 
+    void clearStartBranch() {
+        branchStart = false;
+    }
+
     void endBranch() {
         branchEnd = true;
+    }
+
+    void clearEndBranch() {
+        branchEnd = false;
     }
 
     boolean isBranchStart() {
