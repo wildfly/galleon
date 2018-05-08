@@ -119,12 +119,12 @@ public class AddFeatureGroupExtendedSubsetTestCase extends PmProvisionConfigTest
                         .setName("config1")
                         .setModel("model1")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1")).setConfigParam("p1", "config1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b1")).setConfigParam("p1", "config1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specC", "name", "c1")).setConfigParam("p1", "config1"))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a2")).setConfigParam("p1", "custom"))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a3")).setConfigParam("p1", "group1"))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b1")).setConfigParam("p1", "config1"))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b4")).setConfigParam("p1", "custom"))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specC", "name", "c1")).setConfigParam("p1", "config1"))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specC", "name", "c3")).setConfigParam("p1", "group1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b4")).setConfigParam("p1", "custom"))
                         .build())
                 .build();
     }

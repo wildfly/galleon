@@ -90,21 +90,24 @@ public class PreservedConfigOrderOfFeaturesTestCase extends PmInstallFeaturePack
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forGav(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specY", "y", "y1"))
-                                .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specY", "y", "y2"))
-                                .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specY", "y", "y3"))
                                 .build())
-
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specX", "x", "x1"))
                                 .setConfigParam("y", "y3")
                                 .build())
+
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specX", "x", "x2"))
+                                .build())
+
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specY", "y", "y1"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specX", "x", "x3"))
                                 .setConfigParam("y", "y1")
                                 .build())
+
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specY", "y", "y2"))
+                                .build())
+
                         .build())
                 .build();
     }

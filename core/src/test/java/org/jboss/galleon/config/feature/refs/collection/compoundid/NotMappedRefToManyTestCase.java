@@ -90,11 +90,11 @@ public class NotMappedRefToManyTestCase extends PmInstallFeaturePackTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.forGav(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specA").setParam("id", "1").setParam("a", "a1").build()).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specA").setParam("id", "1").setParam("a", "a2").build()).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specA").setParam("id", "1").setParam("a", "a3").build()).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specB").setParam("id", "1").setParam("b", "b1").build())
                                 .setConfigParam("a", "[a1, a3]")
                                 .build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specA").setParam("id", "1").setParam("a", "a2").build()).build())
                         .build())
                 .build();
     }

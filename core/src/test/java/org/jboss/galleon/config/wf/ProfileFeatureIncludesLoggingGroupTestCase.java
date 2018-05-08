@@ -189,6 +189,7 @@ public class ProfileFeatureIncludesLoggingGroupTestCase extends PmInstallFeature
             .addConfig(ConfigModel.builder()
                     .setProperty("prop1", "value1")
                     .setProperty("prop2", "value2")
+                    .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                     .addFeature(
                             new FeatureConfig("extension")
                             .setParam("module", "org.jboss.as.logging"))
@@ -254,6 +255,7 @@ public class ProfileFeatureIncludesLoggingGroupTestCase extends PmInstallFeature
         final ProvisionedConfigBuilder config1 = ProvisionedConfigBuilder.builder()
         .setProperty("prop1", "value1")
         .setProperty("prop2", "value2")
+        .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "extension", "module", "org.jboss.as.logging")).build())
         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "profile", "profile", "default")).build())
         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "profile", "profile", "ha")).build())

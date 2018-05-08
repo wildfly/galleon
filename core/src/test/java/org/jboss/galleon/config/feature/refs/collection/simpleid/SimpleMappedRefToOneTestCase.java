@@ -62,16 +62,10 @@ public class SimpleMappedRefToOneTestCase extends PmInstallFeaturePackTestBase {
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("b", "b1")
-                            .setParam("afk", "[ a1 ,a3]"))
+                            .setParam("afk", "[ a1 ]"))
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a1"))
-                    .addFeature(
-                            new FeatureConfig("specA")
-                            .setParam("a", "a2"))
-                    .addFeature(
-                            new FeatureConfig("specA")
-                            .setParam("a", "a3"))
                     .build())
             .getInstaller()
         .install();
@@ -88,10 +82,8 @@ public class SimpleMappedRefToOneTestCase extends PmInstallFeaturePackTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.forGav(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "a", "a1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "a", "a2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "a", "a3")).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "b", "b1"))
-                                .setConfigParam("afk", "[a1, a3]")
+                                .setConfigParam("afk", "[a1]")
                                 .build())
                         .build())
                 .build();

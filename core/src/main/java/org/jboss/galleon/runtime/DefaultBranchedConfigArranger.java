@@ -83,7 +83,7 @@ class DefaultBranchedConfigArranger {
         this.specFeatures = configStack.specFeatures;
         this.features = configStack.features;
 
-        branchPerSpec = getBooleanProp(configStack.props, ConfigModel.BRANCH_PER_SPEC, true);
+        branchPerSpec = getBooleanProp(configStack.props, ConfigModel.BRANCH_PER_SPEC, false);
         orderReferencedSpec = branchPerSpec;
         branchIsBatch = getBooleanProp(configStack.props, ConfigModel.BRANCH_IS_BATCH, false);
         isolateCircularDeps = getBooleanProp(configStack.props, ConfigModel.ISOLATE_CIRCULAR_DEPS, false);

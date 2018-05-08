@@ -135,6 +135,6 @@ public abstract class TestProvisionedConfigHandler implements ProvisionedConfigH
             System.out.println(actual);
         }
         Assert.assertTrue("There are more events than expected", i < events.length);
-        Assert.assertEquals(events[i++], actual);
+        Assert.assertEquals("Event " + (i + 1), events[i++], actual);
     }
 }
