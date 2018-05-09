@@ -57,6 +57,9 @@ import org.jboss.galleon.xml.ConfigXmlParser;
 @Mojo(name = "provision", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_TEST_RESOURCES)
 public class ProvisionStateMojo extends AbstractMojo {
 
+    // These WildFly specific props should be cleaned up
+    private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
+
     private static final String SYSPROP_KEY_JBOSS_SERVER_BASE_DIR = "jboss.server.base.dir";
     private static final String SYSPROP_KEY_JBOSS_SERVER_CONFIG_DIR = "jboss.server.config.dir";
     private static final String SYSPROP_KEY_JBOSS_SERVER_DEPLOY_DIR = "jboss.server.deploy.dir";
@@ -101,6 +104,8 @@ public class ProvisionStateMojo extends AbstractMojo {
             throw new MojoExecutionException("No feature-packs to install.");
         }
 
+        final String originalMavenRepoLocal = System.getProperty(MAVEN_REPO_LOCAL);
+        System.setProperty(MAVEN_REPO_LOCAL, session.getSettings().getLocalRepository());
         try {
             System.setProperty("org.wildfly.logging.skipLogManagerCheck", "true");
             doProvision();
@@ -109,6 +114,11 @@ public class ProvisionStateMojo extends AbstractMojo {
         } finally {
             System.clearProperty("org.wildfly.logging.skipLogManagerCheck");
             resetProperties();
+            if(originalMavenRepoLocal == null) {
+                System.clearProperty(MAVEN_REPO_LOCAL);
+            } else {
+                System.setProperty(MAVEN_REPO_LOCAL, originalMavenRepoLocal);
+            }
         }
     }
 

@@ -45,6 +45,9 @@ import org.jboss.galleon.maven.plugin.util.FeaturePackInstaller;
 @Mojo(name = "install-feature-pack", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_TEST_RESOURCES)
 public class FeaturePackInstallMojo extends AbstractMojo {
 
+    // These WildFly specific props should be cleaned up
+    private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
+
     private static final String SYSPROP_KEY_JBOSS_SERVER_BASE_DIR = "jboss.server.base.dir";
     private static final String SYSPROP_KEY_JBOSS_SERVER_CONFIG_DIR = "jboss.server.config.dir";
     private static final String SYSPROP_KEY_JBOSS_SERVER_DEPLOY_DIR = "jboss.server.deploy.dir";
@@ -114,7 +117,18 @@ public class FeaturePackInstallMojo extends AbstractMojo {
         if(customConfig != null) {
             fpInstaller.setCustomConfig(customConfig.toPath().toAbsolutePath());
         }
-        fpInstaller.install();
+
+        final String originalMavenRepoLocal = System.getProperty(MAVEN_REPO_LOCAL);
+        System.setProperty(MAVEN_REPO_LOCAL, session.getSettings().getLocalRepository());
+        try {
+            fpInstaller.install();
+        } finally {
+            if(originalMavenRepoLocal == null) {
+                System.clearProperty(MAVEN_REPO_LOCAL);
+            } else {
+                System.setProperty(MAVEN_REPO_LOCAL, originalMavenRepoLocal);
+            }
+        }
     }
 
     private static void resetProperties() {
