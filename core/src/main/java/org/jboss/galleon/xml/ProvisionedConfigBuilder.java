@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.xml;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,6 +30,7 @@ import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
@@ -76,17 +76,7 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
     }
 
     public ProvisionedConfigBuilder addFeature(ProvisionedFeature feature) {
-        switch(features.size()) {
-            case 0:
-                features = Collections.singletonList(feature);
-                break;
-            case 1:
-                final ProvisionedFeature first = features.get(0);
-                features = new ArrayList<>(2);
-                features.add(first);
-            default:
-                features.add(feature);
-        }
+        features = CollectionUtils.add(features, feature);
         return this;
     }
 

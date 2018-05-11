@@ -281,6 +281,15 @@ class DefaultBranchedConfigArranger {
             for(ResolvedFeature feature : features.values()) {
                 orderFeature(feature);
             }
+            // make sure features w/o IDs are also ordered
+            for(Map.Entry<ResolvedSpecId, SpecFeatures> entry : specFeatures.entrySet()) {
+                if(entry.getValue().spec.getSpec().hasId()) {
+                    continue;
+                }
+                for (ResolvedFeature feature : entry.getValue().getFeatures()) {
+                    orderFeature(feature);
+                }
+            }
         }
     }
 

@@ -99,7 +99,9 @@ public class ProvisionedFeatureBuilder implements ProvisionedFeature {
 
     public ProvisionedFeature build() throws ProvisioningDescriptionException {
         if(idBuilder != null) {
-            id = idBuilder.build();
+            if(!idBuilder.isEmpty()) {
+                id = idBuilder.build();
+            }
             idBuilder = null;
         }
         if(configParams.size() > 1) {

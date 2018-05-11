@@ -49,6 +49,10 @@ public class ResolvedFeatureId {
             return this;
         }
 
+        public boolean isEmpty() {
+            return params.isEmpty();
+        }
+
         public ResolvedFeatureId build() throws ProvisioningDescriptionException {
             if(params.isEmpty()) {
                 throw new ProvisioningDescriptionException("Failed to create an instance of ResolvedFeatureId for " + specId + ": params have not been initialized");
