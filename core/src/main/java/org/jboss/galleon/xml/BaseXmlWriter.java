@@ -63,7 +63,9 @@ abstract class BaseXmlWriter<T> {
 
     public void write(T t, Path outputFile) throws XMLStreamException, IOException {
         ensureParentDir(outputFile);
-        write(t, Files.newBufferedWriter(outputFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+        try(Writer writer = Files.newBufferedWriter(outputFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            write(t, writer);
+        }
     }
 
     public void write(T t, Writer stream) throws XMLStreamException, IOException {
