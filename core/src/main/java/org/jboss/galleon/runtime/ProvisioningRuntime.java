@@ -190,6 +190,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private FileSystemDiffResult diff = FileSystemDiffResult.empty();
     private final String operation;
     private ClassLoader pluginsClassLoader;
+    private boolean closePluginsCl;
 
     ProvisioningRuntime(ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
@@ -229,6 +230,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 throw new ProvisioningException(Errors.readDirectory(pluginsDir), e);
             }
             if (!urls.isEmpty()) {
+                closePluginsCl = true;
                 final Thread thread = Thread.currentThread();
                 pluginsClassLoader = new java.net.URLClassLoader(urls.toArray(
                         new java.net.URL[urls.size()]), thread.getContextClassLoader());
@@ -478,13 +480,22 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     @Override
     public void close() {
+        if(closePluginsCl) {
+            try {
+                ((java.net.URLClassLoader)pluginsClassLoader).close();
+            } catch (IOException e) {
+                if(messageWriter.isVerboseEnabled()) {
+                    messageWriter.verbose("Failed to close plugins classloader");
+                    e.printStackTrace();
+                }
+            }
+        }
         IoUtils.recursiveDelete(workDir);
-//        if (messageWriter.isVerboseEnabled()) {
+        //if (messageWriter.isVerboseEnabled()) {
             final long time = System.currentTimeMillis() - startTime;
             final long seconds = time / 1000;
             messageWriter.print("Done in %d.%d seconds", seconds, (time - seconds * 1000));
-//            messageWriter.verbose("Done in %d.%d seconds", seconds, (time - seconds * 1000));
-//        }
+        //}
     }
 
     private void executeDiffPlugins(Path target, Path customizedInstallation) throws ProvisioningException, IOException {
