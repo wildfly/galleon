@@ -57,7 +57,9 @@ public class XmlParserValidator<T> {
 
 
     public void validate(Path p) throws SAXException, IOException {
-        validator.validate(new StreamSource(Files.newBufferedReader(p, Charset.forName("utf-8"))));
+        try(Reader reader = Files.newBufferedReader(p, Charset.forName("utf-8"))) {
+            validator.validate(new StreamSource(reader));
+        }
     }
 
     public T validateAndParse(String resourcePath) throws Exception {
@@ -98,8 +100,8 @@ public class XmlParserValidator<T> {
 
     public T parse(Path p, String parseExceptionMessage) throws Exception {
         T result = null;
-        try {
-            result = parser.parse(Files.newBufferedReader(p, Charset.forName("utf-8")));
+        try (Reader reader = Files.newBufferedReader(p, Charset.forName("utf-8"))){
+            result = parser.parse(reader);
             if(parseExceptionMessage != null) {
                 Assert.fail("Parsing succeeded while expected to fail with the error: " + parseExceptionMessage);
             }
