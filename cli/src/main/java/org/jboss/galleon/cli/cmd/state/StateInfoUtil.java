@@ -244,7 +244,10 @@ public class StateInfoUtil {
             }
         }
         session.println(Config.getLineSeparator() + "Package content");
-        if (pkg.getContent().isEmpty()) {
+        String customContent = pkg.getCustomContent();
+        if (customContent != null) {
+            session.println(customContent);
+        } else if (pkg.getContent().isEmpty()) {
             session.println("NONE");
         } else {
             StringBuilder contentBuilder = new StringBuilder();

@@ -21,6 +21,7 @@ import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.registry.CommandRegistry;
 import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
+import org.aesh.extensions.clear.Clear;
 import org.aesh.readline.ReadlineConsole;
 import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
 import org.jboss.galleon.cli.cmd.filesystem.LsCommand;
@@ -50,6 +51,7 @@ public class CliMain {
         FeatureCommand feature = new FeatureCommand(pmSession);
         StateCommand state = new StateCommand(pmSession);
         AeshCommandRegistryBuilder builder = new AeshCommandRegistryBuilder()
+                .command(Clear.class)
                 .command(feature)
                 .command(state)
                 .command(install.createCommand())

@@ -210,16 +210,9 @@ public class SearchCommand extends PmSessionCommand {
             for (Group g : root.getGroups()) {
                 PackageInfo pkginfo = g.getPackage();
                 StringBuilder contentBuilder = new StringBuilder();
-                String customContent = pkginfo.getCustomContent();
-                if (customContent != null) {
-                    if (customContent.contains(query)) {
-                        contentBuilder.append(customContent).append(Config.getLineSeparator());
-                    }
-                } else {
-                    for (String c : pkginfo.getContent()) {
-                        if (c.contains(query)) {
-                            contentBuilder.append(c).append(Config.getLineSeparator());
-                        }
+                for (String c : pkginfo.getContent()) {
+                    if (c.contains(query)) {
+                        contentBuilder.append(c).append(Config.getLineSeparator());
                     }
                 }
                 if (contentBuilder.length() != 0) {
