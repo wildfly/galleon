@@ -70,7 +70,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                 pluginOptions.addAll(plugin.getOptions().values());
             }
         };
-        runtime.visitePlugins(visitor, InstallPlugin.class);
+        runtime.visitPlugins(visitor, InstallPlugin.class);
         return pluginOptions;
     }
 

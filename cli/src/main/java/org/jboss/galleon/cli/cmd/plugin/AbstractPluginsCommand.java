@@ -61,7 +61,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     private AeshContext ctx;
 
     public AbstractPluginsCommand(PmSession pmSession) {
-        super(pmSession);
+        super(pmSession, true);
     }
 
     public void setAeshContext(AeshContext ctx) {

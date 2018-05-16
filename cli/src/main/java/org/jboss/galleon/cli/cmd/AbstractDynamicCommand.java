@@ -29,14 +29,15 @@ import org.aesh.command.CommandResult;
 import org.aesh.command.container.CommandContainer;
 import org.aesh.command.impl.container.AeshCommandContainer;
 import org.aesh.command.impl.internal.OptionType;
-import org.aesh.command.impl.internal.ProcessedCommand;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.impl.parser.AeshCommandLineParser;
 import org.aesh.command.map.MapCommand;
 import org.aesh.command.map.MapProcessedCommandBuilder;
+import org.aesh.command.map.MapProcessedCommandBuilder.MapProcessedCommand;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.parser.OptionParserException;
+import org.aesh.parser.ParsedLine;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -141,10 +142,20 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     protected final PmSession pmSession;
     private final Set<String> staticOptions = new HashSet<>();
     private final Set<String> noValuesOptions = new HashSet<>();
-    private ProcessedCommand<?> cmd;
-
-    public AbstractDynamicCommand(PmSession pmSession) {
+    private MapProcessedCommand cmd;
+    private final boolean onlyAtCompletion;
+    private final boolean checkForRequired;
+    private final boolean optimizeRetrieval;
+    /**
+     *
+     * @param pmSession The session
+     * @param optimizeRetrieval True, optimize retrieval.
+     */
+    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval) {
         this.pmSession = pmSession;
+        this.onlyAtCompletion = optimizeRetrieval;
+        this.checkForRequired = !optimizeRetrieval;
+        this.optimizeRetrieval = optimizeRetrieval;
     }
 
     protected abstract String getId(PmSession session);
@@ -163,6 +174,12 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 new AeshCommandLineParser<>(cmd));
         return container;
     }
+
+    @Override
+    public final boolean checkForRequiredOptions(ParsedLine pl) {
+        return checkForRequired;
+    }
+
     @Override
     public CommandResult execute(PmCommandInvocation session) throws CommandException {
         try {
@@ -207,9 +224,10 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         //return name;
     }
 
-    private ProcessedCommand buildCommand() throws CommandLineParserException {
+    private MapProcessedCommand buildCommand() throws CommandLineParserException {
         MapProcessedCommandBuilder builder = new MapProcessedCommandBuilder();
         builder.command(this);
+        builder.lookupAtCompletionOnly(onlyAtCompletion);
         builder.name(getName());
         builder.activator(getActivator());
 
@@ -232,26 +250,64 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         return builder.create();
     }
 
-    private void validateOptions() throws CommandException {
-        // Check validity of options
-        for (String o : getValues().keySet()) {
-            boolean found = false;
-            if (!ARGUMENT_NAME.equals(o)) {
-                for (ProcessedOption opt : cmd.getOptions()) {
+    private void validateOptions() throws CommandExecutionException {
+        // Check validity of provided options
+        Set<String> providedOptions = getValues().keySet();
+        List<ProcessedOption> sOptions = cmd.getOptions(false);
+
+        if (optimizeRetrieval) {
+            // some checks have been by-passed for static options.
+             // check values
+            for (String o : providedOptions) {
+                for (ProcessedOption opt : sOptions) {
                     if (opt.name().equals(o)) {
-                        found = true;
-                        break;
+                        String val = (String) getValue(opt.name());
+                        if (opt.hasValue() && (val == null || val.isEmpty())) {
+                            throw new CommandExecutionException("Option --" + opt.name()
+                                    + " was specified, but no value was given");
+                        }
                     }
                 }
-                if (!found) {
-                    throw new CommandException("Unknown option " + o);
+            }
+            // check required
+            for (ProcessedOption opt : sOptions) {
+                if (opt.isRequired() && !providedOptions.contains(opt.name())) {
+                    throw new CommandExecutionException("Option --" + opt.name()
+                            + " is required for this command.");
+                }
+            }
+        } else {
+            List<ProcessedOption> dOptions = cmd.getOptions(true);
+            for (String o : providedOptions) {
+                boolean found = false;
+                if (!ARGUMENT_NAME.equals(o)) {
+                    // first find in static options
+                    for (ProcessedOption opt : sOptions) {
+                        if (opt.name().equals(o)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        // then in dynamic ones
+                        for (ProcessedOption opt : dOptions) {
+                            if (opt.name().equals(o)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            throw new CommandExecutionException("Unknown option --" + o);
+                        }
+                    }
                 }
             }
         }
         doValidateOptions();
     }
 
-    protected abstract void doValidateOptions() throws CommandException;
+    protected abstract void doValidateOptions() throws CommandExecutionException;
 
     private void println(PmCommandInvocation session, Throwable t) {
         if (t.getLocalizedMessage() == null) {

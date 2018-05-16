@@ -84,7 +84,7 @@ public abstract class FeatureContainers {
                 cliPlugins.add(plugin);
             }
         };
-        runtime.visitePlugins(visitor, CliPlugin.class);
+        runtime.visitPlugins(visitor, CliPlugin.class);
         CliPlugin plugin = cliPlugins.isEmpty() ? null : cliPlugins.get(0);
         PackageGroupsBuilder pkgBuilder = new PackageGroupsBuilder();
         FeatureSpecsBuilder specsBuilder = new FeatureSpecsBuilder();
