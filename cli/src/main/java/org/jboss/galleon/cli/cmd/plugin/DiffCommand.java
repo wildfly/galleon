@@ -69,7 +69,7 @@ public class DiffCommand extends AbstractPluginsCommand {
                 pluginOptions.addAll(plugin.getOptions().values());
             }
         };
-        runtime.visitePlugins(visitor, DiffPlugin.class);
+        runtime.visitPlugins(visitor, DiffPlugin.class);
         return pluginOptions;
     }
 

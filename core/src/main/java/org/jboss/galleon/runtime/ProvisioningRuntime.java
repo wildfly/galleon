@@ -24,11 +24,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -453,10 +455,56 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 plugin.postInstall(ProvisioningRuntime.this);
             }
         };
-        visitePlugins(visitor, InstallPlugin.class);
+        visitCheckOptionsPlugins(visitor, InstallPlugin.class);
     }
 
-    public <T extends ProvisioningPlugin> void visitePlugins(PluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
+    private <T extends ProvisioningPlugin> void visitCheckOptionsPlugins(PluginVisitor<T> visitor,
+            Class<T> clazz) throws ProvisioningException {
+        List<T> plugins = new ArrayList<>();
+        Set<String> options = new HashSet<>();
+        Thread thread = Thread.currentThread();
+        ClassLoader ocl = thread.getContextClassLoader();
+        List<ClassLoader> pluginLoaderHolder = new ArrayList<>(1);
+        PluginVisitor<T> v = new PluginVisitor<T>() {
+            @Override
+            public void visitPlugin(T plugin) throws ProvisioningException {
+                //check for missing required options.
+                for (PluginOption opt : plugin.getOptions().values()) {
+                    if (opt.isRequired()) {
+                        if (!pluginOptions.keySet().contains(opt.getName())) {
+                            throw new ProvisioningException("Option: " + opt.getName()
+                                    + " is required for this plugin.");
+                        }
+                    }
+                }
+                if (pluginLoaderHolder.isEmpty()) {
+                    pluginLoaderHolder.add(Thread.currentThread().getContextClassLoader());
+                }
+                options.addAll(plugin.getOptions().keySet());
+                plugins.add(plugin);
+            }
+        };
+        visitPlugins(v, clazz);
+        // check if provided options exist
+        for (String userOption : pluginOptions.keySet()) {
+            if (!options.contains(userOption)) {
+                throw new ProvisioningException("Option " + userOption + " is not supported");
+            }
+        }
+        if (!plugins.isEmpty()) {
+            ClassLoader pluginsLoader = pluginLoaderHolder.get(0);
+            try {
+                thread.setContextClassLoader(pluginsLoader);
+                for (T p : plugins) {
+                    visitor.visitPlugin(p);
+                }
+            } finally {
+                thread.setContextClassLoader(ocl);
+            }
+        }
+    }
+
+    public <T extends ProvisioningPlugin> void visitPlugins(PluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
         ClassLoader pluginClassLoader = getPluginClassloader();
         if (pluginClassLoader != null) {
             final Thread thread = Thread.currentThread();
@@ -505,7 +553,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 plugin.computeDiff(ProvisioningRuntime.this, customizedInstallation, target);
             }
         };
-        visitePlugins(visitor, DiffPlugin.class);
+        visitCheckOptionsPlugins(visitor, DiffPlugin.class);
     }
 
     private void executeUpgradePlugins(Path customizedInstallation) throws ProvisioningException {
@@ -515,5 +563,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 plugin.upgrade(ProvisioningRuntime.this, customizedInstallation);
             }
         };
+        visitCheckOptionsPlugins(visitor, UpgradePlugin.class);
     }
 }
