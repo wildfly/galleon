@@ -39,7 +39,6 @@ import org.jboss.galleon.spec.FeatureAnnotation;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
-import org.jboss.galleon.spec.PackageDependencySpec;
 
 /**
  *
@@ -239,12 +238,7 @@ public class StateInfoUtil {
             session.println("NONE");
         } else {
             for (Group dep : grp.getGroups()) {
-                session.println(dep.getIdentity().getName());
-            }
-            for (String o : pkg.getSpec().getPackageOrigins()) {
-                for (PackageDependencySpec p : pkg.getSpec().getExternalPackageDeps(o)) {
-                    session.println(o + "#" + p.getName());
-                }
+                session.println(dep.getIdentity().toString());
             }
         }
         session.println(Config.getLineSeparator() + "Package content");
