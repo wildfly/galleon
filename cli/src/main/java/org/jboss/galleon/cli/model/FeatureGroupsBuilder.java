@@ -69,7 +69,7 @@ public class FeatureGroupsBuilder {
         currentPath = "/";
         for (int it = 0; it < groups.length; it++) {
             String g = groups[it];
-            String value = (String) id.getParams().get(g);
+            String value = id == null ? null : (String) id.getParams().get(g);
             if (value != null) {
                 current = addGroup(value, current, pathItems, g);
                 if (it < groups.length - 1) {

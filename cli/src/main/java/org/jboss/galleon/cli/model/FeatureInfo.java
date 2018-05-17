@@ -53,12 +53,17 @@ public class FeatureInfo {
         this.path = path;
         this.currentFP = currentFP;
         this.configInfo = configInfo;
-        FeatureId.Builder builder = FeatureId.builder(feature.getId().getSpecId().getName());
-        for (Entry<String, Object> param : feature.getId().getParams().entrySet()) {
-            builder.setParam(param.getKey(), param.getValue().toString());
+        FeatureId.Builder builder = FeatureId.builder(feature.getSpecId().getName());
+        if (feature.getId() != null) {
+            for (Entry<String, Object> param : feature.getId().getParams().entrySet()) {
+                builder.setParam(param.getKey(), param.getValue().toString());
+            }
+            featureId = builder.build();
+            featureConfig = FeatureConfig.newConfig(featureId);
+        } else {
+            featureId = null;
+            featureConfig = null;
         }
-        featureId = builder.build();
-        featureConfig = FeatureConfig.newConfig(featureId);
         StringBuilder b = new StringBuilder();
         b.append(FeatureContainerPathConsumer.FINAL_CONFIGS_PATH).append(configInfo.getModel()).
                 append(PathParser.PATH_SEPARATOR).append(configInfo.getName()).append(PathParser.PATH_SEPARATOR);
@@ -77,9 +82,11 @@ public class FeatureInfo {
 
     void attachSpecInfo(FeatureSpecInfo specInfo) {
         this.specInfo = specInfo;
-        for (Map.Entry<String, Object> p : feature.getResolvedParams().entrySet()) {
-            if (!specInfo.getSpec().getParams().get(p.getKey()).isFeatureId()) {
-                featureConfig.setParam(p.getKey(), p.getValue().toString());
+        if (featureConfig != null) {
+            for (Map.Entry<String, Object> p : feature.getResolvedParams().entrySet()) {
+                if (!specInfo.getSpec().getParams().get(p.getKey()).isFeatureId()) {
+                    featureConfig.setParam(p.getKey(), p.getValue().toString());
+                }
             }
         }
     }

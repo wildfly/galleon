@@ -130,20 +130,20 @@ public abstract class FeatureContainers {
             c.handle(new ProvisionedConfigHandler() {
                 @Override
                 public void nextFeature(ProvisionedFeature feature) throws ProvisioningException {
-                    Set<ResolvedSpecId> set = actualSet.get(feature.getId().getSpecId().getGav());
+                    Set<ResolvedSpecId> set = actualSet.get(feature.getSpecId().getGav());
                     if (set == null) {
                         set = new HashSet<>();
-                        actualSet.put(feature.getId().getSpecId().getGav(), set);
+                        actualSet.put(feature.getSpecId().getGav(), set);
                     }
-                    set.add(feature.getId().getSpecId());
+                    set.add(feature.getSpecId());
                     String fullSpecName = feature.getSpecId().getName();
                     List<String> path = new ArrayList<>();
                     Group parent = grpBuilder.buildFeatureGroups(fullSpecName, feature.getId(), path);
                     FeatureInfo featInfo = new FeatureInfo(config, feature, path, fp.getGav());
-                    List<FeatureInfo> lst = features.get(feature.getId().getSpecId());
+                    List<FeatureInfo> lst = features.get(feature.getSpecId());
                     if (lst == null) {
                         lst = new ArrayList<>();
-                        features.put(feature.getId().getSpecId(), lst);
+                        features.put(feature.getSpecId(), lst);
                     }
                     lst.add(featInfo);
                     parent.setFeature(featInfo);

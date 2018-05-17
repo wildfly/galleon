@@ -81,8 +81,12 @@ public class StateInfoUtil {
         session.println("Description: " + f.getDescription());
         session.println("");
         session.println("Parameters id");
-        for (Entry<String, String> entry : f.getFeatureId().getParams().entrySet()) {
-            session.println(entry.getKey() + "=" + entry.getValue());
+        if (f.getFeatureId() == null) {
+            session.println("NONE");
+        } else {
+            for (Entry<String, String> entry : f.getFeatureId().getParams().entrySet()) {
+                session.println(entry.getKey() + "=" + entry.getValue());
+            }
         }
         session.println(Config.getLineSeparator() + "Feature XML extract");
         StringBuilder xmlBuilder = new StringBuilder();
