@@ -166,6 +166,9 @@ public class ConfigProvisioning {
 
         @Override
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            if (feature.getFeatureId() == null) {
+                throw new ProvisioningException("Feature " + feature.getType() + " can't be removed, no feature-id");
+            }
             // first retrieve the configuration to remove the feature.
             for (ConfigModel cm : current.getDefinedConfigs()) {
                 if (cm.getName().equals(id.getName()) && cm.getModel().equals(id.getModel())) {
