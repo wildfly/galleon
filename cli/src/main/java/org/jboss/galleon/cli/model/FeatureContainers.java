@@ -94,23 +94,62 @@ public abstract class FeatureContainers {
                 pkgBuilder.buildGroups(new PackageInfo(pkg, Identity.
                         fromGav(rt.getGav(), pkg.getName()), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
                     @Override
-                    public PackageInfo build(Identity identity) {
+                    public PackageInfo build(Identity identity, PackageInfo parent) {
                         try {
-                            FeaturePackRuntime extRt = gavs.get(identity.getOrigin());
-                            if (extRt == null) {
-                                throw new RuntimeException("Unknown runtime for " + identity.getOrigin());
+                            // Packages that have no origin, doesn't mean that they are local.
+                            // It depends on the way FP dependencies have an origin or not.
+                            // If a FP dependency has no origin, the "local" package could be
+                            // located in this dependency.
+                            FeaturePackRuntime currentRuntime = parent.getFeaturePackRuntime();
+                            Identity resolvedIdentity = null;
+                            PackageRuntime p = null;
+                            if (identity.getOrigin().equals(Identity.EMPTY)) {
+                                // First local to the parent package.
+                                p = currentRuntime.getPackage(identity.getName());
+                                if (p == null) {
+                                    // Then lookup dependencies with no origin.
+                                    for (FeaturePackConfig fpdep : currentRuntime.getSpec().getFeaturePackDeps()) {
+                                        if (currentRuntime.getSpec().originOf(fpdep.getGav().toGa()) == null) {
+                                            FeaturePackRuntime depRuntime = gavs.get(Identity.buildOrigin(fpdep.getGav()));
+                                            p = depRuntime.getPackage(identity.getName());
+                                            if (p != null) {
+                                                resolvedIdentity = Identity.fromGav(fpdep.getGav(), identity.getName());
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    resolvedIdentity = Identity.fromGav(currentRuntime.getGav(), identity.getName());
+                                }
+                            } else {
+                                // Could be a free text, maps that to ga. Only ga are exposed as origin for now.
+                                // XXX JFDENISE, TODO, we could expose actual origin but would require to expose the mapping.
+                                FeaturePackRuntime extRt = gavs.get(identity.getOrigin());
+                                if (extRt == null) {
+                                    FeaturePackConfig fpdep = currentRuntime.getSpec().getFeaturePackDep(identity.getOrigin());
+                                    if (fpdep != null) {
+                                        resolvedIdentity = Identity.fromGav(fpdep.getGav(), identity.getName());
+                                        extRt = gavs.get(resolvedIdentity.getOrigin());
+                                    }
+                                } else {
+                                    resolvedIdentity = identity;
+                                }
+                                if (extRt != null) {
+                                    p = extRt.getPackage(identity.getName());
+                                }
                             }
-                            PackageRuntime p = extRt.getPackage(identity.getName());
+
                             if (p == null) {
                                 throw new RuntimeException("Package " + pkg.getName()
-                                        + ", unknown dependency " + identity + " local is " + rt.getGav());
+                                        + ", unknown dependency " + identity + " local is " + currentRuntime.getGav());
                             }
-                            return new PackageInfo(p, identity, plugin);
+
+                            return new PackageInfo(p, resolvedIdentity, plugin);
                         } catch (IOException | ProvisioningException e) {
                             throw new RuntimeException(e);
                         }
                     }
-                }, Identity.buildOrigin(rt.getGav()));
+                });
             }
             fp.setPackagesRoot(Identity.buildOrigin(rt.getGav()), pkgBuilder.getPackagesRoot());
             // Attach the full set, this targets the container dependency that expose them all.

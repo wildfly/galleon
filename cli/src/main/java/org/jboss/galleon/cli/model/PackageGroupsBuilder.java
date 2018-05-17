@@ -31,7 +31,7 @@ public class PackageGroupsBuilder {
 
     public interface PackageInfoBuilder {
 
-        PackageInfo build(Identity identity);
+        PackageInfo build(Identity identity, PackageInfo parent);
     }
 
     private final Map<Identity, Group> allPackagesGroups = new HashMap<>();
@@ -55,11 +55,11 @@ public class PackageGroupsBuilder {
         return allPackagesGroups;
     }
 
-    void buildGroups(PackageInfo pkg, PackageInfoBuilder builder, String origin) {
-        buildGroups(packagesRoot, pkg, builder, origin);
+    void buildGroups(PackageInfo pkg, PackageInfoBuilder builder) {
+        buildGroups(packagesRoot, pkg, builder);
     }
 
-    private void buildGroups(Group grp, PackageInfo pkg, PackageInfoBuilder builder, String origin) {
+    private void buildGroups(Group grp, PackageInfo pkg, PackageInfoBuilder builder) {
         Group gp = allPackagesGroups.get(pkg.getIdentity());
         if (gp == null) {
             gp = Group.fromIdentity(pkg.getIdentity());
@@ -67,11 +67,11 @@ public class PackageGroupsBuilder {
             gp.setPackage(pkg);
 
             for (PackageDependencySpec s : pkg.getSpec().getLocalPackageDeps()) {
-                buildGroups(gp, builder.build(Identity.fromString(origin, s.getName())), builder, origin);
+                buildGroups(gp, builder.build(Identity.fromString(s.getName()), pkg), builder);
             }
             for (String o : pkg.getSpec().getPackageOrigins()) {
                 for (PackageDependencySpec p : pkg.getSpec().getExternalPackageDeps(o)) {
-                    buildGroups(gp, builder.build(Identity.fromString(o, p.getName())), builder, o);
+                    buildGroups(gp, builder.build(Identity.fromString(o, p.getName()), pkg), builder);
                 }
             }
         }

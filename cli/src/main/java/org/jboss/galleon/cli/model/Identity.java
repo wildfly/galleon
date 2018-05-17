@@ -26,6 +26,7 @@ import org.jboss.galleon.cli.path.PathParser;
  * @author jdenise@redhat.com
  */
 public class Identity implements Comparable<Identity> {
+    public static final String EMPTY = "";
     private final String origin;
     private final String name;
 
@@ -40,6 +41,10 @@ public class Identity implements Comparable<Identity> {
 
     public static Identity fromString(String origin, String name) {
         return new Identity(origin, name);
+    }
+
+    public static Identity fromString(String name) {
+        return new Identity(EMPTY, name);
     }
 
     public static String buildOrigin(Gav gav) {
