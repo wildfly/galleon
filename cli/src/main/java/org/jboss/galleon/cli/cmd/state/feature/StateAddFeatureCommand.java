@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.aesh.command.CommandException;
 import org.aesh.command.completer.OptionCompleter;
 import org.aesh.command.impl.internal.OptionType;
 import org.aesh.command.impl.internal.ProcessedOption;
@@ -190,14 +189,14 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     @Override
-    protected void doValidateOptions() throws CommandException {
+    protected void doValidateOptions() throws CommandExecutionException {
         List<String> args = (List<String>) getValue(ARGUMENT_NAME);
         if (args != null) {
             if (args.size() == 2) {
                 return;
             }
         }
-        throw new CommandException("Invalid config and feature-spec");
+        throw new CommandExecutionException("Invalid config and feature-spec");
     }
 
     @Override

@@ -14,14 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli;
+package org.jboss.galleon.cli.config.mvn;
+
+import java.util.List;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
 
 /**
- * A base class for provisioning commands that target a feature-pack. For now
- * feature-pack can be identified by a stream name or FP coordinates.
  *
  * @author jdenise@redhat.com
  */
-public abstract class ProvisioningFeaturePackCommand extends ProvisioningCommand {
-
+public interface MavenSettings {
+    List<RemoteRepository> getRepositories();
+    RepositorySystemSession getSession();
 }

@@ -1,0 +1,47 @@
+## Maven configuration
+By default only the local maven repository is used to retrieve FP. The cli allows you to 
+change the path to the local repository and add/remove remote maven repositories.
+
+### Relying on maven settings
+In order to makes the cli to use a maven settings file call: _mvn set-settings-file <path to settings xml file>_
+In order to remove the reference to the settings file call: _mvn set-settings-file_ +
+
+NB: Advanced mirroring (eg: _external:*_) is not supported. + 
+NB: Any other cli maven configuration items will be overridden when a settings xml file is set. +
+NB: If no local repository is set in settings file, the local repository (default or configured) is used.
+
+### Adding the required remote repositories
+In order to download and install FP, you need to add the 2 repositories:
+(Start the cli tool then type the following commands) +
+_mvn add-repository --name=nexus --url=http://repository.jboss.org/nexus/content/groups/public/_ +
+_mvn add-repository --name=mvn --url=http://repo1.maven.org/maven2/_
+
+### Repository policies (this could be made configurable)
+Daily update of local artifacts. +
+Warn if checksum differs.
+
+### Advanced maven configuration
+Proxy, authentication, mirroring and offline are only supported when setting a maven xml settings file.
+
+### Local repository
+By default the local maven repository is located in _<user.home>/.m2/repository_. 
+You can change this directory by using the command: _mvn set-local-repository <path to your local repository directory>_ +
+In order to reset to the default local maven repository call: _mvn set-local-repository_
+
+### Display maven configuration
+Call command: _mvn info_
+
+### Impact on Universe
+Any change made to the maven configuration makes the CLI to re-resolve universe(s). 
+This means that stream resolution stays in sync with maven configuration.
+
+### Fetching feature-packs
+When remote repositories are set, feature-packs are automatically downloaded at install time. 
+You can download feature-pack explicitly to the local repository by using the 
+command: _mvn fetch-feature-pack [--fp=<gav> | <stream name>] [--verbose]_
+
+### Maven tracing
+When enabling "verbose" at installation and provisioning time, any artifact retrieved 
+from a remote repository is advertised in the console. This also
+applies when fetching explicitly feature-packs.
+

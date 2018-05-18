@@ -28,6 +28,7 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
+import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
@@ -51,10 +52,10 @@ public class DiffCommand extends AbstractPluginsCommand {
     }
 
     @Override
-    protected void runCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
+    protected void runCommand(PmCommandInvocation session, Map<String, String> options, ArtifactCoords.Gav gav) throws CommandExecutionException {
         try {
             Path targetDirectory = toPath((String) getValue(TARGET_NAME), session.getAeshContext());
-            getManager(session).exportConfigurationChanges(targetDirectory, getGav(session.getPmSession()), options);
+            getManager(session).exportConfigurationChanges(targetDirectory, gav, options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }

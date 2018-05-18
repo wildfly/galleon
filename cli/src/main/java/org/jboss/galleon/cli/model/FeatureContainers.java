@@ -55,6 +55,9 @@ public abstract class FeatureContainers {
         if (fp != null) {
             return fp;
         }
+        if (!session.existsInLocalRepository(gav)) {
+            session.downloadFp(gav);
+        }
         fp = new FeaturePackInfo(name, gav);
         ProvisioningRuntime rt = buildFullRuntime(gav, manager);
         populateFeatureContainer(fp, session, rt, true);

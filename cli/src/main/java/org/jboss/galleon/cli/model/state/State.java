@@ -32,7 +32,6 @@ import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.ArtifactCoords.Gav;
-import org.jboss.galleon.cli.MavenArtifactRepositoryManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -72,7 +71,7 @@ public class State {
     public State(PmSession pmSession) throws ProvisioningException, IOException {
         builder = ProvisioningConfig.builder();
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build();
+                .setArtifactResolver(pmSession.getArtifactResolver()).build();
         init(pmSession, manager);
     }
 
@@ -81,12 +80,12 @@ public class State {
         ProvisioningConfig conf;
         if (Files.isRegularFile(installation)) {
             manager = ProvisioningManager.builder()
-                    .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build();
+                    .setArtifactResolver(pmSession.getArtifactResolver()).build();
             conf = manager.readProvisioningConfig(installation);
             builder = conf.getBuilder();
         } else {
             manager = ProvisioningManager.builder()
-                    .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).
+                    .setArtifactResolver(pmSession.getArtifactResolver()).
                     setInstallationHome(installation).
                     build();
             if (manager.getProvisionedState() == null) {
@@ -249,7 +248,7 @@ public class State {
     private ProvisioningConfig buildNewConfig(PmSession pmSession) throws ProvisioningException, IOException {
         ProvisioningConfig tmp = builder.build();
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build();
+                .setArtifactResolver(pmSession.getArtifactResolver()).build();
         ProvisioningRuntime runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
         Set<Gav> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
@@ -273,7 +272,7 @@ public class State {
 
     private void buildDependencies(PmSession session, Set<Gav> dependencies, Map<String, FeatureContainer> deps) throws ProvisioningException, IOException {
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build();
+                .setArtifactResolver(session.getArtifactResolver()).build();
         for (Gav gav : dependencies) {
             String orig = Identity.buildOrigin(gav);
             if (!deps.containsKey(orig)) {

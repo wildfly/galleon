@@ -14,14 +14,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli;
+package org.jboss.galleon.cli.config.mvn;
 
 /**
- * A base class for provisioning commands that target a feature-pack. For now
- * feature-pack can be identified by a stream name or FP coordinates.
  *
  * @author jdenise@redhat.com
  */
-public abstract class ProvisioningFeaturePackCommand extends ProvisioningCommand {
+public class MavenRemoteRepository {
+    private final String name;
+    private final String url;
+    private final String type;
+
+    public MavenRemoteRepository(String name, String type, String url) {
+        this.name = name;
+        this.url = url;
+        this.type = type;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return the url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+        return type;
+    }
 
 }

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.aesh.command.completer.CompleterInvocation;
@@ -32,22 +31,21 @@ import org.aesh.command.completer.OptionCompleter;
  */
 public class GavCompleter implements OptionCompleter<PmCompleterInvocation> {
 
-    protected final Path repoHome = Paths.get(Util.getMavenRepositoryPath());
-
     @Override
     public void complete(PmCompleterInvocation ci) {
-        Path path = repoHome;
+        Path path = ci.getPmSession().getPmConfiguration().
+                getMavenConfig().getLocalRepository();
         if(!Files.isDirectory(path)) {
             return;
         }
         try {
-            doComplete(ci);
+            doComplete(ci, path);
         } catch (IOException e) {
             return;
         }
     }
 
-    private void doComplete(CompleterInvocation ci) throws IOException {
+    private void doComplete(CompleterInvocation ci, Path repoHome) throws IOException {
         final List<String> candidates = new ArrayList<>();
         final String currentValue = ci.getGivenCompleteValue();
         final int groupSeparator = currentValue.indexOf(':');
@@ -114,14 +112,15 @@ public class GavCompleter implements OptionCompleter<PmCompleterInvocation> {
                 }
             }
         } else {
-            completeGroup(currentValue, candidates);
+            completeGroup(currentValue, candidates, repoHome);
             ci.setAppendSpace(false);
         }
 
         ci.addAllCompleterValues(candidates);
     }
 
-    private void completeGroup(String currentValue, List<String> candidates) throws IOException {
+    private void completeGroup(String currentValue, List<String> candidates,
+            Path repoHome) throws IOException {
 
         Path groupDir = repoHome;
         final String chunk;

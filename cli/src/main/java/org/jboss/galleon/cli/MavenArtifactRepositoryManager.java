@@ -16,14 +16,15 @@
  */
 package org.jboss.galleon.cli;
 
+import org.jboss.galleon.cli.config.mvn.MavenSettings;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.aether.RepositoryListener;
 
 import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.deployment.DeployRequest;
@@ -38,6 +39,7 @@ import org.eclipse.aether.resolution.VersionRangeResult;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ArtifactRepositoryManager;
+import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.maven.plugin.FpMavenErrors;
 
 /**
@@ -46,18 +48,38 @@ import org.jboss.galleon.maven.plugin.FpMavenErrors;
  */
 public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager {
 
-    private static final ArtifactRepositoryManager INSTANCE = new MavenArtifactRepositoryManager();
+    public static final String DEFAULT_REPOSITORY_TYPE = "default";
+    private final RepositorySystem repoSystem;
+    private final MavenConfig config;
+    private final RepositoryListener listener;
 
-    public static ArtifactRepositoryManager getInstance() {
-        return INSTANCE;
+    private MavenSettings mavenSettings;
+    private boolean commandStarted;
+
+    MavenArtifactRepositoryManager(MavenConfig config, RepositoryListener listener) {
+        repoSystem = Util.newRepositorySystem();
+        this.config = config;
+        this.listener = listener;
     }
 
-    private final RepositorySystem repoSystem;
-    private final RepositorySystemSession session;
+    void commandStart() {
+        commandStarted = true;
+        mavenSettings = null;
+    }
 
-    private MavenArtifactRepositoryManager() {
-        repoSystem = Util.newRepositorySystem();
-        session = Util.newRepositorySession(repoSystem);
+    void commandEnd() {
+        commandStarted = false;
+    }
+
+    private MavenSettings getSettings() throws ArtifactException {
+        if (commandStarted) { // reuse settings.
+            if (mavenSettings == null) {
+                mavenSettings = config.buildSettings(repoSystem, listener);
+            }
+        } else {
+            mavenSettings = config.buildSettings(repoSystem, listener);
+        }
+        return mavenSettings;
     }
 
     @Override
@@ -65,9 +87,11 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
         final ArtifactRequest request = new ArtifactRequest();
         request.setArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
                 coords.getExtension(), coords.getVersion()));
+        request.setRepositories(getSettings().getRepositories());
+
         final ArtifactResult result;
         try {
-            result = repoSystem.resolveArtifact(session, request);
+            result = repoSystem.resolveArtifact(getSettings().getSession(), request);
         } catch (org.eclipse.aether.resolution.ArtifactResolutionException e) {
             throw new ArtifactException(FpMavenErrors.artifactResolution(coords), e);
         }
@@ -86,7 +110,7 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
         request.addArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
                 coords.getExtension(), coords.getVersion(), Collections.emptyMap(), file.toFile()));
         try {
-            repoSystem.install(session, request);
+            repoSystem.install(getSettings().getSession(), request);
         } catch (InstallationException ex) {
             Logger.getLogger(MavenArtifactRepositoryManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -98,7 +122,7 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
         request.addArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
                 coords.getExtension(), coords.getVersion(), Collections.emptyMap(), file.toFile()));
         try {
-            repoSystem.deploy(session, request);
+            repoSystem.deploy(getSettings().getSession(), request);
         } catch (DeploymentException ex) {
             Logger.getLogger(MavenArtifactRepositoryManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -110,15 +134,19 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
                 coords.getArtifactId(), coords.getExtension(), range);
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
         rangeRequest.setArtifact(artifact);
+        rangeRequest.setRepositories(getSettings().getRepositories());
         VersionRangeResult rangeResult;
         try {
-            rangeResult = repoSystem.resolveVersionRange(session, rangeRequest);
+            rangeResult = repoSystem.resolveVersionRange(getSettings().getSession(), rangeRequest);
         } catch (VersionRangeResolutionException ex) {
             throw new ArtifactException(ex.getLocalizedMessage(), ex);
         }
         String version = null;
         if (rangeResult != null && rangeResult.getHighestVersion() != null) {
             version = rangeResult.getHighestVersion().toString();
+        }
+        if (version == null) {
+            throw new ArtifactException("No version retrieved for " + coords);
         }
         return version;
     }

@@ -22,6 +22,8 @@ import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningManager;
+import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NAME;
 
 /**
  *
@@ -29,11 +31,11 @@ import org.jboss.galleon.ProvisioningManager;
  */
 public abstract class ProvisioningCommand extends PmSessionCommand {
 
-    @Option(name="dir", completer=FileOptionCompleter.class, required=false,
+    @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
             description="Target installation directory.")
     protected String targetDirArg;
 
-    @Option(name = "verbose", shortName = 'v', hasValue = false,
+    @Option(name = VERBOSE_OPTION_NAME, shortName = 'v', hasValue = false,
             description = "Whether or not the output should be verbose")
     boolean verbose;
 
@@ -44,7 +46,7 @@ public abstract class ProvisioningCommand extends PmSessionCommand {
 
     protected ProvisioningManager getManager(PmCommandInvocation session) {
         return ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance())
+                .setArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getTargetDir(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), verbose))
                 .build();
