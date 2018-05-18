@@ -1,1 +1,3 @@
+include::maven.adoc[]
+
 include::state.adoc[]

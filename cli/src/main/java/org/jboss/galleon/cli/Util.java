@@ -16,28 +16,29 @@
  */
 package org.jboss.galleon.cli;
 
-import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.ProxySelector;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
-import org.jboss.galleon.util.PropertyUtils;
 
 
 /**
  *
  * @author Alexey Loubyansky
  */
-class Util {
+public class Util {
 
     static InputStream getResourceStream(String resource) throws CommandExecutionException {
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -48,21 +49,16 @@ class Util {
         return pomIs;
     }
 
-    static String getMavenRepositoryPath() {
-        String repoPath = PropertyUtils.getSystemProperty("maven.repo.path");
-        if(repoPath == null) {
-            repoPath = new StringBuilder(PropertyUtils.getSystemProperty("user.home")).append(File.separatorChar)
-                    .append(".m2").append(File.separatorChar)
-                    .append("repository")
-                    .toString();
-        }
-        return repoPath;
-    }
-
-    static RepositorySystemSession newRepositorySession(final RepositorySystem repoSystem) {
+    public static RepositorySystemSession newRepositorySession(final RepositorySystem repoSystem,
+            Path path, RepositoryListener listener, ProxySelector proxySelector, boolean offline) {
         final DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-        final LocalRepository localRepo = new LocalRepository(getMavenRepositoryPath());
+        session.setRepositoryListener(listener);
+        session.setOffline(offline);
+        final LocalRepository localRepo = new LocalRepository(path.toString());
         session.setLocalRepositoryManager(repoSystem.newLocalRepositoryManager(session, localRepo));
+        if (proxySelector != null) {
+            session.setProxySelector(proxySelector);
+        }
         return session;
     }
 

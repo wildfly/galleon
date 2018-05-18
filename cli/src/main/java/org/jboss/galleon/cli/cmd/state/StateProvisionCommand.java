@@ -31,7 +31,6 @@ import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
-import org.jboss.galleon.cli.MavenArtifactRepositoryManager;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
@@ -67,27 +66,34 @@ public class StateProvisionCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        if (invoc.getPmSession().getState() != null) {
-            State session = invoc.getPmSession().getState();
-            try {
-                getManager(invoc).provision(session.getConfig());
-            } catch (ProvisioningException ex) {
-                throw new CommandExecutionException(ex);
+        if (verbose) {
+            invoc.getPmSession().enableMavenTrace(true);
+        }
+        try {
+            if (invoc.getPmSession().getState() != null) {
+                State session = invoc.getPmSession().getState();
+                try {
+                    getManager(invoc).provision(session.getConfig());
+                } catch (ProvisioningException ex) {
+                    throw new CommandExecutionException(ex);
+                }
+            } else {
+                if (file == null) {
+                    throw new CommandExecutionException("Option --file is missing");
+                }
+                final Resource specResource = file.resolve(invoc.getAeshContext().getCurrentWorkingDirectory()).get(0);
+                final Path provisioningFile = Paths.get(specResource.getAbsolutePath());
+                if (!Files.exists(provisioningFile)) {
+                    throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
+                }
+                try {
+                    getManager(invoc).provision(provisioningFile);
+                } catch (ProvisioningException e) {
+                    throw new CommandExecutionException("Provisioning failed", e);
+                }
             }
-        } else {
-            if (file == null) {
-                throw new CommandExecutionException("Option --file is missing");
-            }
-            final Resource specResource = file.resolve(invoc.getAeshContext().getCurrentWorkingDirectory()).get(0);
-            final Path provisioningFile = Paths.get(specResource.getAbsolutePath());
-            if (!Files.exists(provisioningFile)) {
-                throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
-            }
-            try {
-                getManager(invoc).provision(provisioningFile);
-            } catch (ProvisioningException e) {
-                throw new CommandExecutionException("Provisioning failed", e);
-            }
+        } finally {
+            invoc.getPmSession().enableMavenTrace(false);
         }
 
         Path home = getInstallationHome(invoc.getAeshContext());
@@ -104,7 +110,7 @@ public class StateProvisionCommand extends PmSessionCommand {
 
     protected ProvisioningManager getManager(PmCommandInvocation session) {
         return ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance())
+                .setArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getInstallationHome(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), verbose))
                 .build();

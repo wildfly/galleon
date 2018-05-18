@@ -91,10 +91,8 @@ public class Universe {
         private void resolve(ArtifactRepositoryManager manager) throws ArtifactException {
             if (!resolved) {
                 String latestVersion = manager.getHighestVersion(coordinates, versionRange);
-                if (latestVersion != null) {
-                    coordinates = new ArtifactCoords(coordinates.getGroupId(), coordinates.getArtifactId(),
-                            latestVersion, coordinates.getClassifier(), coordinates.getExtension());
-                }
+                coordinates = new ArtifactCoords(coordinates.getGroupId(), coordinates.getArtifactId(),
+                        latestVersion, coordinates.getClassifier(), coordinates.getExtension());
                 resolved = true;
             }
         }
@@ -177,14 +175,10 @@ public class Universe {
 
     static Universe buildUniverse(ArtifactRepositoryManager manager,
             UniverseLocation location) throws Exception {
-        String version = location.getCoordinates().getVersion();
-        if (version == null || version.isEmpty()) {
-            String latestVersion
-                    = manager.getHighestVersion(location.getCoordinates(),
-                            location.getVersionRange());
-            if (latestVersion != null) {
-                location.updateLatestVersion(latestVersion);
-            }
+        String latestVersion = manager.getHighestVersion(location.getCoordinates(),
+                location.getVersionRange());
+        if (latestVersion != null) {
+            location.updateLatestVersion(latestVersion);
         }
         Universe universe = new Universe(location, manager);
         Path p = manager.resolve(location.getCoordinates());

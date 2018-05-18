@@ -16,26 +16,49 @@
  */
 package org.jboss.galleon.cli;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ArtifactRepositoryManager;
+import org.jboss.galleon.cli.config.Configuration;
+import org.jboss.galleon.cli.config.mvn.MavenConfig;
+import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-public class Universes {
+public class Universes implements MavenChangeListener {
 
     private final List<Universe> universes = new ArrayList<>();
+    private final List<UniverseLocation> locations;
+    private final ArtifactRepositoryManager manager;
 
-    private ArtifactRepositoryManager manager;
-
-    private Universes(ArtifactRepositoryManager manager) {
+    private Universes(List<UniverseLocation> locations, ArtifactRepositoryManager manager) {
+        this.locations = locations;
         this.manager = manager;
+        addUniverses();
+    }
+
+    private void addUniverses() {
+        try {
+            for (UniverseLocation loc : locations) {
+                addUniverse(Universe.buildUniverse(manager, loc));
+            }
+        } catch (Exception ex) {
+            // TO REMOVE, universe is a prototype not found in all contexts.
+        }
+    }
+
+    @Override
+    public void configurationChanged(MavenConfig config) throws XMLStreamException, IOException {
+        universes.clear();
+        addUniverses();
     }
 
     public List<Universe> getUniverses() {
@@ -49,23 +72,16 @@ public class Universes {
                 return coords;
             }
         }
-        return null;
+        throw new ArtifactException("Can't resolve stream " + name);
     }
 
     private void addUniverse(Universe universe) {
         universes.add(universe);
     }
 
-    static Universes buildUniverses(ArtifactRepositoryManager manager,
-            List<UniverseLocation> locations) throws Exception {
-        Universes universes = new Universes(manager);
-        try {
-            for (UniverseLocation loc : locations) {
-                universes.addUniverse(Universe.buildUniverse(manager, loc));
-            }
-        } catch (Exception ex) {
-            // TO REMOVE, universe is a prototype not found in all contexts.
-        }
+    static Universes buildUniverses(Configuration config, ArtifactRepositoryManager manager) throws Exception {
+        Universes universes = new Universes(config.getUniversesLocations(), manager);
+        config.getMavenConfig().addListener(universes);
         return universes;
     }
 }

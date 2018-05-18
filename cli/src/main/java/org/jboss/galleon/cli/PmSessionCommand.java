@@ -29,6 +29,7 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
     @Override
     public CommandResult execute(PmCommandInvocation session) throws CommandException {
         try {
+            session.getPmSession().commandStart();
             runCommand(session);
             return CommandResult.SUCCESS;
         } catch (Throwable t) {
@@ -52,6 +53,8 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
                 ++offset;
             }
             return CommandResult.FAILURE;
+        } finally {
+            session.getPmSession().commandEnd();
         }
     }
 

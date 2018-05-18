@@ -158,7 +158,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         this.optimizeRetrieval = optimizeRetrieval;
     }
 
-    protected abstract String getId(PmSession session);
+    protected abstract String getId(PmSession session) throws CommandExecutionException;
     protected abstract String getName();
     protected abstract String getDescription();
 

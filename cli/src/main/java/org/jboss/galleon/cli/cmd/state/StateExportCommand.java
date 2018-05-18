@@ -31,8 +31,8 @@ import org.aesh.readline.AeshContext;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
-import org.jboss.galleon.cli.MavenArtifactRepositoryManager;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
@@ -57,7 +57,7 @@ public class StateExportCommand extends PmSessionCommand {
         }
     }
 
-    @Option(name = "dir", completer = FileOptionCompleter.class, required = false, activator = DirActivator.class,
+    @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false, activator = DirActivator.class,
             description = "Installation directory.")
     private String installationDir;
 
@@ -103,7 +103,7 @@ public class StateExportCommand extends PmSessionCommand {
 
     private ProvisioningManager getManager(PmCommandInvocation session) {
         return ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance())
+                .setArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getTargetDir(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), false))
                 .build();
