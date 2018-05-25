@@ -18,6 +18,4 @@ Galleon is a Maven repository-based Java provisioning tool designed to manage so
 
 * export the current environment configuration with the goal to reproduce it later at another location.
 
-The tool includes a command-line interface and a public API.
-
-
+The tool includes a command-line interface and a public API. There is also a Maven plugin that provisions an installation according to the configuration.

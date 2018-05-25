@@ -33,20 +33,20 @@ There are a couple of reasons for adding `model` attribute into the config ident
     </dependency>
   </dependencies>
   <config name="main" model="modelA">
-    <feature-pack dependency="fp1-dep">
+    <origin name="fp1-dep">
         <feature spec="feature1">
             <param name="id" value="1"/>
             <param name="b" value="fp2-modelA"/>
         </feature>
-    <feature-pack>
+    </origin>
   </config>
   <config name="main" model="modelB">
-    <feature-pack dependency="fp1-dep">
+    <origin name="fp1-dep">
       <feature spec="feature1">
         <param name="id" value="1"/>
         <param name="b" value="fp2-modelB"/>
       </feature>
-    <feature-pack>
+    </origin>
   </config>
 </feature-pack>
 ----

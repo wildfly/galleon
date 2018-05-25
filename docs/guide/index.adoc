@@ -18,8 +18,12 @@ include::overview/index.adoc[]
 
 include::feature-packs/index.adoc[]
 
+include::workflow/index.adoc[]
+
 include::provisioning-content/index.adoc[]
 
 include::provisioned-config/index.adoc[]
+
+include::maven-plugin/index.adoc[]
 
 include::tool/index.adoc[]

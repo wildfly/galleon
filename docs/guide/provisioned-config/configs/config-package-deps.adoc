@@ -1,4 +1,4 @@
-### Config package dependencies
+### Configuration package dependencies
 
 `config` elements may include feature-pack package dependencies. So that when a config is included into the installation, the relevant packages are automatically included as well. Package dependencies are configured using the same elements described in <<_feature_package_dependencies,the feature package dependencies>>. E.g.
 

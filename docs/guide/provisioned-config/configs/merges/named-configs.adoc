@@ -87,12 +87,12 @@ Here is how *fp2* feature-pack.xml had to be written so that *feature1* spec cou
     </dependency>
   </dependencies>
   <config name="config1">
-    <feature-pack dependency="fp1-dep">
+    <origin name="fp1-dep">
       <feature spec="feature1">
         <param name="id" value="1"/>
         <param name="b" value="fp2"/>
       </feature>
-    </feature-pack>
+    </origin>
     <feature spec="feature3">
       <param name="id" value="1"/>
     </feature>

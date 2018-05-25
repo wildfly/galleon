@@ -1,0 +1,25 @@
+## Maven plugin
+
+The Maven plugin allows to install a specific feature-pack into a new location or an existing installation or provision an installation the consists of multiple feature-packs.
+
+The coordinates of the Maven plugin are
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.jboss.galleon</groupId>
+    <artifactId>galleon-maven-plugins</artifactId>
+    <version>1.0.0.Final-SNAPSHOT</version>
+</dependency>
+----
+
+.Goals
+[options="autowidth"]
+|===
+|<<_install_feature_pack>> |Installs a feature-pack into an empty directory or into an existing installation
+|<<_provision>> |Provisions an installation that consists of one or more feature-packs at a specified location
+|===
+
+include::install-feature-pack.adoc[]
+
+include::provision.adoc[]

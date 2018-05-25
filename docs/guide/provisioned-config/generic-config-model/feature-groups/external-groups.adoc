@@ -10,18 +10,18 @@ Feature groups, as well as *config* elements in the *feature-pack.xml*, may incl
     <param name="id" value="a1"/>
   </feature>
 
-  <feature-pack dependency="another-feature-pack">
+  <origin name="another-feature-pack">
     <feature-group name="group2"/>
     <feature spec="feature2">
       <param name="id" value="b1"/>
     </feature>
-  </feature-pack>
+  </origin>
 
   <feature-group name="group3"/>
 
-  <feature-pack dependency="another-feature-pack">
+  <origin name="another-feature-pack">
     <feature-group name="group3"/>
-  </feature-pack>
+  </origin>
 
 </feature-group-spec>
 ----

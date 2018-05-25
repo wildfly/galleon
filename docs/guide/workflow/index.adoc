@@ -1,0 +1,17 @@
+## General provisioning workflow
+
+This is *not* a precise description of how it happens but a high level overview of the workflow.
+
+. The provisioning mechanism determines a set of feature-packs that need to be resolved for the installation
+. Feature-pack version compatibility is checked
+. The feature-packs are downloaded from their respective repositories and unpacked in a temporary location
+. Feature-packs are processed in the order they are specified in the installation provisioning description
+** configuration models and the packages set to be installed is determined for every feature-pack
+** configuration models are merged on-the-fly as soon as they are processed
+. A staged directory is created
+. Content from all the feature-pack packages is copied to the staged directory (in the order the feature-packs should be installed)
+. Feature-pack plugins are invoked
+** The plugins are assumed to generate the configuration files from the provided resolved configuration models and perform other necessary tasks to complete the installation
+. The provisioned state of the installation is recoded
+. The installation created in the staged directory is moved to the target installation directory (fully replacing the current one, if it exists)
+. The temporary directories are deleted

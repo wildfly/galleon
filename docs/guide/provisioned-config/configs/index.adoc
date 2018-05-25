@@ -10,3 +10,4 @@ include::config-element.adoc[]
 
 include::config-package-deps.adoc[]
 
+include::config-deps.adoc[]
