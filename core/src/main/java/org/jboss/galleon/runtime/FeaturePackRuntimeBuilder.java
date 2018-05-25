@@ -91,10 +91,13 @@ class FeaturePackRuntimeBuilder {
         pkgBuilders = CollectionUtils.put(pkgBuilders, pkgName, pkgBuilder);
 
         if(pkgBuilder.spec.hasPackageDeps()) {
+            final FeaturePackRuntimeBuilder currentOrigin = rt.setOrigin(this);
             try {
                 rt.processPackageDeps(pkgBuilder.spec);
             } catch(ProvisioningException e) {
                 throw new ProvisioningDescriptionException(Errors.resolvePackage(gav, pkgName), e);
+            } finally {
+                rt.setOrigin(currentOrigin);
             }
         }
 

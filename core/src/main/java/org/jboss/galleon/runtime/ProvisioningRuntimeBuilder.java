@@ -541,7 +541,7 @@ public class ProvisioningRuntimeBuilder {
         return origin == null ? currentOrigin : setOrigin(getOrigin(origin));
     }
 
-    private FeaturePackRuntimeBuilder setOrigin(FeaturePackRuntimeBuilder origin) {
+    FeaturePackRuntimeBuilder setOrigin(FeaturePackRuntimeBuilder origin) {
         final FeaturePackRuntimeBuilder prevOrigin = this.currentOrigin;
         this.currentOrigin = origin;
         return prevOrigin;
