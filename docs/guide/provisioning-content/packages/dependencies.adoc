@@ -8,9 +8,7 @@
 
 Package dependencies are also used to determine the <<_feature_pack_without_dependencies,effective package set of a feature-pack>> to be installed described later.
 
-#### Local package dependencies
-
-If a package depends on another package from the same feature-pack, the dependency is called a local package dependency. Here is an example of how local dependencies are expressed in the XML metadata:
+Here is an example of how dependencies are expressed in the XML metadata:
 
 [source,xml]
 ----
@@ -24,13 +22,13 @@ If a package depends on another package from the same feature-pack, the dependen
 
 In this example *p2* is a required dependency of *p1* while *p3* is an optional one.
 
-#### External package dependencies
+Package may declare dependency on a package from the same or another feature-pack. During the dependency resolution, at first, the mechanism is trying to resolve the package dependency locally, i.e. in the current feature-pack. If the dependency could not be resolved locally, the mechanism will look for the package dependency in the feature-packs the current feature-pack depends on (in the order the feature-pack dependencies are listed in the `feature-pack.xml` of the current feature-pack). The first found matching package will be used as the resolved dependency. If the package dependency could not be resolved, the mechanism will report an error.
 
-If a package depends on a package from another feature-pack, the dependency is called an external package dependency.
+NOTE: Although a package may declare a dependency on a package from another feature-pack, it cannot specify the version of the feature-pack in the package dependency declaration.
 
-Although a package may declare a dependency on a package from another feature-pack, it cannot specify the version of the feature-pack in the package dependency declaration.
+#### Explicit package dependency origin
 
-Feature-pack containing a package with an external dependency must declare an explicit dependency on the feature-pack (specifying its version) the target package of the external dependency belongs to. This feature-pack dependency must also be assigned a name which will be used as a reference to the that dependency in the *package.xml* file where the external package dependency is declared.
+Feature-pack containing a package with an external dependency must declare an explicit dependency on the feature-pack (specifying its version) the target package of the external dependency belongs to. This feature-pack dependency may also be assigned a name which can later be used as a reference to that feature-pack dependency when declaring dependencies in *package.xml* file on packages that belong to that feature-pack.
 
 For example, suppose feature-pack *fp1* depends on feature-pack *fp2* and package *fp1:p1* depends on packages *fp2:p1* and *fp2:p10*. The *feature-pack.xml* of *fp1* might look like this:
 
@@ -40,7 +38,7 @@ For example, suppose feature-pack *fp1* depends on feature-pack *fp2* and packag
                 groupId="org.jboss.pm.test" artifactId="fp1" version="1.0.0">
     <dependencies>
         <dependency groupId="org.jboss.pm.test" artifactId="fp2" version="2.0.0">
-            <name>fp2-dep</name>
+            <origin>fp2-dep</origin>
         </dependency>
     </dependencies>
     <default-packages>
@@ -56,12 +54,13 @@ And the *package.xml* file of *fp1:p1* might look like this:
  <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
     <dependencies>
         <package name="p2" />
-        <feature-pack dependency=”fp2-dep”>
+        <origin name=”fp2-dep”>
             <package name=”p1” />
             <package name=”p10” />
-        </feature-pack>
+        </origin>
         <package name="p3" />
     </dependencies>
  </package-spec>
 ----
 
+In general, the `origin` element is optional, but in some cases it helps to specify explicitly the origin of package dependencies.

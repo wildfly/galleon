@@ -1,6 +1,6 @@
 ##### Feature annotations
 
-[[feature-annotations]]Feature specs may include a list of annotations. The provisioning mechanism does not include pre-defined annotations yet and does not use them for processing features and configurations. Annotations are simply parsed and attached to feature specs and made available to the provisioning plugins for processing. Here is an example of an annotated feature spec:
+[[feature-annotations]]Feature specs may include a list of annotations. The provisioning mechanism includes a few pre-defined annotations. Product-specific annotations are also supported, they are simply parsed and attached to feature specs and made available to the provisioning plugins for processing. Here is an example of an annotated feature spec:
 
 [source,xml]
 ----

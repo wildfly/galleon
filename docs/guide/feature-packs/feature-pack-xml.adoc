@@ -6,7 +6,7 @@ Feature-pack metadata contains the following information:
 
 * _(optional)_ *dependencies* -  dependencies on other feature-packs.
 
-* _(optional)_ *config* -  config elements describe the default configurations are generated generated for the installation (there could be more than one configuration);
+* _(optional)_ *config* -  config elements describe the default configurations generated for the installation (there could be more than one default configuration);
 
 * _(optional)_ *default packages* - the names of the packages that are installed by default.
 

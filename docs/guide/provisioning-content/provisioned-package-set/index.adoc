@@ -1,6 +1,6 @@
 ### Provisioned package set
 
-This chapter is dedicated to the effective (resolved) package set of the installation's provisioning specification.
+This chapter is dedicated to the effective (resolved) package set of an installation.
 
 include::feature-pack-wo-deps/index.adoc[]
 

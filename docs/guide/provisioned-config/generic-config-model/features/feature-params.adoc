@@ -5,7 +5,8 @@ Feature parameters are described in feature specs. A parameter is identified by 
 * required string *name* - the name of the parameter;
 * optional boolean *feature-id* - indicating whether the parameter is a part of the feature ID (if not present, the default is assumed to be *false*);
 * optional boolean *nillable* - indicating whether the parameter allows null as the value in the resolved config (if not present, the default is assumed to be *false*);
-* optional string *default* - indicates which value should be used for the parameter, if the parameter was not explicitly initialized in the configuration (if not present, the default is assumed to be *null*).
+* optional string *default* - indicates which value should be used for the parameter, if the parameter was not explicitly initialized in the configuration (if not present, the default is assumed to be *null*);
+* optional string *type* - type of the parameter (if not present, the default is assumed to be *String*).
 
 [source,xml]
 ----

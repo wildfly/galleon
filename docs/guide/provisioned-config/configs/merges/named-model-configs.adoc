@@ -1,6 +1,6 @@
 #### Named model configs
 
-There are a couple of reasons for adding the `model` attribute into the config identity. One of them is to define the scope for the `name` attribute. In this sense, the `model` could be thought of as a namespace. E.g.
+There are a couple of reasons for adding `model` attribute into the config identity. One of them is to define the scope for values of `name` attribute. In this sense, a `model` could be thought of as a namespace. E.g.
 
 [source,xml]
 ----

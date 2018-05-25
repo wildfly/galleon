@@ -13,10 +13,10 @@ Here is an illustration of how a *package.xml* might look like:
     <dependencies>
         <package name="p2"/>
         <package name="p3" optional="true"/>
-        <feature-pack dependency="another-feature-pack">
+        <origin name="another-feature-pack">
             <package name="p1"/>
             <package name="p11" optional="true"/>
-        </feature-pack>
+        </origin>
     </dependencies>
  </package-spec>
 ----

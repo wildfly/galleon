@@ -1,5 +1,5 @@
 = Galleon Documentation
-Alexey Loubyansky
+Alexey Loubyansky, Jean-François Denise
 :revnumber: {version}
 :revdate: {localdate}
 :toc: left
@@ -11,7 +11,7 @@ Alexey Loubyansky
 :ec2-pub-ip-dash: 1-2-3-4
 :ec2-pub-ip: 1.2.3.4
 
-(C) 2017 The original authors.
+(C) 2018 The original authors.
 
 
 include::overview/index.adoc[]

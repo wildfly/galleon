@@ -1,6 +1,6 @@
 ##### Features in a configuration
 
-This is just an example of how features can be used in a configuration.
+Here is an example of how features can be used in a configuration.
 
 [source,xml]
 ----

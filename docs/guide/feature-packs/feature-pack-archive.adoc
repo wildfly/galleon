@@ -15,12 +15,12 @@ Where
 
 * *feature_groups* - optional directory containing feature group descriptions;
 
-* *features* - optional directory containing configuration feature specs;
+* *features* - optional directory containing feature specs (configuration units);
 
-* *packages* - optional directory containing content packages;
+* *packages* - optional directory containing packages (units of filesystem content);
 
 * *resources* - optional directory containing various resources needed to properly setup the installation;
 
-* *plugins* - optional directory containing project/product-specific provisioning plug-ins;
+* *plugins* - optional directory containing product-specific provisioning plug-ins;
 
 * *feature-pack.xml* - metadata describing the feature-pack and the default distribution.

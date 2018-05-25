@@ -1,4 +1,4 @@
-## Pm tool
+## Galleon CLI tool
 A set of commands is offered to observe, explore, edit, diff, export, provision or create a new provisioning state.
 
 ### Observing an installation or feature-pack.

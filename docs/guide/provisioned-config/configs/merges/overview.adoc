@@ -1,12 +1,12 @@
 ### Configuration model merges
 
-Configuration model merges is a way to integrate various products into a single installation. Suppose we have an installation and we want to add another product to it. Besides adding the actual filesystem content of the product we are adding to the installation, normally the configuration of the installation will have to be adjusted to include the configuration of the product we are adding to it.
+Configuration model merges is a way to integrate various products into a single installation. Suppose we want to add new product to an existing installation. Besides adding the actual filesystem content of the product to the existing installation, normally the configuration of the installation will have to be adjusted to include the configuration of the product we are adding to it.
 
 In the provisioning terms, this scenarios can be described as:
 
 * there is a feature-pack of the main installation (defining its FS content as well as the configuration model);
 
-* there is the other product's feature-pack defining its FS content and the default configuration that should be added to the main installation as part of its integration.
+* there is the other product's feature-pack defining its FS content and the default configuration requirements that should be added to the main installation as part of its integration.
 
 How exactly the configuration of the new product is integrated into the existing installation will depend on every specific case but there are a few basic ways it can happen:
 
@@ -22,7 +22,7 @@ For the second one, we need to merge the configs from both feature-packs and the
 
 The third one effectively means that we've got multiple configuration models some of which should be merged and some should remain standalone. The tricky part is to identify which one is which. This is where the config *name* and *model* attributes are useful.
 
-The provisioned installation may contain only one configuration model of a specific identity (which is the value of the `config` `name` attribute or the `model` and the `name` combination).
+The provisioned installation may contain only one configuration model of a specific identity (which is the product of `config` `name` and `model` attribute values).
 
-IMPORTANT: When the provisioning mechanism analysing the installation being provisioned discovers multiple configuration models with the same identity, *it does not throw an error but merges the configuration models into one* (which may still result in an error, of course).
+IMPORTANT: When the provisioning mechanism analysing the installation being provisioned discovers multiple configuration models with the same identity, *it does not throw an error but merges the configuration models into a single one* (which may still result in an error, of course, if the resulting model contains unsatisfied requirements).
 

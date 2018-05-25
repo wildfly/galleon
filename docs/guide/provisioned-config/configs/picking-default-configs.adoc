@@ -6,7 +6,7 @@ There are two scenarios when including a config makes sense:
 
 . when inhertance of the default configs was disabled with `<default-configs inherit="false">`.
 
-The first one of course assumes that the config is associated with both the name and the model. It could look like this
+The first one of course assumes that the config is associated with both name and model. It could look like this
 [source,xml]
 ----
 <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">
@@ -30,9 +30,9 @@ The example above excludes all the configs with the *model1* except the *config1
 </feature-pack>
 ----
 
-The example above picks only the *config1* and the *model1:config1* from all the default configs to be included into the installation.
+The example above picks only *config1* and *model1:config1* from all the default configs to be included into the installation.
 
-It also possible to include the configs of a specific model, e.g.
+It is also possible to include the configs of a specific model, e.g.
 [source,xml]
 ----
 <feature-pack groupId="org.pm.test" artifactId="fp1" version="1.0.0.Final">

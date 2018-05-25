@@ -2,21 +2,21 @@
 
 In addition to provisioning the FS content the tool also supports generation of the configuration for the target installation taking into account the customizations of the feature-pack default settings applied by the user.
 
-Feature-pack metadata (*feature-pack.xml*) may include one or more *config* elements each of which describes specific default installation configuration. In a simple (and perhaps the most common) case, the configuration described under the *config* element will represent a specific configuration file in the provisioned installation.
+Feature-pack metadata (*feature-pack.xml*) may include one or more *config* elements each of which describes specific complete flavour of an distribution configuration. In a simple (and perhaps the most common) case, the configuration described under *config* element will represent a specific configuration file in the provisioned installation.
 
-Installation configuration is described using a generic configuration model. The model allows a user to manipulate the confguration in a generic way by adding to and/or removing pieces from it, overwriting existing values. The responsibility of the tool with regards to the configuration is to:
+Installation configuration is described using a generic configuration model. The model allows a user to manipulate the confguration in a generic way by adding to and/or removing parts from it, overwriting existing values. The responsibility of the tool with regards to the configuration is to:
 
-* resolve the final installation configuration taking into account the customizations applied to the defaults;
+* resolve the final installation configuration taking into account the customizations applied to the pre-configured default configuration;
 
 * make sure the resolved configuration is valid by:
 
-** making sure that the required values are set;
+** verifying that the required configuration values are set;
 
-** verifying the referential integrity of the resolved configuration model (i.e. in case certain configuration pieces imply the presence of certain other configuration pieces);
+** verifying the referential integrity of the resolved configuration model (i.e. in case certain configuration units imply the presence of certain other configuration units);
 
-* present the elements of the resolved configuration to the provisioning plugins in the order the configuration model was populated but also respecting the dependencies of the configuration elements.
+* present the units of the resolved configuration to the provisioning plugins in the order the configuration model was populated but also respecting the dependencies of the configuration units.
 
-The generic provisioning tool itself does not generate the final configuration files. As indicated above, it only resolves the effective generic configuration model for the provisioned installation. It is the responsibility of the product-specific provisioning plugins to generate the final configuration file(s) from the generic configuration model resolved by the core provisioning tool.
+The generic provisioning tool itself does not generate the final configuration files. As indicated above, it only resolves the effective generic configuration model for the provisioned installation. It is the responsibility of the product-specific provisioning plugins to generate the final configuration file(s) from the generic configuration model resolved by the core provisioning mechanism.
 
 include::generic-config-model/index.adoc[]
 

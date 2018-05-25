@@ -1,6 +1,6 @@
 ##### Feature dependencies
 
-[[feature-deps]]While references are a kind of dependencies, they require parameters in the spec of the feature declaring the reference to identify the target. Unlike references, feature dependencies do not use the parameters to specify the target. Instead the dependency is declared by specifying the ID of the target feature directly.
+[[feature-deps]]While references are a kind of dependencies, they require parameters in the spec of the feature declaring the reference to identify the target. Unlike references, feature dependencies do not use parameters to specify the target. Instead the dependency is declared by specifying the ID of the target feature directly.
 
 ###### Feature spec dependencies
 

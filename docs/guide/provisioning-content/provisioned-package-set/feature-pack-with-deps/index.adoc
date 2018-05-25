@@ -31,6 +31,4 @@ include::customized-inherited-packages.adoc[]
 
 include::disabling-inheritance.adoc[]
 
-include::explicit-vs-implicit-dep.adoc[]
-
 include::merging-dependencies.adoc[]

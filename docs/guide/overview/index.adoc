@@ -1,16 +1,16 @@
 ## Overview
 
-PM is a Maven repository-based provisioning tool designed to manage Java software environments that consist of one or more products. The tool supports:
+Galleon is a Maven repository-based Java provisioning tool designed to manage software installations that consist of one or more products. The tool supports:
 
-* installation of product releases;
+* installation of products;
 
 ** their default and customized configurations;
 
 * integration of the installed products;
 
-* resolution and verification of the binary and configuration dependencies;
+* resolution and verification of configuration and runtime dependencies;
 
-* patching and the version updates;
+* patching and version updates;
 
 * product-specific provisioning plugins;
 
@@ -18,6 +18,6 @@ PM is a Maven repository-based provisioning tool designed to manage Java softwar
 
 * export the current environment configuration with the goal to reproduce it later at another location.
 
-The tool comes with a command-line interface and a public API.
+The tool includes a command-line interface and a public API.
 
 

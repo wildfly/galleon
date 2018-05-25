@@ -15,9 +15,9 @@ Feature ID consists of a feature spec name plus one or more feature parameters. 
  </feature-spec>
 ----
 
-Now if a config includes multiple features of the spec *feature1*, they could be refered to by *feature1:name=_unique_name_*, where the _unique_name_ is the value of the parameter *name* of the corresponding feature.
+Now if a config includes multiple features of feature spec *feature1*, they could be refered to by *feature1:name=_unique_name_*, where the _unique_name_ is the value of parameter *name* of the corresponding feature.
 
-Feature ID parameters cannot change values during config customizations. If a user wants to have a different value for an ID parameter of a certain feature, the existing feature has to be excluded from the config and a new feature with the desired ID parameter value has to be added in.
+NOTE: Feature ID parameters cannot change values during config customizations. If a user wants to have a different value for an ID parameter of a certain feature, the existing feature has to be excluded from the config and a new feature with the desired ID parameter value has to be added in.
 
 Here is an example of a feature spec with multiple feature ID parameters:
 
@@ -32,4 +32,6 @@ Here is an example of a feature spec with multiple feature ID parameters:
  </feature-spec>
 ----
 
-An ID of a feature of this spec will look like *feature2:p1=_p1_value_,p2=_p2_value_*. The order of the ID parameters is not significant.
+An ID of a feature of this spec will look like *feature2:p1=_p1_value_,p2=_p2_value_*.
+
+NOTE: The order of the ID parameters in the feature ID string is *not* significant.

@@ -12,10 +12,10 @@ Package dependencies are configured under the *packages* element of the feature 
    <packages>
      <package name="p1"/>
      <package name="p2" optional="true"/>
-     <feature-pack dependency="another-feature-pack">
+     <origin name="another-feature-pack">
        <package name="p2"/>
        <package name="p3" optional="true"/>
-     </feature-pack>
+     </origin>
    </packages>
  </feature-spec>
 ----

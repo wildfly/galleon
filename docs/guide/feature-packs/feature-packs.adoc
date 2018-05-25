@@ -6,13 +6,11 @@ Feature-pack contains:
 
 * metadata describing
 
-** the feature-pack;
-
-** default distribution spec;
-
-** what and how can be customized;
-
 ** dependencies on other featurepacks;
+
+** the default configuration(s) of the distribution;
+
+** the default package set that should be installed;
 
 * _(optional)_ a set of content packages;
 
@@ -25,4 +23,3 @@ Feature-pack contains:
 
 Feature-pack may declare dependencies on other feature-packs. Before a feature-pack is installed the tool will make sure its dependencies are satisifed (installing the missing ones).
 
-Conceptually, any software installation can be described as one or more feature-packs installed at a specific location.
