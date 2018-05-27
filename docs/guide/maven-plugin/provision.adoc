@@ -1,6 +1,6 @@
 ### provision
 
-This goal provisions an installation that consists of one or more feature-packs. The target installation directory already contains an installation, the existing installation will be fully replaced with the newly provisioned one.
+This goal provisions an installation that consists of one or more feature-packs. If the target installation directory already contains an installation, the existing installation will be fully replaced with the newly provisioned one. In other words, the configuration provided for this goal fully describes the state of the final installation.
 
 .Parameters
 [options="autowidth"]
@@ -11,4 +11,61 @@ This goal provisions an installation that consists of one or more feature-packs.
 |plugin-options |false |- |Arbitrary plugin options
 |feature-packs |true |- |A list of feature-pack configurations to install
 |===
+
+.Feature-pack parameters
+[options="autowidth"]
+|===
+|Name |Required |Default value |Description
+|groupId |true |- |Feature-pack Maven artifact groupId
+|artifactId |true |- |Feature-pack Maven artifactId
+|version |false |- |Feature-pack artifact version (if not specified the feature-pack must be a transitive dependency of a feature-pack with the version specified
+|inherit-configs |false |true |Whether to inherit the default feature-pack configs
+|included-configs |false |- |Default feature-pack configs that should be included
+|excluded-configs |false |- |Default feature-pack configs that should be excluded
+|inherit-packages |false |true |Whether to inherit the default feature-pack packages
+|included-packages |false |- |Default feature-pack packages that should be included
+|excluded-packages |false |- |Default feature-pack packages that should be excluded
+|===
+
+Example
+[source,xml]
+----
+<plugin>
+    <groupId>org.jboss.galleon</groupId>
+    <artifactId>galleon-maven-plugins</artifactId>
+    <executions>
+        <execution>
+            <goals>
+                <goal>provision</goal>
+            </goals>
+            <configuration>
+                <install-dir>${project.build.directory}/${project.build.finalName}</install-dir>
+                <feature-packs>
+                    <feature-pack>
+                        <groupId>org.wildfly.core</groupId>
+                        <artifactId>wildfly-core-galleon-pack</artifactId>
+                        <inherit-configs>false</inherit-configs>
+                        <excluded-packages>
+                            <name>product.conf</name>
+                            <name>docs.schema</name>
+                        </excluded-packages>
+                    </feature-pack>
+                    <feature-pack>
+                        <groupId>${project.groupId}</groupId>
+                        <artifactId>wildfly-servlet-galleon-pack</artifactId>
+                        <version>${project.version}</version>
+                            <excluded-packages>
+                            <name>product.conf</name>
+                            <name>docs.schema</name>
+                        </excluded-packages>
+                    </feature-pack>
+                </feature-packs>
+                <plugin-options>
+                    <jboss-maven-dist/>
+                </plugin-options>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
 

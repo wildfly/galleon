@@ -1,6 +1,6 @@
 ### install-feature-pack
 
-This goal installs a feature-pack into an empty directory or a directory tha already contains an installation.
+This goal installs a feature-pack into an empty directory or a directory that already contains an installation, in which case the product the feature-pack represents will be integrated into an existing installation.
 
 .Parameters
 [options="autowidth"]
@@ -13,6 +13,6 @@ This goal installs a feature-pack into an empty directory or a directory tha alr
 |inherit-configs |false |true |Whether to install the default configs
 |included-configs |false |- |Explicitly included default configs to install
 |custom-config |false |- |Path to a file containing `config` that should be installed
-|plugin-options |false |- |Arbitrary plugin options
+|plugin-options |false |- |Arbitrary plugin options recognized by the plugins attached to the feature-pack being installed
 |===
 
