@@ -4,6 +4,14 @@
 
 Besides that `config` element supports already mentioned in an earlier chapter the <<_configuration_model_attributes, config attributes>> and `props` element.
 
+NOTE: When a `config` element appears in a `feature-pack.xml` or as a child of `installation` element, it represents all the configs with the matching identity merged into one model from all the feature-pack dependencies up to the current point.
+
+E.g. if feature-pack *FP1* depends on feature-pack *FP2* which includes config model *M1* named *N1*. Element `config` with attributes `model="M1" name="N1"` added to *FP1* will represent the corresponding config from *FP2* (unless the config inheritance was explicitly disabled in *FP1*), i.e. the content of config *M1:N1* from *FP2* may be manipulated in `config` element in *FP1* by excluding certain features or overwriting their parameters.
+
+The same applies to `config` elements under `installation` element. If `installation` includes feature-packs *FP3* and *FP4*, both of which include configs *M1:N1*, `config` element with attributes `model="M1" name="N1"` added under the `installation` element will represent the result of merging configs *M1:N1* from feature-packs *FP3* and *FP4*.
+
+#### Config properties
+
 `props` element allows to attach various properties to the configuration described by the `config` element that can be meaningful for the provisioning plugin processing the configuration. E.g.
 [source,xml]
 ----
