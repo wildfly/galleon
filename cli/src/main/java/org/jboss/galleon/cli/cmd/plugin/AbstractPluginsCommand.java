@@ -82,7 +82,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     private AeshContext ctx;
 
     public AbstractPluginsCommand(PmSession pmSession) {
-        super(pmSession, true);
+        super(pmSession, true, true);
     }
 
     public void setAeshContext(AeshContext ctx) {
@@ -112,7 +112,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     @Override
     protected void doValidateOptions() throws CommandExecutionException {
-        // side effect is to trieve to resolve
+        // side effect is to resolve artifact.
         getId(pmSession);
     }
 
@@ -192,10 +192,11 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         String streamName = (String) getValue(ARGUMENT_NAME);
         String fpCoords = (String) getValue(FP_NAME);
         if (fpCoords == null && streamName == null) {
-            // Check in argument, that is the option completion case.
+            // Check in argument or option, that is the option completion case.
             String val = getArgumentValue();
             if (val == null) {
-                return null;
+                val = getOptionValue(FP_NAME);
+                return val;
             }
             streamName = val;
         }
