@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import org.jboss.galleon.cli.cmd.plugin.StateProvisionCommand;
 import java.util.ArrayList;
 import java.util.List;
 import org.aesh.command.Command;
@@ -42,9 +43,10 @@ import org.jboss.galleon.cli.cmd.state.pkg.PackageCommand;
 public class StateCommand implements GroupCommand<PmCommandInvocation, Command> {
 
     private final DiffCommand diffCommand;
-
+    private final StateProvisionCommand provisionCommand;
     public StateCommand(PmSession pmSession) {
         this.diffCommand = new DiffCommand(pmSession);
+        this.provisionCommand = new StateProvisionCommand(pmSession);
     }
 
     @Override
@@ -57,6 +59,7 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
     public List<CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation>> getParsedCommands() throws CommandLineParserException {
         List<CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation>> commands = new ArrayList<>();
         commands.add(diffCommand.createCommand());
+        commands.add(provisionCommand.createCommand());
         return commands;
     }
 
@@ -68,6 +71,7 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
 
     public void setAeshContext(AeshContext ctx) {
         diffCommand.setAeshContext(ctx);
+        provisionCommand.setAeshContext(ctx);
     }
 
     @Override
@@ -79,7 +83,6 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
         commands.add(new StateExploreCommand());
         commands.add(new StateExportCommand());
         commands.add(new StateLeaveCommand());
-        commands.add(new StateProvisionCommand());
         return commands;
     }
 

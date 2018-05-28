@@ -67,7 +67,7 @@
     <version.junit>4.12</version.junit>
     <version.maven-aether-provider>3.3.9</version.maven-aether-provider>   
     <version.maven-settings-builder>3.3.9</version.maven-settings-builder>   
-    <version.org.aesh>1.5-SNAPSHOT</version.org.aesh>
+    <version.org.aesh>1.5</version.org.aesh>
     <version.org.aesh-extensions>1.3</version.org.aesh-extensions>
     <version.org.apache.maven>3.3.1</version.org.apache.maven>
     <version.org.apache.maven.plugin-tools>${version.plugin.plugin}</version.org.apache.maven.plugin-tools>

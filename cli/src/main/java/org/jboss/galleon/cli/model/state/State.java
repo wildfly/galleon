@@ -67,6 +67,7 @@ public class State {
     private final FeaturePackProvisioning fpProvisioning = new FeaturePackProvisioning();
     private final ConfigProvisioning configProvisioning = new ConfigProvisioning();
     private final Deque<Action> stack = new ArrayDeque<>();
+    private ProvisioningRuntime runtime;
 
     public State(PmSession pmSession) throws ProvisioningException, IOException {
         builder = ProvisioningConfig.builder();
@@ -105,9 +106,13 @@ public class State {
         container.setFullDependencies(fullDependencies);
     }
 
+    public ProvisioningRuntime getRuntime() {
+        return runtime;
+    }
+
     private void init(PmSession pmSession, ProvisioningManager manager) throws ProvisioningException, IOException {
         config = builder.build();
-        ProvisioningRuntime runtime = manager.getRuntime(config, null, Collections.emptyMap());
+        runtime = manager.getRuntime(config, null, Collections.emptyMap());
         container = FeatureContainers.fromProvisioningRuntime(pmSession, manager, runtime);
         container.setEdit(true);
         path = "" + PathParser.PATH_SEPARATOR;
@@ -249,7 +254,7 @@ public class State {
         ProvisioningConfig tmp = builder.build();
         ProvisioningManager manager = ProvisioningManager.builder()
                 .setArtifactResolver(pmSession.getArtifactResolver()).build();
-        ProvisioningRuntime runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
+        runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
         Set<Gav> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
             dependencies.add(cf.getGav());

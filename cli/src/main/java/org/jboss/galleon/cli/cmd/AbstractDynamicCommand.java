@@ -102,41 +102,60 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         @Override
         public List<ProcessedOption> getOptions(List<ProcessedOption> currentOptions) {
             try {
-                String id = getId(pmSession);
-                if (id != null) {
-                    // We can retrieve options
-                    List<ProcessedOption> options = dynamicOptions.get(id);
-                    if (options == null) {
-                        options = new ArrayList<>();
-                        List<DynamicOption> parameters = getDynamicOptions(pmSession.getState(), id);
-                        for (DynamicOption opt : parameters) {
-                            ProcessedOptionBuilder builder = ProcessedOptionBuilder.builder();
-                            if (staticOptions.contains(opt.getName())) {
-                                renamedOptions.put(rename(opt.getName(), parameters), opt.getName());
+                List<ProcessedOption> options = null;
+                String id = null;
+                if (requireId) {
+                    id = getId(pmSession);
+                    if (id != null) {
+                        // We can retrieve options
+                        options = dynamicOptions.get(id);
+                    }
+                }
+                if (options == null) {
+                    options = new ArrayList<>();
+                    List<DynamicOption> parameters = getDynamicOptions(pmSession.getState(), id);
+                    for (DynamicOption opt : parameters) {
+                        // There is no caching, if current options already contains it, do not add it.
+                        if (!requireId && currentOptions != null) {
+                            ProcessedOption found = null;
+                            for (ProcessedOption option : currentOptions) {
+                                if (option.name().equals(opt.getName())) {
+                                    found = option;
+                                    break;
+                                }
                             }
-                            builder.name(opt.getName());
-                            builder.type(String.class);
-                            if (!opt.hasValue()) {
-                                noValuesOptions.add(opt.getName());
+                            if (found != null) {
+                                options.add(found);
+                                continue;
                             }
-                            builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
-                            builder.hasValue(opt.hasValue());
-                            builder.required(opt.isRequired());
-                            if (opt.getDefaultValue() != null) {
-                                builder.addDefaultValue(opt.getDefaultValue());
-                            }
-                            options.add(builder.build());
                         }
+                        ProcessedOptionBuilder builder = ProcessedOptionBuilder.builder();
+                        if (staticOptions.contains(opt.getName())) {
+                            renamedOptions.put(rename(opt.getName(), parameters), opt.getName());
+                        }
+                        builder.name(opt.getName());
+                        builder.type(String.class);
+                        if (!opt.hasValue()) {
+                            noValuesOptions.add(opt.getName());
+                        }
+                        builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
+                        builder.hasValue(opt.hasValue());
+                        builder.required(opt.isRequired());
+                        if (opt.getDefaultValue() != null) {
+                            builder.addDefaultValue(opt.getDefaultValue());
+                        }
+                        options.add(builder.build());
+                    }
+                    if (requireId) {
                         dynamicOptions.put(id, options);
                     }
-                    return options;
                 }
+                return options;
             } catch (Exception ex) {
                 // XXX OK.
             }
             return Collections.emptyList();
         }
-
     }
 
     protected final PmSession pmSession;
@@ -146,16 +165,18 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     private final boolean onlyAtCompletion;
     private final boolean checkForRequired;
     private final boolean optimizeRetrieval;
+    private final boolean requireId;
     /**
      *
      * @param pmSession The session
      * @param optimizeRetrieval True, optimize retrieval.
      */
-    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval) {
+    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId) {
         this.pmSession = pmSession;
         this.onlyAtCompletion = optimizeRetrieval;
         this.checkForRequired = !optimizeRetrieval;
         this.optimizeRetrieval = optimizeRetrieval;
+        this.requireId = requireId;
     }
 
     protected abstract String getId(PmSession session) throws CommandExecutionException;
@@ -212,6 +233,15 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     protected String getArgumentValue() {
         return cmd.getArgument().getValue();
+    }
+
+    protected String getOptionValue(String name) {
+        for (ProcessedOption opt : cmd.getOptions(false)) {
+            if (opt.name().equals(name)) {
+                return opt.getValue();
+            }
+        }
+        return null;
     }
 
     protected List<String> getArgumentsValues() {

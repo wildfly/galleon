@@ -340,7 +340,18 @@ public class ProvisioningManager {
      * @throws ProvisioningException  in case provisioning fails
      */
     public void provision(Path provisioningXml) throws ProvisioningException {
-        provision(readProvisioningConfig(provisioningXml));
+        provision(provisioningXml, Collections.emptyMap());
+    }
+
+    /**
+     * Provision the state described in the specified XML file.
+     *
+     * @param provisioningXml file describing the desired provisioned state
+     * @param options feature-pack plug-ins options
+     * @throws ProvisioningException in case provisioning fails
+     */
+    public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
+        provision(readProvisioningConfig(provisioningXml), options);
     }
 
     /**
