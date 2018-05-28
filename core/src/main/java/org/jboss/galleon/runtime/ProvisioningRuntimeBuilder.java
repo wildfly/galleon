@@ -322,22 +322,12 @@ public class ProvisioningRuntimeBuilder {
             return;
         }
         final Iterator<Map.Entry<String, ConfigModelStack>> i = modelOnlyConfigs.entrySet().iterator();
-        if (modelOnlyConfigs.size() == 1) {
+        while (i.hasNext()) {
             final Map.Entry<String, ConfigModelStack> entry = i.next();
             final Map<String, ConfigModelStack> targetConfigs = namedModelConfigs.get(entry.getKey());
             if (targetConfigs != null) {
                 for (Map.Entry<String, ConfigModelStack> targetConfig : targetConfigs.entrySet()) {
                     targetConfig.getValue().merge(entry.getValue());
-                }
-            }
-        } else {
-            while (i.hasNext()) {
-                final Map.Entry<String, ConfigModelStack> entry = i.next();
-                final Map<String, ConfigModelStack> targetConfigs = namedModelConfigs.get(entry.getKey());
-                if (targetConfigs != null) {
-                    for (Map.Entry<String, ConfigModelStack> targetConfig : targetConfigs.entrySet()) {
-                        targetConfig.getValue().merge(entry.getValue());
-                    }
                 }
             }
         }
