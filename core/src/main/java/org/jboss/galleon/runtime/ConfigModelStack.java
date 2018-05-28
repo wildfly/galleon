@@ -150,6 +150,7 @@ class ConfigModelStack {
 
     private List<ConfigScope> configs = new ArrayList<>();
     private ConfigScope lastConfig;
+    private ConfigScope lastProcessedScope;
 
     // features in the order they should be processed by the provisioning handlers
     private List<ResolvedFeature> orderedFeatures = null;
@@ -204,11 +205,12 @@ class ConfigModelStack {
     }
 
     ConfigModel popConfig() throws ProvisioningException {
-        final ConfigScope result = lastConfig;
-        configs.remove(configs.size() - 1);
-        lastConfig = configs.get(configs.size() - 1);
-        result.complete();
-        return result.config;
+        lastProcessedScope = lastConfig;
+        final int poppedIndex = configs.size() - 1;
+        configs.remove(poppedIndex);
+        lastConfig = configs.get(poppedIndex - 1);
+        lastProcessedScope.complete();
+        return lastProcessedScope.config;
     }
 
     boolean pushGroup(FeatureGroupSupport fg) throws ProvisioningException {
@@ -329,6 +331,9 @@ class ConfigModelStack {
             final SpecFeatures otherSpecFeatures = entry.getValue();
             SpecFeatures specFeatures = null;
             for (ResolvedFeature feature : otherSpecFeatures.getFeatures()) {
+                if(lastProcessedScope.isFilteredOut(feature.getSpecId(), feature.id)) {
+                    continue;
+                }
                 if(feature.id == null) {
                     if(specFeatures == null) {
                         specFeatures = getSpecFeatures(otherSpecFeatures.spec);
