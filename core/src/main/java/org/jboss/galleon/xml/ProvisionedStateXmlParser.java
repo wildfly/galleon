@@ -16,10 +16,16 @@
  */
 package org.jboss.galleon.xml;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.state.ProvisionedState;
 
 /**
@@ -32,6 +38,17 @@ public class ProvisionedStateXmlParser implements XmlParser<ProvisionedState> {
 
     public static ProvisionedStateXmlParser getInstance() {
         return INSTANCE;
+    }
+
+    public static ProvisionedState parse(Path path) throws ProvisioningException {
+        if (!Files.exists(path)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            return getInstance().parse(reader);
+        } catch (IOException | XMLStreamException e) {
+            throw new ProvisioningException(Errors.parseXml(path), e);
+        }
     }
 
     private ProvisionedStateXmlParser() {

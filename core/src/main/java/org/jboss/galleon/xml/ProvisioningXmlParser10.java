@@ -32,6 +32,7 @@ import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 
@@ -245,7 +246,7 @@ public class ProvisioningXmlParser10 implements PlugableXmlParser<ProvisioningCo
             throw ParsingUtils.missingAttributes(reader.getLocation(), required);
         }
         String origin = null;
-        final FeaturePackConfig.Builder depBuilder = FeaturePackConfig.builder(ArtifactCoords.newGav(groupId, artifactId, version));
+        final FeaturePackConfig.Builder depBuilder = FeaturePackConfig.builder(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)));
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {

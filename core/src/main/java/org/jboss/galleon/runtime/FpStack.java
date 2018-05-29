@@ -21,13 +21,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigCustomizations;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -80,23 +80,23 @@ class FpStack {
             return fpConfigs.get(currentFp).isInheritPackages();
         }
 
-        Boolean isInheritPackages(ArtifactCoords.Ga ga) {
-            final FeaturePackConfig fpConfig = getFpConfig(ga);
+        Boolean isInheritPackages(ChannelSpec fpChannel) {
+            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
             return fpConfig == null ? null : fpConfig.isInheritPackages();
         }
 
-        boolean isPackageExcluded(ArtifactCoords.Ga ga, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(ga);
+        boolean isPackageExcluded(ChannelSpec fpChannel, String packageName) {
+            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
             return fpConfig == null ? false : fpConfig.isPackageExcluded(packageName);
         }
 
-        boolean isPackageIncluded(ArtifactCoords.Ga ga, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(ga);
+        boolean isPackageIncluded(ChannelSpec fpChannel, String packageName) {
+            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
             return fpConfig == null ? false : fpConfig.isPackageIncluded(packageName);
         }
 
-        Boolean isPackageFilteredOut(ArtifactCoords.Ga ga, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(ga);
+        Boolean isPackageFilteredOut(ChannelSpec fpChannel, String packageName) {
+            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
             if(fpConfig == null) {
                 return null;
             }
@@ -106,10 +106,10 @@ class FpStack {
             return !fpConfig.isPackageIncluded(packageName);
         }
 
-        private FeaturePackConfig getFpConfig(ArtifactCoords.Ga ga) {
+        private FeaturePackConfig getFpConfig(ChannelSpec fpChannel) {
             for(int i = fpConfigs.size() - 1; i >= 0; --i) {
                 final FeaturePackConfig fpConfig = fpConfigs.get(i);
-                if(fpConfig.getGav().toGa().equals(ga)) {
+                if(fpConfig.getLocation().getChannel().equals(fpChannel)) {
                     return fpConfig;
                 }
             }
@@ -217,22 +217,22 @@ class FpStack {
         if(isEmpty()) {
             return true;
         }
-        final ArtifactCoords.Ga fpGa = fpConfig.getGav().toGa();
-        final Boolean pkgRelevancy = isInheritPackages(fpGa);
+        final ChannelSpec fpChannel = fpConfig.getLocation().getChannel();
+        final Boolean pkgRelevancy = isInheritPackages(fpChannel);
         if(pkgRelevancy == null) {
             return true;
         }
         if(pkgRelevancy) {
             if(fpConfig.hasExcludedPackages()) {
                 for(String excluded : fpConfig.getExcludedPackages()) {
-                    if(!isPackageExcluded(fpGa, excluded) && !isPackageIncluded(fpGa, excluded)) {
+                    if(!isPackageExcluded(fpChannel, excluded) && !isPackageIncluded(fpChannel, excluded)) {
                         return true;
                     }
                 }
             }
             if(fpConfig.hasIncludedPackages()) {
                 for(PackageConfig included : fpConfig.getIncludedPackages()) {
-                    if(!isPackageIncluded(fpGa, included.getName()) && !isPackageExcluded(fpGa, included.getName())) {
+                    if(!isPackageIncluded(fpChannel, included.getName()) && !isPackageExcluded(fpChannel, included.getName())) {
                         return true;
                     }
                 }
@@ -267,10 +267,10 @@ class FpStack {
         return false;
     }
 
-    private Boolean isInheritPackages(ArtifactCoords.Ga ga) {
+    private Boolean isInheritPackages(ChannelSpec fpChannel) {
         Boolean result = null;
         for(int i = levels.size() - 1; i >= 0; --i) {
-            final Boolean levelResult = levels.get(i).isInheritPackages(ga);
+            final Boolean levelResult = levels.get(i).isInheritPackages(fpChannel);
             if(levelResult == null) {
                  continue;
             }
@@ -282,31 +282,31 @@ class FpStack {
         return result;
     }
 
-    boolean isPackageExcluded(ArtifactCoords.Ga ga, String packageName) {
+    boolean isPackageExcluded(ChannelSpec fpChannel, String packageName) {
         for(int i = levels.size() - 1; i >= 0; --i) {
-            if(levels.get(i).isPackageExcluded(ga, packageName)) {
+            if(levels.get(i).isPackageExcluded(fpChannel, packageName)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isPackageIncluded(ArtifactCoords.Ga ga, String packageName) {
+    private boolean isPackageIncluded(ChannelSpec fpChannel, String packageName) {
         for(int i = levels.size() - 1; i >= 0; --i) {
-            if(levels.get(i).isPackageIncluded(ga, packageName)) {
+            if(levels.get(i).isPackageIncluded(fpChannel, packageName)) {
                 return true;
             }
         }
         return false;
     }
 
-    boolean isPackageFilteredOut(ArtifactCoords.Ga ga, String packageName, boolean fromPrevLevel) {
+    boolean isPackageFilteredOut(ChannelSpec fpChannel, String packageName, boolean fromPrevLevel) {
         int i = levels.size() - (fromPrevLevel ? 2 : 1);
         if(i < 0) {
             return false;
         }
         Level level = levels.get(i--);
-        Boolean filteredOut = level.isPackageFilteredOut(ga, packageName);
+        Boolean filteredOut = level.isPackageFilteredOut(fpChannel, packageName);
         if(filteredOut != null && filteredOut) {
             return true;
         }
@@ -315,7 +315,7 @@ class FpStack {
             if(filteredOut == null && !level.isInheritPackages()) {
                 return true;
             }
-            filteredOut = level.isPackageFilteredOut(ga, packageName);
+            filteredOut = level.isPackageFilteredOut(fpChannel, packageName);
             if(filteredOut != null && filteredOut) {
                 return true;
             }

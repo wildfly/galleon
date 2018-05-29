@@ -16,23 +16,30 @@
  */
 package org.jboss.galleon.runtime;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
  *
  * @author Alexey Loubyansky
  */
 public class ResolvedSpecId {
-    final ArtifactCoords.Gav gav;
+    final FeaturePackLocation.ChannelSpec channel;
     final String name;
+    private final int hash;
 
-    public ResolvedSpecId(ArtifactCoords.Gav gav, String name) {
-        this.gav = gav;
+    public ResolvedSpecId(FeaturePackLocation.ChannelSpec channel, String name) {
+        this.channel = channel;
         this.name = name;
+
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((channel == null) ? 0 : channel.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        hash = result;
     }
 
-    public ArtifactCoords.Gav getGav() {
-        return gav;
+    public FeaturePackLocation.ChannelSpec getChannel() {
+        return channel;
     }
 
     public String getName() {
@@ -41,11 +48,7 @@ public class ResolvedSpecId {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((gav == null) ? 0 : gav.hashCode());
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        return result;
+        return hash;
     }
 
     @Override
@@ -57,10 +60,10 @@ public class ResolvedSpecId {
         if (getClass() != obj.getClass())
             return false;
         ResolvedSpecId other = (ResolvedSpecId) obj;
-        if (gav == null) {
-            if (other.gav != null)
+        if (channel == null) {
+            if (other.channel != null)
                 return false;
-        } else if (!gav.equals(other.gav))
+        } else if (!channel.equals(other.channel))
             return false;
         if (name == null) {
             if (other.name != null)
@@ -72,6 +75,6 @@ public class ResolvedSpecId {
 
     @Override
     public String toString() {
-        return gav + "#" + name;
+        return '{' + channel.toString() + "}" + name;
     }
 }

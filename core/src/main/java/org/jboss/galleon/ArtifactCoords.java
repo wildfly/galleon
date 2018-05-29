@@ -19,6 +19,7 @@ package org.jboss.galleon;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 /**
  * Complete Maven artifact coordinates.
  *

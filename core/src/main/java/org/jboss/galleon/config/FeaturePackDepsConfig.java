@@ -19,38 +19,82 @@ package org.jboss.galleon.config;
 import java.util.Collection;
 import java.util.Map;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
- * @author Alexey Loubyansky
  *
+ * @author Alexey Loubyansky
  */
 public class FeaturePackDepsConfig extends ConfigCustomizations {
 
-    protected final Map<ArtifactCoords.Ga, FeaturePackConfig> fpDeps;
+    protected final UniverseSpec defaultUniverse;
+    protected final Map<String, UniverseSpec> universeConfigs;
+    protected final Map<FeaturePackLocation.ChannelSpec, FeaturePackConfig> fpDeps;
     protected final Map<String, FeaturePackConfig> fpDepsByOrigin;
-    private final Map<ArtifactCoords.Ga, String> fpGaToOrigin;
+    private final Map<FeaturePackLocation.ChannelSpec, String> channelToOrigin;
 
-    protected FeaturePackDepsConfig(FeaturePackDepsConfigBuilder<?> builder) {
+    protected FeaturePackDepsConfig(FeaturePackDepsConfigBuilder<?> builder) throws ProvisioningDescriptionException {
         super(builder);
         this.fpDeps = CollectionUtils.unmodifiable(builder.fpDeps);
         this.fpDepsByOrigin = CollectionUtils.unmodifiable(builder.fpDepsByOrigin);
-        this.fpGaToOrigin = builder.fpGaToOrigin;
+        this.channelToOrigin = builder.channelToOrigin;
+        this.defaultUniverse = builder.defaultUniverse;
+        this.universeConfigs = CollectionUtils.unmodifiable(builder.universeSpecs);
+    }
+
+    public boolean hasDefaultUniverse() {
+        return defaultUniverse != null;
+    }
+
+    public UniverseSpec getDefaultUniverse() {
+        return defaultUniverse;
+    }
+
+    public UniverseSpec getUniverseConfig(String name) throws ProvisioningDescriptionException {
+        final UniverseSpec universe = name == null ? defaultUniverse : universeConfigs.get(name);
+        if(universe == null) {
+            throw new ProvisioningDescriptionException((name == null ? "The default" : name) + " universe was not configured");
+        }
+        return universe;
+    }
+
+    public boolean hasUniverseNamedConfigs() {
+        return !universeConfigs.isEmpty();
+    }
+
+    public Map<String, UniverseSpec> getNamedUniverses() {
+        return universeConfigs;
+    }
+
+    public FeaturePackLocation getUserConfiguredSource(FeaturePackLocation fpSource) {
+        final UniverseSpec universeSource = fpSource.getUniverse();
+        if(defaultUniverse != null && defaultUniverse.equals(universeSource)) {
+            return new FeaturePackLocation(null, fpSource.getProducer(), fpSource.getChannelName(), fpSource.getFrequency(),
+                    fpSource.getBuild());
+        }
+        for (Map.Entry<String, UniverseSpec> entry : universeConfigs.entrySet()) {
+            if (entry.getValue().equals(universeSource)) {
+                return new FeaturePackLocation(new UniverseSpec(entry.getKey(), null), fpSource.getProducer(),
+                        fpSource.getChannelName(), fpSource.getFrequency(), fpSource.getBuild());
+            }
+        }
+        return fpSource;
     }
 
     public boolean hasFeaturePackDeps() {
         return !fpDeps.isEmpty();
     }
 
-    public boolean hasFeaturePackDep(ArtifactCoords.Ga gaPart) {
-        return fpDeps.containsKey(gaPart);
+    public boolean hasFeaturePackDep(FeaturePackLocation.ChannelSpec channel) {
+        return fpDeps.containsKey(channel);
     }
 
-    public FeaturePackConfig getFeaturePackDep(ArtifactCoords.Ga gaPart) {
-        return fpDeps.get(gaPart);
+    public FeaturePackConfig getFeaturePackDep(FeaturePackLocation.ChannelSpec channel) {
+        return fpDeps.get(channel);
     }
 
     public Collection<FeaturePackConfig> getFeaturePackDeps() {
@@ -65,8 +109,8 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         return fpDep;
     }
 
-    public String originOf(ArtifactCoords.Ga fpGa) {
-        return fpGaToOrigin.get(fpGa);
+    public String originOf(FeaturePackLocation.ChannelSpec channel) {
+        return channelToOrigin.get(channel);
     }
 
     @Override

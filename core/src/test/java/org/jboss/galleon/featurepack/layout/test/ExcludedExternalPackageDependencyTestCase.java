@@ -16,10 +16,10 @@
  */
 package org.jboss.galleon.featurepack.layout.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
@@ -34,15 +34,15 @@ import org.junit.Test;
  */
 public class ExcludedExternalPackageDependencyTestCase {
 
-    private static final Gav fp1Gav = ArtifactCoords.newGav("g", "a1", "v");
-    private static final Gav fp2Gav = ArtifactCoords.newGav("g", "a2", "v");
+    private static final FPID fp1Gav = LegacyGalleon1Universe.newFPID("g", "a1", "v");
+    private static final FPID fp2Gav = LegacyGalleon1Universe.newFPID("g", "a2", "v");
 
     @Test
     public void testRequiredDependency() throws Exception {
 
         final ProvisioningLayout.Builder builder = ProvisioningLayout.builder()
                 .addFeaturePack(FeaturePackLayout.builder(FeaturePackSpec.builder(fp1Gav)
-                        .addFeaturePackDep("fp2dep", FeaturePackConfig.builder(fp2Gav)
+                        .addFeaturePackDep("fp2dep", FeaturePackConfig.builder(fp2Gav.getLocation())
                                 .excludePackage("p1")
                                 .build())
                         .addDefaultPackage("p1"))
@@ -67,7 +67,7 @@ public class ExcludedExternalPackageDependencyTestCase {
 
         final ProvisioningLayout.Builder builder = ProvisioningLayout.builder()
                 .addFeaturePack(FeaturePackLayout.builder(FeaturePackSpec.builder(fp1Gav)
-                        .addFeaturePackDep("fp2dep", FeaturePackConfig.builder(fp2Gav)
+                        .addFeaturePackDep("fp2dep", FeaturePackConfig.builder(fp2Gav.getLocation())
                                 .excludePackage("p1")
                                 .build())
                         .addDefaultPackage("p1"))

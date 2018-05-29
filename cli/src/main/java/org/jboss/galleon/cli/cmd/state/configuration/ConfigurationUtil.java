@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
@@ -35,6 +34,7 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -46,13 +46,13 @@ public abstract class ConfigurationUtil extends AbstractFPProvisionedCommand {
         Map<FeaturePackConfig, ConfigId> configs = new HashMap<>();
         if (config == null) {
             for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
-                ConfigInfo info = getConfig(session, c.getGav(), configuration);
+                ConfigInfo info = getConfig(session, c.getLocation().getFPID(), configuration);
                 if (info != null) {
                     configs.put(c, info.getId());
                 }
             }
         } else {
-            ConfigInfo info = getConfig(session, config.getGav(), configuration);
+            ConfigInfo info = getConfig(session, config.getLocation().getFPID(), configuration);
             if (info != null) {
                 configs.put(config, info.getId());
             }
@@ -67,13 +67,13 @@ public abstract class ConfigurationUtil extends AbstractFPProvisionedCommand {
         Map<FeaturePackConfig, ConfigId> configs = new HashMap<>();
         if (config == null) {
             for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
-                ConfigInfo info = getConfig(session, c.getGav(), configuration);
+                ConfigInfo info = getConfig(session, c.getLocation().getFPID(), configuration);
                 if (info != null && c.getIncludedConfigs().contains(new ConfigId(info.getModel(), info.getName()))) {
                     configs.put(c, info.getId());
                 }
             }
         } else {
-            ConfigInfo info = getConfig(session, config.getGav(), configuration);
+            ConfigInfo info = getConfig(session, config.getLocation().getFPID(), configuration);
             if (info != null && config.getIncludedConfigs().contains(new ConfigId(info.getModel(), info.getName()))) {
                 configs.put(config, info.getId());
             }
@@ -88,13 +88,13 @@ public abstract class ConfigurationUtil extends AbstractFPProvisionedCommand {
         Map<FeaturePackConfig, ConfigId> configs = new HashMap<>();
         if (config == null) {
             for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
-                ConfigInfo info = getConfig(session, c.getGav(), configuration);
+                ConfigInfo info = getConfig(session, c.getLocation().getFPID(), configuration);
                 if (info != null && c.getExcludedConfigs().contains(new ConfigId(info.getModel(), info.getName()))) {
                     configs.put(c, info.getId());
                 }
             }
         } else {
-            ConfigInfo info = getConfig(session, config.getGav(), configuration);
+            ConfigInfo info = getConfig(session, config.getLocation().getFPID(), configuration);
             if (info != null && config.getExcludedConfigs().contains(new ConfigId(info.getModel(), info.getName()))) {
                 configs.put(config, info.getId());
             }
@@ -105,10 +105,10 @@ public abstract class ConfigurationUtil extends AbstractFPProvisionedCommand {
         return configs;
     }
 
-    private static ConfigInfo getConfig(PmSession session, ArtifactCoords.Gav gav, String configuration) throws ProvisioningException, IOException, PathParserException, PathConsumerException {
+    private static ConfigInfo getConfig(PmSession session, FPID fpid, String configuration) throws ProvisioningException, IOException, PathParserException, PathConsumerException {
         String path = FeatureContainerPathConsumer.FINAL_CONFIGS_PATH + configuration + PathParser.PATH_SEPARATOR;
-        FeatureContainer full = FeatureContainers.fromFeaturePackGav(session, ProvisioningManager.builder()
-                .setArtifactResolver(session.getArtifactResolver()).build(), gav, null);
+        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, ProvisioningManager.builder()
+                .addArtifactResolver(session.getArtifactResolver()).build(), fpid, null);
         ConfigInfo ci = null;
         try {
             FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);

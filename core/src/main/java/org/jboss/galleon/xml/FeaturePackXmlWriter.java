@@ -18,11 +18,10 @@ package org.jboss.galleon.xml;
 
 import java.util.Arrays;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.spec.FeaturePackSpec;
-import org.jboss.galleon.xml.FeaturePackXmlParser10.Attribute;
-import org.jboss.galleon.xml.FeaturePackXmlParser10.Element;
+import org.jboss.galleon.xml.FeaturePackXmlParser20.Attribute;
+import org.jboss.galleon.xml.FeaturePackXmlParser20.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -42,14 +41,16 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
 
     protected ElementNode toElement(FeaturePackSpec fpSpec) {
         final ElementNode fp = addElement(null, Element.FEATURE_PACK);
-        final ArtifactCoords.Gav fpGav = fpSpec.getGav();
-        ProvisioningXmlWriter.addGav(fp, fpGav);
+        addAttribute(fp, Attribute.LOCATION, fpSpec.getFPID().toString());
+
+        ProvisioningXmlWriter.writeUniverseSpecs(fpSpec, fp);
 
         if (fpSpec.hasFeaturePackDeps()) {
             final ElementNode deps = addElement(fp, Element.DEPENDENCIES);
             for (FeaturePackConfig dep : fpSpec.getFeaturePackDeps()) {
                 final ElementNode depElement = addElement(deps, Element.DEPENDENCY);
-                ProvisioningXmlWriter.writeFeaturePackConfig(depElement, depElement.getNamespace(), dep, fpSpec.originOf(dep.getGav().toGa()));
+                ProvisioningXmlWriter.writeFeaturePackConfig(depElement, depElement.getNamespace(),
+                        fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getChannel()));
             }
         }
 

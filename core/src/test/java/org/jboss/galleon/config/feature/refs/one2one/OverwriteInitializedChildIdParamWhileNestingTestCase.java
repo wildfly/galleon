@@ -19,16 +19,16 @@ package org.jboss.galleon.config.feature.refs.one2one;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -45,11 +45,11 @@ import org.junit.Assert;
  */
 public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
@@ -75,13 +75,13 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
                             .setParam("id", "a1")
                             .addFeatureGroup(FeatureGroup.forGroup("groupC")))
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP_GAV);
+        return FeaturePackConfig.forLocation(FP_GAV.getLocation());
     }
 
     @Override
@@ -92,29 +92,29 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
     @Override
     protected void pmFailure(Throwable e) throws ProvisioningDescriptionException {
         Assert.assertEquals("Failed to resolve config", e.getMessage());
-        e = (ProvisioningException) e.getCause();
+        e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV,
                 new FeatureConfig("specA")
                             .setParam("id", "a1")
                             .addFeatureGroup(FeatureGroup.forGroup("groupC"))), e.getLocalizedMessage());
-        e = (ProvisioningException) e.getCause();
+        e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV, "groupC"), e.getLocalizedMessage());
-        e = (ProvisioningException) e.getCause();
+        e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV,
                 new FeatureConfig("specC")
                 .setParam("id", "c1")
                 .setParam("a", "a2")), e.getLocalizedMessage());
-        e = (ProvisioningException) e.getCause();
+        e = e.getCause();
         Assert.assertNotNull(e);
         final Map<String, String> params = new HashMap<>();
         params.put("id", "c1");
         params.put("a", "a2");
-        Assert.assertEquals(Errors.failedToInitializeForeignKeyParams(new ResolvedSpecId(FP_GAV, "specC"), ResolvedFeatureId.create(new ResolvedSpecId(FP_GAV, "specA"), "id", "a1"), params), e.getLocalizedMessage());
-        e = (ProvisioningException) e.getCause();
+        Assert.assertEquals(Errors.failedToInitializeForeignKeyParams(new ResolvedSpecId(FP_GAV.getChannel(), "specC"), ResolvedFeatureId.create(new ResolvedSpecId(FP_GAV.getChannel(), "specA"), "id", "a1"), params), e.getLocalizedMessage());
+        e = e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals(Errors.idParamForeignKeyInitConflict(new ResolvedSpecId(FP_GAV, "specC"), "a", "a2", "a1"), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.idParamForeignKeyInitConflict(new ResolvedSpecId(FP_GAV.getChannel(), "specC"), "a", "a2", "a1"), e.getLocalizedMessage());
     }
 }

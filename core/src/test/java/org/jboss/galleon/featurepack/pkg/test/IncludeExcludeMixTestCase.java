@@ -16,11 +16,11 @@
  */
 package org.jboss.galleon.featurepack.pkg.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
@@ -33,9 +33,9 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 public class IncludeExcludeMixTestCase extends PmInstallFeaturePackTestBase {
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
-        .newFeaturePack(ArtifactCoords.newGav("org.pm.test", "fp1", "1.0.0"))
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
+        .newFeaturePack(LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0"))
             .newPackage("p1", true)
                 .writeContent("p1.txt", "p1")
                 .getFeaturePack()
@@ -53,14 +53,14 @@ public class IncludeExcludeMixTestCase extends PmInstallFeaturePackTestBase {
             .newPackage("p31")
                 .writeContent("p31.txt", "p31")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() throws ProvisioningDescriptionException {
         return FeaturePackConfig
-                .builder(ArtifactCoords.newGav("org.pm.test", "fp1", "1.0.0"))
+                .builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0").getLocation())
                 .excludePackage("p1")
                 .excludePackage("p2")
                 .includePackage("p21")
@@ -72,7 +72,7 @@ public class IncludeExcludeMixTestCase extends PmInstallFeaturePackTestBase {
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.pm.test", "fp1", "1.0.0"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0"))
                         .addPackage("p21")
                         .addPackage("p3")
                         .build())

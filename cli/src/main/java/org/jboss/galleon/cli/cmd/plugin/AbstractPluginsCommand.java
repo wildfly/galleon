@@ -16,8 +16,6 @@
  */
 package org.jboss.galleon.cli.cmd.plugin;
 
-import static org.jboss.galleon.cli.cmd.AbstractDynamicCommand.ARGUMENT_NAME;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +49,9 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  * An abstract command that discover plugin options based on the fp or stream
@@ -155,8 +156,9 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         List<DynamicOption> options = new ArrayList<>();
         ProvisioningManager manager = getManager(ctx);
         ArtifactCoords.Gav gav = ArtifactCoords.newGav(id);
-        checkLocalArtifact(gav);
-        FeaturePackConfig config = FeaturePackConfig.forGav(gav);
+        FeaturePackLocation fpl = LegacyGalleon1Universe.toFpl(gav);
+        checkLocalArtifact(fpl.getFPID());
+        FeaturePackConfig config = FeaturePackConfig.forLocation(fpl);
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
         ProvisioningRuntime runtime = manager.getRuntime(provisioning, null, Collections.emptyMap());
         Set<PluginOption> pluginOptions = getPluginOptions(runtime);
@@ -171,17 +173,17 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     protected abstract Path getInstallationHome(AeshContext ctx);
 
-    private ProvisioningManager getManager(AeshContext ctx) {
+    private ProvisioningManager getManager(AeshContext ctx) throws ProvisioningException {
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(pmSession.getArtifactResolver())
+                .addArtifactResolver(pmSession.getArtifactResolver())
                 .setInstallationHome(getInstallationHome(ctx))
                 .build();
         return manager;
     }
 
-    protected ProvisioningManager getManager(PmCommandInvocation session) {
+    protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return ProvisioningManager.builder()
-                .setArtifactResolver(session.getPmSession().getArtifactResolver())
+                .addArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getInstallationHome(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), isVerbose()))
                 .build();
@@ -221,12 +223,12 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         return ArtifactCoords.newGav(id);
     }
 
-    private void checkLocalArtifact(ArtifactCoords.Gav gav) throws CommandExecutionException {
-        if (!pmSession.existsInLocalRepository(gav)) {
+    private void checkLocalArtifact(FPID fpid) throws CommandExecutionException {
+        if (!pmSession.existsInLocalRepository(fpid)) {
             try {
                 pmSession.println(Config.getLineSeparator() + "retrieving feature-pack content from remote repository...");
-                pmSession.downloadFp(gav);
-            } catch (ArtifactException ex) {
+                pmSession.downloadFp(fpid);
+            } catch (ProvisioningException ex) {
                 throw new CommandExecutionException(ex);
             }
         }

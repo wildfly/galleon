@@ -16,14 +16,14 @@
  */
 package org.jboss.galleon.featurepack.install.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
 
@@ -33,18 +33,18 @@ import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
  */
 public class ExplicitlyInstalledFpAlreadyInstalledErrorTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP1_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP1_101_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.1.Final");
+    private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP1_101_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.1.Final");
 
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        setReplacedInstalled(false);
+        setReplaceInstalled(false);
     }
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
                     .addDependency(PackageDependencySpec.forPackage("p2", true))
@@ -56,7 +56,7 @@ public class ExplicitlyInstalledFpAlreadyInstalledErrorTestCase extends PmInstal
                 .newPackage("p3")
                     .writeContent("fp1/p3.txt", "fp1 1.0.0.Final p3")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP1_101_GAV)
                 .newPackage("p1", true)
                     .addDependency(PackageDependencySpec.forPackage("p2", true))
@@ -68,20 +68,20 @@ public class ExplicitlyInstalledFpAlreadyInstalledErrorTestCase extends PmInstal
                 .newPackage("p3")
                     .writeContent("fp1/p3.txt", "fp1 1.0.1.Final p3")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
     @Override
     protected ProvisioningConfig initialState() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP1_100_GAV))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP1_100_GAV.getLocation()))
                 .build();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() throws ProvisioningDescriptionException {
-        return FeaturePackConfig.forGav(FP1_101_GAV);
+        return FeaturePackConfig.forLocation(FP1_101_GAV.getLocation());
     }
 
     @Override

@@ -28,7 +28,6 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -38,9 +37,15 @@ import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.type.ParameterTypeProvider;
 import org.jboss.galleon.type.builtin.BuiltInParameterTypeProvider;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.Universe;
+import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.LayoutUtils;
+import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.xml.FeatureGroupXmlParser;
+import org.jboss.galleon.xml.FeaturePackXmlParser;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 import org.jboss.galleon.xml.PackageXmlParser;
 
@@ -50,7 +55,7 @@ import org.jboss.galleon.xml.PackageXmlParser;
  */
 class FeaturePackRuntimeBuilder {
 
-    final ArtifactCoords.Gav gav;
+    final FPID fpid;
     final Path dir;
     final FeaturePackSpec spec;
     boolean ordered;
@@ -62,10 +67,30 @@ class FeaturePackRuntimeBuilder {
 
     private ParameterTypeProvider featureParamTypeProvider = BuiltInParameterTypeProvider.getInstance();
 
-    FeaturePackRuntimeBuilder(FeaturePackSpec spec, Path dir) {
-        this.gav = spec.getGav();
+    FeaturePackRuntimeBuilder(UniverseResolver universeResolver, FPID fpid, Path dir) throws ProvisioningException {
+
+        final FeaturePackLocation fps = fpid.getLocation();
+        final Universe<?> universe = universeResolver.getUniverse(fps.getUniverse());
+        final Path artifactPath = universe.getProducer(fps.getProducer()).getChannel(fps.getChannelName()).resolve(fps);
+        try {
+            ZipUtils.unzip(artifactPath, dir);
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to unzip " + artifactPath + " to " + dir, e);
+        }
+
+        this.fpid = fpid;
         this.dir = dir;
-        this.spec = spec;
+
+        final Path fpXml = dir.resolve(Constants.FEATURE_PACK_XML);
+        if (!Files.exists(fpXml)) {
+            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpXml));
+        }
+
+        try (BufferedReader reader = Files.newBufferedReader(fpXml)) {
+            this.spec = FeaturePackXmlParser.getInstance().parse(reader);
+        } catch (IOException | XMLStreamException e) {
+            throw new ProvisioningException(Errors.parseXml(fpXml), e);
+        }
     }
 
     boolean resolvePackage(String pkgName, ProvisioningRuntimeBuilder rt) throws ProvisioningException {
@@ -95,7 +120,7 @@ class FeaturePackRuntimeBuilder {
             try {
                 rt.processPackageDeps(pkgBuilder.spec);
             } catch(ProvisioningException e) {
-                throw new ProvisioningDescriptionException(Errors.resolvePackage(gav, pkgName), e);
+                throw new ProvisioningDescriptionException(Errors.resolvePackage(fpid, pkgName), e);
             } finally {
                 rt.setOrigin(currentOrigin);
             }
@@ -143,7 +168,7 @@ class FeaturePackRuntimeBuilder {
             try (BufferedReader reader = Files.newBufferedReader(specXml)) {
                 final FeatureSpec xmlSpec = FeatureSpecXmlParser.getInstance().parse(reader);
                 final ResolvedFeatureSpec resolvedSpec = new ResolvedFeatureSpec(
-                        new ResolvedSpecId(gav, xmlSpec.getName()), featureParamTypeProvider, xmlSpec);
+                        new ResolvedSpecId(fpid.getChannel(), xmlSpec.getName()), featureParamTypeProvider, xmlSpec);
                 if(featureSpecs == null) {
                     featureSpecs = new HashMap<>();
                 }

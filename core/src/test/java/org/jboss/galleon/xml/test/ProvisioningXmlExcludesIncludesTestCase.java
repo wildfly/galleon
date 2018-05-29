@@ -18,7 +18,7 @@ package org.jboss.galleon.xml.test;
 
 import java.nio.file.Paths;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -41,16 +41,16 @@ public class ProvisioningXmlExcludesIncludesTestCase {
         ProvisioningConfig found = validator.validateAndParse("xml/provisioning/exclude-package.xml");
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group1", "fp1", "0.0.1"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
                         .excludePackage("p1")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group1", "fp2", "0.0.2"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation())
                         .excludePackage("p2")
                         .excludePackage("p3")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .forGav(ArtifactCoords.newGav("org.jboss.group2", "fp3", "0.0.3")))
+                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation()))
                 .build();
         Assert.assertEquals(expected, found);
     }
@@ -60,16 +60,16 @@ public class ProvisioningXmlExcludesIncludesTestCase {
         ProvisioningConfig found = validator.validateAndParse("xml/provisioning/include-package.xml");
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group1", "fp1", "0.0.1"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
                         .includePackage("p1")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group1", "fp2", "0.0.2"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation())
                         .includePackage("p2")
                         .includePackage("p3")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .forGav(ArtifactCoords.newGav("org.jboss.group2", "fp3", "0.0.3")))
+                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation()))
                 .build();
         Assert.assertEquals(expected, found);
     }
@@ -89,17 +89,17 @@ public class ProvisioningXmlExcludesIncludesTestCase {
         ProvisioningConfig found = validator.validateAndParse("xml/provisioning/include-exclude-packages.xml");
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group1", "fp1", "0.0.1"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
                         .setInheritPackages(false)
                         .includePackage("p1")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group1", "fp2", "0.0.2"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation())
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.group2", "fp3", "0.0.3"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation())
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())

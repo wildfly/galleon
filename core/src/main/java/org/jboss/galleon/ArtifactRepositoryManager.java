@@ -18,11 +18,25 @@ package org.jboss.galleon;
 
 import java.nio.file.Path;
 
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
+
 /**
  *
  * @author Alexey Loubyansky
  */
-public interface ArtifactRepositoryManager {
+public interface ArtifactRepositoryManager extends RepositoryArtifactResolver {
+
+    String REPOSITORY_ID = RepositoryArtifactResolver.ID_PREFIX + "maven";
+
+    @Override
+    default String getRepositoryId() {
+        return REPOSITORY_ID;
+    }
+
+    @Override
+    default Path resolve(String location) throws ProvisioningException {
+        return resolve(ArtifactCoords.fromString(location));
+    }
 
     Path resolve(ArtifactCoords coords) throws ArtifactException;
     void install(ArtifactCoords coords, Path artifact) throws ArtifactException;

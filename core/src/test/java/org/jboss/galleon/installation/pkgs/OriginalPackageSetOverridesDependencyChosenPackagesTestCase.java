@@ -16,11 +16,12 @@
  */
 package org.jboss.galleon.installation.pkgs;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
@@ -33,18 +34,18 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 public class OriginalPackageSetOverridesDependencyChosenPackagesTestCase extends PmProvisionConfigTestBase {
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
+            .newFeaturePack(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Alpha"))
                 .addDependency(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final"), false)
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final").getLocation(), false)
                         .includePackage("p3")
                         .build())
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "p1")
                     .getFeaturePack()
-                .getInstaller()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final"))
+                .getCreator()
+            .newFeaturePack(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final"))
                 .newPackage("p1", true)
                     .addDependency("p2", true)
                     .writeContent("fp2/p1.txt", "p1")
@@ -55,7 +56,7 @@ public class OriginalPackageSetOverridesDependencyChosenPackagesTestCase extends
                 .newPackage("p3", true)
                     .writeContent("fp2/p3.txt", "p3")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
@@ -64,19 +65,19 @@ public class OriginalPackageSetOverridesDependencyChosenPackagesTestCase extends
             throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(
-                        FeaturePackConfig.forGav(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha")))
+                        FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Alpha").getLocation()))
                 .addFeaturePackDep(
-                        FeaturePackConfig.forGav(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final")))
+                        FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final").getLocation()))
                 .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Alpha"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Alpha"))
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final"))
                         .addPackage("p1")
                         .addPackage("p2")
                         .addPackage("p3")

@@ -37,7 +37,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
-import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
@@ -47,16 +46,19 @@ import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.creator.FeaturePackBuilder;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.diff.FileSystemDiffResult;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.plugin.UpgradePlugin;
-import org.jboss.galleon.repomanager.FeaturePackBuilder;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.FeaturePackInstallException;
 import org.jboss.galleon.util.IoUtils;
@@ -78,8 +80,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     public static void install(ProvisioningRuntime runtime) throws ProvisioningException {
         // copy package content
         for(FeaturePackRuntime fp : runtime.fpRuntimes.values()) {
-            final ArtifactCoords.Gav fpGav = fp.getGav();
-            runtime.messageWriter.verbose("Installing %s", fpGav);
+            runtime.messageWriter.verbose("Installing %s", fp.getFPID());
             for(PackageRuntime pkg : fp.getPackages()) {
                 final Path pkgSrcDir = pkg.getContentDir();
                 if (Files.exists(pkgSrcDir)) {
@@ -120,13 +121,16 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         }
     }
 
-    public static void exportToFeaturePack(ProvisioningRuntime runtime, ArtifactCoords.Gav exportGav, Path location, Path installationHome) throws ProvisioningDescriptionException, ProvisioningException, IOException {
+    public static void exportToFeaturePack(ProvisioningRuntime runtime, FPID fpid, Path location, Path installationHome) throws ProvisioningDescriptionException, ProvisioningException, IOException {
         diff(runtime, location, installationHome);
-        FeaturePackRepositoryManager fpRepoManager = FeaturePackRepositoryManager.newInstance(location);
-        FeaturePackBuilder fpBuilder = fpRepoManager.installer().newFeaturePack(exportGav);
+
+        final FeaturePackCreator creator = FeaturePackCreator.getInstance();
+        org.jboss.galleon.creator.FeaturePackBuilder fpBuilder = creator.newFeaturePack(fpid);
+        //FeaturePackRepositoryManager fpRepoManager = FeaturePackRepositoryManager.newInstance(location);
+        //FeaturePackBuilder fpBuilder = fpRepoManager.installer().newFeaturePack(exportGav);
         Map<String, FeaturePackConfig.Builder> builders = new HashMap<>();
         for (FeaturePackConfig fpConfig : runtime.getProvisioningConfig().getFeaturePackDeps()) {
-            FeaturePackConfig.Builder builder = FeaturePackConfig.builder(fpConfig.getGav());
+            FeaturePackConfig.Builder builder = FeaturePackConfig.builder(fpConfig.getLocation());
             for(ConfigModel configSpec : fpConfig.getDefinedConfigs()) {
                 builder.addConfig(configSpec);
             }
@@ -140,7 +144,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             for(ConfigId includedConfig : fpConfig.getIncludedConfigs()) {
                 builder.includeDefaultConfig(includedConfig);
             }
-            builders.put(FeaturePackConfig.getDefaultOriginName(fpConfig.getGav()), builder);
+            builders.put(FeaturePackConfig.getDefaultOriginName(fpConfig.getLocation()), builder);
         }
         runtime.exportDiffResultToFeaturePack(fpBuilder, builders, installationHome);
         for(Entry<String,FeaturePackConfig.Builder> entry : builders.entrySet()) {
@@ -155,8 +159,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         } catch(IOException ioex) {
             throw new ProvisioningException(ioex);
         }
-        fpBuilder.getInstaller().install();
-        runtime.artifactResolver.install(exportGav.toArtifactCoords(), fpRepoManager.resolve(exportGav.toArtifactCoords()));
+        fpBuilder.getCreator().install();
     }
 
     public static void diff(ProvisioningRuntime runtime, Path target, Path customizedInstallation) throws ProvisioningException, IOException {
@@ -178,14 +181,14 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     private final long startTime;
-    private final ArtifactRepositoryManager artifactResolver;
+    private final UniverseResolver universeResolver;
     private ProvisioningConfig config;
     private Path installDir;
     private final Path stagedDir;
     private final Path workDir;
     private final Path tmpDir;
     private final Path pluginsDir;
-    private final Map<ArtifactCoords.Ga, FeaturePackRuntime> fpRuntimes;
+    private final Map<ChannelSpec, FeaturePackRuntime> fpRuntimes;
     private final Map<String, String> pluginOptions;
     private final MessageWriter messageWriter;
     private List<ProvisionedConfig> configs = Collections.emptyList();
@@ -196,7 +199,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     ProvisioningRuntime(ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
-        this.artifactResolver = builder.artifactResolver;
+        this.universeResolver = builder.universeResolver;
         this.config = builder.config;
         this.fpRuntimes = builder.getFpRuntimes(this);
         this.pluginsDir = builder.pluginsDir; // the pluginsDir is initialized during the getFpRuntimes() invocation, atm
@@ -282,7 +285,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     @Override
-    public boolean hasFeaturePack(ArtifactCoords.Ga ga) {
+    public boolean hasFeaturePack(ChannelSpec channel) {
         throw new UnsupportedOperationException();
     }
 
@@ -292,8 +295,8 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     @Override
-    public FeaturePackRuntime getFeaturePack(ArtifactCoords.Ga ga) {
-        return fpRuntimes.get(ga);
+    public FeaturePackRuntime getFeaturePack(ChannelSpec channel) {
+        return fpRuntimes.get(channel);
     }
 
     /**
@@ -426,16 +429,19 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return pluginOptions;
     }
 
+    public UniverseResolver getUniverseResolver() {
+        return universeResolver;
+    }
+
     /**
-     * Resolves the location of the artifact given its coordinates.
-     *
-     * @param coords  artifact coordinates
-     * @return  location of the artifact
-     * @throws ArtifactException  in case the artifact could not be
-     * resolved for any reason
+     * @deprecated
      */
     public Path resolveArtifact(ArtifactCoords coords) throws ArtifactException {
-        return artifactResolver.resolve(coords);
+        try {
+            return universeResolver.getArtifactResolver("repository.maven").resolve(coords.toString());
+        } catch (ProvisioningException e) {
+            throw new ArtifactException("Failed to resolve " + coords, e);
+        }
     }
 
     @Override

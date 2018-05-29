@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
 import org.jboss.galleon.DefaultMessageWriter;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NAME;
 
@@ -44,9 +45,9 @@ abstract class FromInstallationCommand extends PmSessionCommand {
                         getCurrentWorkingDirectory()).get(0).getAbsolutePath());
     }
 
-    protected ProvisioningManager getManager(PmCommandInvocation session) {
+    protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return ProvisioningManager.builder()
-                .setArtifactResolver(session.getPmSession().getArtifactResolver())
+                .addArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getTargetDir(session))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(),
                         session.getErr(), verbose))

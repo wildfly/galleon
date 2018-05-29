@@ -26,10 +26,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -42,6 +40,8 @@ import org.jboss.galleon.runtime.ProvisioningRuntime.PluginVisitor;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -49,19 +49,19 @@ import org.jboss.galleon.state.ProvisionedFeature;
  */
 public abstract class FeatureContainers {
 
-    public static FeatureContainer fromFeaturePackGav(PmSession session, ProvisioningManager manager, Gav gav,
+    public static FeatureContainer fromFeaturePackId(PmSession session, ProvisioningManager manager, FPID fpid,
             String name) throws ProvisioningException, IOException {
-        FeatureContainer fp = Caches.getFeaturePackInfo(gav);
+        FeatureContainer fp = Caches.getFeaturePackInfo(fpid);
         if (fp != null) {
             return fp;
         }
-        if (!session.existsInLocalRepository(gav)) {
-            session.downloadFp(gav);
+        if (!session.existsInLocalRepository(fpid)) {
+            session.downloadFp(fpid);
         }
-        fp = new FeaturePackInfo(name, gav);
-        ProvisioningRuntime rt = buildFullRuntime(gav, manager);
+        fp = new FeaturePackInfo(name, fpid);
+        ProvisioningRuntime rt = buildFullRuntime(fpid, manager);
         populateFeatureContainer(fp, session, rt, true);
-        Caches.addFeaturePackInfo(gav, fp);
+        Caches.addFeaturePackInfo(fpid, fp);
         return fp;
     }
 
@@ -77,8 +77,8 @@ public abstract class FeatureContainers {
         // Need a Map of FeaturePack to resolve external packages/
         Map<String, FeaturePackRuntime> gavs = new HashMap<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
-            gavs.put(Identity.buildOrigin(rt.getGav()), rt);
-            fp.addDependency(rt.getGav());
+            gavs.put(Identity.buildOrigin(rt.getFPID().getChannel()), rt);
+            fp.addDependency(rt.getFPID());
         }
         List<CliPlugin> cliPlugins = new ArrayList<>();
         PluginVisitor visitor = new ProvisioningRuntime.PluginVisitor<CliPlugin>() {
@@ -95,7 +95,7 @@ public abstract class FeatureContainers {
             pkgBuilder.resetRoots();
             for (PackageRuntime pkg : rt.getPackages()) {
                 pkgBuilder.buildGroups(new PackageInfo(pkg, Identity.
-                        fromGav(rt.getGav(), pkg.getName()), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
+                        fromChannel(rt.getFPID().getChannel(), pkg.getName()), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
                     @Override
                     public PackageInfo build(Identity identity, PackageInfo parent) {
                         try {
@@ -112,17 +112,17 @@ public abstract class FeatureContainers {
                                 if (p == null) {
                                     // Then lookup dependencies with no origin.
                                     for (FeaturePackConfig fpdep : currentRuntime.getSpec().getFeaturePackDeps()) {
-                                        if (currentRuntime.getSpec().originOf(fpdep.getGav().toGa()) == null) {
-                                            FeaturePackRuntime depRuntime = gavs.get(Identity.buildOrigin(fpdep.getGav()));
+                                        if (currentRuntime.getSpec().originOf(fpdep.getLocation().getChannel()) == null) {
+                                            FeaturePackRuntime depRuntime = gavs.get(Identity.buildOrigin(fpdep.getLocation().getChannel()));
                                             p = depRuntime.getPackage(identity.getName());
                                             if (p != null) {
-                                                resolvedIdentity = Identity.fromGav(fpdep.getGav(), identity.getName());
+                                                resolvedIdentity = Identity.fromChannel(fpdep.getLocation().getChannel(), identity.getName());
                                                 break;
                                             }
                                         }
                                     }
                                 } else {
-                                    resolvedIdentity = Identity.fromGav(currentRuntime.getGav(), identity.getName());
+                                    resolvedIdentity = Identity.fromChannel(currentRuntime.getFPID().getChannel(), identity.getName());
                                 }
                             } else {
                                 // Could be a free text, maps that to ga. Only ga are exposed as origin for now.
@@ -131,7 +131,7 @@ public abstract class FeatureContainers {
                                 if (extRt == null) {
                                     FeaturePackConfig fpdep = currentRuntime.getSpec().getFeaturePackDep(identity.getOrigin());
                                     if (fpdep != null) {
-                                        resolvedIdentity = Identity.fromGav(fpdep.getGav(), identity.getName());
+                                        resolvedIdentity = Identity.fromChannel(fpdep.getLocation().getChannel(), identity.getName());
                                         extRt = gavs.get(resolvedIdentity.getOrigin());
                                     }
                                 } else {
@@ -144,7 +144,7 @@ public abstract class FeatureContainers {
 
                             if (p == null) {
                                 throw new RuntimeException("Package " + pkg.getName()
-                                        + ", unknown dependency " + identity + " local is " + currentRuntime.getGav());
+                                        + ", unknown dependency " + identity + " local is " + currentRuntime.getFPID());
                             }
 
                             return new PackageInfo(p, resolvedIdentity, plugin);
@@ -154,16 +154,16 @@ public abstract class FeatureContainers {
                     }
                 });
             }
-            fp.setPackagesRoot(Identity.buildOrigin(rt.getGav()), pkgBuilder.getPackagesRoot());
+            fp.setPackagesRoot(Identity.buildOrigin(rt.getFPID().getChannel()), pkgBuilder.getPackagesRoot());
             // Attach the full set, this targets the container dependency that expose them all.
             if (allSpecs) {
-                Group specsRoot = specsBuilder.buildTree(session, rt.getGav(), fp.getGav(), pkgBuilder.getPackages(), allSpecs, null);
-                fp.setFeatureSpecRoot(Identity.buildOrigin(rt.getGav()), specsRoot);
+                Group specsRoot = specsBuilder.buildTree(session, rt.getFPID(), fp.getFPID(), pkgBuilder.getPackages(), allSpecs, null);
+                fp.setFeatureSpecRoot(Identity.buildOrigin(rt.getFPID().getChannel()), specsRoot);
             }
         }
         fp.setAllPackages(pkgBuilder.getPackages());
 
-        Map<Gav, Set<ResolvedSpecId>> actualSet = new HashMap<>();
+        Map<ChannelSpec, Set<ResolvedSpecId>> actualSet = new HashMap<>();
         Map<ResolvedSpecId, List<FeatureInfo>> features = new HashMap<>();
         for (ProvisionedConfig c : runtime.getConfigs()) {
             ConfigInfo config = new ConfigInfo(c.getModel(), c.getName());
@@ -172,16 +172,16 @@ public abstract class FeatureContainers {
             c.handle(new ProvisionedConfigHandler() {
                 @Override
                 public void nextFeature(ProvisionedFeature feature) throws ProvisioningException {
-                    Set<ResolvedSpecId> set = actualSet.get(feature.getSpecId().getGav());
+                    Set<ResolvedSpecId> set = actualSet.get(feature.getSpecId().getChannel());
                     if (set == null) {
                         set = new HashSet<>();
-                        actualSet.put(feature.getSpecId().getGav(), set);
+                        actualSet.put(feature.getSpecId().getChannel(), set);
                     }
                     set.add(feature.getSpecId());
                     String fullSpecName = feature.getSpecId().getName();
                     List<String> path = new ArrayList<>();
                     Group parent = grpBuilder.buildFeatureGroups(fullSpecName, feature.getId(), path);
-                    FeatureInfo featInfo = new FeatureInfo(config, feature, path, fp.getGav());
+                    FeatureInfo featInfo = new FeatureInfo(config, feature, path, fp.getFPID());
                     List<FeatureInfo> lst = features.get(feature.getSpecId());
                     if (lst == null) {
                         lst = new ArrayList<>();
@@ -202,8 +202,8 @@ public abstract class FeatureContainers {
         if (!allSpecs) {
             // Build the set of FeatureSpecInfo, side effect is to connect
             // packages and feature-specs.
-            for (Entry<Gav, Set<ResolvedSpecId>> entry : actualSet.entrySet()) {
-                Group specsRoot = specsBuilder.buildTree(session, entry.getKey(), fp.getGav(),
+            for (Entry<ChannelSpec, Set<ResolvedSpecId>> entry : actualSet.entrySet()) {
+                Group specsRoot = specsBuilder.buildTree(session, entry.getKey().getLocation().getFPID(), fp.getFPID(),
                         pkgBuilder.getPackages(), false, entry.getValue());
                 for (ResolvedSpecId rs : entry.getValue()) {
                     List<FeatureInfo> lst = features.get(rs);
@@ -218,8 +218,8 @@ public abstract class FeatureContainers {
         fp.setAllFeatures(features);
     }
 
-    private static ProvisioningRuntime buildFullRuntime(ArtifactCoords.Gav gav, ProvisioningManager manager) throws ProvisioningException {
-        FeaturePackConfig config = FeaturePackConfig.forGav(gav);
+    private static ProvisioningRuntime buildFullRuntime(FPID fpid, ProvisioningManager manager) throws ProvisioningException {
+        FeaturePackConfig config = FeaturePackConfig.forLocation(fpid.getLocation());
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
         ProvisioningRuntime runtime = manager.getRuntime(provisioning, null, Collections.emptyMap());
         return runtime;

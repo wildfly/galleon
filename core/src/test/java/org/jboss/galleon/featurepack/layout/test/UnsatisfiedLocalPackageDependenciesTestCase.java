@@ -18,10 +18,10 @@ package org.jboss.galleon.featurepack.layout.test;
 
 import java.util.Collections;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
@@ -34,7 +34,7 @@ import org.junit.Test;
  */
 public class UnsatisfiedLocalPackageDependenciesTestCase {
 
-    private static final Gav fpGav = ArtifactCoords.newGav("g", "a", "v");
+    private static final FPID fpGav = LegacyGalleon1Universe.newFPID("g", "a", "v");
 
     @Test
     public void testRequiredDependency() throws Exception {

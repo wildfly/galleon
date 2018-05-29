@@ -19,11 +19,10 @@ package org.jboss.galleon.test;
 import java.util.Arrays;
 
 import org.jboss.galleon.Constants;
-import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.test.util.fs.state.DirState.DirBuilder;
@@ -40,7 +39,7 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
     private ProvisionedState initialProvisionedState;
     private DirState initialHomeDirState;
 
-    protected abstract void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException;
+    protected abstract void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException;
 
     protected ProvisioningConfig initialState() throws ProvisioningException {
         return null;
@@ -63,7 +62,7 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        setupRepo(getRepoManager());
+        createFeaturePacks(initCreator());
         initialProvisioningConfig = initialState();
         if(initialProvisioningConfig != null) {
             final ProvisioningManager pm = getPm();

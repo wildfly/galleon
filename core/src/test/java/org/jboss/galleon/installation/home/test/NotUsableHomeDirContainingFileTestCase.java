@@ -16,13 +16,12 @@
  */
 package org.jboss.galleon.installation.home.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
-import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
 import org.jboss.galleon.util.IoUtils;
 
@@ -32,7 +31,7 @@ import org.jboss.galleon.util.IoUtils;
  */
 public class NotUsableHomeDirContainingFileTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP1_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
     protected void doBefore() throws Exception {
@@ -41,19 +40,19 @@ public class NotUsableHomeDirContainingFileTestCase extends PmProvisionConfigTes
     }
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
-        return ProvisioningConfig.builder().addFeaturePackDep(FP1_100_GAV).build();
+        return ProvisioningConfig.builder().addFeaturePackDep(FP1_100_GAV.getLocation()).build();
     }
 
     @Override

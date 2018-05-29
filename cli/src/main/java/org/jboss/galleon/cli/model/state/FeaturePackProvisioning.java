@@ -21,10 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -39,11 +38,11 @@ class FeaturePackProvisioning {
     private class AddDependencyAction implements State.Action {
 
         private final FeaturePackConfig.Builder newDepBuilder;
-        private final ArtifactCoords.Gav gav;
+        private final FeaturePackLocation fpl;
 
-        AddDependencyAction(ArtifactCoords.Gav gav, boolean inheritConfigs, boolean inheritPackages) {
-            this.gav = gav;
-            newDepBuilder = FeaturePackConfig.builder(gav).setInheritConfigs(inheritConfigs).setInheritPackages(inheritPackages);
+        AddDependencyAction(FeaturePackLocation fpl, boolean inheritConfigs, boolean inheritPackages) {
+            this.fpl = fpl;
+            newDepBuilder = FeaturePackConfig.builder(fpl).setInheritConfigs(inheritConfigs).setInheritPackages(inheritPackages);
         }
 
         @Override
@@ -53,25 +52,25 @@ class FeaturePackProvisioning {
 
         @Override
         public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
-            builder.removeFeaturePackDep(gav);
+            builder.removeFeaturePackDep(fpl);
         }
     }
 
     private class RemoveDependencyAction implements State.Action {
 
-        private final ArtifactCoords.Gav gav;
+        private final FeaturePackLocation fpl;
         private int index;
         private FeaturePackConfig fpConfig;
 
-        RemoveDependencyAction(ArtifactCoords.Gav gav) {
-            this.gav = gav;
+        RemoveDependencyAction(FeaturePackLocation fpl) {
+            this.fpl = fpl;
         }
 
         @Override
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
-            index = builder.getFeaturePackDepIndex(gav);
-            fpConfig = current.getFeaturePackDep(gav.toGa());
-            builder.removeFeaturePackDep(gav);
+            index = builder.getFeaturePackDepIndex(fpl);
+            fpConfig = current.getFeaturePackDep(fpl.getChannel());
+            builder.removeFeaturePackDep(fpl);
         }
 
         @Override
@@ -84,7 +83,7 @@ class FeaturePackProvisioning {
     private abstract class AbstractAction<T> implements State.Action {
 
         private final Map<FeaturePackConfig, T> cf;
-        private final Map<Gav, Integer> indexes = new HashMap<>();
+        private final Map<FeaturePackLocation.FPID, Integer> indexes = new HashMap<>();
 
         AbstractAction(Map<FeaturePackConfig, T> cf) {
             this.cf = cf;
@@ -101,9 +100,9 @@ class FeaturePackProvisioning {
                 boolean doit = doAction(fpBuilder, entry.getValue());
                 // this complexity is due to the fact that some fp could already have the configuration included/excluded/...
                 if (doit) {
-                    int index = builder.getFeaturePackDepIndex(entry.getKey().getGav());
-                    indexes.put(entry.getKey().getGav(), index);
-                    builder.removeFeaturePackDep(entry.getKey().getGav());
+                    int index = builder.getFeaturePackDepIndex(entry.getKey().getLocation());
+                    indexes.put(entry.getKey().getLocation().getFPID(), index);
+                    builder.removeFeaturePackDep(entry.getKey().getLocation());
                     builder.addFeaturePackDep(index, fpBuilder.build());
                 }
             }
@@ -112,12 +111,12 @@ class FeaturePackProvisioning {
         @Override
         public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
             for (Entry<FeaturePackConfig, T> entry : cf.entrySet()) {
-                Integer index = indexes.get(entry.getKey().getGav());
+                Integer index = indexes.get(entry.getKey().getLocation().getFPID());
                 // index could be null if doAction failed or did not execute.
                 if (index != null) {
                     FeaturePackConfig.Builder fpBuilder = entry.getKey().getBuilder();
                     undoAction(fpBuilder, entry.getValue());
-                    builder.removeFeaturePackDep(entry.getKey().getGav());
+                    builder.removeFeaturePackDep(entry.getKey().getLocation());
                     builder.addFeaturePackDep(index, fpBuilder.build());
                 }
             }
@@ -320,15 +319,15 @@ class FeaturePackProvisioning {
 
     }
 
-    State.Action removeDependency(ArtifactCoords.Gav gav) throws
+    State.Action removeDependency(FeaturePackLocation fpl) throws
             ProvisioningException {
-        return new RemoveDependencyAction(gav);
+        return new RemoveDependencyAction(fpl);
     }
 
-    State.Action addDependency(PmSession pmSession, String name, ArtifactCoords.Gav gav,
+    State.Action addDependency(PmSession pmSession, String name, FeaturePackLocation fpl,
             boolean inheritConfigs, boolean inheritPackages) throws
             ProvisioningException, IOException {
-        AddDependencyAction action = new AddDependencyAction(gav, inheritConfigs, inheritPackages);
+        AddDependencyAction action = new AddDependencyAction(fpl, inheritConfigs, inheritPackages);
         return action;
     }
 

@@ -16,15 +16,15 @@
  */
 package org.jboss.galleon.config.model.defined.extended;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
@@ -40,11 +40,11 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class OverwriteFeatureConfigTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
@@ -58,14 +58,14 @@ public class OverwriteFeatureConfigTestCase extends PmProvisionConfigTestBase {
                             .setParam("name", "a2")
                             .setParam("p1", "config1"))
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(FP_GAV)
+                .addFeaturePackDep(FeaturePackConfig.builder(FP_GAV.getLocation())
                         .addConfig(ConfigModel.builder("model1", "config1")
                                 .addFeature(new FeatureConfig("specA").setParam("name", "a2").setParam("p1", "custom"))
                                 .build())
@@ -76,7 +76,7 @@ public class OverwriteFeatureConfigTestCase extends PmProvisionConfigTestBase {
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.forGav(FP_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config1")
                         .setModel("model1")

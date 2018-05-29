@@ -36,13 +36,12 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactException;
-import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
@@ -57,25 +56,24 @@ public class FeatureSpecsBuilder {
         return allspecs;
     }
 
-    public Group buildTree(PmSession session, ArtifactCoords.Gav fpgav,
-            ArtifactCoords.Gav gav,
-            Map<Identity, Group> allPackages, boolean useCache, Set<ResolvedSpecId> wantedSpecs) throws IOException, ArtifactException {
+    public Group buildTree(PmSession session, FPID fpid, FPID id,
+            Map<Identity, Group> allPackages, boolean useCache, Set<ResolvedSpecId> wantedSpecs) throws IOException, ProvisioningException {
         // Build the tree of specs located in all feature-packs
         FeatureGroupsBuilder grpBuilder = new FeatureGroupsBuilder();
 
         // Do we have feature-specs in cache?
         Set<FeatureSpecInfo> specs = null;
-        Map<Gav, Set<FeatureSpecInfo>> allSpecs = null;
+        Map<FPID, Set<FeatureSpecInfo>> allSpecs = null;
         if (useCache) {
             allSpecs = Caches.getSpecs();
             if (allSpecs != null) {
-                specs = allSpecs.get(fpgav);
+                specs = allSpecs.get(fpid);
             }
         }
         if (specs == null) {
             specs = new HashSet<>();
             final Set<FeatureSpecInfo> fSpecs = specs;
-            FileSystem fs = FileSystems.newFileSystem(session.getArtifactResolver().resolve(fpgav.toArtifactCoords()), null);
+            FileSystem fs = FileSystems.newFileSystem(session.getUniverseResolver().resolve(fpid.getLocation()), null);
             try {
                 final Path path = fs.getPath("features/");
                 Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
@@ -99,18 +97,18 @@ public class FeatureSpecsBuilder {
                             String r = path.toString();
                             String child = dir.toString().substring(0, dir.toString().length() - 1);
                             String name = child.substring(r.length() + 1);
-                            ResolvedSpecId resolved = new ResolvedSpecId(fpgav, name);
+                            ResolvedSpecId resolved = new ResolvedSpecId(fpid.getChannel(), name);
                             if (wantedSpecs == null || wantedSpecs.contains(resolved)) {
                                 FeatureSpecInfo specInfo = allspecs.get(resolved);
                                 if (specInfo == null) {
                                     try {
                                         Set<Identity> missingPackages = new HashSet<>();
                                         FeatureSpec spec = getFeatureSpec(fs, name);
-                                        specInfo = new FeatureSpecInfo(resolved, gav, spec);
-                                        Identity specId = Identity.fromGav(resolved.getGav(), resolved.getName());
+                                        specInfo = new FeatureSpecInfo(resolved, id, spec);
+                                        Identity specId = Identity.fromChannel(resolved.getChannel(), resolved.getName());
                                         boolean featureEnabled = true;
                                         for (PackageDependencySpec p : spec.getLocalPackageDeps()) {
-                                            Identity id = Identity.fromGav(resolved.getGav(), p.getName());
+                                            Identity id = Identity.fromChannel(resolved.getChannel(), p.getName());
                                             Group grp = allPackages.get(id);
                                             // Group can be null if the modules have not been installed.
                                             if (grp != null) {
@@ -166,7 +164,7 @@ public class FeatureSpecsBuilder {
                     allSpecs = new HashMap<>();
                     Caches.addSpecs(allSpecs);
                 }
-                allSpecs.put(fpgav, specs);
+                allSpecs.put(fpid, specs);
             }
         } else {
             for (FeatureSpecInfo spec : specs) {

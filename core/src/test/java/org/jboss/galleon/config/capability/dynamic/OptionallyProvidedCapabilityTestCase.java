@@ -16,14 +16,13 @@
  */
 package org.jboss.galleon.config.capability.dynamic;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
@@ -35,11 +34,11 @@ import org.junit.Assert;
  */
 public class OptionallyProvidedCapabilityTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .providesCapability("cap.$c", true)
@@ -68,13 +67,13 @@ public class OptionallyProvidedCapabilityTestCase extends PmInstallFeaturePackTe
                             new FeatureConfig("specA")
                             .setParam("a", "a2"))
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP_GAV);
+        return FeaturePackConfig.forLocation(FP_GAV.getLocation());
     }
 
     @Override
@@ -88,7 +87,7 @@ public class OptionallyProvidedCapabilityTestCase extends PmInstallFeaturePackTe
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(
-                "No provider found for capability cap.c2 required by org.jboss.pm.test:fp1:1.0.0.Final#specB:b=b2 as cap.$c",
+                "No provider found for capability cap.c2 required by {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b2 as cap.$c",
                 e.getMessage());
     }
 }

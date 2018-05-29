@@ -20,6 +20,9 @@ import java.util.Objects;
 
 import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.cli.path.PathParser;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -36,7 +39,11 @@ public class Identity implements Comparable<Identity> {
     }
 
     public static Identity fromGav(Gav origin, String name) {
-        return new Identity(origin.getGroupId() + ":" + origin.getArtifactId(), name);
+        return new Identity(FeaturePackConfig.getDefaultOriginName(LegacyGalleon1Universe.toFpl(origin)), name);
+    }
+
+    public static Identity fromChannel(ChannelSpec origin, String name) {
+        return new Identity(FeaturePackConfig.getDefaultOriginName(origin.getLocation()), name);
     }
 
     public static Identity fromString(String origin, String name) {
@@ -47,8 +54,8 @@ public class Identity implements Comparable<Identity> {
         return new Identity(EMPTY, name);
     }
 
-    public static String buildOrigin(Gav gav) {
-        return gav.getGroupId() + ":" + gav.getArtifactId();
+    public static String buildOrigin(ChannelSpec channel) {
+        return FeaturePackConfig.getDefaultOriginName(channel.getLocation());
     }
 
     @Override

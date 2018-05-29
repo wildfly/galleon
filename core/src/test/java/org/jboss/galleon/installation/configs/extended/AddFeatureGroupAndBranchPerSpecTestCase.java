@@ -16,15 +16,16 @@
  */
 package org.jboss.galleon.installation.configs.extended;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -41,12 +42,12 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class AddFeatureGroupAndBranchPerSpecTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_GAV)
                 .addSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
@@ -64,7 +65,7 @@ public class AddFeatureGroupAndBranchPerSpecTestCase extends PmProvisionConfigTe
                 .addConfig(ConfigModel.builder("model2", "config1")
                         .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build())
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP2_GAV)
                 .addSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
@@ -81,7 +82,7 @@ public class AddFeatureGroupAndBranchPerSpecTestCase extends PmProvisionConfigTe
                 .addConfig(ConfigModel.builder("model2", "config1")
                         .addFeature(new FeatureConfig("specB").setParam("id", "1"))
                         .build())
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
@@ -89,8 +90,8 @@ public class AddFeatureGroupAndBranchPerSpecTestCase extends PmProvisionConfigTe
     protected ProvisioningConfig provisioningConfig()
             throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep("fp1", FeaturePackConfig.forGav(FP1_GAV))
-                .addFeaturePackDep("fp2", FeaturePackConfig.forGav(FP2_GAV))
+                .addFeaturePackDep("fp1", FeaturePackConfig.forLocation(FP1_GAV.getLocation()))
+                .addFeaturePackDep("fp2", FeaturePackConfig.forLocation(FP2_GAV.getLocation()))
                 .addConfig(ConfigModel.builder("model1", "config1")
                         .addFeatureGroup(FeatureGroup.forGroup("fp1", "group1"))
                         .addFeatureGroup(FeatureGroup.forGroup("fp2", "group1"))
@@ -106,17 +107,17 @@ public class AddFeatureGroupAndBranchPerSpecTestCase extends PmProvisionConfigTe
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1").setName("config1")
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "3")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "4")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV,  "specB"), "id", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV,  "specB"), "id", "3")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV,  "specB"), "id", "4")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(), "specA"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(), "specA"), "id", "3")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(), "specA"), "id", "4")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV.getChannel(), "specB"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV.getChannel(), "specB"), "id", "3")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV.getChannel(), "specB"), "id", "4")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model2").setName("config1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV,  "specB"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(), "specA"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV.getChannel(), "specB"), "id", "1")))
                         .build())
                 .build();
     }

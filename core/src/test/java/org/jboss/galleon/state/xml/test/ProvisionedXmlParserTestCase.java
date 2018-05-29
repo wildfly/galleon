@@ -18,7 +18,7 @@ package org.jboss.galleon.state.xml.test;
 
 import java.nio.file.Paths;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.XmlParserValidator;
@@ -39,8 +39,8 @@ public class ProvisionedXmlParserTestCase {
         final ProvisionedState found = validator
                 .validateAndParse("xml/provisioned/provisioned-state.xml", null, null);
         ProvisionedState expected = ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.group1", "fp1", "0.0.1")).build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.group1", "fp2", "0.0.2"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1")).build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2"))
                         .addPackage("p1")
                         .addPackage("p2")
                         .build())

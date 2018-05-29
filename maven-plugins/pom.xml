@@ -163,6 +163,7 @@
         <version>1.0.0.Alpha2</version>
         <executions>
           <execution>
+            <phase>prepare-package</phase>
             <goals>
               <goal>asciidoc-descriptor</goal>
             </goals>

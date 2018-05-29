@@ -24,13 +24,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -43,31 +46,27 @@ public class FpVersionsResolver {
         new FpVersionsResolver(rt).assertVersions();
     }
 
-    static Map<ArtifactCoords.Ga, ArtifactCoords.Gav> resolveDeps(ProvisioningRuntimeBuilder rt, ArtifactCoords.Gav fpGav) throws ProvisioningException {
-        return resolveDeps(rt, rt.getOrLoadFpBuilder(fpGav).spec, Collections.emptyMap());
-    }
-
-    static Map<ArtifactCoords.Ga, ArtifactCoords.Gav> resolveDeps(ProvisioningRuntimeBuilder rt, FeaturePackDepsConfig fpDeps, Map<ArtifactCoords.Ga, ArtifactCoords.Gav> collected)
+    static Map<ChannelSpec, FPID> resolveDeps(ProvisioningRuntimeBuilder rt, FeaturePackRuntimeBuilder fp, Map<ChannelSpec, FPID> collected)
             throws ProvisioningException {
-        if(!fpDeps.hasFeaturePackDeps()) {
+        if(!fp.spec.hasFeaturePackDeps()) {
             return collected;
         }
-        for(FeaturePackConfig fpConfig : fpDeps.getFeaturePackDeps()) {
+        for(FeaturePackConfig fpConfig : fp.spec.getFeaturePackDeps()) {
             final int size = collected.size();
-            collected = CollectionUtils.put(collected, fpConfig.getGav().toGa(), fpConfig.getGav());
+            collected = CollectionUtils.put(collected, fpConfig.getLocation().getChannel(), fpConfig.getLocation().getFPID());
             if(size == collected.size()) {
                 continue;
             }
-            collected = resolveDeps(rt, rt.getOrLoadFpBuilder(fpConfig.getGav()).spec, collected);
+            collected = resolveDeps(rt, rt.getOrLoadFpBuilder(fpConfig.getLocation().getFPID()), collected);
         }
         return collected;
     }
 
     private final ProvisioningRuntimeBuilder rt;
-    private Set<ArtifactCoords.Ga> missingVersions = Collections.emptySet();
-    private List<ArtifactCoords.Ga> branch = new ArrayList<>();
-    private Map<ArtifactCoords.Ga, Set<ArtifactCoords.Gav>> conflicts = Collections.emptyMap();
-    private Map<ArtifactCoords.Ga, FeaturePackRuntimeBuilder> loaded = Collections.emptyMap();
+    private Set<ChannelSpec> missingVersions = Collections.emptySet();
+    private List<ChannelSpec> branch = new ArrayList<>();
+    private Map<ChannelSpec, Set<FPID>> conflicts = Collections.emptyMap();
+    private Map<ChannelSpec, FeaturePackRuntimeBuilder> loaded = Collections.emptyMap();
 
     private FpVersionsResolver(ProvisioningRuntimeBuilder rt) {
         this.rt = rt;
@@ -77,7 +76,7 @@ public class FpVersionsResolver {
         return !missingVersions.isEmpty();
     }
 
-    public Set<ArtifactCoords.Ga> getMissingVersions() {
+    public Set<ChannelSpec> getMissingVersions() {
         return missingVersions;
     }
 
@@ -85,14 +84,41 @@ public class FpVersionsResolver {
         return !conflicts.isEmpty();
     }
 
-    public Map<ArtifactCoords.Ga, Set<ArtifactCoords.Gav>> getVersionConflicts() {
+    public Map<ChannelSpec, Set<FPID>> getVersionConflicts() {
         return conflicts;
     }
 
     private void assertVersions() throws ProvisioningException {
         assertVersions(rt.config);
-        if(!missingVersions.isEmpty() || !conflicts.isEmpty()) {
-            throw new ProvisioningDescriptionException(Errors.fpVersionCheckFailed(missingVersions, conflicts.values()));
+
+        if(!missingVersions.isEmpty() && conflicts.isEmpty()) {
+            final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
+            if(rt.config.hasDefaultUniverse()) {
+                builder.setDefaultUniverse(rt.config.getDefaultUniverse());
+            }
+            for(Map.Entry<String, UniverseSpec> universe : rt.config.getNamedUniverses().entrySet()) {
+                builder.addUniverse(universe.getKey(), universe.getValue());
+            }
+            for(FeaturePackConfig fpConfig : rt.config.getFeaturePackDeps()) {
+                final ChannelSpec channel = fpConfig.getLocation().getChannel();
+                if(missingVersions.contains(channel)) {
+                    fpConfig = FeaturePackConfig.builder(rt.universeResolver.resolveLatestBuild(fpConfig.getLocation()))
+                            .init(fpConfig)
+                            .build();
+                    missingVersions = CollectionUtils.remove(missingVersions, channel);
+                }
+                builder.addFeaturePackDep(rt.config.originOf(channel), fpConfig);
+            }
+            for(ChannelSpec channel : missingVersions) {
+                builder.addFeaturePackDep(FeaturePackConfig.forLocation(rt.universeResolver.resolveLatestBuild(channel.getLocation())));
+            }
+            rt.config = builder.build();
+            missingVersions = Collections.emptySet();
+            assertVersions();
+        }
+
+        if(!conflicts.isEmpty()) {
+            throw new ProvisioningDescriptionException(Errors.fpVersionCheckFailed(conflicts.values()));
         }
     }
 
@@ -102,50 +128,46 @@ public class FpVersionsResolver {
         }
         final int branchSize = branch.size();
         final Collection<FeaturePackConfig> fpDeps = fpDepsConfig.getFeaturePackDeps();
-        Set<ArtifactCoords.Gav> skip = Collections.emptySet();
+        Set<FPID> skip = Collections.emptySet();
         for(FeaturePackConfig fpConfig : fpDeps) {
-            final Gav gav = fpConfig.getGav();
-            if(gav.getVersion() == null) {
-                missingVersions = CollectionUtils.addLinked(missingVersions, gav.toGa());
+            final FeaturePackLocation fpl = fpConfig.getLocation();
+            if(fpl.getBuild() == null) {
+                missingVersions = CollectionUtils.addLinked(missingVersions, fpl.getChannel());
                 continue;
             }
-            final FeaturePackRuntimeBuilder fp = loaded.get(gav.toGa());
+            final FeaturePackRuntimeBuilder fp = loaded.get(fpl.getChannel());
             if(fp != null) {
-                if(!fp.gav.equals(gav) && !branch.contains(gav.toGa())) {
-                    Set<Gav> versions = conflicts.get(fp.gav.toGa());
+                if(!fp.fpid.equals(fpl.getFPID()) && !branch.contains(fpl.getChannel())) {
+                    Set<FPID> versions = conflicts.get(fp.fpid.getChannel());
                     if(versions != null) {
-                        versions.add(gav);
+                        versions.add(fpl.getFPID());
                         continue;
                     }
-                    versions = new LinkedHashSet<ArtifactCoords.Gav>();
-                    versions.add(fp.gav);
-                    versions.add(gav);
-                    conflicts = CollectionUtils.putLinked(conflicts, gav.toGa(), versions);
+                    versions = new LinkedHashSet<>();
+                    versions.add(fp.fpid);
+                    versions.add(fpl.getFPID());
+                    conflicts = CollectionUtils.putLinked(conflicts, fpl.getChannel(), versions);
                 }
-                skip = CollectionUtils.add(skip, fp.gav);
+                skip = CollectionUtils.add(skip, fp.fpid);
                 continue;
             }
-            load(gav);
+            final FeaturePackRuntimeBuilder depFp = rt.getOrLoadFpBuilder(fpConfig.getLocation().getFPID());
+            loaded = CollectionUtils.put(loaded, fpConfig.getLocation().getChannel(), depFp);
             if(!missingVersions.isEmpty()) {
-                missingVersions = CollectionUtils.remove(missingVersions, gav.toGa());
+                missingVersions = CollectionUtils.remove(missingVersions, fpl.getChannel());
             }
-            branch.add(gav.toGa());
+            branch.add(fpl.getChannel());
         }
         for(FeaturePackConfig fpConfig : fpDeps) {
-            final Gav gav = fpConfig.getGav();
-            if(gav.getVersion() == null || skip.contains(gav)) {
+            final FeaturePackLocation fpl = fpConfig.getLocation();
+            if(fpl.getBuild() == null || skip.contains(fpl.getFPID())) {
                 continue;
             }
-            assertVersions(rt.getFpBuilder(gav, true).spec);
+            final FeaturePackRuntimeBuilder fp = rt.getFpBuilder(fpl.getChannel(), true);
+            assertVersions(fp.spec);
         }
         for(int i = 0; i < branch.size() - branchSize; ++i) {
             branch.remove(branch.size() - 1);
         }
-    }
-
-    private FeaturePackRuntimeBuilder load(ArtifactCoords.Gav gav) throws ProvisioningException {
-        final FeaturePackRuntimeBuilder fp = rt.getOrLoadFpBuilder(gav);
-        loaded = CollectionUtils.put(loaded, gav.toGa(), fp);
-        return fp;
     }
 }

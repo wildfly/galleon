@@ -16,15 +16,14 @@
  */
 package org.jboss.galleon.config.capability.dynamic;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
-import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
@@ -37,11 +36,11 @@ import org.junit.Assert;
  */
 public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .providesCapability("cap.a")
@@ -59,13 +58,13 @@ public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTe
                             new FeatureConfig("specA")
                             .setParam("a", "a1"))
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP_GAV);
+        return FeaturePackConfig.forLocation(FP_GAV.getLocation());
     }
 
     @Override
@@ -76,11 +75,11 @@ public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTe
     @Override
     protected void pmFailure(Throwable e) {
         Assert.assertEquals("Failed to build config", e.getMessage());
-        e = (ProvisioningException) e.getCause();
+        e = e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("Failed to resolve capability cap.$a for org.jboss.pm.test:fp1:1.0.0.Final#specB:b=b1", e.getMessage());
-        e = (ProvisioningException) e.getCause();
+        Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b1", e.getMessage());
+        e = e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals(Errors.unknownFeatureParameter(new ResolvedSpecId(FP_GAV, "specB"), "a"), e.getMessage());
+        Assert.assertEquals(Errors.unknownFeatureParameter(new ResolvedSpecId(FP_GAV.getChannel(), "specB"), "a"), e.getMessage());
     }
 }

@@ -38,6 +38,12 @@ public class FeaturePackRepositoryManager implements ArtifactRepositoryManager {
         return new FeaturePackRepositoryManager(repoHome);
     }
 
+    final Path repoHome;
+
+    private FeaturePackRepositoryManager(Path repoHome) {
+        this.repoHome = repoHome;
+    }
+
     @Override
     public void install(ArtifactCoords coords, Path artifact) throws ArtifactException {
         try {
@@ -58,16 +64,6 @@ public class FeaturePackRepositoryManager implements ArtifactRepositoryManager {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    final Path repoHome;
-
-    private FeaturePackRepositoryManager(Path repoHome) {
-        this.repoHome = repoHome;
-    }
-
-    public FeaturePackInstaller installer() {
-        return new FeaturePackInstaller(this);
-    }
-
     @Override
     public Path resolve(ArtifactCoords coords) throws ArtifactException {
         final Path path = getArtifactPath(coords);
@@ -77,7 +73,7 @@ public class FeaturePackRepositoryManager implements ArtifactRepositoryManager {
         return path;
     }
 
-    Path getArtifactPath(final ArtifactCoords coords) {
+    private Path getArtifactPath(final ArtifactCoords coords) {
         Path p = repoHome;
         final String[] groupParts = coords.getGroupId().split("\\.");
         for (String part : groupParts) {

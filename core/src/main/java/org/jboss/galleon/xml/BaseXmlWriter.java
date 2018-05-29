@@ -33,7 +33,7 @@ import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
  *
  * @author Alexey Loubyansky
  */
-abstract class BaseXmlWriter<T> {
+public abstract class BaseXmlWriter<T> {
 
     protected static void ensureParentDir(Path p) throws IOException {
         if(!Files.exists(p.getParent())) {

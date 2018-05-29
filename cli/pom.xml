@@ -79,6 +79,11 @@
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-maven-universe</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.galleon</groupId>
       <artifactId>galleon-maven-plugins</artifactId>
     </dependency>
 

@@ -16,8 +16,10 @@
  */
 package org.jboss.galleon.config;
 
-import org.jboss.galleon.ArtifactCoords;
+import java.util.Map;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -33,16 +35,18 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         }
 
         private Builder(ProvisioningConfig provisioningConfig) throws ProvisioningDescriptionException {
+            if(provisioningConfig.defaultUniverse != null) {
+                setDefaultUniverse(provisioningConfig.defaultUniverse);
+            }
+            for(Map.Entry<String, UniverseSpec> universe : provisioningConfig.universeConfigs.entrySet()) {
+                addUniverse(universe.getKey(), universe.getValue());
+            }
             for(FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
-                addFeaturePackDep(provisioningConfig.originOf(fp.getGav().toGa()), fp);
+                addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getChannel()), fp);
             }
         }
 
-        public Builder addFeaturePackDep(ArtifactCoords.Gav fpGav) throws ProvisioningDescriptionException {
-            return addFeaturePackDep(FeaturePackConfig.forGav(fpGav));
-        }
-
-        public ProvisioningConfig build() {
+        public ProvisioningConfig build() throws ProvisioningDescriptionException {
             return new ProvisioningConfig(this);
         }
     }
@@ -65,7 +69,7 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
 
     private final Builder builder;
 
-    private ProvisioningConfig(Builder builder) {
+    private ProvisioningConfig(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
         this.builder = builder;
     }

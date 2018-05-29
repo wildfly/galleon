@@ -33,6 +33,8 @@ import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -90,7 +92,7 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
                         String name = split[1];
                         ConfigId cid = new ConfigId(model, name);
                         if (cmd.getTargetedConfigs(fc).contains(cid)) {
-                            lst.add(Identity.buildOrigin(fc.getGav()));
+                            lst.add(Identity.buildOrigin(fc.getLocation().getChannel()));
                         }
                     }
                 }
@@ -109,11 +111,11 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
     protected String origin;
 
     @Override
-    public ArtifactCoords.Ga getGa(PmSession session) throws CommandExecutionException {
+    public ChannelSpec getChannel(PmSession session) throws CommandExecutionException {
         if (origin == null) {
             return null;
         }
-        return ArtifactCoords.newGav(origin).toGa();
+        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getChannel();
     }
 
     protected String getConfiguration() {

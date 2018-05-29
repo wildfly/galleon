@@ -18,7 +18,7 @@ package org.jboss.galleon.xml.test;
 
 import java.nio.file.Paths;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroup;
@@ -44,7 +44,7 @@ public class ProvisioningWithConfigTestCase {
         ProvisioningConfig found = validator
                 .validateAndParse("xml/provisioning/provisioning-config.xml", null, null);
         ProvisioningConfig expected = ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(ArtifactCoords.newGav("org.jboss.group1", "fp1", "0.0.1"))
+                .addFeaturePackDep(FeaturePackConfig.builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
                         .setInheritConfigs(false)
                         .includeConfigModel("model1")
                         .excludeConfigModel("model2")

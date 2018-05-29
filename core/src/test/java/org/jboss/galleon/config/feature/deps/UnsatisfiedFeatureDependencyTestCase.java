@@ -16,14 +16,14 @@
  */
 package org.jboss.galleon.config.feature.deps;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -37,11 +37,11 @@ import org.junit.Assert;
  */
 public class UnsatisfiedFeatureDependencyTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
@@ -55,13 +55,13 @@ public class UnsatisfiedFeatureDependencyTestCase extends PmInstallFeaturePackTe
                             .setParam("id", "b")
                             .addFeatureDep(FeatureDependencySpec.create(FeatureId.create("specA", "id", "a"))))
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() throws ProvisioningDescriptionException {
-        return FeaturePackConfig.forGav(FP_GAV);
+        return FeaturePackConfig.forLocation(FP_GAV.getLocation());
     }
 
     @Override
@@ -74,6 +74,6 @@ public class UnsatisfiedFeatureDependencyTestCase extends PmInstallFeaturePackTe
         Assert.assertEquals("Failed to build config named config1", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("org.jboss.pm.test:fp1:1.0.0.Final#specB:id=b has unresolved dependency on org.jboss.pm.test:fp1:1.0.0.Final#specA:id=a", e.getMessage());
+        Assert.assertEquals("{org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specA:id=a", e.getMessage());
     }
 }

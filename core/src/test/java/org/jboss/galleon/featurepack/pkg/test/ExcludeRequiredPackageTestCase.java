@@ -16,12 +16,12 @@
  */
 package org.jboss.galleon.featurepack.pkg.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
 import org.jboss.galleon.test.util.fs.state.DirState;
@@ -34,9 +34,9 @@ import org.junit.Assert;
 public class ExcludeRequiredPackageTestCase extends PmInstallFeaturePackTestBase {
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
-        .newFeaturePack(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"))
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
+        .newFeaturePack(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1"))
             .newPackage("a", true)
                 .addDependency("b")
                 .writeContent("a.txt", "a")
@@ -53,14 +53,14 @@ public class ExcludeRequiredPackageTestCase extends PmInstallFeaturePackTestBase
             .newPackage("d")
                 .writeContent("c/d.txt", "d")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() throws ProvisioningDescriptionException {
         return FeaturePackConfig
-                .builder(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"))
+                .builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1").getLocation())
                 .excludePackage("b")
                 .build();
     }

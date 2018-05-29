@@ -21,9 +21,12 @@ import java.nio.file.Path;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.TestUtils;
+import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.IoUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,30 +45,22 @@ public class FeaturePackRepoTestBase {
     @BeforeClass
     public static void beforeClass() throws Exception {
         repoHome = TestUtils.mkRandomTmpDir();
-        doBeforeClass();
-    }
-
-    protected static void doBeforeClass() throws Exception {
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
-        doAfterClass();
         IoUtils.recursiveDelete(repoHome);
     }
 
-    protected static void doAfterClass() throws Exception {
-    }
-
-    protected static FeaturePackRepositoryManager getRepoManager() {
-        return FeaturePackRepositoryManager.newInstance(repoHome);
-    }
-
     protected Path installHome;
+    protected RepositoryArtifactResolver repo;
+    protected UniverseResolver universeResolver;
+    protected FeaturePackCreator creator;
 
     @Before
     public void before() throws Exception {
         installHome = TestUtils.mkRandomTmpDir();
+        repo = initRepoManager(repoHome);
         doBefore();
     }
 
@@ -81,9 +76,17 @@ public class FeaturePackRepoTestBase {
     protected void doAfter() throws Exception {
     }
 
-    protected ProvisioningManager getPm() {
+    protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
+        return FeaturePackRepositoryManager.newInstance(repoHome);
+    }
+
+    protected FeaturePackCreator initCreator() throws ProvisioningException {
+        return FeaturePackCreator.getInstance().addArtifactResolver(repo);
+    }
+
+    protected ProvisioningManager getPm() throws ProvisioningException {
         return ProvisioningManager.builder()
-                .setArtifactResolver(getRepoManager())
+                .addArtifactResolver(repo)
                 .setInstallationHome(installHome)
                 .build();
     }

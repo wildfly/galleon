@@ -25,14 +25,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
@@ -41,18 +43,18 @@ import org.jboss.galleon.xml.FeatureSpecXmlParser;
  */
 public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
 
-    static FeaturePackRuntimeBuilder builder(FeaturePackSpec spec, Path dir) {
-        return new FeaturePackRuntimeBuilder(spec, dir);
-    }
-
+    private final FPID fpid;
     private final ProvisioningRuntime runtime;
     private final FeaturePackSpec spec;
     private final Path dir;
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
 
+    private ArtifactCoords.Gav legacyGav;
+
     FeaturePackRuntime(FeaturePackRuntimeBuilder builder, ProvisioningRuntime runtime) throws ProvisioningException {
         this.runtime = runtime;
+        this.fpid = builder.fpid;
         this.spec = builder.spec;
         this.dir = builder.dir;
         this.featureSpecs = builder.featureSpecs;
@@ -74,9 +76,23 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
         return spec;
     }
 
+    /**
+     * @deprecated
+     */
+    public ArtifactCoords.Gav getGav() {
+        if(legacyGav == null) {
+            try {
+                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
+            } catch (ProvisioningException e) {
+                throw new IllegalStateException("Failed to translate fpl to gav", e);
+            }
+        }
+        return legacyGav;
+    }
+
     @Override
-    public Gav getGav() {
-        return spec.getGav();
+    public FPID getFPID() {
+        return fpid;
     }
 
     @Override

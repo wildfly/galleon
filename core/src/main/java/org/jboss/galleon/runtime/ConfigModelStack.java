@@ -124,8 +124,8 @@ class ConfigModelStack {
             for(int i = groupStack.size() - 1; i >= 0; --i) {
                 final ResolvedFeatureGroupConfig stacked = groupStack.get(i);
                 if (stacked.fg.getId() == null
-                        || stacked.gav == null || resolvedFg.gav == null
-                        || !stacked.gav.equals(resolvedFg.gav)
+                        || stacked.fpid == null || resolvedFg.fpid == null
+                        || !stacked.fpid.equals(resolvedFg.fpid)
                         || !stacked.fg.getId().equals(resolvedFg.fg.getId())) {
                     continue;
                 }

@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
@@ -33,11 +33,11 @@ import org.jboss.galleon.util.StringUtils;
 public class ProvisionedFeaturePack implements FeaturePack<ProvisionedPackage> {
 
     public static class Builder {
-        private ArtifactCoords.Gav gav;
+        private FeaturePackLocation.FPID fpid;
         private Map<String, ProvisionedPackage> packages = Collections.emptyMap();
 
-        private Builder(ArtifactCoords.Gav gav) {
-            this.gav = gav;
+        private Builder(FeaturePackLocation.FPID fpid) {
+            this.fpid = fpid;
         }
 
         public Builder addPackage(String name) {
@@ -54,29 +54,29 @@ public class ProvisionedFeaturePack implements FeaturePack<ProvisionedPackage> {
         }
 
         public ProvisionedFeaturePack build() {
-            return new ProvisionedFeaturePack(gav, CollectionUtils.unmodifiable(packages));
+            return new ProvisionedFeaturePack(fpid, CollectionUtils.unmodifiable(packages));
         }
     }
 
-    public static Builder builder(ArtifactCoords.Gav gav) {
-        return new Builder(gav);
+    public static Builder builder(FeaturePackLocation.FPID fpid) {
+        return new Builder(fpid);
     }
 
-    public static ProvisionedFeaturePack forGav(ArtifactCoords.Gav gav) {
-        return new ProvisionedFeaturePack(gav, Collections.emptyMap());
+    public static ProvisionedFeaturePack forFPID(FeaturePackLocation.FPID fpid) {
+        return new ProvisionedFeaturePack(fpid, Collections.emptyMap());
     }
 
-    private final ArtifactCoords.Gav gav;
+    private final FeaturePackLocation.FPID fpid;
     private final Map<String, ProvisionedPackage> packages;
 
-    ProvisionedFeaturePack(ArtifactCoords.Gav gav, Map<String, ProvisionedPackage> packages) {
-        this.gav = gav;
+    ProvisionedFeaturePack(FeaturePackLocation.FPID fpid, Map<String, ProvisionedPackage> packages) {
+        this.fpid = fpid;
         this.packages = packages;
     }
 
     @Override
-    public ArtifactCoords.Gav getGav() {
-        return gav;
+    public FeaturePackLocation.FPID getFPID() {
+        return fpid;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class ProvisionedFeaturePack implements FeaturePack<ProvisionedPackage> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((gav == null) ? 0 : gav.hashCode());
+        result = prime * result + ((fpid == null) ? 0 : fpid.hashCode());
         result = prime * result + ((packages == null) ? 0 : packages.hashCode());
         return result;
     }
@@ -122,10 +122,10 @@ public class ProvisionedFeaturePack implements FeaturePack<ProvisionedPackage> {
         if (getClass() != obj.getClass())
             return false;
         ProvisionedFeaturePack other = (ProvisionedFeaturePack) obj;
-        if (gav == null) {
-            if (other.gav != null)
+        if (fpid == null) {
+            if (other.fpid != null)
                 return false;
-        } else if (!gav.equals(other.gav))
+        } else if (!fpid.equals(other.fpid))
             return false;
         if (packages == null) {
             if (other.packages != null)
@@ -136,7 +136,7 @@ public class ProvisionedFeaturePack implements FeaturePack<ProvisionedPackage> {
     }
 
     public String toString() {
-        final StringBuilder buf = new StringBuilder().append('[').append(gav);
+        final StringBuilder buf = new StringBuilder().append('[').append(fpid);
         if(!packages.isEmpty()) {
             buf.append(' ');
             StringUtils.append(buf, packages.values());

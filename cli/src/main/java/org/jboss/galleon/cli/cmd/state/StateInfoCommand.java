@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.Map.Entry;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.cli.AbstractFeaturePackCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeaturePackInfo;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -82,7 +82,7 @@ public class StateInfoCommand extends AbstractFeaturePackCommand {
 
     private void displayDependencies(PmCommandInvocation invoc, FeatureContainer container) {
         if (container instanceof FeaturePackInfo) {
-            invoc.println("feature-pack " + container.getGav());
+            invoc.println("feature-pack " + container.getFPID());
         }
         invoc.println("dependencies");
         if (container.getFullDependencies().isEmpty()) {
@@ -90,9 +90,9 @@ public class StateInfoCommand extends AbstractFeaturePackCommand {
                 invoc.println("  NONE");
             } else {
                 boolean found = false;
-                for (ArtifactCoords.Gav g : container.getDependencies()) {
+                for (FPID g : container.getDependencies()) {
                     if (container instanceof FeaturePackInfo) {
-                        if (((FeaturePackInfo) container).getGav().equals(g)) {
+                        if (((FeaturePackInfo) container).getFPID().equals(g)) {
                             continue;
                         }
                     }
@@ -105,7 +105,7 @@ public class StateInfoCommand extends AbstractFeaturePackCommand {
             }
         } else {
             for (FeatureContainer c : container.getFullDependencies().values()) {
-                invoc.println("  " + c.getGav().toString());
+                invoc.println("  " + c.getFPID().toString());
             }
         }
     }

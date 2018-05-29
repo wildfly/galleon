@@ -16,14 +16,13 @@
  */
 package org.jboss.galleon.config.feature.refs.one2one;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
@@ -40,20 +39,20 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class ReferenceIncludeExternalTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_GAV)
                 .addSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", "aSpec"))
                     .build())
-            .getInstaller()
+            .getCreator()
             .newFeaturePack(FP2_GAV)
-                .addDependency("fp1", FP1_GAV)
+                .addDependency("fp1", FP1_GAV.getLocation())
                 .addSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
@@ -70,19 +69,19 @@ public class ReferenceIncludeExternalTestCase extends PmInstallFeaturePackTestBa
                             .setParam("name", "b")
                             .setParam("a", "a"))
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP2_GAV);
+        return FeaturePackConfig.forLocation(FP2_GAV.getLocation());
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.forGav(FP2_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "name", "a")).setConfigParam("a", "aSpec").build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV, "specB", "name", "b"))

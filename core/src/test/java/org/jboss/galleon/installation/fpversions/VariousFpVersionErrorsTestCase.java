@@ -16,21 +16,21 @@
  */
 package org.jboss.galleon.installation.fpversions;
 
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Ga;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
 
 /**
@@ -39,72 +39,72 @@ import org.jboss.galleon.test.PmProvisionConfigTestBase;
  */
 public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP1_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP1_101_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.1.Final");
-    private static final Gav FP1_200_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "2.0.0.Final");
-    private static final Gav FP2_200_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final");
-    private static final Gav FP3_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp3", "1.0.0.Final");
-    private static final Gav FP4_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp4", "1.0.0.Final");
-    private static final Gav FP4_101_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp4", "1.0.1.Final");
-    private static final Gav FP5_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp5", "1.0.0.Final");
-    private static final Gav FP6_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp6", "1.0.0.Final");
-    private static final Ga FP7_GA = ArtifactCoords.newGa("org.jboss.pm.test", "fp7");
-    private static final Ga FP8_GA = ArtifactCoords.newGa("org.jboss.pm.test", "fp8");
+    private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP1_101_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.1.Final");
+    private static final FPID FP1_200_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "2", "2.0.0.Final");
+    private static final FPID FP2_200_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final");
+    private static final FPID FP3_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final");
+    private static final FPID FP4_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "1", "1.0.0.Final");
+    private static final FPID FP4_101_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "1", "1.0.1.Final");
+    private static final FPID FP5_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp5", "1", "1.0.0.Final");
+    private static final FPID FP6_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp6", "1", "1.0.0.Final");
+    private static final ChannelSpec FP7_GA = LegacyGalleon1Universe.newChannel("org.jboss.pm.test:fp7", "1");
+    private static final ChannelSpec FP8_GA = LegacyGalleon1Universe.newChannel("org.jboss.pm.test:fp8", "1");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
                 .newFeaturePack(FP1_101_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "fp1 1.0.1.Final p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP1_200_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "fp1 2.0.0.Final p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP2_200_GAV)
-                .addDependency(FP1_100_GAV)
+                .addDependency(FP1_100_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp2/p1.txt", "fp2 p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP3_100_GAV)
-                .addDependency(FP1_101_GAV)
+                .addDependency(FP1_101_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp3/p1.txt", "fp3 p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP4_100_GAV)
-                .addDependency(FP1_200_GAV)
+                .addDependency(FP1_200_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp4/p1.txt", "fp4 p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP4_101_GAV)
-                .addDependency(FP1_200_GAV)
+                .addDependency(FP1_200_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp4/p1.txt", "fp4 p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP5_100_GAV)
-                .addDependency(FP4_100_GAV)
+                .addDependency(FP4_100_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp5/p1.txt", "fp5 p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP6_100_GAV)
-                .addDependency(FP4_101_GAV)
+                .addDependency(FP4_101_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp6/p1.txt", "fp6 p1")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
@@ -112,29 +112,28 @@ public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
     protected ProvisioningConfig provisioningConfig()
             throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP2_200_GAV))
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP3_100_GAV))
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP5_100_GAV))
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP6_100_GAV))
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP7_GA.toGav()))
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP8_GA.toGav()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP2_200_GAV.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP3_100_GAV.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP5_100_GAV.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP6_100_GAV.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP7_GA.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP8_GA.getLocation()))
                 .build();
     }
 
     @Override
     protected String[] pmErrors() throws ProvisioningException {
-        List<Set<ArtifactCoords.Gav>> conflicts = new ArrayList<>();
-        Set<ArtifactCoords.Gav> set = new LinkedHashSet<>(3);
+        List<Set<FPID>> conflicts = new ArrayList<>();
+        Set<FPID> set = new LinkedHashSet<>(3);
         set.add(FP1_100_GAV);
         set.add(FP1_101_GAV);
-        set.add(FP1_200_GAV);
         conflicts.add(set);
         set = new LinkedHashSet<>(2);
         set.add(FP4_100_GAV);
         set.add(FP4_101_GAV);
         conflicts.add(set);
         return new String[] {
-                Errors.fpVersionCheckFailed(Arrays.asList(FP7_GA, FP8_GA), conflicts)
+                Errors.fpVersionCheckFailed(conflicts)
         };
     }
 }

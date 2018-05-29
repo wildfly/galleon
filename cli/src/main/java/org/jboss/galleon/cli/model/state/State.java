@@ -28,10 +28,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -44,6 +43,7 @@ import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
 /**
@@ -72,7 +72,7 @@ public class State {
     public State(PmSession pmSession) throws ProvisioningException, IOException {
         builder = ProvisioningConfig.builder();
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(pmSession.getArtifactResolver()).build();
+                .addArtifactResolver(pmSession.getArtifactResolver()).build();
         init(pmSession, manager);
     }
 
@@ -81,12 +81,12 @@ public class State {
         ProvisioningConfig conf;
         if (Files.isRegularFile(installation)) {
             manager = ProvisioningManager.builder()
-                    .setArtifactResolver(pmSession.getArtifactResolver()).build();
-            conf = manager.readProvisioningConfig(installation);
+                    .addArtifactResolver(pmSession.getArtifactResolver()).build();
+            conf = ProvisioningXmlParser.parse(installation);
             builder = conf.getBuilder();
         } else {
             manager = ProvisioningManager.builder()
-                    .setArtifactResolver(pmSession.getArtifactResolver()).
+                    .addArtifactResolver(pmSession.getArtifactResolver()).
                     setInstallationHome(installation).
                     build();
             if (manager.getProvisionedState() == null) {
@@ -96,9 +96,9 @@ public class State {
             builder = conf.getBuilder();
         }
 
-        Set<Gav> dependencies = new HashSet<>();
+        Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : conf.getFeaturePackDeps()) {
-            dependencies.add(cf.getGav());
+            dependencies.add(cf.getLocation().getFPID());
         }
         init(pmSession, manager);
         Map<String, FeatureContainer> fullDependencies = new HashMap<>();
@@ -138,14 +138,14 @@ public class State {
         return container;
     }
 
-    public void addDependency(PmSession pmSession, String name, ArtifactCoords.Gav gav, boolean inheritConfigs, boolean inheritPackages) throws
+    public void addDependency(PmSession pmSession, String name, FeaturePackLocation fpl, boolean inheritConfigs, boolean inheritPackages) throws
             ProvisioningException, IOException {
-        Action action = fpProvisioning.addDependency(pmSession, name, gav, inheritConfigs, inheritPackages);
+        Action action = fpProvisioning.addDependency(pmSession, name, fpl, inheritConfigs, inheritPackages);
         config = pushState(action, pmSession);
     }
 
-    public void removeDependency(PmSession pmSession, ArtifactCoords.Gav gav) throws ProvisioningException, IOException {
-        Action action = fpProvisioning.removeDependency(gav);
+    public void removeDependency(PmSession pmSession, FeaturePackLocation fpl) throws ProvisioningException, IOException {
+        Action action = fpProvisioning.removeDependency(fpl);
         config = pushState(action, pmSession);
     }
 
@@ -253,18 +253,18 @@ public class State {
     private ProvisioningConfig buildNewConfig(PmSession pmSession) throws ProvisioningException, IOException {
         ProvisioningConfig tmp = builder.build();
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(pmSession.getArtifactResolver()).build();
+                .addArtifactResolver(pmSession.getArtifactResolver()).build();
         runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
-        Set<Gav> dependencies = new HashSet<>();
+        Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
-            dependencies.add(cf.getGav());
+            dependencies.add(cf.getLocation().getFPID());
         }
         FeatureContainer tmpContainer = FeatureContainers.fromProvisioningRuntime(pmSession, manager, runtime);
         // Need to have in sync the current with the full.
         // If fullConainer creation is a failure, the container will be not updated.
-        Set<Gav> newDeps = new HashSet<>();
+        Set<FeaturePackLocation.FPID> newDeps = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
-            newDeps.add(cf.getGav());
+            newDeps.add(cf.getLocation().getFPID());
         }
         Map<String, FeatureContainer> tmpDeps = new HashMap<>();
         tmpDeps.putAll(container.getFullDependencies());
@@ -275,21 +275,21 @@ public class State {
         return tmp;
     }
 
-    private void buildDependencies(PmSession session, Set<Gav> dependencies, Map<String, FeatureContainer> deps) throws ProvisioningException, IOException {
+    private void buildDependencies(PmSession session, Set<FeaturePackLocation.FPID> dependencies, Map<String, FeatureContainer> deps) throws ProvisioningException, IOException {
         ProvisioningManager manager = ProvisioningManager.builder()
-                .setArtifactResolver(session.getArtifactResolver()).build();
-        for (Gav gav : dependencies) {
-            String orig = Identity.buildOrigin(gav);
+                .addArtifactResolver(session.getArtifactResolver()).build();
+        for (FeaturePackLocation.FPID fpid : dependencies) {
+            String orig = Identity.buildOrigin(fpid.getChannel());
             if (!deps.containsKey(orig)) {
                 // Need to add individual featurepack.
-                deps.put(orig, FeatureContainers.fromFeaturePackGav(session, manager, gav, null));
+                deps.put(orig, FeatureContainers.fromFeaturePackId(session, manager, fpid, null));
             }
         }
         // Remove feature-packs that would have been removed.
         Iterator<FeatureContainer> it = deps.values().iterator();
         while (it.hasNext()) {
             FeatureContainer fc = it.next();
-            if (!dependencies.contains(fc.getGav())) {
+            if (!dependencies.contains(fc.getFPID())) {
                 it.remove();
             }
         }

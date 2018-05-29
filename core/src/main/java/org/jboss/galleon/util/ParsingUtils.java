@@ -188,4 +188,14 @@ public class ParsingUtils {
         buf.append(" is expected.");
         return new XMLStreamException(buf.toString(), reader.getLocation());
     }
+
+    public static String error(String msg, Location location) {
+        return "ParseError at [row,col]:["+location.getLineNumber()+","+
+                location.getColumnNumber()+"]\n"+
+                "Message: "+msg;
+    }
+
+    public static XMLStreamException error(String string, Location location, Throwable e) {
+        return new XMLStreamException(error(string, location), e);
+    }
 }

@@ -23,6 +23,8 @@ import java.util.Map;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
@@ -36,8 +38,8 @@ public class ResolvedFeatureId {
         private final ResolvedSpecId specId;
         private Map<String, Object> params = Collections.emptyMap();
 
-        private Builder(ArtifactCoords.Gav gav, String spec) {
-            this.specId = new ResolvedSpecId(gav, spec);
+        private Builder(FeaturePackLocation.ChannelSpec channel, String spec) {
+            this.specId = new ResolvedSpecId(channel, spec);
         }
 
         private Builder(ResolvedSpecId specId) {
@@ -65,11 +67,66 @@ public class ResolvedFeatureId {
         return new Builder(specId);
     }
 
-    public static Builder builder(ArtifactCoords.Gav gav, String spec) {
-        return new Builder(gav, spec);
+    public static Builder builder(FeaturePackLocation.FPID fpid, String spec) {
+        return new Builder(fpid.getChannel(), spec);
     }
 
     public static ResolvedFeatureId fromString(String str) throws ProvisioningDescriptionException {
+        final int length = str.length();
+        if(length == 0) {
+            formatException(str);
+        }
+
+        if(str.charAt(0) != '{') {
+            formatException(str);
+        }
+
+        int i = str.indexOf('}', 1);
+        if(i < 0) {
+            formatException(str);
+        }
+
+        final int colon = str.indexOf(':', i + 1);
+        if(colon - i < 2 ) {
+            formatException(str);
+        }
+        ResolvedSpecId specId = null;
+        try {
+            specId = new ResolvedSpecId(FeaturePackLocation.fromString(str.substring(1, i)).getChannel(), str.substring(i + 1, colon));
+        } catch (IllegalArgumentException e) {
+            throw new ProvisioningDescriptionException("Failed to parse the channel part of feature id '" + str + "'", e);
+        }
+
+        int endIndex = str.indexOf(',', colon + 3);
+        if(endIndex < 0) {
+            final int equals = str.indexOf('=', colon + 1);
+            if(equals < 0 || equals == str.length() - 1) {
+                formatException(str);
+            }
+            return new ResolvedFeatureId(specId, Collections.singletonMap(str.substring(colon + 1, equals), str.substring(equals + 1)));
+        }
+
+        final Map<String, Object> params = new HashMap<>();
+        int lastComma = colon;
+        while(endIndex > 0) {
+            int equals = str.indexOf('=', lastComma + 1);
+            if(equals < 0 || equals == str.length() - 1) {
+                formatException(str);
+            }
+            params.put(str.substring(lastComma + 1, equals),  str.substring(equals + 1, endIndex));
+            lastComma = endIndex;
+            endIndex = str.indexOf(',', endIndex + 1);
+        }
+
+        int equals = str.indexOf('=', lastComma + 2);
+        if(equals < 0 || equals == str.length() - 1) {
+            formatException(str);
+        }
+        params.put(str.substring(lastComma + 1, equals),  str.substring(equals + 1));
+        return new ResolvedFeatureId(specId, params);
+    }
+
+    public static ResolvedFeatureId fromGalleon1String(String str) throws ProvisioningDescriptionException {
         final int length = str.length();
         if(length == 0) {
             formatException(str);
@@ -100,7 +157,7 @@ public class ResolvedFeatureId {
                 } else if(version == null) {
                     formatException(str);
                 } else {
-                    specId = new ResolvedSpecId(ArtifactCoords.newGav(groupId, artifactId, version), buf.toString());
+                    specId = new ResolvedSpecId(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getChannel(), buf.toString());
                     break;
                 }
                 buf.setLength(0);
@@ -144,11 +201,11 @@ public class ResolvedFeatureId {
     }
 
     private static void formatException(String str) throws ProvisioningDescriptionException {
-        throw new ProvisioningDescriptionException("'" + str + "' does not follow format group_id:artifact_id:version#spec_name:param_name=value(,param_name=value)*");
+        throw new ProvisioningDescriptionException("'" + str + "' does not follow format {producer[@universe]:channel}spec_name:param_name=value(,param_name=value)*");
     }
 
-    public static ResolvedFeatureId create(ArtifactCoords.Gav gav, String spec, String param, String value) {
-        return new ResolvedFeatureId(new ResolvedSpecId(gav, spec), Collections.singletonMap(param, value));
+    public static ResolvedFeatureId create(FeaturePackLocation.FPID fpid, String spec, String param, String value) {
+        return new ResolvedFeatureId(new ResolvedSpecId(fpid.getChannel(), spec), Collections.singletonMap(param, value));
     }
 
     public static ResolvedFeatureId create(ResolvedSpecId specId, String param, String value) {
@@ -158,6 +215,7 @@ public class ResolvedFeatureId {
     final ResolvedSpecId specId;
     final Map<String, Object> params;
     final Boolean child;
+    private final int hash;
 
     ResolvedFeatureId(ResolvedSpecId specId, Map<String, Object> params) {
         this(specId, params, null);
@@ -176,6 +234,12 @@ public class ResolvedFeatureId {
         }
         this.params = CollectionUtils.unmodifiable(filtered);
         this.child = child;
+
+        final int prime = 31;
+        int hash = 1;
+        hash = prime * hash + this.params.hashCode();
+        hash = prime * hash + this.specId.hashCode();
+        this.hash = hash;
     }
 
     public ResolvedSpecId getSpecId() {
@@ -192,11 +256,7 @@ public class ResolvedFeatureId {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((params == null) ? 0 : params.hashCode());
-        result = prime * result + ((specId == null) ? 0 : specId.hashCode());
-        return result;
+        return hash;
     }
 
     @Override

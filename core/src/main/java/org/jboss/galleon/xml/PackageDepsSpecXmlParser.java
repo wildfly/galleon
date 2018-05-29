@@ -34,57 +34,13 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  */
 public class PackageDepsSpecXmlParser {
 
-    private static final PackageDepsSpecXmlParser INSTANCE = new PackageDepsSpecXmlParser();
+    public static final String ORIGIN = "origin";
+    public static final String PACKAGE = "package";
 
-    public static final String NAMESPACE_1_0 = PackageXmlParser10.NAMESPACE_1_0;
+    private static final PackageDepsSpecXmlParser INSTANCE = new PackageDepsSpecXmlParser();
 
     public static PackageDepsSpecXmlParser getInstance() {
         return INSTANCE;
-    }
-
-    public enum Element implements XmlNameProvider {
-
-        ORIGIN("origin"),
-        PACKAGE("package"),
-
-        // default unknown element
-        UNKNOWN(null);
-
-        private static final Map<String, Element> elementsByLocal;
-
-        static {
-            elementsByLocal = new HashMap<>(3);
-            elementsByLocal.put(ORIGIN.name, ORIGIN);
-            elementsByLocal.put(PACKAGE.name, PACKAGE);
-            elementsByLocal.put(null, UNKNOWN);
-        }
-
-        static Element of(String localName) {
-            final Element element = elementsByLocal.get(localName);
-            return element == null ? UNKNOWN : element;
-        }
-
-        private final String name;
-        private final String namespace = NAMESPACE_1_0;
-
-        Element(final String name) {
-            this.name = name;
-        }
-
-        /**
-         * Get the local name of this element.
-         *
-         * @return the local name
-         */
-        @Override
-        public String getLocalName() {
-            return name;
-        }
-
-        @Override
-        public String getNamespace() {
-            return namespace;
-        }
     }
 
     protected enum Attribute implements XmlNameProvider {
@@ -142,14 +98,13 @@ public class PackageDepsSpecXmlParser {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
                     if(empty) {
-                        throw ParsingUtils.expectedAtLeastOneChild(reader, parent, Element.PACKAGE, Element.ORIGIN);
+                        throw ParsingUtils.expectedAtLeastOneChild(reader, parent, xmlNameProvider(parent.getNamespace(), PACKAGE), xmlNameProvider(parent.getNamespace(), ORIGIN));
                     }
                     return;
                 }
                 case XMLStreamConstants.START_ELEMENT: {
                     empty = false;
-                    final Element element = Element.of(reader.getLocalName());
-                    switch (element) {
+                    switch (reader.getLocalName()) {
                         case PACKAGE:
                             pkgDeps.addPackageDep(parsePackageDependency(reader));
                             break;
@@ -216,8 +171,7 @@ public class PackageDepsSpecXmlParser {
                     return;
                 }
                 case XMLStreamConstants.START_ELEMENT: {
-                    final Element element = Element.of(reader.getLocalName());
-                    switch (element) {
+                    switch (reader.getLocalName()) {
                         case PACKAGE:
                             pkgDeps.addPackageDep(origin, parsePackageDependency(reader));
                             break;
@@ -232,5 +186,16 @@ public class PackageDepsSpecXmlParser {
             }
         }
         throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static XmlNameProvider xmlNameProvider(String ns, String name) {
+        return new XmlNameProvider() {
+            public String getNamespace() {
+                return ns;
+            }
+            public String getLocalName() {
+                return name;
+            }
+        };
     }
 }

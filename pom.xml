@@ -47,6 +47,8 @@
     <module>maven-plugins</module>
     <module>cli</module>
     <module>universe</module>
+    <module>maven-universe</module>
+    <module>testsuite</module>
   </modules>
 
   <properties>
@@ -142,7 +144,19 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
+        <artifactId>galleon-maven-universe</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
         <artifactId>galleon-cli</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>galleon-testsuite</artifactId>
         <version>${project.version}</version>
       </dependency>
 

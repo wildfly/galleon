@@ -16,15 +16,14 @@
  */
 package org.jboss.galleon.config.mixedloops;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -44,7 +43,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class RefCapDepTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     public static class ConfigHandler extends TestProvisionedConfigHandler {
         @Override
@@ -78,8 +77,8 @@ public class RefCapDepTestCase extends PmInstallFeaturePackTestBase {
     }
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .addFeatureRef(FeatureReferenceSpec.create("specB"))
@@ -138,19 +137,19 @@ public class RefCapDepTestCase extends PmInstallFeaturePackTestBase {
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
             .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP_GAV);
+        return FeaturePackConfig.forLocation(FP_GAV.getLocation());
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.forGav(FP_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "a", "a1")).setConfigParam("b", "b1").build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specC", "c", "c1")).build())

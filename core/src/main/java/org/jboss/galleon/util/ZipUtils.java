@@ -54,7 +54,7 @@ public class ZipUtils {
         }
     }
 
-    private static URI toZipUri(Path zipFile) throws IOException {
+    public static URI toZipUri(Path zipFile) throws IOException {
         URI zipUri = zipFile.toUri();
         try {
             zipUri = new URI(JAR_URI_PREFIX + zipUri.getScheme(), zipUri.getPath(), null);

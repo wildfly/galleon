@@ -22,8 +22,8 @@ import org.jboss.galleon.state.FeaturePack;
 import org.jboss.galleon.state.FeaturePackPackage;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser10.Attribute;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser10.Element;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Attribute;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -63,11 +63,7 @@ public class ProvisionedStateXmlWriter extends BaseXmlWriter<FeaturePackSet<?>> 
     }
 
     private void writeFeaturePack(ElementNode fp, FeaturePack<?> featurePack) {
-        addAttribute(fp, Attribute.GROUP_ID, featurePack.getGav().getGroupId());
-        addAttribute(fp, Attribute.ARTIFACT_ID, featurePack.getGav().getArtifactId());
-        if (featurePack.getGav().getVersion() != null) {
-            addAttribute(fp, Attribute.VERSION, featurePack.getGav().getVersion());
-        }
+        addAttribute(fp, Attribute.LOCATION, featurePack.getFPID().toString());
 
         if (featurePack.hasPackages()) {
             final ElementNode packages = addElement(fp, Element.PACKAGES);

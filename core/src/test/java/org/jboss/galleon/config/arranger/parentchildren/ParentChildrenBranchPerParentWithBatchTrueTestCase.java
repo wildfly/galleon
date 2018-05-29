@@ -16,15 +16,14 @@
  */
 package org.jboss.galleon.config.arranger.parentchildren;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureAnnotation;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -44,7 +43,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class ParentChildrenBranchPerParentWithBatchTrueTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     public static class ConfigHandler extends TestProvisionedConfigHandler {
         @Override
@@ -94,8 +93,8 @@ public class ParentChildrenBranchPerParentWithBatchTrueTestCase extends PmInstal
     }
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP1_GAV)
 
             .addSpec(FeatureSpec.builder("specA")
@@ -127,13 +126,13 @@ public class ParentChildrenBranchPerParentWithBatchTrueTestCase extends PmInstal
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
             .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP1_GAV);
+        return FeaturePackConfig.forLocation(FP1_GAV.getLocation());
     }
 
     @Override
