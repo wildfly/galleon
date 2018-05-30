@@ -16,10 +16,10 @@ The coordinates of the Maven plugin are
 .Goals
 [options="autowidth"]
 |===
-|<<_install_feature_pack>> |Installs a feature-pack into an empty directory or into an existing installation
-|<<_provision>> |Provisions an installation that consists of one or more feature-packs at a specified location
+|<<_install_feature_pack, install-feature-pack>> |Installs a feature-pack into an empty directory or into an existing installation
+|<<_provision,provision>> |Provisions an installation that consists of one or more feature-packs at a specified location
 |===
 
-include::install-feature-pack.adoc[]
+include::../../../maven-plugins/target/generated-sources/plugin/install-feature-pack-mojo.adoc[]
 
 include::provision.adoc[]
