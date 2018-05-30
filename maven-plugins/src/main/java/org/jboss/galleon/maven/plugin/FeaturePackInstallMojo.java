@@ -38,7 +38,10 @@ import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePackInstaller;
 
 /**
- * Maven plugin to install a feature pack.
+ * This maven plugin  installs a feature-pack into an empty directory or a
+ * directory that already contains an installation, in which case the product
+ * the feature-pack represents will be integrated into an existing installation.
+ *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  * @author Alexey Loubyansky (c) 2017 Red Hat, inc.
  */
@@ -74,30 +77,59 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
+    /**
+    * The target installation directory.
+    */
     @Parameter(alias = "install-dir", required = true)
     private File installDir;
 
+    /**
+     * Path to a file containing `config` that should be installed.
+    */
     @Parameter(alias = "custom-config", required = false)
     private File customConfig;
 
+    /**
+     * Whether to install the default package set.
+     */
     @Parameter(alias = "inherit-packages", required = false, defaultValue = "true")
     private boolean inheritPackages;
 
+    /**
+     * Whether to inherit the default feature-pack configs.
+     */
     @Parameter(alias = "inherit-configs", required = false, defaultValue = "true")
     private boolean inheritConfigs;
 
+    /**
+     * Feature-pack artifact (groupId - artifactId - version) if not specified
+     * the feature-pack must be a transitive dependency of a feature-pack with
+     * the version specified.
+    */
     @Parameter(alias = "feature-pack", required = true)
     private ArtifactItem featurePack;
 
+    /**
+     * Default feature-pack configs that should be included.
+     */
     @Parameter(alias = "included-configs", required = false)
     private List<ConfigurationId> includedConfigs = Collections.emptyList();;
 
+    /**
+     * Explicitly excluded packages from the installation.
+    */
     @Parameter(alias = "excluded-packages", required = false)
     private List<String> excludedPackages = Collections.emptyList();;
 
+    /**
+     * Explicitly included packages to install.
+    */
     @Parameter(alias = "included-packages", required = false)
     private List<String> includedPackages = Collections.emptyList();
 
+    /**
+     * Arbitrary plugin options recognized by the plugins attached to the feature-pack being installed.
+    */
     @Parameter(alias = "plugin-options", required = false)
     private Map<String, String> pluginOptions = Collections.emptyMap();
 

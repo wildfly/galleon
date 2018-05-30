@@ -45,6 +45,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     private List<String> excludedPackages = Collections.emptyList();
     private List<String> includedPackages = Collections.emptyList();
 
+    @Override
     public String getGroupId() {
         return groupId;
     }
@@ -53,6 +54,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.groupId = groupId;
     }
 
+    @Override
     public String getArtifactId() {
         return artifactId;
     }
@@ -61,6 +63,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.artifactId = artifactId;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
@@ -69,6 +72,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.version = version;
     }
 
+    @Override
     public String getType() {
         return type;
     }
@@ -77,6 +81,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.type = type;
     }
 
+    @Override
     public String getClassifier() {
         return classifier;
     }
@@ -85,6 +90,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.classifier = classifier;
     }
 
+    @Override
     public String getExtension() {
         return extension;
     }
@@ -141,6 +147,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.includedPackages = includedPackages;
     }
 
+    @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append('{');
