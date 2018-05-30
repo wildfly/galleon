@@ -49,7 +49,11 @@ import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
 /**
- * Maven plugin to provision a state.
+ * This maven plugin provisions an installation that consists of one or more feature-packs.
+ * If the target installation directory already contains an installation, the existing
+ * installation will be fully replaced with the newly provisioned one.<br/>
+ * In other words, the configuration provided for this goal fully describes the
+ * state of the final installation.
  *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  * @author Alexey Loubyansky (c) 2017 Red Hat, inc.
@@ -86,15 +90,27 @@ public class ProvisionStateMojo extends AbstractMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
+    /**
+    * The target installation directory.
+    */
     @Parameter(alias = "install-dir", required = true)
     private File installDir;
 
+    /**
+    * Path to a file containing `config` that should be installed.
+    */
     @Parameter(alias = "custom-config", required = false)
     private File customConfig;
 
+    /**
+    * Arbitrary plugin options.
+    */
     @Parameter(alias = "plugin-options", required = false)
     private Map<String, String> pluginOptions = Collections.emptyMap();
 
+    /**
+    * A list of feature-pack configurations to install.
+    */
     @Parameter(alias = "feature-packs", required = true)
     private List<FeaturePack> featurePacks = Collections.emptyList();
 
