@@ -157,6 +157,18 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.wildfly.extras</groupId>
+        <artifactId>adoc-maven-plugin-descriptor</artifactId>
+        <version>1.0.0.Alpha2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>asciidoc-descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

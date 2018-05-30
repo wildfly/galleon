@@ -1,30 +1,18 @@
-### provision
-
-This goal provisions an installation that consists of one or more feature-packs. If the target installation directory already contains an installation, the existing installation will be fully replaced with the newly provisioned one. In other words, the configuration provided for this goal fully describes the state of the final installation.
-
-.Parameters
-[options="autowidth"]
-|===
-|Name |Required |Default value |Description
-|install-dir |true |- |The target installation directory
-|custom-config |false |- |Path to a file containing `config` that should be installed
-|plugin-options |false |- |Arbitrary plugin options
-|feature-packs |true |- |A list of feature-pack configurations to install
-|===
+include::../../../maven-plugins/target/generated-sources/plugin/provision-mojo.adoc[]
 
 .Feature-pack parameters
-[options="autowidth"]
+[%autowidth.stretch]
 |===
 |Name |Required |Default value |Description
-|groupId |true |- |Feature-pack Maven artifact groupId
-|artifactId |true |- |Feature-pack Maven artifactId
-|version |false |- |Feature-pack artifact version (if not specified the feature-pack must be a transitive dependency of a feature-pack with the version specified
-|inherit-configs |false |true |Whether to inherit the default feature-pack configs
-|included-configs |false |- |Default feature-pack configs that should be included
-|excluded-configs |false |- |Default feature-pack configs that should be excluded
-|inherit-packages |false |true |Whether to inherit the default feature-pack packages
-|included-packages |false |- |Default feature-pack packages that should be included
-|excluded-packages |false |- |Default feature-pack packages that should be excluded
+|groupId |yes |- |Feature-pack Maven artifact groupId.
+|artifactId |yes |- |Feature-pack Maven artifactId.
+|version |no |- |Feature-pack artifact version (if not specified the feature-pack must be a transitive dependency of a feature-pack with the version specified.
+|inherit-configs |no |true |Whether to inherit the default feature-pack configs
+|included-configs |no |- |Default feature-pack configs that should be included.
+|excluded-configs |no |- |Default feature-pack configs that should be excluded.
+|inherit-packages |no |true |Whether to inherit the default feature-pack packages.
+|included-packages |no |- |Default feature-pack packages that should be included.
+|excluded-packages |no |- |Default feature-pack packages that should be excluded.
 |===
 
 Example
