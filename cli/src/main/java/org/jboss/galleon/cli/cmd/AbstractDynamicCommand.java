@@ -29,14 +29,15 @@ import org.aesh.command.CommandResult;
 import org.aesh.command.container.CommandContainer;
 import org.aesh.command.impl.container.AeshCommandContainer;
 import org.aesh.command.impl.internal.OptionType;
-import org.aesh.command.impl.internal.ProcessedCommand;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.impl.parser.AeshCommandLineParser;
 import org.aesh.command.map.MapCommand;
 import org.aesh.command.map.MapProcessedCommandBuilder;
+import org.aesh.command.map.MapProcessedCommandBuilder.MapProcessedCommand;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.parser.OptionParserException;
+import org.aesh.parser.ParsedLine;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -101,53 +102,84 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         @Override
         public List<ProcessedOption> getOptions(List<ProcessedOption> currentOptions) {
             try {
-                String id = getId(pmSession);
-                if (id != null) {
-                    // We can retrieve options
-                    List<ProcessedOption> options = dynamicOptions.get(id);
-                    if (options == null) {
-                        options = new ArrayList<>();
-                        List<DynamicOption> parameters = getDynamicOptions(pmSession.getState(), id);
-                        for (DynamicOption opt : parameters) {
-                            ProcessedOptionBuilder builder = ProcessedOptionBuilder.builder();
-                            if (staticOptions.contains(opt.getName())) {
-                                renamedOptions.put(rename(opt.getName(), parameters), opt.getName());
+                List<ProcessedOption> options = null;
+                String id = null;
+                if (requireId) {
+                    id = getId(pmSession);
+                    if (id != null) {
+                        // We can retrieve options
+                        options = dynamicOptions.get(id);
+                    }
+                }
+                if (options == null) {
+                    options = new ArrayList<>();
+                    List<DynamicOption> parameters = getDynamicOptions(pmSession.getState(), id);
+                    for (DynamicOption opt : parameters) {
+                        // There is no caching, if current options already contains it, do not add it.
+                        if (!requireId && currentOptions != null) {
+                            ProcessedOption found = null;
+                            for (ProcessedOption option : currentOptions) {
+                                if (option.name().equals(opt.getName())) {
+                                    found = option;
+                                    break;
+                                }
                             }
-                            builder.name(opt.getName());
-                            builder.type(String.class);
-                            if (!opt.hasValue()) {
-                                noValuesOptions.add(opt.getName());
+                            if (found != null) {
+                                options.add(found);
+                                continue;
                             }
-                            builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
-                            builder.hasValue(opt.hasValue());
-                            builder.required(opt.isRequired());
-                            if (opt.getDefaultValue() != null) {
-                                builder.addDefaultValue(opt.getDefaultValue());
-                            }
-                            options.add(builder.build());
                         }
+                        ProcessedOptionBuilder builder = ProcessedOptionBuilder.builder();
+                        if (staticOptions.contains(opt.getName())) {
+                            renamedOptions.put(rename(opt.getName(), parameters), opt.getName());
+                        }
+                        builder.name(opt.getName());
+                        builder.type(String.class);
+                        if (!opt.hasValue()) {
+                            noValuesOptions.add(opt.getName());
+                        }
+                        builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
+                        builder.hasValue(opt.hasValue());
+                        builder.required(opt.isRequired());
+                        if (opt.getDefaultValue() != null) {
+                            builder.addDefaultValue(opt.getDefaultValue());
+                        }
+                        options.add(builder.build());
+                    }
+                    if (requireId) {
                         dynamicOptions.put(id, options);
                     }
-                    return options;
                 }
+                return options;
             } catch (Exception ex) {
                 // XXX OK.
             }
             return Collections.emptyList();
         }
-
     }
 
     protected final PmSession pmSession;
     private final Set<String> staticOptions = new HashSet<>();
     private final Set<String> noValuesOptions = new HashSet<>();
-    private ProcessedCommand<?> cmd;
-
-    public AbstractDynamicCommand(PmSession pmSession) {
+    private MapProcessedCommand cmd;
+    private final boolean onlyAtCompletion;
+    private final boolean checkForRequired;
+    private final boolean optimizeRetrieval;
+    private final boolean requireId;
+    /**
+     *
+     * @param pmSession The session
+     * @param optimizeRetrieval True, optimize retrieval.
+     */
+    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId) {
         this.pmSession = pmSession;
+        this.onlyAtCompletion = optimizeRetrieval;
+        this.checkForRequired = !optimizeRetrieval;
+        this.optimizeRetrieval = optimizeRetrieval;
+        this.requireId = requireId;
     }
 
-    protected abstract String getId(PmSession session);
+    protected abstract String getId(PmSession session) throws CommandExecutionException;
     protected abstract String getName();
     protected abstract String getDescription();
 
@@ -163,6 +195,12 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 new AeshCommandLineParser<>(cmd));
         return container;
     }
+
+    @Override
+    public final boolean checkForRequiredOptions(ParsedLine pl) {
+        return checkForRequired;
+    }
+
     @Override
     public CommandResult execute(PmCommandInvocation session) throws CommandException {
         try {
@@ -197,6 +235,15 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         return cmd.getArgument().getValue();
     }
 
+    protected String getOptionValue(String name) {
+        for (ProcessedOption opt : cmd.getOptions(false)) {
+            if (opt.name().equals(name)) {
+                return opt.getValue();
+            }
+        }
+        return null;
+    }
+
     protected List<String> getArgumentsValues() {
         return cmd.getArguments().getValues();
     }
@@ -207,9 +254,10 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         //return name;
     }
 
-    private ProcessedCommand buildCommand() throws CommandLineParserException {
+    private MapProcessedCommand buildCommand() throws CommandLineParserException {
         MapProcessedCommandBuilder builder = new MapProcessedCommandBuilder();
         builder.command(this);
+        builder.lookupAtCompletionOnly(onlyAtCompletion);
         builder.name(getName());
         builder.activator(getActivator());
 
@@ -232,26 +280,64 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         return builder.create();
     }
 
-    private void validateOptions() throws CommandException {
-        // Check validity of options
-        for (String o : getValues().keySet()) {
-            boolean found = false;
-            if (!ARGUMENT_NAME.equals(o)) {
-                for (ProcessedOption opt : cmd.getOptions()) {
+    private void validateOptions() throws CommandExecutionException {
+        // Check validity of provided options
+        Set<String> providedOptions = getValues().keySet();
+        List<ProcessedOption> sOptions = cmd.getOptions(false);
+
+        if (optimizeRetrieval) {
+            // some checks have been by-passed for static options.
+             // check values
+            for (String o : providedOptions) {
+                for (ProcessedOption opt : sOptions) {
                     if (opt.name().equals(o)) {
-                        found = true;
-                        break;
+                        String val = (String) getValue(opt.name());
+                        if (opt.hasValue() && (val == null || val.isEmpty())) {
+                            throw new CommandExecutionException("Option --" + opt.name()
+                                    + " was specified, but no value was given");
+                        }
                     }
                 }
-                if (!found) {
-                    throw new CommandException("Unknown option " + o);
+            }
+            // check required
+            for (ProcessedOption opt : sOptions) {
+                if (opt.isRequired() && !providedOptions.contains(opt.name())) {
+                    throw new CommandExecutionException("Option --" + opt.name()
+                            + " is required for this command.");
+                }
+            }
+        } else {
+            List<ProcessedOption> dOptions = cmd.getOptions(true);
+            for (String o : providedOptions) {
+                boolean found = false;
+                if (!ARGUMENT_NAME.equals(o)) {
+                    // first find in static options
+                    for (ProcessedOption opt : sOptions) {
+                        if (opt.name().equals(o)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        // then in dynamic ones
+                        for (ProcessedOption opt : dOptions) {
+                            if (opt.name().equals(o)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            throw new CommandExecutionException("Unknown option --" + o);
+                        }
+                    }
                 }
             }
         }
         doValidateOptions();
     }
 
-    protected abstract void doValidateOptions() throws CommandException;
+    protected abstract void doValidateOptions() throws CommandExecutionException;
 
     private void println(PmCommandInvocation session, Throwable t) {
         if (t.getLocalizedMessage() == null) {

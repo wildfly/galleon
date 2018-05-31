@@ -28,8 +28,10 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
+import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -45,17 +47,15 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
  */
 public class InstallCommand extends AbstractPluginsCommand {
 
-    private static final String DIR_NAME = "dir";
-
     public InstallCommand(PmSession pmSession) {
         super(pmSession);
     }
 
     @Override
-    protected void runCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
+    protected void runCommand(PmCommandInvocation session, Map<String, String> options, ArtifactCoords.Gav gav) throws CommandExecutionException {
         try {
             final ProvisioningManager manager = getManager(session);
-            manager.install(getGav(session.getPmSession()), options);
+            manager.install(gav, options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }
@@ -70,7 +70,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                 pluginOptions.addAll(plugin.getOptions().values());
             }
         };
-        runtime.visitePlugins(visitor, InstallPlugin.class);
+        runtime.visitPlugins(visitor, InstallPlugin.class);
         return pluginOptions;
     }
 
@@ -87,7 +87,7 @@ public class InstallCommand extends AbstractPluginsCommand {
     @Override
     protected List<ProcessedOption> getOtherOptions() throws OptionParserException {
         List<ProcessedOption> options = new ArrayList<>();
-        ProcessedOption dir = ProcessedOptionBuilder.builder().name(DIR_NAME).
+        ProcessedOption dir = ProcessedOptionBuilder.builder().name(DIR_OPTION_NAME).
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
@@ -100,7 +100,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     @Override
     protected Path getInstallationHome(AeshContext context) {
-        String targetDirArg = (String) getValue(DIR_NAME);
+        String targetDirArg = (String) getValue(DIR_OPTION_NAME);
         Path workDir = PmSession.getWorkDir(context);
         return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
     }

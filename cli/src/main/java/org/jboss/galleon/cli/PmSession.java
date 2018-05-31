@@ -17,6 +17,7 @@
 package org.jboss.galleon.cli;
 
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.aesh.command.activator.CommandActivator;
@@ -30,7 +31,13 @@ import org.aesh.command.invocation.CommandInvocationProvider;
 import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
 import org.aesh.utils.Config;
+import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.RepositoryListener;
+import org.eclipse.aether.transfer.ArtifactNotFoundException;
+import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ArtifactRepositoryManager;
+import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.state.State;
 
@@ -41,6 +48,131 @@ import org.jboss.galleon.cli.model.state.State;
 public class PmSession implements CommandInvocationProvider<PmCommandInvocation>, CompleterInvocationProvider<PmCompleterInvocation>,
         CommandActivatorProvider, OptionActivatorProvider<OptionActivator> {
 
+    private class MavenListener implements RepositoryListener {
+
+        private static final String MAVEN = "[MAVEN] ";
+
+        private boolean active;
+        void setActive(boolean active) {
+            this.active = active;
+        }
+
+        @Override
+        public void artifactDownloaded(RepositoryEvent re) {
+            if (active && re != null) {
+                String artifact = re.getArtifact().getGroupId() + ":"
+                        + re.getArtifact().getArtifactId() + ":"
+                        + re.getArtifact().getVersion() + ":"
+                        + re.getArtifact().getExtension();
+                if (re.getException() == null) {
+                    println(MAVEN + "downloaded " + artifact
+                            + " from " + re.getRepository().getId());
+                } else if (re.getException() instanceof ArtifactNotFoundException) {
+                    println(MAVEN + "artifact " + artifact + " not found in " + re.getRepository().getId());
+                } else {
+                    println(MAVEN + re.getException().getLocalizedMessage() + " while downloading artifact " + artifact);
+                }
+            }
+        }
+
+        @Override
+        public void artifactDownloading(RepositoryEvent re) {
+            if (active && re != null) {
+                println(MAVEN + "attempting to download " + re.getArtifact().getGroupId() + ":"
+                        + re.getArtifact().getArtifactId() + ":"
+                        + re.getArtifact().getVersion() + ":"
+                        + re.getArtifact().getExtension()
+                        + (re.getRepository() != null ? " from " + re.getRepository().getId() : ""));
+            }
+        }
+
+        @Override
+        public void artifactDescriptorInvalid(RepositoryEvent re) {
+            //session.println("artifactDescriptorInvalid " + re);
+        }
+
+        @Override
+        public void artifactDescriptorMissing(RepositoryEvent re) {
+            //session.println("artifactDescriptorMissing " + re);
+        }
+
+        @Override
+        public void metadataInvalid(RepositoryEvent re) {
+            //session.println("metadataInvalid " + re);
+        }
+
+        @Override
+        public void artifactResolving(RepositoryEvent re) {
+            //session.println("artifactResolving " + re);
+        }
+
+        @Override
+        public void artifactResolved(RepositoryEvent re) {
+            //session.println("artifactResolved " + re);
+        }
+
+        @Override
+        public void metadataResolving(RepositoryEvent re) {
+            //session.println("metadataResolving " + re);
+
+        }
+
+        @Override
+        public void metadataResolved(RepositoryEvent re) {
+            //session.println("metadataResolved " + re);
+
+        }
+
+        @Override
+        public void metadataDownloading(RepositoryEvent re) {
+            //session.println("metadataDownloading " + re);
+        }
+
+        @Override
+        public void metadataDownloaded(RepositoryEvent re) {
+            //session.println("metadataDownloaded " + re);
+        }
+
+        @Override
+        public void artifactInstalling(RepositoryEvent re) {
+            //session.println("artifactInstalling " + re);
+        }
+
+        @Override
+        public void artifactInstalled(RepositoryEvent re) {
+            //session.println("artifactInstalled " + re);
+        }
+
+        @Override
+        public void metadataInstalling(RepositoryEvent re) {
+            //session.println("metadataInstalling " + re);
+        }
+
+        @Override
+        public void metadataInstalled(RepositoryEvent re) {
+            //session.println("metadataInstalled " + re);
+        }
+
+        @Override
+        public void artifactDeploying(RepositoryEvent re) {
+            //session.println("artifactDeploying " + re);
+        }
+
+        @Override
+        public void artifactDeployed(RepositoryEvent re) {
+            //session.println("artifactDeployed " + re);
+        }
+
+        @Override
+        public void metadataDeploying(RepositoryEvent re) {
+            //session.println("metadataDeploying " + re);
+        }
+
+        @Override
+        public void metadataDeployed(RepositoryEvent re) {
+            //session.println("metadataDeployed " + re);
+        }
+    }
     private PrintStream out;
     private PrintStream err;
     private final Configuration config;
@@ -49,10 +181,24 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private State state;
     private FeatureContainer exploredContainer;
     private String currentPath;
+    private final MavenArtifactRepositoryManager maven;
+    private final MavenListener mavenListener;
+
     public PmSession(Configuration config) throws Exception {
         this.config = config;
+        this.mavenListener = new MavenListener();
+        this.maven = new MavenArtifactRepositoryManager(config.getMavenConfig(),
+                mavenListener);
         //Build the universes
-        this.universes = Universes.buildUniverses(MavenArtifactRepositoryManager.getInstance(), config.getUniversesLocations());
+        this.universes = Universes.buildUniverses(config, maven);
+    }
+
+    public void commandStart() {
+        maven.commandStart();
+    }
+
+    public void commandEnd() {
+        maven.commandEnd();
     }
 
     public void setState(State session) {
@@ -104,6 +250,10 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         out.print(txt + Config.getLineSeparator());
     }
 
+    public void print(String txt) {
+        out.print(txt);
+    }
+
     public Configuration getPmConfiguration() {
         return config;
     }
@@ -113,7 +263,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     }
 
     public ArtifactRepositoryManager getArtifactResolver() {
-        return MavenArtifactRepositoryManager.getInstance();
+        return maven;
     }
 
     // TO REMOVE when we have an universe for sure.
@@ -172,5 +322,21 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
             ((PmOptionActivator) oa).setPmSession(this);
         }
         return oa;
+    }
+
+    public boolean existsInLocalRepository(ArtifactCoords.Gav gav) {
+        Path local = getPmConfiguration().getMavenConfig().getLocalRepository();
+        String grp = gav.getGroupId().replaceAll("\\.", "/");
+        String art = gav.getArtifactId().replaceAll("\\.", "/");
+        String vers = gav.getVersion();
+        return Files.exists(Paths.get(local.toString(), grp, art, vers));
+    }
+
+    public void downloadFp(ArtifactCoords.Gav gav) throws ArtifactException {
+        getArtifactResolver().resolve(gav.toArtifactCoords());
+    }
+
+    public void enableMavenTrace(boolean b) {
+        mavenListener.setActive(b);
     }
 }

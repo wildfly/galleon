@@ -22,7 +22,6 @@ import java.util.Map;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.cli.MavenArtifactRepositoryManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
@@ -44,7 +43,7 @@ public class PackagesUtil {
         String path = FeatureContainerPathConsumer.PACKAGES_PATH
                 + pkg + (pkg.endsWith("" + PathParser.PATH_SEPARATOR) ? "" : PathParser.PATH_SEPARATOR);
         FeatureContainer full = FeatureContainers.fromFeaturePackGav(session, ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build(), gav, null);
+                .setArtifactResolver(session.getArtifactResolver()).build(), gav, null);
 
         FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);
         PathParser.parse(path, consumer);

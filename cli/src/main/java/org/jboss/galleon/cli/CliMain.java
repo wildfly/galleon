@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli;
 
+import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.registry.CommandRegistry;
@@ -23,6 +24,7 @@ import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
 import org.aesh.extensions.clear.Clear;
 import org.aesh.readline.ReadlineConsole;
+import org.jboss.galleon.cli.cmd.mvn.MavenCommand;
 import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
 import org.jboss.galleon.cli.cmd.filesystem.LsCommand;
 import org.jboss.galleon.cli.cmd.filesystem.PmMkdir;
@@ -52,6 +54,7 @@ public class CliMain {
         StateCommand state = new StateCommand(pmSession);
         AeshCommandRegistryBuilder builder = new AeshCommandRegistryBuilder()
                 .command(Clear.class)
+                .command(MavenCommand.class)
                 .command(feature)
                 .command(state)
                 .command(install.createCommand())

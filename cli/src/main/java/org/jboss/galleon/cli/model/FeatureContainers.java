@@ -55,6 +55,9 @@ public abstract class FeatureContainers {
         if (fp != null) {
             return fp;
         }
+        if (!session.existsInLocalRepository(gav)) {
+            session.downloadFp(gav);
+        }
         fp = new FeaturePackInfo(name, gav);
         ProvisioningRuntime rt = buildFullRuntime(gav, manager);
         populateFeatureContainer(fp, session, rt, true);
@@ -84,7 +87,7 @@ public abstract class FeatureContainers {
                 cliPlugins.add(plugin);
             }
         };
-        runtime.visitePlugins(visitor, CliPlugin.class);
+        runtime.visitPlugins(visitor, CliPlugin.class);
         CliPlugin plugin = cliPlugins.isEmpty() ? null : cliPlugins.get(0);
         PackageGroupsBuilder pkgBuilder = new PackageGroupsBuilder();
         FeatureSpecsBuilder specsBuilder = new FeatureSpecsBuilder();

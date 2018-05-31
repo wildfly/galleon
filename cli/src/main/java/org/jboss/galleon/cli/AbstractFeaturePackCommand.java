@@ -16,8 +16,6 @@
  */
 package org.jboss.galleon.cli;
 
-import static org.jboss.galleon.cli.ProvisioningFeaturePackCommand.FP_OPTION_NAME;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -42,7 +40,9 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
  */
 public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
 
-    private static final String DIR_OPTION_NAME = "dir";
+    public static final String DIR_OPTION_NAME = "dir";
+    public static final String FP_OPTION_NAME = "fp";
+    public static final String VERBOSE_OPTION_NAME = "verbose";
 
     public static class DirActivator extends PmOptionActivator {
 
@@ -145,9 +145,9 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
         return null;
     }
 
-    protected ProvisioningManager getManager(AeshContext ctx) {
+    protected ProvisioningManager getManager(PmSession session, AeshContext ctx) {
         ProvisioningManager.Builder builder = ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance());
+                .setArtifactResolver(session.getArtifactResolver());
         builder.setInstallationHome(getTargetDir(ctx));
         return builder.build();
     }
@@ -168,7 +168,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
         } catch (Exception ex) {
             // Ok no gav, try file.
         }
-        ProvisioningManager manager = getManager(ctx);
+        ProvisioningManager manager = getManager(session, ctx);
         if (gav != null) {
             container = FeatureContainers.fromFeaturePackGav(session, manager, gav, streamName);
         } else {

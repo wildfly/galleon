@@ -24,7 +24,6 @@ import java.util.Map;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.cli.MavenArtifactRepositoryManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.state.AbstractFPProvisionedCommand;
 import org.jboss.galleon.cli.model.ConfigInfo;
@@ -109,7 +108,7 @@ public abstract class ConfigurationUtil extends AbstractFPProvisionedCommand {
     private static ConfigInfo getConfig(PmSession session, ArtifactCoords.Gav gav, String configuration) throws ProvisioningException, IOException, PathParserException, PathConsumerException {
         String path = FeatureContainerPathConsumer.FINAL_CONFIGS_PATH + configuration + PathParser.PATH_SEPARATOR;
         FeatureContainer full = FeatureContainers.fromFeaturePackGav(session, ProvisioningManager.builder()
-                .setArtifactResolver(MavenArtifactRepositoryManager.getInstance()).build(), gav, null);
+                .setArtifactResolver(session.getArtifactResolver()).build(), gav, null);
         ConfigInfo ci = null;
         try {
             FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);
