@@ -9,7 +9,7 @@ The coordinates of the Maven plugin are
 <dependency>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-maven-plugins</artifactId>
-    <version>1.0.1.Alpha1-SNAPSHOT</version>
+    <version>1.0.1.Final</version>
 </dependency>
 ----
 

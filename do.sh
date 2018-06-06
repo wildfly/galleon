@@ -58,5 +58,5 @@ if [[ -n $BUILD ]]; then
 fi
 
 if [[ -n $RUN ]]; then
-java $JAVA_OPTS "-Dorg.wildfly.logging.skipLogManagerCheck=true" -jar ./cli/target/galleon-cli-1.0.1.Alpha1-SNAPSHOT.jar
+java $JAVA_OPTS "-Dorg.wildfly.logging.skipLogManagerCheck=true" -jar ./cli/target/galleon-cli-1.0.1.Final.jar
 fi
