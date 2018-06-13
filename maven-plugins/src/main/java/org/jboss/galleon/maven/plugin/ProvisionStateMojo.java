@@ -39,6 +39,7 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -197,7 +198,9 @@ public class ProvisionStateMojo extends AbstractMojo {
         final ProvisioningManager pm = ProvisioningManager.builder()
                 .setArtifactResolver(
                         FeaturePackRepositoryManager.newInstance(repoSession.getLocalRepository().getBasedir().toPath()))
-                .setInstallationHome(installDir.toPath()).build();
+                .setInstallationHome(installDir.toPath())
+                .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
+                .build();
 
         pm.provision(state.build(), pluginOptions);
     }
