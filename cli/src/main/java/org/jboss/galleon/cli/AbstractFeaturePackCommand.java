@@ -25,16 +25,14 @@ import org.aesh.command.impl.internal.ParsedOption;
 import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -43,7 +41,6 @@ import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
 
     public static final String DIR_OPTION_NAME = "dir";
-    public static final String FP_OPTION_NAME = "fp";
     public static final String VERBOSE_OPTION_NAME = "verbose";
 
     public static class DirActivator extends PmOptionActivator {
@@ -57,15 +54,11 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
             if (argumentValue != null) {
                 return false;
             }
-            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(FP_OPTION_NAME);
-            if (opt != null && opt.value() != null) {
-                return false;
-            }
             return true;
         }
     }
 
-    public static class StreamNameActivator extends PmOptionActivator {
+    public static class FeaturePackLocationActivator extends PmOptionActivator {
 
         @Override
         public boolean isActivated(ParsedCommand parsedCommand) {
@@ -76,27 +69,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
             if (opt != null && opt.value() != null) {
                 return false;
             }
-            opt = parsedCommand.findLongOptionNoActivatorCheck(FP_OPTION_NAME);
-            if (opt != null && opt.value() != null) {
-                return false;
-            }
             return true;
-        }
-    }
-
-    public static class FPGavActivator extends PmOptionActivator {
-
-        @Override
-        public boolean isActivated(ParsedCommand parsedCommand) {
-            if (getPmSession().getContainer() != null) {
-                return false;
-            }
-            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(DIR_OPTION_NAME);
-            if (opt != null && opt.value() != null) {
-                return false;
-            }
-            String argumentValue = parsedCommand.argument().value();
-            return argumentValue == null;
         }
     }
 
@@ -104,52 +77,28 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
             description = "Installation directory.")
     protected String targetDirArg;
 
-    @Argument(completer = StreamCompleter.class, activator = StreamNameActivator.class)
-    protected String streamName;
+    @Argument(completer = FPLocationCompleter.class, activator = FeaturePackLocationActivator.class)
+    protected String fpl;
 
-    @Option(name = FP_OPTION_NAME, completer = GavCompleter.class, activator = FPGavActivator.class)
-    protected String fpCoords;
-
-    protected FeaturePackLocation getFpl(PmSession session) throws CommandExecutionException {
+    protected FeaturePackLocation getFpl(PmSession session) throws ProvisioningException {
         if (session.getState() != null) {
             return null;
         }
-        if (fpCoords == null && streamName == null) {
-            throw new CommandExecutionException("Stream name or feature-pack coordinates must be set");
-        }
-        if (fpCoords != null && streamName != null) {
-            throw new CommandExecutionException("Only one of stream name or feature-pack coordinates must be set");
-        }
-
-        String coords;
-        if (streamName != null) {
-            try {
-                coords = session.getUniverses().resolveStream(streamName).toString();
-            } catch (ArtifactException ex) {
-                throw new CommandExecutionException("Stream resolution failed", ex);
-            }
-        } else {
-            coords = fpCoords;
-        }
-        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(coords));
+        return session.getResolvedLocation(fpl);
     }
 
     protected String getName() {
-        if (streamName != null) {
-            return streamName;
+        if (fpl != null) {
+            return fpl;
         }
         if (targetDirArg != null) {
             return Paths.get(targetDirArg).getFileName().toString();
-        }
-        if (fpCoords != null) {
-            return fpCoords;
         }
         return null;
     }
 
     protected ProvisioningManager getManager(PmSession session, AeshContext ctx) throws ProvisioningException {
-        ProvisioningManager.Builder builder = ProvisioningManager.builder()
-                .addArtifactResolver(session.getArtifactResolver());
+        ProvisioningManager.Builder builder = ProvisioningManager.builder();
         builder.setInstallationHome(getTargetDir(ctx));
         return builder.build();
     }
@@ -172,7 +121,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
         }
         ProvisioningManager manager = getManager(session, ctx);
         if (fpl != null) {
-            container = FeatureContainers.fromFeaturePackId(session, manager, fpl.getFPID(), streamName);
+            container = FeatureContainers.fromFeaturePackId(session, manager, fpl.getFPID(), this.fpl);
         } else {
             if (manager.getProvisionedState() == null) {
                 throw new CommandExecutionException("Specified directory doesn't contain an installation");

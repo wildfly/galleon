@@ -107,8 +107,7 @@ public abstract class ConfigurationUtil extends AbstractFPProvisionedCommand {
 
     private static ConfigInfo getConfig(PmSession session, FPID fpid, String configuration) throws ProvisioningException, IOException, PathParserException, PathConsumerException {
         String path = FeatureContainerPathConsumer.FINAL_CONFIGS_PATH + configuration + PathParser.PATH_SEPARATOR;
-        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, ProvisioningManager.builder()
-                .addArtifactResolver(session.getArtifactResolver()).build(), fpid, null);
+        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, ProvisioningManager.builder().build(), fpid, null);
         ConfigInfo ci = null;
         try {
             FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);

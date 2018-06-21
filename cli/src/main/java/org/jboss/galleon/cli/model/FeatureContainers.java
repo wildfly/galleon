@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.aesh.utils.Config;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -56,6 +57,7 @@ public abstract class FeatureContainers {
             return fp;
         }
         if (!session.existsInLocalRepository(fpid)) {
+            session.println(Config.getLineSeparator() + "retrieving feature-pack content from remote repository...");
             session.downloadFp(fpid);
         }
         fp = new FeaturePackInfo(name, fpid);

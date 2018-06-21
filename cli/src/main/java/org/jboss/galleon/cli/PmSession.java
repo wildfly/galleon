@@ -17,7 +17,6 @@
 package org.jboss.galleon.cli;
 
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.aesh.command.activator.CommandActivator;
@@ -34,13 +33,13 @@ import org.aesh.utils.Config;
 import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
-import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.UniverseResolver;
+import org.jboss.galleon.universe.UniverseSpec;
 
 /**
  *
@@ -54,6 +53,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         private static final String MAVEN = "[MAVEN] ";
 
         private boolean active;
+
         void setActive(boolean active) {
             this.active = active;
         }
@@ -177,26 +177,35 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private PrintStream out;
     private PrintStream err;
     private final Configuration config;
-    private final Universes universes;
-
     private State state;
     private FeatureContainer exploredContainer;
     private String currentPath;
     private final MavenArtifactRepositoryManager maven;
-    private final UniverseResolver universeResolver;
     private final MavenListener mavenListener;
+    private UniverseManager universe;
 
     public PmSession(Configuration config) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
         this.maven = new MavenArtifactRepositoryManager(config.getMavenConfig(),
                 mavenListener);
+        universe = new UniverseManager(this, config, maven);
+        // Abort running universe resolution if any.
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            universe.close();
+        }));
 
-        universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
-
-        //Build the universes
-        this.universes = Universes.buildUniverses(config, maven);
     }
+
+    public UniverseManager getUniverse() {
+        return universe;
+    }
+
+    public FeaturePackLocation getResolvedLocation(String location) throws ProvisioningException {
+        FeaturePackLocation loc = FeaturePackLocation.fromString(location);
+        return getResolvedLocation(loc);
+    }
+
 
     public void commandStart() {
         maven.commandStart();
@@ -263,28 +272,6 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return config;
     }
 
-    public Universes getUniverses() {
-        return universes;
-    }
-
-    public ArtifactRepositoryManager getArtifactResolver() {
-        return maven;
-    }
-
-    public UniverseResolver getUniverseResolver() {
-        return universeResolver;
-    }
-
-    // TO REMOVE when we have an universe for sure.
-    public boolean hasPopulatedUniverse() {
-        for (Universe u : universes.getUniverses()) {
-            if (!u.getStreamLocations().isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static Prompt buildPrompt(AeshContext aeshCtx) {
         return buildPrompt(aeshCtx.getCurrentWorkingDirectory().getName());
     }
@@ -333,18 +320,53 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return oa;
     }
 
-    public boolean existsInLocalRepository(FPID fpid) {
-        Path local = getPmConfiguration().getMavenConfig().getLocalRepository();
-        String grp = fpid.getChannel().getProducer().replaceAll("\\.", "/");
-        grp = grp.replaceAll(":", "/");
-        String vers = fpid.getBuild();
-        return Files.exists(Paths.get(local.toString(), grp, vers));
+    public boolean existsInLocalRepository(FPID fpid) throws ProvisioningException {
+        FeaturePackLocation loc = getResolvedLocation(fpid.getLocation());
+        String freq = loc.getFrequency() == null ? "alpha" : loc.getFrequency();
+        loc = new FeaturePackLocation(loc.getUniverse(),
+                loc.getProducerName(), loc.getChannelName(), freq, loc.getBuild());
+        return universe.getUniverseResolver().isResolved(loc);
     }
 
     public void downloadFp(FPID fpid) throws ProvisioningException {
-        getUniverseResolver().resolve(fpid.getLocation());
+        universe.getUniverseResolver().resolve(getResolvedLocation(fpid.getLocation()));
     }
 
+    private FeaturePackLocation getResolvedLocation(FeaturePackLocation fplocation) throws ProvisioningException {
+        UniverseSpec spec = fplocation.getUniverse();
+        if (spec != null) {
+            if (spec.getLocation() == null) {
+                spec = universe.getUniverseSpec(spec.getFactory());
+                if (spec == null) {
+                    throw new ProvisioningException("Unknown universe " + spec.getFactory());
+                }
+            }
+        } else {
+            spec = universe.getDefaultUniverseSpec();
+        }
+        return new FeaturePackLocation(spec, fplocation.getProducerName(),
+                fplocation.getChannelName(), fplocation.getFrequency(), fplocation.getBuild());
+    }
+
+    public FeaturePackLocation getExposedLocation(FeaturePackLocation fplocation) {
+        // Expose the default or name.
+        UniverseSpec spec = fplocation.getUniverse();
+        boolean rewrite = false;
+        String name = getUniverse().getUniverseName(spec);
+        if (name != null) {
+            rewrite = true;
+            spec = new UniverseSpec(name, null);
+        } else if (getUniverse().getDefaultUniverseSpec().equals(spec)) {
+            rewrite = true;
+            spec = null;
+        }
+        if (rewrite) {
+            fplocation = new FeaturePackLocation(spec,
+                    fplocation.getProducerName(), fplocation.getChannelName(),
+                    fplocation.getFrequency(), fplocation.getBuild());
+        }
+        return fplocation;
+    }
     public void enableMavenTrace(boolean b) {
         mavenListener.setActive(b);
     }

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
@@ -31,9 +32,10 @@ import org.jboss.galleon.util.CollectionUtils;
  * @author Alexey Loubyansky
  */
 public class UniverseFactoryLoader {
+    private static final UniverseFactoryLoader INSTANCE = new UniverseFactoryLoader();
 
     public static UniverseFactoryLoader getInstance() {
-        return new UniverseFactoryLoader();
+        return INSTANCE;
     }
 
     private final Map<String, UniverseFactory> factories;
@@ -59,6 +61,10 @@ public class UniverseFactoryLoader {
             factories.put(factory.getFactoryId(), factory);
         }
         this.factories = CollectionUtils.unmodifiable(factories);
+    }
+
+    public Set<String> getFactories() {
+        return this.factories.keySet();
     }
 
     public UniverseFactoryLoader addArtifactResolver(RepositoryArtifactResolver artifactResolver) {

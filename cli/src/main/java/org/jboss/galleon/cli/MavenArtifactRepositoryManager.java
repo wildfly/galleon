@@ -16,19 +16,17 @@
  */
 package org.jboss.galleon.cli;
 
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import org.jboss.galleon.cli.config.mvn.MavenSettings;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.eclipse.aether.RepositoryListener;
 
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.deployment.DeployRequest;
-import org.eclipse.aether.deployment.DeploymentException;
 import org.eclipse.aether.installation.InstallRequest;
 import org.eclipse.aether.installation.InstallationException;
 import org.eclipse.aether.resolution.ArtifactRequest;
@@ -36,18 +34,25 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
-import org.jboss.galleon.ArtifactRepositoryManager;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.maven.plugin.FpMavenErrors;
+import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.universe.maven.MavenErrors;
+import org.jboss.galleon.universe.maven.MavenUniverseException;
+import org.jboss.galleon.universe.maven.repo.MavenArtifactVersion;
+import org.jboss.galleon.universe.maven.repo.MavenArtifactVersionRange;
+import org.jboss.galleon.universe.maven.repo.MavenArtifactVersionRangeParser;
+import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager {
+public class MavenArtifactRepositoryManager implements MavenRepoManager {
 
+    private static final MavenArtifactVersionRangeParser versionRangeParser = new MavenArtifactVersionRangeParser();
     public static final String DEFAULT_REPOSITORY_TYPE = "default";
     private final RepositorySystem repoSystem;
     private final MavenConfig config;
@@ -82,11 +87,7 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
         return mavenSettings;
     }
 
-    @Override
-    public Path resolve(ArtifactCoords coords) throws ArtifactException {
-        final ArtifactRequest request = new ArtifactRequest();
-        request.setArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
-                coords.getExtension(), coords.getVersion()));
+    private Path doResolve(ArtifactRequest request, String coords) throws ArtifactException {
         request.setRepositories(getSettings().getRepositories());
 
         final ArtifactResult result;
@@ -104,34 +105,11 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
         return Paths.get(result.getArtifact().getFile().toURI());
     }
 
-    @Override
-    public void install(ArtifactCoords coords, Path file) throws ArtifactException {
-        final InstallRequest request = new InstallRequest();
-        request.addArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
-                coords.getExtension(), coords.getVersion(), Collections.emptyMap(), file.toFile()));
-        try {
-            repoSystem.install(getSettings().getSession(), request);
-        } catch (InstallationException ex) {
-            Logger.getLogger(MavenArtifactRepositoryManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private void doInstall(InstallRequest request) throws InstallationException, ArtifactException {
+        repoSystem.install(getSettings().getSession(), request);
     }
 
-    @Override
-    public void deploy(ArtifactCoords coords, Path file) throws ArtifactException {
-        final DeployRequest request = new DeployRequest();
-        request.addArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
-                coords.getExtension(), coords.getVersion(), Collections.emptyMap(), file.toFile()));
-        try {
-            repoSystem.deploy(getSettings().getSession(), request);
-        } catch (DeploymentException ex) {
-            Logger.getLogger(MavenArtifactRepositoryManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public String getHighestVersion(ArtifactCoords coords, String range) throws ArtifactException {
-        Artifact artifact = new DefaultArtifact(coords.getGroupId(),
-                coords.getArtifactId(), coords.getExtension(), range);
+    private String dogetHighestVersion(Artifact artifact, String coords) throws ArtifactException {
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
         rangeRequest.setArtifact(artifact);
         rangeRequest.setRepositories(getSettings().getRepositories());
@@ -149,6 +127,151 @@ public class MavenArtifactRepositoryManager implements ArtifactRepositoryManager
             throw new ArtifactException("No version retrieved for " + coords);
         }
         return version;
+    }
+
+    @Override
+    public String getRepositoryId() {
+        return MavenRepoManager.REPOSITORY_ID;
+    }
+
+    @Override
+    public Path resolve(String location) throws ProvisioningException {
+        return MavenRepoManager.super.resolve(location);
+    }
+
+    @Override
+    public void resolve(MavenArtifact artifact) throws MavenUniverseException {
+        if (artifact.isResolved()) {
+            throw new MavenUniverseException("Artifact is already resolved");
+        }
+        final ArtifactRequest request = new ArtifactRequest();
+        request.setArtifact(new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
+                artifact.getExtension(), artifact.getVersion()));
+        try {
+            Path path = doResolve(request, artifact.getCoordsAsString());
+            artifact.setPath(path);
+        } catch (ArtifactException ex) {
+            throw new MavenUniverseException(ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public void resolveLatestVersion(MavenArtifact mavenArtifact, String lowestQualifier) throws MavenUniverseException {
+        Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
+                mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
+        try {
+            String version = dogetHighestVersion(artifact, mavenArtifact.getCoordsAsString());
+            mavenArtifact.setVersion(version);
+            resolve(mavenArtifact);
+        } catch (ArtifactException ex) {
+            throw new MavenUniverseException(ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void install(MavenArtifact artifact, Path path) throws MavenUniverseException {
+        if (artifact.isResolved()) {
+            throw new MavenUniverseException("Artifact is already associated with a path " + path);
+        }
+        final InstallRequest request = new InstallRequest();
+        request.addArtifact(new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
+                artifact.getExtension(), artifact.getVersion(), Collections.emptyMap(), path.toFile()));
+        try {
+            doInstall(request);
+            artifact.setPath(getArtifactPath(artifact));
+        } catch (ArtifactException | InstallationException ex) {
+            throw new MavenUniverseException(ex.getLocalizedMessage());
+        }
+    }
+
+    private Path getArtifactPath(MavenArtifact artifact) throws MavenUniverseException, ArtifactException {
+        if (artifact.getGroupId() == null) {
+            MavenErrors.missingGroupId();
+        }
+        Path p = getSettings().getSession().getLocalRepository().getBasedir().toPath();
+        final String[] groupParts = artifact.getGroupId().split("\\.");
+        for (String part : groupParts) {
+            p = p.resolve(part);
+        }
+        final String artifactFileName = artifact.getArtifactFileName();
+        return p.resolve(artifact.getArtifactId()).resolve(artifact.getVersion()).resolve(artifactFileName);
+    }
+
+    @Override
+    public boolean isResolved(MavenArtifact artifact) throws MavenUniverseException {
+        if (artifact.isResolved()) {
+            return true;
+        }
+        try {
+            Path path = getArtifactPath(artifact);
+            return Files.exists(path);
+        } catch (ArtifactException e) {
+            throw new MavenUniverseException(e.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        if (artifact.isResolved()) {
+            return true;
+        }
+        try {
+            Path path = resolveLatestVersionDir(artifact, lowestQualifier);
+            return Files.exists(path);
+        } catch (ArtifactException e) {
+            throw new MavenUniverseException(e.getLocalizedMessage(), e);
+        }
+    }
+
+    private Path resolveLatestVersionDir(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException, ArtifactException {
+        if (artifact.getGroupId() == null) {
+            MavenErrors.missingGroupId();
+        }
+        if (artifact.getArtifactId() == null) {
+            MavenErrors.missingArtifactId();
+        }
+        if (artifact.getVersionRange() == null) {
+            throw new MavenUniverseException("Version range is missing for " + artifact.getCoordsAsString());
+        }
+        Path repoHome = getSettings().getSession().getLocalRepository().getBasedir().toPath();
+        Path artifactDir = repoHome;
+        final String[] groupParts = artifact.getGroupId().split("\\.");
+        for (String part : groupParts) {
+            artifactDir = artifactDir.resolve(part);
+        }
+        artifactDir = artifactDir.resolve(artifact.getArtifactId());
+        if (!Files.exists(artifactDir)) {
+            throw MavenErrors.artifactNotFound(artifact, repoHome);
+        }
+        final MavenArtifactVersionRange range = versionRangeParser.parseRange(artifact.getVersionRange());
+        if (lowestQualifier == null) {
+            lowestQualifier = "";
+        }
+        Path latestDir = null;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(artifactDir)) {
+            MavenArtifactVersion latest = null;
+            for (Path versionDir : stream) {
+                final MavenArtifactVersion next = new MavenArtifactVersion(versionDir.getFileName().toString());
+                if (!range.includesVersion(next) || !next.isQualifierHigher(lowestQualifier, true)) {
+                    continue;
+                }
+                if (latest == null || latest.compareTo(next) <= 0) {
+                    latest = next;
+                    latestDir = versionDir;
+                }
+            }
+        } catch (Exception e) {
+            throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString(), e);
+        }
+        if (latestDir == null) {
+            throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString());
+        }
+        return latestDir;
     }
 
 }

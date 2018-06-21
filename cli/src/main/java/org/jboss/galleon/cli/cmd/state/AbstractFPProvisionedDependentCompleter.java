@@ -18,6 +18,8 @@ package org.jboss.galleon.cli.cmd.state;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.PmCompleterInvocation;
@@ -39,6 +41,8 @@ public abstract class AbstractFPProvisionedDependentCompleter extends AbstractCo
             }
             return getItems(completerInvocation, fp);
         } catch (Exception ex) {
+            Logger.getLogger(AbstractFPProvisionedDependentCompleter.class.getName()).log(Level.FINEST,
+                    "Exception while completing: {0}", ex.getLocalizedMessage());
             return Collections.emptyList();
         }
     }

@@ -245,4 +245,14 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
         final String artifactFileName = artifact.getArtifactFileName();
         return p.resolve(artifact.getArtifactId()).resolve(artifact.getVersion()).resolve(artifactFileName);
     }
+
+    @Override
+    public boolean isResolved(MavenArtifact artifact) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

@@ -47,7 +47,6 @@ public abstract class ProvisioningCommand extends PmSessionCommand {
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return ProvisioningManager.builder()
-                .addArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getTargetDir(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), verbose))
                 .build();

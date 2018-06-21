@@ -73,7 +73,8 @@ public class FeatureSpecsBuilder {
         if (specs == null) {
             specs = new HashSet<>();
             final Set<FeatureSpecInfo> fSpecs = specs;
-            FileSystem fs = FileSystems.newFileSystem(session.getUniverseResolver().resolve(fpid.getLocation()), null);
+            FileSystem fs = FileSystems.newFileSystem(session.getUniverse().
+                    getUniverseResolver().resolve(fpid.getLocation()), null);
             try {
                 final Path path = fs.getPath("features/");
                 Files.walkFileTree(path, new SimpleFileVisitor<Path>() {

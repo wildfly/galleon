@@ -212,4 +212,19 @@ public class MavenChannel implements Channel {
         return buf.toString();
     }
     */
+    @Override
+    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
+        final MavenArtifact artifact = new MavenArtifact();
+        artifact.setGroupId(producer.getFeaturePackGroupId());
+        artifact.setArtifactId(producer.getFeaturePackArtifactId());
+        artifact.setExtension("zip");
+
+        if (fpl.getBuild() == null) {
+            artifact.setVersionRange(versionRange);
+            return producer.getRepo().isLatestVersionResolved(artifact, getFrequency(fpl));
+        } else {
+            artifact.setVersion(fpl.getBuild());
+            return producer.getRepo().isResolved(artifact);
+        }
+    }
 }

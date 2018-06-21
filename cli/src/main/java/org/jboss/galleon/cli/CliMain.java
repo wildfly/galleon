@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli;
 
+import org.jboss.galleon.cli.cmd.universe.UniverseCommand;
 import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
@@ -90,13 +91,15 @@ public class CliMain {
                 commandInvocationProvider(pmSession).
                 build();
 
-        // These commands require the aeshContext to properly operate
-        install.setAeshContext(settings.aeshContext());
-        state.setAeshContext(settings.aeshContext());
-
         pmSession.setOut(settings.stdOut());
         pmSession.setErr(settings.stdErr());
         ReadlineConsole console = new ReadlineConsole(settings);
+
+        // These commands require the aeshContext to properly operate
+        install.setAeshContext(console.context());
+        state.setAeshContext(console.context());
+        pmSession.getUniverse().setAeshContext(console.context());
+        pmSession.getUniverse().resolveBuiltinUniverse();
         console.setPrompt(PmSession.buildPrompt(settings.aeshContext()));
         console.start();
     }

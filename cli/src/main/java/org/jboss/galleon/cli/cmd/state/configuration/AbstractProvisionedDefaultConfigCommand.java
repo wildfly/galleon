@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
@@ -34,7 +36,6 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -70,6 +71,8 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
                 }
                 return configs;
             } catch (Exception ex) {
+                Logger.getLogger(AbstractProvisionedDefaultConfigCommand.class.getName()).log(Level.FINEST,
+                        "Exception while completing: {0}", ex.getLocalizedMessage());
                 return Collections.emptyList();
             }
         }
@@ -98,6 +101,8 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
                 }
                 return lst;
             } catch (Exception ex) {
+                Logger.getLogger(TargetedFPCompleter.class.getName()).log(Level.FINEST,
+                        "Exception while completing: {0}", ex.getLocalizedMessage());
                 return Collections.emptyList();
             }
         }
@@ -115,7 +120,11 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
         if (origin == null) {
             return null;
         }
-        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getProducer();
+        try {
+            return session.getResolvedLocation(origin).getProducer();
+        } catch (ProvisioningException ex) {
+            throw new CommandExecutionException(ex.getLocalizedMessage(), ex);
+        }
     }
 
     protected String getConfiguration() {

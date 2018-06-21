@@ -28,7 +28,6 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
@@ -38,7 +37,7 @@ import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
  *
@@ -53,10 +52,10 @@ public class DiffCommand extends AbstractPluginsCommand {
     }
 
     @Override
-    protected void runCommand(PmCommandInvocation session, Map<String, String> options, ArtifactCoords.Gav gav) throws CommandExecutionException {
+    protected void runCommand(PmCommandInvocation session, Map<String, String> options, FeaturePackLocation loc) throws CommandExecutionException {
         try {
             Path targetDirectory = toPath((String) getValue(TARGET_NAME), session.getAeshContext());
-            getManager(session).exportConfigurationChanges(targetDirectory, LegacyGalleon1Universe.toFpl(gav).getFPID(), options);
+            getManager(session).exportConfigurationChanges(targetDirectory, loc.getFPID(), options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }

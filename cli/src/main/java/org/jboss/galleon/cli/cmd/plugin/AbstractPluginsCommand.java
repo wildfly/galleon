@@ -22,28 +22,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.aesh.command.activator.OptionActivator;
 import org.aesh.command.impl.internal.OptionType;
-import org.aesh.command.impl.internal.ParsedCommand;
-import org.aesh.command.impl.internal.ParsedOption;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.aesh.utils.Config;
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
-import org.jboss.galleon.cli.GavCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
-import static org.jboss.galleon.cli.AbstractFeaturePackCommand.FP_OPTION_NAME;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NAME;
-import org.jboss.galleon.cli.StreamCompleter;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
+import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -51,7 +44,6 @@ import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  * An abstract command that discover plugin options based on the fp or stream
@@ -61,25 +53,6 @@ import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
  */
 public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
-    public static class FPActivator implements OptionActivator {
-
-        @Override
-        public boolean isActivated(ParsedCommand parsedCommand) {
-            String argumentValue = parsedCommand.argument().value();
-            return argumentValue == null;
-        }
-    }
-
-    public static class StreamNameActivator implements OptionActivator {
-
-        @Override
-        public boolean isActivated(ParsedCommand parsedCommand) {
-            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(FP_OPTION_NAME);
-            return opt == null || opt.value() == null;
-        }
-    }
-
-    private static final String FP_NAME = "fp";
     private AeshContext ctx;
 
     public AbstractPluginsCommand(PmSession pmSession) {
@@ -96,25 +69,29 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
-        // Check if the gav is in the local repository
-        ArtifactCoords.Gav gav = getGav(pmSession);
         if (isVerbose()) {
             session.getPmSession().enableMavenTrace(true);
         }
         try {
-            runCommand(session, options, gav);
+            FeaturePackLocation loc = pmSession.getResolvedLocation(getId(pmSession));
+            runCommand(session, options, loc);
+        } catch (ProvisioningException ex) {
+            throw new CommandExecutionException(ex.getLocalizedMessage(), ex);
         } finally {
             session.getPmSession().enableMavenTrace(false);
         }
     }
 
     protected abstract void runCommand(PmCommandInvocation session, Map<String, String> options,
-            ArtifactCoords.Gav gav) throws CommandExecutionException;
+            FeaturePackLocation loc) throws CommandExecutionException;
 
     @Override
     protected void doValidateOptions() throws CommandExecutionException {
         // side effect is to resolve artifact.
-        getId(pmSession);
+        String fpl = getId(pmSession);
+        if (fpl == null) {
+            throw new CommandExecutionException("Missing feature-pack");
+        }
     }
 
     @Override
@@ -122,21 +99,12 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         List<ProcessedOption> options = new ArrayList<>();
         options.add(ProcessedOptionBuilder.builder().name(ARGUMENT_NAME).
                 hasValue(true).
-                description("stream name").
+                description("FP Location").
                 type(String.class).
+                required(true).
                 optionType(OptionType.ARGUMENT).
-                completer(StreamCompleter.class).
-                activator(StreamNameActivator.class).
+                completer(FPLocationCompleter.class).
                 build());
-        options.add(ProcessedOptionBuilder.builder().name(FP_NAME).
-                hasValue(true).
-                description("Feature-pack maven gav").
-                type(String.class).
-                optionType(OptionType.NORMAL).
-                completer(GavCompleter.class).
-                activator(FPActivator.class).
-                build());
-
         options.add(ProcessedOptionBuilder.builder().name(VERBOSE_OPTION_NAME).
                 hasValue(false).
                 type(Boolean.class).
@@ -155,8 +123,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
         ProvisioningManager manager = getManager(ctx);
-        ArtifactCoords.Gav gav = ArtifactCoords.newGav(id);
-        FeaturePackLocation fpl = LegacyGalleon1Universe.toFpl(gav);
+        FeaturePackLocation fpl = pmSession.getResolvedLocation(id);
         checkLocalArtifact(fpl.getFPID());
         FeaturePackConfig config = FeaturePackConfig.forLocation(fpl);
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
@@ -175,7 +142,6 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     private ProvisioningManager getManager(AeshContext ctx) throws ProvisioningException {
         ProvisioningManager manager = ProvisioningManager.builder()
-                .addArtifactResolver(pmSession.getArtifactResolver())
                 .setInstallationHome(getInstallationHome(ctx))
                 .build();
         return manager;
@@ -183,7 +149,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return ProvisioningManager.builder()
-                .addArtifactResolver(session.getPmSession().getArtifactResolver())
+                .setUniverseResolver(session.getPmSession().getUniverse().getUniverseResolver())
                 .setInstallationHome(getInstallationHome(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), isVerbose()))
                 .build();
@@ -192,38 +158,14 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     @Override
     protected String getId(PmSession session) throws CommandExecutionException {
         String streamName = (String) getValue(ARGUMENT_NAME);
-        String fpCoords = (String) getValue(FP_NAME);
-        if (fpCoords == null && streamName == null) {
+        if (streamName == null) {
             // Check in argument or option, that is the option completion case.
-            String val = getArgumentValue();
-            if (val == null) {
-                val = getOptionValue(FP_NAME);
-                return val;
-            }
-            streamName = val;
+            streamName = getArgumentValue();
         }
-        String coords = null;
-        if (streamName != null) {
-            try {
-                coords = session.getUniverses().resolveStream(streamName).toGav().toString();
-            } catch (ArtifactException ex) {
-                throw new CommandExecutionException(ex);
-            }
-        } else {
-            coords = fpCoords;
-        }
-        return coords;
+        return streamName;
     }
 
-    protected ArtifactCoords.Gav getGav(PmSession session) throws CommandExecutionException {
-        String id = getId(session);
-        if (id == null) {
-            throw new CommandExecutionException("Stream resolution failed");
-        }
-        return ArtifactCoords.newGav(id);
-    }
-
-    private void checkLocalArtifact(FPID fpid) throws CommandExecutionException {
+    private void checkLocalArtifact(FPID fpid) throws CommandExecutionException, ProvisioningException {
         if (!pmSession.existsInLocalRepository(fpid)) {
             try {
                 pmSession.println(Config.getLineSeparator() + "retrieving feature-pack content from remote repository...");

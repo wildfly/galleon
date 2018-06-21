@@ -69,6 +69,21 @@ NB: Each action applied to a state in edition can be undone: _undo_. Use _state 
 
 NB: The set of exposed commands by completer is dynamic and is adjusted according to the current state.
 
+### Managing universes
+A universe can be added/removed to/from an existing installation or to a new/edited state. +
+NB: In order to add/remove a universe to/from an installation you must first _cd_ in the directory of the installation. +
+ 
+Add a named or default (without using the --name option) universe to the current provisioning state or installation. +
+_[/]$ universe add [--name=<universe name>] --factory=<universe factory> --location=<universe location>_
+
+Remove a named or default (without using the --name option) universe from the current provisioning state or installation. + 
+_[/]$ universe remove [--name=<universe name>]_
+
+### Searching for products in universes
+You can search for products that match a given pattern using _universe search <pattern>_. +
+For example: +
+_[/]$ universe search wildfly*_
+
 ### Exporting or provisioning the current state
 
 At any time, one can export the provisioning XML file or directly provision from the current state:
@@ -77,7 +92,9 @@ _[/]$ state export <path to generated xml file> | state provision <dir of new in
 
 TIP: Use state export to validate that what you get in the XML is in sync with the expose state. In case you find something wrong, shout to me ;-)!
 
-TIP: The command state info can be used to get high level information. I am wandering if we shouldn’t have a flag to display the full XML in the console instead of heaving to read an external file. Possible TODO.
+TIP: Exporting a state without any XML target file will display the XML content in the CLI console.
+
+TIP: The command state info can be used to get high level information.
 
 ### Adding a feature-pack
 

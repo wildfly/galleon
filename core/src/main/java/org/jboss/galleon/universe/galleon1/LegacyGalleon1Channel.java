@@ -57,4 +57,9 @@ public class LegacyGalleon1Channel implements Channel {
     public String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
         throw new ProvisioningException("Failed to determine the latest build for " + fpl + ": operation not supported");
     }
+
+    @Override
+    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

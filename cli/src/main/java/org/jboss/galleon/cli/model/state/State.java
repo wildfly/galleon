@@ -65,14 +65,14 @@ public class State {
     private String path;
     private ProvisioningConfig.Builder builder;
     private final FeaturePackProvisioning fpProvisioning = new FeaturePackProvisioning();
+    private final Provisioning provisioning = new Provisioning();
     private final ConfigProvisioning configProvisioning = new ConfigProvisioning();
     private final Deque<Action> stack = new ArrayDeque<>();
     private ProvisioningRuntime runtime;
 
     public State(PmSession pmSession) throws ProvisioningException, IOException {
         builder = ProvisioningConfig.builder();
-        ProvisioningManager manager = ProvisioningManager.builder()
-                .addArtifactResolver(pmSession.getArtifactResolver()).build();
+        ProvisioningManager manager = ProvisioningManager.builder().build();
         init(pmSession, manager);
     }
 
@@ -80,13 +80,11 @@ public class State {
         ProvisioningManager manager;
         ProvisioningConfig conf;
         if (Files.isRegularFile(installation)) {
-            manager = ProvisioningManager.builder()
-                    .addArtifactResolver(pmSession.getArtifactResolver()).build();
+            manager = ProvisioningManager.builder().build();
             conf = ProvisioningXmlParser.parse(installation);
             builder = conf.getBuilder();
         } else {
-            manager = ProvisioningManager.builder()
-                    .addArtifactResolver(pmSession.getArtifactResolver()).
+            manager = ProvisioningManager.builder().
                     setInstallationHome(installation).
                     build();
             if (manager.getProvisionedState() == null) {
@@ -209,6 +207,16 @@ public class State {
         config = pushState(action, pmSession);
     }
 
+    public void addUniverse(PmSession pmSession, String name, String factory, String location) throws ProvisioningException, IOException {
+        Action action = provisioning.addUniverse(name, factory, location);
+        config = pushState(action, pmSession);
+    }
+
+    public void removeUniverse(PmSession pmSession, String name) throws ProvisioningException, IOException {
+        Action action = provisioning.removeUniverse(name);
+        config = pushState(action, pmSession);
+    }
+
     public void export(Path file) throws Exception {
         ProvisioningXmlWriter.getInstance().write(config, file);
     }
@@ -227,7 +235,7 @@ public class State {
             stack.push(action);
             return newConfig;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
             try {
                 action.undoAction(builder);
             } catch (Exception ex2) {
@@ -252,8 +260,7 @@ public class State {
 
     private ProvisioningConfig buildNewConfig(PmSession pmSession) throws ProvisioningException, IOException {
         ProvisioningConfig tmp = builder.build();
-        ProvisioningManager manager = ProvisioningManager.builder()
-                .addArtifactResolver(pmSession.getArtifactResolver()).build();
+        ProvisioningManager manager = ProvisioningManager.builder().build();
         runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
@@ -276,8 +283,7 @@ public class State {
     }
 
     private void buildDependencies(PmSession session, Set<FeaturePackLocation.FPID> dependencies, Map<String, FeatureContainer> deps) throws ProvisioningException, IOException {
-        ProvisioningManager manager = ProvisioningManager.builder()
-                .addArtifactResolver(session.getArtifactResolver()).build();
+        ProvisioningManager manager = ProvisioningManager.builder().build();
         for (FeaturePackLocation.FPID fpid : dependencies) {
             String orig = Identity.buildOrigin(fpid.getProducer());
             if (!deps.containsKey(orig)) {

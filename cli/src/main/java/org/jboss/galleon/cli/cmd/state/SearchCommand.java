@@ -98,7 +98,6 @@ public class SearchCommand extends PmSessionCommand {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw new CommandExecutionException(ex);
         }
     }

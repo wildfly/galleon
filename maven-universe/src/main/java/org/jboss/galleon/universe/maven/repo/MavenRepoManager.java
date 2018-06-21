@@ -48,6 +48,10 @@ public interface MavenRepoManager extends RepositoryArtifactResolver {
 
     void resolve(MavenArtifact artifact) throws MavenUniverseException;
 
+    boolean isResolved(MavenArtifact artifact) throws MavenUniverseException;
+
+    boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
+
     default void resolveLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
         resolveLatestVersion(artifact, null);
     }

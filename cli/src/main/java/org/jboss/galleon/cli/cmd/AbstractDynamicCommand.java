@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
@@ -152,7 +154,8 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 }
                 return options;
             } catch (Exception ex) {
-                // XXX OK.
+                Logger.getLogger(AbstractDynamicCommand.class.getName()).log(Level.FINEST,
+                        "Error retrieving dynamic options: {0}", ex.getLocalizedMessage());
             }
             return Collections.emptyList();
         }
@@ -209,7 +212,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
             runCommand(session, options);
             return CommandResult.SUCCESS;
         } catch (Throwable t) {
-            //t.printStackTrace();
+            // t.printStackTrace();
             if (t instanceof RuntimeException) {
                 t.printStackTrace(session.getErr());
             }
