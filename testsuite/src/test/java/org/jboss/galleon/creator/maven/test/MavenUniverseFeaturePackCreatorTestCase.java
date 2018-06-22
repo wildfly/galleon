@@ -55,7 +55,7 @@ public class MavenUniverseFeaturePackCreatorTestCase extends UniverseRepoTestBas
         FeaturePackCreator.getInstance()
         .addArtifactResolver(repo)
         .newFeaturePack()
-            .setFPID(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "/universe.maven.test:maven-universe1:[1.0,2.0-alpha):1.0#1.0.0.Final").getFPID())
+            .setFPID(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(universe.maven.test:maven-universe1:[1.0,2.0-alpha)):1.0#1.0.0.Final").getFPID())
             .newPackage("p1", true)
                 .writeContent("p1.txt", "p1 text")
                 .getFeaturePack()
@@ -68,7 +68,7 @@ public class MavenUniverseFeaturePackCreatorTestCase extends UniverseRepoTestBas
         final UniverseResolver universeResolver = UniverseResolver.builder()
                 .addArtifactResolver(SimplisticMavenRepoManager.getInstance(repoHome))
                 .build();
-        Path path = universeResolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "/universe.maven.test:maven-universe1:[1.0,2.0-alpha):1.0"));
+        Path path = universeResolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(universe.maven.test:maven-universe1:[1.0,2.0-alpha)):1.0"));
         Assert.assertEquals("feature-pack1-1.0.0.Final.zip", path.getFileName().toString());
     }
 }

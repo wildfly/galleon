@@ -24,8 +24,14 @@ package org.jboss.galleon.universe;
 public class UniverseSpec {
 
     public static UniverseSpec fromString(String src) {
-        final int i = src.indexOf('/');
-        return i < 0 ? new UniverseSpec(src, null) : new UniverseSpec(src.substring(0, i), src.substring(i + 1));
+        if(src.charAt(src.length() - 1) == FeaturePackLocation.UNIVERSE_LOCATION_END) {
+            final int start = src.indexOf(FeaturePackLocation.UNIVERSE_LOCATION_START);
+            if(start < 2) {
+                throw new IllegalArgumentException("Universe spec '" + src + "' does not follow format factory_id[(location)]");
+            }
+            return new UniverseSpec(src.substring(0, start), src.substring(start + 1,src.length() - 1));
+        }
+        return new UniverseSpec(src, null);
     }
 
     private final String factory;
@@ -79,6 +85,6 @@ public class UniverseSpec {
     }
 
     public String toString() {
-        return location == null ? factory : factory + '/' + location;
+        return location == null ? factory : factory + FeaturePackLocation.UNIVERSE_LOCATION_START + location + FeaturePackLocation.UNIVERSE_LOCATION_END;
     }
 }

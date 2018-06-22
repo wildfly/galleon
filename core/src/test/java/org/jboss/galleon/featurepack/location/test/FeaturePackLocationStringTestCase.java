@@ -26,11 +26,11 @@ import org.junit.Test;
  *
  * @author Alexey Loubyansky
  */
-public class FeaturePackSourceStringTestCase {
+public class FeaturePackLocationStringTestCase {
 
     @Test
     public void testCompleteSourceToString() throws Exception {
-        Assert.assertEquals("producer@factory/location:channel/frequency#build",
+        Assert.assertEquals("producer@factory(location):channel/frequency#build",
                 new FeaturePackLocation(
                         new UniverseSpec("factory", "location"),
                         "producer", "channel", "frequency", "build")
@@ -39,7 +39,7 @@ public class FeaturePackSourceStringTestCase {
 
     @Test
     public void testCompleteSourceFromString() throws Exception {
-        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer@factory/location:channel/frequency#build");
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer@factory(location):channel/frequency#build");
         Assert.assertNotNull(parsedSrc);
         Assert.assertEquals("factory", parsedSrc.getUniverse().getFactory());
         Assert.assertEquals("location", parsedSrc.getUniverse().getLocation());
@@ -76,12 +76,12 @@ public class FeaturePackSourceStringTestCase {
                 new UniverseSpec("factory", "location"),
                 "producer", "channel", "frequency", "build")
         .getChannel();
-        Assert.assertEquals("producer@factory/location:channel", channel.toString());
+        Assert.assertEquals("producer@factory(location):channel", channel.toString());
     }
 
     @Test
     public void testChannelWithUniverseLocationAndFrequencyFromString() throws Exception {
-        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@factory/location:channel/frequency");
+        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@factory(location):channel/frequency");
         Assert.assertNotNull(parsedCoords);
         Assert.assertEquals("factory", parsedCoords.getUniverse().getFactory());
         Assert.assertEquals("location", parsedCoords.getUniverse().getLocation());
@@ -118,12 +118,12 @@ public class FeaturePackSourceStringTestCase {
                 new UniverseSpec("factory", "location"),
                 "producer", "channel", null, "build")
         .getChannel();
-        Assert.assertEquals("producer@factory/location:channel", channel.toString());
+        Assert.assertEquals("producer@factory(location):channel", channel.toString());
     }
 
     @Test
     public void testChannelWithoutFrequencyFromString() throws Exception {
-        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@factory/location:channel");
+        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@factory(location):channel");
         Assert.assertNotNull(parsedCoords);
         Assert.assertEquals("factory", parsedCoords.getUniverse().getFactory());
         Assert.assertEquals("location", parsedCoords.getUniverse().getLocation());
@@ -138,12 +138,12 @@ public class FeaturePackSourceStringTestCase {
         final FeaturePackLocation.FPID fpid = new FeaturePackLocation(
                 new UniverseSpec("factory", "location"),
                 "producer", "channel", "frequency", "build").getFPID();
-        Assert.assertEquals("producer@factory/location:channel#build", fpid.toString());
+        Assert.assertEquals("producer@factory(location):channel#build", fpid.toString());
     }
 
     @Test
     public void testFeaturePackIdWithUniverseLocationFromString() throws Exception {
-        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@factory/location:channel#build");
+        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@factory(location):channel#build");
         Assert.assertNotNull(parsedCoords);
         Assert.assertEquals("factory", parsedCoords.getUniverse().getFactory());
         Assert.assertEquals("location", parsedCoords.getUniverse().getLocation());
@@ -174,7 +174,7 @@ public class FeaturePackSourceStringTestCase {
 
     @Test
     public void testMavenUniverseLocationFromString() throws Exception {
-        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("wildfly@maven/org.jboss.galleon-universe:jboss-galleon-universe:1.0.0.Final:14/beta#14.0.0.Beta1-SNAPSHOT");
+        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("wildfly@maven(org.jboss.galleon-universe:jboss-galleon-universe:1.0.0.Final):14/beta#14.0.0.Beta1-SNAPSHOT");
         Assert.assertNotNull(parsedCoords);
         Assert.assertEquals("maven", parsedCoords.getUniverse().getFactory());
         Assert.assertEquals("org.jboss.galleon-universe:jboss-galleon-universe:1.0.0.Final", parsedCoords.getUniverse().getLocation());
