@@ -47,15 +47,21 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
     }
 
     public static SimplisticMavenRepoManager getInstance(Path repoHome) {
-        return new SimplisticMavenRepoManager(repoHome);
+        return new SimplisticMavenRepoManager(repoHome, null);
+    }
+
+    public static SimplisticMavenRepoManager getInstance(Path repoHome, MavenRepoManager fallback) {
+        return new SimplisticMavenRepoManager(repoHome, fallback);
     }
 
     private static final MavenArtifactVersionRangeParser versionRangeParser = new MavenArtifactVersionRangeParser();
 
     private final Path repoHome;
+    private final MavenRepoManager fallback;
 
-    private SimplisticMavenRepoManager(Path repoHome) {
+    private SimplisticMavenRepoManager(Path repoHome, MavenRepoManager fallback) {
         this.repoHome = repoHome;
+        this.fallback = fallback;
     }
 
     @Override
@@ -116,11 +122,24 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
         if(artifact.isResolved()) {
             throw new MavenUniverseException("Artifact is already resolved");
         }
-        final Path path = getArtifactPath(artifact);
-        if(!Files.exists(path)) {
-            throw new MavenUniverseException("Failed to resolve " + artifact.getCoordsAsString() + ": " + path + " does not exist");
+        Path path = null;
+        try {
+            path = getArtifactPath(artifact);
+            if (!Files.exists(path)) {
+                throw new MavenUniverseException(pathDoesNotExist(artifact, path));
+            }
+            artifact.setPath(path);
+            return;
+        } catch (MavenUniverseException e) {
+            if (fallback == null) {
+                throw e;
+            }
         }
-        artifact.setPath(path);
+        try {
+            fallback.resolve(artifact);
+        } catch(MavenUniverseException e) {
+            throw new MavenUniverseException(pathDoesNotExist(artifact, path), e);
+        }
     }
 
     @Override
@@ -128,13 +147,26 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
         if(artifact.isResolved()) {
             throw new MavenUniverseException("Artifact is already resolved");
         }
-        Path path = resolveLatestVersionDir(artifact, lowestQualifier);
-        artifact.setVersion(path.getFileName().toString());
-        path = path.resolve(artifact.getArtifactFileName());
-        if(!Files.exists(path)) {
-            throw new MavenUniverseException("Failed to resolve " + artifact.getCoordsAsString() + ": " + path + " does not exist");
+        Path path = null;
+        try {
+            path = resolveLatestVersionDir(artifact, lowestQualifier);
+            artifact.setVersion(path.getFileName().toString());
+            path = path.resolve(artifact.getArtifactFileName());
+            if (!Files.exists(path)) {
+                throw new MavenUniverseException(pathDoesNotExist(artifact, path));
+            }
+            artifact.setPath(path);
+            return;
+        } catch (MavenUniverseException e) {
+            if (fallback == null) {
+                throw e;
+            }
         }
-        artifact.setPath(path);
+        fallback.resolveLatestVersion(artifact, lowestQualifier);
+    }
+
+    private String pathDoesNotExist(MavenArtifact artifact, Path path) throws MavenUniverseException {
+        return "Failed to resolve " + artifact.getCoordsAsString() + ": " + path + " does not exist";
     }
 
     @Override
