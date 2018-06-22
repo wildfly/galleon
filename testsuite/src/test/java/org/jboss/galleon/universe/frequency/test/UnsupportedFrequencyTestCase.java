@@ -72,7 +72,7 @@ public class UnsupportedFrequencyTestCase extends ProvisionConfigMvnTestBase {
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {
                 Errors.frequencyNotSupported(Arrays.asList(MvnUniverse.frequencies),
-                        FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "/" + universe1Art.getCoordsAsString() + ":1/zeta"))
+                        FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(" + universe1Art.getCoordsAsString() + "):1/zeta"))
                 };
     }
 }

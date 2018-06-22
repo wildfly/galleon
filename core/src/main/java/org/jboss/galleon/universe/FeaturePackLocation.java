@@ -29,7 +29,13 @@ import org.jboss.galleon.ProvisioningDescriptionException;
  * The origin is used to obtain the feature-pack and later after it has been
  * installed to check for version updates.
  *
- * The string format for the complete location is producer[@universe]:channel[/frequency]#build
+ * The string format for the complete location is producer[@factory[(location)]]:channel[/frequency]#build
+ *
+ * 'factory[(location)]' above is a universe specification. Factory is an ID of the universe factory and
+ * an optional location is used by the factory to create the universe.
+ *
+ * Factory and location can be aliased in the configs, in that case the location becomes
+ * producer[@universe]:channel[/frequency]#build
  *
  * Producer may represent a product or a project.
  *
@@ -46,6 +52,13 @@ import org.jboss.galleon.ProvisioningDescriptionException;
  * @author Alexey Loubyansky
  */
 public class FeaturePackLocation {
+
+    public static final char BUILD_START = '#';
+    public static final char CHANNEL_START = ':';
+    public static final char FREQUENCY_START = '/';
+    public static final char UNIVERSE_LOCATION_END = ')';
+    public static final char UNIVERSE_LOCATION_START = '(';
+    public static final char UNIVERSE_START = '@';
 
     public class FPID {
 
@@ -190,7 +203,7 @@ public class FeaturePackLocation {
             throw new IllegalArgumentException("str is null");
         }
 
-        int buildSep = str.lastIndexOf('#');
+        int buildSep = str.lastIndexOf(BUILD_START);
         if(buildSep < 0) {
             buildSep = str.length();
         }
@@ -198,10 +211,10 @@ public class FeaturePackLocation {
         int channelNameEnd = buildSep;
         loop: while(universeEnd > 0) {
             switch(str.charAt(--universeEnd)) {
-                case '/':
+                case FREQUENCY_START:
                     channelNameEnd = universeEnd;
                     break;
-                case ':':
+                case CHANNEL_START:
                     break loop;
             }
         }
@@ -210,7 +223,7 @@ public class FeaturePackLocation {
         }
         int producerEnd = 0;
         while(producerEnd < universeEnd) {
-            if(str.charAt(producerEnd) == '@') {
+            if(str.charAt(producerEnd) == UNIVERSE_START) {
                 break;
             }
             ++producerEnd;
@@ -228,21 +241,21 @@ public class FeaturePackLocation {
     }
 
     private static IllegalArgumentException unexpectedFormat(String str) {
-        return new IllegalArgumentException(str + " does not follow format producer[@factory[/location]]:channel[/frequency]#build");
+        return new IllegalArgumentException(str + " does not follow format producer[@factory[(location)]]:channel[/frequency]#build");
     }
 
     private static String toString(UniverseSpec universeSpec, String producer, String channel, String frequency, String build) {
         final StringBuilder buf = new StringBuilder();
         buf.append(producer);
         if(universeSpec != null) {
-            buf.append('@').append(universeSpec);
+            buf.append(UNIVERSE_START).append(universeSpec);
         }
-        buf.append(':').append(channel);
+        buf.append(CHANNEL_START).append(channel);
         if(frequency != null) {
-            buf.append('/').append(frequency);
+            buf.append(FREQUENCY_START).append(frequency);
         }
         if(build != null) {
-            buf.append('#').append(build);
+            buf.append(BUILD_START).append(build);
         }
         return buf.toString();
     }
