@@ -16,16 +16,16 @@
  */
 package org.jboss.galleon.installation.configs.order;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedState;
@@ -36,11 +36,11 @@ import org.jboss.galleon.state.ProvisionedState;
  */
 public class UnsatisfiedConfigDepTestCase extends ConfigOrderTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_GAV)
                 .addSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
@@ -54,13 +54,13 @@ public class UnsatisfiedConfigDepTestCase extends ConfigOrderTestBase {
                         .addFeature(new FeatureConfig("specA").setParam("id", "12"))
                         .build())
                 .addPlugin(ConfigListPlugin.class)
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
-        return ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forGav(FP1_GAV)).build();
+        return ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forLocation(FP1_GAV.getLocation())).build();
     }
 
     @Override

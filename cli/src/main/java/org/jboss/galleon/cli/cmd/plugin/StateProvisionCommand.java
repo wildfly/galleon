@@ -44,12 +44,12 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
-import static org.jboss.galleon.cli.cmd.AbstractDynamicCommand.ARGUMENT_NAME;
 import org.jboss.galleon.cli.cmd.state.StateNoExplorationActivator;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.xml.ProvisioningXmlParser;
 
 /**
  *
@@ -106,8 +106,8 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
                 return Collections.emptyList();
             }
             ProvisioningManager manager = ProvisioningManager.builder()
-                    .setArtifactResolver(pmSession.getArtifactResolver()).build();
-            rt = manager.getRuntime(manager.readProvisioningConfig(getAbsolutePath(file, ctx)),
+                    .addArtifactResolver(pmSession.getArtifactResolver()).build();
+            rt = manager.getRuntime(ProvisioningXmlParser.parse(getAbsolutePath(file, ctx)),
                     null, Collections.emptyMap());
         }
 
@@ -234,9 +234,9 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
         }
     }
 
-    private ProvisioningManager getManager(PmCommandInvocation session) {
+    private ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return ProvisioningManager.builder()
-                .setArtifactResolver(session.getPmSession().getArtifactResolver())
+                .addArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getInstallationHome(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), isVerbose()))
                 .build();

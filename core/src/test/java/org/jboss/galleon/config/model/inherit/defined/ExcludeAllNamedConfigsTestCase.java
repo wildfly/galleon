@@ -16,14 +16,13 @@
  */
 package org.jboss.galleon.config.model.inherit.defined;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
@@ -37,12 +36,12 @@ import org.jboss.galleon.test.util.fs.state.DirState;
  */
 public class ExcludeAllNamedConfigsTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP1_GAV)
             .addSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
@@ -65,21 +64,21 @@ public class ExcludeAllNamedConfigsTestCase extends PmInstallFeaturePackTestBase
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .newFeaturePack(FP2_GAV)
-            .addDependency(FeaturePackConfig.builder(FP1_GAV)
+            .addDependency(FeaturePackConfig.builder(FP1_GAV.getLocation())
                     .setInheritConfigs(false)
                     .build())
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2 p1")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.builder(FP2_GAV)
+        return FeaturePackConfig.builder(FP2_GAV.getLocation())
                 .setInheritConfigs(false)
                 .build();
     }

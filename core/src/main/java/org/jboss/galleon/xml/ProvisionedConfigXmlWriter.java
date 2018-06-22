@@ -20,14 +20,14 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.ResolvedFeatureSpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser10.Attribute;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser10.Element;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Attribute;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -47,11 +47,9 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
         }
 
         @Override
-        public void nextFeaturePack(ArtifactCoords.Gav fpGav) {
+        public void nextFeaturePack(FPID fpid) {
             fpElement = addElement(parent, Element.FEATURE_PACK);
-            addAttribute(fpElement, Attribute.GROUP_ID, fpGav.getGroupId());
-            addAttribute(fpElement, Attribute.ARTIFACT_ID, fpGav.getArtifactId());
-            addAttribute(fpElement, Attribute.VERSION, fpGav.getVersion());
+            addAttribute(fpElement, Attribute.LOCATION, fpid.toString());
         }
 
         @Override

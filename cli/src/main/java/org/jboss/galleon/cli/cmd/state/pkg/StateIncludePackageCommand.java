@@ -35,7 +35,7 @@ public class StateIncludePackageCommand extends AbstractPackageCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session, FeaturePackConfig config) throws IOException, ProvisioningException, CommandExecutionException {
         try {
-            session.includePackage(invoc.getPmSession(), PackagesUtil.getPackage(invoc.getPmSession(), config.getGav(), getPackage()), config);
+            session.includePackage(invoc.getPmSession(), PackagesUtil.getPackage(invoc.getPmSession(), config.getLocation().getFPID(), getPackage()), config);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }

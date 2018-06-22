@@ -18,12 +18,11 @@ package org.jboss.galleon.featurepack.pkg.test;
 
 import java.util.Iterator;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
@@ -37,9 +36,9 @@ import org.junit.Assert;
 public class OrderOfProvisionedPackagesTestCase extends PmInstallFeaturePackTestBase {
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
-        .newFeaturePack(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"))
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
+        .newFeaturePack(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1"))
             .newPackage("a")
                 .writeContent("a.txt", "a")
                 .addDependency("e")
@@ -59,19 +58,19 @@ public class OrderOfProvisionedPackagesTestCase extends PmInstallFeaturePackTest
             .newPackage("e")
                 .writeContent("e.txt", "e")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"));
+        return FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1").getLocation());
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1"))
                         .addPackage("a")
                         .addPackage("b")
                         .addPackage("c")
@@ -96,8 +95,7 @@ public class OrderOfProvisionedPackagesTestCase extends PmInstallFeaturePackTest
     protected void testPm(ProvisioningManager pm) throws ProvisioningException {
         super.testPm(pm);
         final ProvisionedState state = pm.getProvisionedState();
-        final Iterator<String> packageNames = state.getFeaturePack(
-                ArtifactCoords.newGa("org.pm.test", "fp-install"))
+        final Iterator<String> packageNames = state.getFeaturePack(LegacyGalleon1Universe.newChannel("org.pm.test:fp-install", "1"))
                 .getPackageNames().iterator();
         Assert.assertTrue(packageNames.hasNext());
         Assert.assertEquals("e", packageNames.next());

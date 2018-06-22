@@ -16,6 +16,14 @@
  */
 package org.jboss.galleon.xml.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
+
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.test.util.XmlParserValidator;
@@ -25,14 +33,6 @@ import org.jboss.galleon.xml.PackageXmlWriter;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Iterator;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Bartosz Spyrko-Smietanko (bspyrkos@redhat.com)

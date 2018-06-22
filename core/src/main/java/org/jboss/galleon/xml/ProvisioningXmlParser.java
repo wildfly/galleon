@@ -16,10 +16,17 @@
  */
 package org.jboss.galleon.xml;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 
 /**
@@ -34,6 +41,17 @@ public class ProvisioningXmlParser implements XmlParser<ProvisioningConfig> {
         return INSTANCE;
     }
 
+    public static ProvisioningConfig parse(Path path) throws ProvisioningException {
+        if (!Files.exists(path)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            return getInstance().parse(reader);
+        } catch (IOException | XMLStreamException e) {
+            throw new ProvisioningException(Errors.parseXml(path), e);
+        }
+    }
+
     private ProvisioningXmlParser() {
     }
 
@@ -41,6 +59,10 @@ public class ProvisioningXmlParser implements XmlParser<ProvisioningConfig> {
     public ProvisioningConfig parse(final Reader input) throws XMLStreamException {
         final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
         XmlParsers.parse(input, builder);
-        return builder.build();
+        try {
+            return builder.build();
+        } catch (ProvisioningDescriptionException e) {
+            throw new XMLStreamException("Failed to build provisioning configuration", e);
+        }
     }
 }

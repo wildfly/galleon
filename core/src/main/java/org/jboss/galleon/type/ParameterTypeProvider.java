@@ -16,7 +16,7 @@
  */
 package org.jboss.galleon.type;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
  *
@@ -24,5 +24,5 @@ import org.jboss.galleon.ArtifactCoords;
  */
 public interface ParameterTypeProvider {
 
-    FeatureParameterType getType(ArtifactCoords.Ga fpGa, String name) throws ParameterTypeNotFoundException;
+    FeatureParameterType getType(FeaturePackLocation.ChannelSpec fpChannel, String name) throws ParameterTypeNotFoundException;
 }

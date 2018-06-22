@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.runtime.ResolvedSpecId;
@@ -49,7 +49,7 @@ import org.junit.Test;
  */
 public class ProvisionedStateXmlWriterTestCase {
 
-    private static final String SCHEMA = "schema/galleon-provisioned-state-1_0.xsd";
+    private static final String SCHEMA = "schema/galleon-provisioned-state-2_0.xsd";
 
     private static XmlParserValidator<ProvisionedState> validator;
     private static Path tmpDir;
@@ -70,29 +70,29 @@ public class ProvisionedStateXmlWriterTestCase {
     @Test
     public void testMarshallUnmarshall() throws Exception {
         ProvisionedState originalState = ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"))
                         .addPackage("package1")
                         .addPackage(ProvisionedPackage.newInstance("package2"))
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.group", "fp2", "1.0"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0"))
                         .addPackage("package3")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec1", "create-param", "a"))
                                 .setConfigParam("param", "config")
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec1", "create-param", "b"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec2", "create-param", "c"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(ArtifactCoords.newGav("org.jboss.group", "fp2", "1.0"), "spec3"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getChannel(), "spec3"))
                                 .setIdParam("id-param", "config")
                                 .build())
                         .setModel("model")
@@ -117,28 +117,28 @@ public class ProvisionedStateXmlWriterTestCase {
         ProvisionedState originalState = ProvisionedState.builder()
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec1", "create-param", "a"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec2", "create-param", "b"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec1", "create-param", "c"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(ArtifactCoords.newGav("org.jboss.group", "fp2", "1.0"), "spec3"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getChannel(), "spec3"))
                                 .setIdParam("id-param", "b")
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(ArtifactCoords.newGav("org.jboss.group", "fp2", "1.0"), "spec3"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getChannel(), "spec3"))
                                 .setIdParam("id-param", "a")
                                 .build()
                         )
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(ArtifactCoords.newGav("org.jboss.group", "fp1", "1.0"),
+                                ResolvedFeatureId.create(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp1", "1.0"),
                                         "spec1", "create-param", "c"))
                                 .build())
                         .build())
@@ -153,12 +153,12 @@ public class ProvisionedStateXmlWriterTestCase {
         newState.getConfigs().iterator().next().handle(handler);
         Iterator<ProvisionedFeature> iterator = handler.features.iterator();
 
-        Assert.assertEquals("org.jboss.group:fp1:1.0#spec1:create-param=a", iterator.next().getId().toString());
-        Assert.assertEquals("org.jboss.group:fp1:1.0#spec2:create-param=b", iterator.next().getId().toString());
-        Assert.assertEquals("org.jboss.group:fp1:1.0#spec1:create-param=c", iterator.next().getId().toString());
-        Assert.assertEquals("org.jboss.group:fp2:1.0#spec3:id-param=b", iterator.next().getId().toString());
-        Assert.assertEquals("org.jboss.group:fp2:1.0#spec3:id-param=a", iterator.next().getId().toString());
-        Assert.assertEquals("org.jboss.group:fp1:1.0#spec1:create-param=c", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec1:create-param=a", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec2:create-param=b", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp2}spec3:id-param=b", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp2}spec3:id-param=a", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
     }
 
     @Test
@@ -166,13 +166,13 @@ public class ProvisionedStateXmlWriterTestCase {
         ProvisionedState originalState = ProvisionedState.builder()
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(ArtifactCoords.newGav("org.jboss.group", "fp", "1.0"), "spec"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp", "1.0").getChannel(), "spec"))
                                 .setIdParam("id-param", "config")
                                 .setIdParam("id-param2", "config")
                                 .setConfigParam("param", "config")
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.builder(ArtifactCoords.newGav("org.jboss.group", "fp", "1.0"), "spec2")
+                                ResolvedFeatureId.builder(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp", "1.0"), "spec2")
                                         .setParam("id-param", "resolved") // TODO: this resolved value will not have config representation
                                         .build())
                                 .setConfigParam("param", "config")

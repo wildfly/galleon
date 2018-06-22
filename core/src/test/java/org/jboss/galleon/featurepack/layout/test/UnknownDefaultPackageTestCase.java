@@ -18,10 +18,10 @@ package org.jboss.galleon.featurepack.layout.test;
 
 
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
@@ -36,7 +36,7 @@ public class UnknownDefaultPackageTestCase  {
 
     @Test
     public void testMain() throws Exception {
-        final Gav fp1Gav = ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1");
+        final FPID fp1Gav = LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1");
         try {
             FeaturePackLayout
                     .builder(FeaturePackSpec.builder(fp1Gav)

@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.aesh.command.option.Argument;
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -101,7 +102,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
     }
 
     @Override
-    public ArtifactCoords.Ga getGa(PmSession session) throws CommandExecutionException {
+    public ChannelSpec getChannel(PmSession session) throws CommandExecutionException {
         if (pkg == null) {
             throw new CommandExecutionException("No package set.");
         }
@@ -118,7 +119,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
             if (info == null) {
                 throw new CommandExecutionException("Invalid package " + pkg);
             }
-            return info.getGav().toGa();
+            return info.getFPID().getChannel();
         } catch (PathParserException | PathConsumerException ex) {
             throw new CommandExecutionException(ex);
         }
@@ -133,19 +134,19 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
             int i = getPackage().indexOf("/");
             String orig = getPackage().substring(0, i);
             String name = getPackage().substring(i + 1);
-            ArtifactCoords.Gav gav = null;
+            FeaturePackLocation.FPID fpid = null;
             for (Entry<String, FeatureContainer> entry : session.getContainer().getFullDependencies().entrySet()) {
                 FeatureContainer container = entry.getValue();
                 if (container.getAllPackages().containsKey(Identity.fromString(orig, name))) {
-                    gav = container.getGav();
+                    fpid = container.getFPID();
                     break;
                 }
             }
-            if (gav == null) {
+            if (fpid == null) {
                 throw new CommandExecutionException("No package found for " + getPackage());
             }
             for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
-                if (c.getGav().equals(gav)) {
+                if (c.getLocation().getFPID().equals(fpid)) {
                     config = c;
                     break;
                 }

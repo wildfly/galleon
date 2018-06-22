@@ -16,13 +16,12 @@
  */
 package org.jboss.galleon.featurepack.pkg.external.test;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
@@ -34,15 +33,15 @@ import org.jboss.galleon.test.util.fs.state.DirState;
  */
 public class DisablePackageInheritanceFromTheTopFpTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_GAV = ArtifactCoords.newGav("org.pm.test", "fp2", "1.0.0.Final");
-    private static final Gav FP3_GAV = ArtifactCoords.newGav("org.pm.test", "fp3", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final");
+    private static final FPID FP3_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp3", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP1_GAV)
-            .addDependency(FeaturePackConfig.builder(FP2_GAV)
+            .addDependency(FeaturePackConfig.builder(FP2_GAV.getLocation())
                     .build())
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "p1")
@@ -50,9 +49,9 @@ public class DisablePackageInheritanceFromTheTopFpTestCase extends PmProvisionCo
             .newPackage("p2")
                 .writeContent("fp1/p2.txt", "p2")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .newFeaturePack(FP2_GAV)
-            .addDependency(FeaturePackConfig.builder(FP3_GAV)
+            .addDependency(FeaturePackConfig.builder(FP3_GAV.getLocation())
                     .build())
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "p1")
@@ -60,7 +59,7 @@ public class DisablePackageInheritanceFromTheTopFpTestCase extends PmProvisionCo
             .newPackage("p2")
                 .writeContent("fp2/p2.txt", "p2")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .newFeaturePack(FP3_GAV)
              .newPackage("p1", true)
                  .writeContent("fp3/p1.txt", "p1")
@@ -68,14 +67,14 @@ public class DisablePackageInheritanceFromTheTopFpTestCase extends PmProvisionCo
              .newPackage("p2")
                  .writeContent("fp3/p2.txt", "p2")
                  .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(FP1_GAV)
+                .addFeaturePackDep(FeaturePackConfig.builder(FP1_GAV.getLocation())
                         .setInheritPackages(false)
                         .includePackage("p2")
                         .build())

@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.spec.PackageSpec;
 
 import org.jboss.galleon.plugin.CliPlugin;
@@ -52,14 +52,14 @@ public class PackageInfo {
     private final Identity identity;
 
     private Set<Identity> providers = new HashSet<>();
-    private final Gav gav;
+    private final FeaturePackLocation.FPID fpid;
     private final CustomPackageContent customContent;
 
     private final PackageRuntime pkg;
     PackageInfo(PackageRuntime pkg, Identity identity,
             CliPlugin plugin) throws IOException, ProvisioningException {
         this.pkg = pkg;
-        this.gav = pkg.getFeaturePackRuntime().getGav();
+        this.fpid = pkg.getFeaturePackRuntime().getFPID();
         this.identity = identity;
         this.contentDir = pkg.getContentDir();
         this.spec = pkg.getSpec();
@@ -80,8 +80,8 @@ public class PackageInfo {
         return customContent.getInfo();
     }
 
-    public Gav getGav() {
-        return gav;
+    public FeaturePackLocation.FPID getFPID() {
+        return fpid;
     }
 
     private void fillContent() throws IOException {

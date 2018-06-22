@@ -38,6 +38,7 @@ import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -55,7 +56,7 @@ public class DiffCommand extends AbstractPluginsCommand {
     protected void runCommand(PmCommandInvocation session, Map<String, String> options, ArtifactCoords.Gav gav) throws CommandExecutionException {
         try {
             Path targetDirectory = toPath((String) getValue(TARGET_NAME), session.getAeshContext());
-            getManager(session).exportConfigurationChanges(targetDirectory, gav, options);
+            getManager(session).exportConfigurationChanges(targetDirectory, LegacyGalleon1Universe.toFpl(gav).getFPID(), options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }

@@ -92,7 +92,7 @@ public class SearchCommand extends PmSessionCommand {
                     invoc.println("");
                     invoc.println("Search in dependencies");
                     for (FeatureContainer c : container.getFullDependencies().values()) {
-                        invoc.println("dependency: " + c.getGav());
+                        invoc.println("dependency: " + c.getFPID());
                         run(c, invoc, true);
                     }
                 }
@@ -254,7 +254,7 @@ public class SearchCommand extends PmSessionCommand {
 
     private String toPath(ResolvedSpecId id) {
         return FeatureContainerPathConsumer.FEATURES_PATH
-                + Identity.buildOrigin(id.getGav()) + PathParser.PATH_SEPARATOR
+                + Identity.buildOrigin(id.getChannel()) + PathParser.PATH_SEPARATOR
                 + id.getName().replaceAll("\\.", "" + PathParser.PATH_SEPARATOR);
     }
 

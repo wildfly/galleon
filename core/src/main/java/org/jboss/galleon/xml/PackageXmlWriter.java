@@ -67,7 +67,7 @@ public class PackageXmlWriter extends BaseXmlWriter<PackageSpec> {
     }
 
     private static void writeOrigin(ElementNode deps, String origin, Collection<PackageDependencySpec> depGroup, String ns) {
-        final ElementNode fpElement = addElement(deps, PackageDepsSpecXmlParser.Element.ORIGIN.getLocalName(), ns);
+        final ElementNode fpElement = addElement(deps, PackageDepsSpecXmlParser.ORIGIN, ns);
         addAttribute(fpElement, Attribute.NAME, origin);
         for(PackageDependencySpec depSpec : depGroup) {
             writePackageDependency(fpElement, depSpec, ns);
@@ -75,7 +75,7 @@ public class PackageXmlWriter extends BaseXmlWriter<PackageSpec> {
     }
 
     private static void writePackageDependency(ElementNode deps, PackageDependencySpec depSpec, String ns) {
-        final ElementNode depElement = addElement(deps, PackageDepsSpecXmlParser.Element.PACKAGE.getLocalName(), ns);
+        final ElementNode depElement = addElement(deps, PackageDepsSpecXmlParser.PACKAGE, ns);
         addAttribute(depElement, Attribute.NAME, depSpec.getName());
         if(depSpec.isOptional()) {
             addAttribute(depElement, PackageDepsSpecXmlParser.Attribute.OPTIONAL, TRUE);

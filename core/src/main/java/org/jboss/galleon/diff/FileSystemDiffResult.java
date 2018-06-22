@@ -29,8 +29,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackBuilder;
-import org.jboss.galleon.repomanager.PackageBuilder;
+import org.jboss.galleon.creator.FeaturePackBuilder;
+import org.jboss.galleon.creator.PackageBuilder;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.xml.FileSystemDiffResultWriter;
 

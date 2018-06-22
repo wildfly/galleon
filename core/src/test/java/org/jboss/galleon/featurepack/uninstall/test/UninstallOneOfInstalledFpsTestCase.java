@@ -16,13 +16,13 @@
  */
 package org.jboss.galleon.featurepack.uninstall.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedPackage;
@@ -36,12 +36,12 @@ import org.jboss.galleon.test.util.fs.state.DirState;
  */
 public class UninstallOneOfInstalledFpsTestCase extends PmUninstallFeaturePackTestBase {
 
-    private static final Gav FP1_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_100_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "1.0.0.Final");
+    private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
                     .addDependency(PackageDependencySpec.forPackage("p2", true))
@@ -53,7 +53,7 @@ public class UninstallOneOfInstalledFpsTestCase extends PmUninstallFeaturePackTe
                 .newPackage("p3")
                     .writeContent("fp1/p3.txt", "fp1 1.0.0.Final p3")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP2_100_GAV)
                 .newPackage("p1", true)
                     .addDependency(PackageDependencySpec.forPackage("p2", true))
@@ -65,18 +65,18 @@ public class UninstallOneOfInstalledFpsTestCase extends PmUninstallFeaturePackTe
                 .newPackage("p3")
                     .writeContent("fp2/p3.txt", "fp2 1.0.0.Final p3")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
     @Override
     protected ProvisioningConfig initialState() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(FP1_100_GAV)
+                .addFeaturePackDep(FeaturePackConfig.builder(FP1_100_GAV.getLocation())
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())
-                .addFeaturePackDep(FeaturePackConfig.builder(FP2_100_GAV)
+                .addFeaturePackDep(FeaturePackConfig.builder(FP2_100_GAV.getLocation())
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())
@@ -84,14 +84,14 @@ public class UninstallOneOfInstalledFpsTestCase extends PmUninstallFeaturePackTe
     }
 
     @Override
-    protected ArtifactCoords.Gav uninstallGav() throws ProvisioningDescriptionException {
+    protected FPID uninstallGav() throws ProvisioningDescriptionException {
         return FP1_100_GAV;
     }
 
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(FP2_100_GAV)
+                .addFeaturePackDep(FeaturePackConfig.builder(FP2_100_GAV.getLocation())
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())

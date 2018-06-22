@@ -43,7 +43,7 @@ public class ProvisionedSpecDisplayCommand extends ProvisioningCommand {
                 return;
             }
             for (ProvisionedFeaturePack fp : provisionedState.getFeaturePacks()) {
-                session.println(fp.getGav().toString());
+                session.println(fp.getFPID().toString());
             }
         } else {
             final ProvisioningConfig provisionedState;
@@ -56,7 +56,7 @@ public class ProvisionedSpecDisplayCommand extends ProvisioningCommand {
                 return;
             }
             for (FeaturePackConfig fp : provisionedState.getFeaturePackDeps()) {
-                session.println(fp.getGav().toString());
+                session.println(fp.getLocation().toString());
             }
         }
     }

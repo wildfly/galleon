@@ -19,7 +19,7 @@ package org.jboss.galleon.state;
 import java.util.Collection;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 
 
 /**
@@ -28,7 +28,7 @@ import org.jboss.galleon.ArtifactCoords;
  */
 public interface FeaturePack<P extends FeaturePackPackage> {
 
-    ArtifactCoords.Gav getGav();
+    FeaturePackLocation.FPID getFPID();
 
     boolean hasPackages();
 

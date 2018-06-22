@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -32,7 +32,7 @@ import org.jboss.galleon.spec.FeatureSpec;
 public class FeatureSpecInfo {
 
     private final ResolvedSpecId specId;
-    private final Gav currentFP;
+    private final FPID currentFP;
     private final FeatureSpec spec;
 
     private final List<PackageInfo> packages = new ArrayList<>();
@@ -42,7 +42,7 @@ public class FeatureSpecInfo {
 
     private String name;
 
-    public FeatureSpecInfo(ResolvedSpecId specId, Gav currentFP, FeatureSpec spec) {
+    public FeatureSpecInfo(ResolvedSpecId specId, FPID currentFP, FeatureSpec spec) {
         this.specId = specId;
         this.currentFP = currentFP;
         this.spec = spec;
@@ -96,7 +96,7 @@ public class FeatureSpecInfo {
     }
 
     public String getFeatureSpecOrigin() {
-        return Identity.buildOrigin(specId.getGav());
+        return Identity.buildOrigin(specId.getChannel());
     }
 
     @Override

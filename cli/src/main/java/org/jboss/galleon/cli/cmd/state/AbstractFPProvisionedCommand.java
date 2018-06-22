@@ -19,13 +19,13 @@ package org.jboss.galleon.cli.cmd.state;
 import java.io.IOException;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Ga;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 
 /**
  *
@@ -33,7 +33,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
  */
 public abstract class AbstractFPProvisionedCommand extends AbstractStateCommand {
 
-    public abstract Ga getGa(PmSession session) throws CommandExecutionException;
+    public abstract ChannelSpec getChannel(PmSession session) throws CommandExecutionException;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
@@ -42,13 +42,13 @@ public abstract class AbstractFPProvisionedCommand extends AbstractStateCommand 
     }
 
     public FeaturePackConfig getProvisionedFP(PmSession session) throws CommandExecutionException {
-        Ga ga = getGa(session);
-        if (ga == null) {
+        ChannelSpec channel = getChannel(session);
+        if (channel == null) {
             return null;
         }
         ProvisioningConfig config = session.getState().getConfig();
         for (FeaturePackConfig dep : config.getFeaturePackDeps()) {
-            if (dep.getGav().toGa().equals(ga)) {
+            if (dep.getLocation().getChannel().equals(channel)) {
                 return dep;
             }
         }

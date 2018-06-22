@@ -17,7 +17,6 @@
 package org.jboss.galleon;
 
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -35,9 +34,15 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.UniverseResolver;
+import org.jboss.galleon.universe.UniverseResolverBuilder;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
-import org.jboss.galleon.xml.XmlParsers;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser;
+import org.jboss.galleon.xml.ProvisioningXmlParser;
 
 /**
  *
@@ -45,14 +50,24 @@ import org.jboss.galleon.xml.XmlParsers;
  */
 public class ProvisioningManager {
 
-    public static class Builder {
+    public static class Builder extends UniverseResolverBuilder<Builder> {
 
         private String encoding = "UTF-8";
         private Path installationHome;
-        private ArtifactRepositoryManager artifactResolver;
         private MessageWriter messageWriter;
 
         private Builder() {
+        }
+
+        /**
+         * @deprecated
+         */
+        public Builder setArtifactResolver(ArtifactRepositoryManager arm) {
+            try {
+                return addArtifactResolver(arm);
+            } catch (ProvisioningException e) {
+                throw new IllegalStateException("Failed to set artifact resolver", e);
+            }
         }
 
         public Builder setEncoding(String encoding) {
@@ -65,18 +80,17 @@ public class ProvisioningManager {
             return this;
         }
 
-        public Builder setArtifactResolver(ArtifactRepositoryManager artifactResolver) {
-            this.artifactResolver = artifactResolver;
-            return this;
-        }
-
         public Builder setMessageWriter(MessageWriter messageWriter) {
             this.messageWriter = messageWriter;
             return this;
         }
 
-        public ProvisioningManager build() {
+        public ProvisioningManager build() throws ProvisioningException {
             return new ProvisioningManager(this);
+        }
+
+        protected UniverseResolver getUniverseResolver() throws ProvisioningException {
+            return buildUniverseResolver();
         }
     }
 
@@ -86,15 +100,15 @@ public class ProvisioningManager {
 
     private final String encoding;
     private final Path installationHome;
-    private final ArtifactRepositoryManager artifactResolver;
+    private final UniverseResolver universeResolver;
     private final MessageWriter messageWriter;
 
     private ProvisioningConfig provisioningConfig;
 
-    private ProvisioningManager(Builder builder) {
+    private ProvisioningManager(Builder builder) throws ProvisioningException {
         this.encoding = builder.encoding;
         this.installationHome = builder.installationHome;
-        this.artifactResolver = builder.artifactResolver;
+        this.universeResolver = builder.getUniverseResolver();
         this.messageWriter = builder.messageWriter == null ? DefaultMessageWriter.getDefaultInstance() : builder.messageWriter;
     }
 
@@ -116,7 +130,7 @@ public class ProvisioningManager {
      */
     public ProvisioningConfig getProvisioningConfig() throws ProvisioningException {
         if (provisioningConfig == null) {
-            provisioningConfig = readProvisioningConfig(PathsUtils.getProvisioningXml(installationHome));
+            provisioningConfig = ProvisioningXmlParser.parse(PathsUtils.getProvisioningXml(installationHome));
         }
         return provisioningConfig;
     }
@@ -128,31 +142,28 @@ public class ProvisioningManager {
      * @throws ProvisioningException  in case there was an error reading the description from the disk
      */
     public ProvisionedState getProvisionedState() throws ProvisioningException {
-        final Path xml = PathsUtils.getProvisionedStateXml(installationHome);
-        if (!Files.exists(xml)) {
-            return null;
-        }
-        try (BufferedReader reader = Files.newBufferedReader(xml)) {
-            final ProvisionedState.Builder builder = ProvisionedState.builder();
-            XmlParsers.parse(reader, builder);
-            return builder.build();
-        } catch (IOException | XMLStreamException e) {
-            throw new ProvisioningException(Errors.parseXml(xml), e);
-        }
+        return ProvisionedStateXmlParser.parse(PathsUtils.getProvisionedStateXml(installationHome));
     }
 
     /**
      * Installs the specified feature-pack.
      *
-     * @param fpGav  feature-pack GAV
+     * @param fps  feature-pack source
      * @throws ProvisioningException  in case the installation fails
      */
-    public void install(ArtifactCoords.Gav fpGav) throws ProvisioningException {
-        install(FeaturePackConfig.forGav(fpGav));
+    public void install(FeaturePackLocation fps) throws ProvisioningException {
+        install(FeaturePackConfig.forLocation(fps));
     }
 
-    public void install(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException {
-        install(FeaturePackConfig.forGav(fpGav), options);
+    /**
+     * Installs the specified feature-pack taking into account provided plug-in options.
+     *
+     * @param  fps feature-pack source
+     * @param options  plug-in options
+     * @throws ProvisioningException  in case the installation fails
+     */
+    public void install(FeaturePackLocation fps, Map<String, String> options) throws ProvisioningException {
+        install(FeaturePackConfig.forLocation(fps), options);
     }
 
     /**
@@ -169,14 +180,6 @@ public class ProvisioningManager {
         install(fpConfig, false, options);
     }
 
-    public void install(ArtifactCoords.Gav fpGav, boolean replaceInstalledVersion) throws ProvisioningException {
-        install(FeaturePackConfig.forGav(fpGav), replaceInstalledVersion);
-    }
-
-    public void install(ArtifactCoords.Gav fpGav, boolean replaceInstalledVersion, Map<String, String> options) throws ProvisioningException {
-        install(FeaturePackConfig.forGav(fpGav), replaceInstalledVersion, options);
-    }
-
     public void install(FeaturePackConfig fpConfig, boolean replaceInstalledVersion) throws ProvisioningException {
         install(fpConfig, replaceInstalledVersion, Collections.emptyMap());
     }
@@ -185,11 +188,13 @@ public class ProvisioningManager {
             throws ProvisioningException {
         final ProvisioningConfig provisionedConfig = this.getProvisioningConfig();
         if(provisionedConfig == null) {
-            provision(ProvisioningConfig.builder().addFeaturePackDep(fpConfig).build(), options);
+            provision(ProvisioningConfig.builder()
+                    .addFeaturePackDep(fpConfig)
+                    .build(), options);
             return;
         }
 
-        final ProvisionedFeaturePack installedFp = getProvisionedState().getFeaturePack(fpConfig.getGav().toGa());
+        final ProvisionedFeaturePack installedFp = getProvisionedState().getFeaturePack(fpConfig.getLocation().getChannel());
         // if it's installed neither explicitly nor implicitly as a dependency
         if(installedFp == null) {
             provision(ProvisioningConfig.builder(provisionedConfig).addFeaturePackDep(fpConfig).build(), options);
@@ -197,19 +202,19 @@ public class ProvisioningManager {
         }
 
         if(!replaceInstalledVersion) {
-            if (installedFp.getGav().equals(fpConfig.getGav())) {
-                throw new ProvisioningException(Errors.featurePackAlreadyInstalled(fpConfig.getGav()));
+            if (installedFp.getFPID().equals(fpConfig.getLocation().getFPID())) {
+                throw new ProvisioningException(Errors.featurePackAlreadyInstalled(fpConfig.getLocation().getFPID()));
             } else {
-                throw new ProvisioningException(Errors.featurePackVersionConflict(fpConfig.getGav(), installedFp.getGav()));
+                throw new ProvisioningException(Errors.featurePackVersionConflict(fpConfig.getLocation().getFPID(), installedFp.getFPID()));
             }
         }
 
         // if it's installed explicitly, replace the explicit config
-        if(provisionedConfig.hasFeaturePackDep(fpConfig.getGav().toGa())) {
-            final FeaturePackConfig installedFpConfig = provisionedConfig.getFeaturePackDep(fpConfig.getGav().toGa());
-            final String origin = provisionedConfig.originOf(fpConfig.getGav().toGa());
+        if(provisionedConfig.hasFeaturePackDep(fpConfig.getLocation().getChannel())) {
+            final FeaturePackConfig installedFpConfig = provisionedConfig.getFeaturePackDep(fpConfig.getLocation().getChannel());
+            final String origin = provisionedConfig.originOf(fpConfig.getLocation().getChannel());
             provision(ProvisioningConfig.builder(provisionedConfig)
-                    .removeFeaturePackDep(installedFpConfig.getGav())
+                    .removeFeaturePackDep(installedFpConfig.getLocation())
                     .addFeaturePackDep(origin, fpConfig)
                     .build(), options);
             return;
@@ -221,21 +226,21 @@ public class ProvisioningManager {
     /**
      * Uninstalls the specified feature-pack.
      *
-     * @param gav  feature-pack GAV
+     * @param fpid  feature-pack ID
      * @throws ProvisioningException  in case the uninstallation fails
      */
-    public void uninstall(ArtifactCoords.Gav gav) throws ProvisioningException {
+    public void uninstall(FeaturePackLocation.FPID fpid) throws ProvisioningException {
         final ProvisioningConfig provisionedConfig = getProvisioningConfig();
         if(provisionedConfig == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(gav));
+            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
-        if(!provisioningConfig.hasFeaturePackDep(gav.toGa())) {
-            if(getProvisionedState().hasFeaturePack(gav.toGa())) {
-                throw new ProvisioningException(Errors.unsatisfiedFeaturePackDep(gav));
+        if(!provisioningConfig.hasFeaturePackDep(fpid.getChannel())) {
+            if(getProvisionedState().hasFeaturePack(fpid.getChannel())) {
+                throw new ProvisioningException(Errors.unsatisfiedFeaturePackDep(fpid.getChannel()));
             }
-            throw new ProvisioningException(Errors.unknownFeaturePack(gav));
+            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
-        doProvision(provisionedConfig, gav.toGa(), Collections.emptyMap());
+        doProvision(provisionedConfig, fpid, Collections.emptyMap());
     }
 
     /**
@@ -259,7 +264,7 @@ public class ProvisioningManager {
         doProvision(provisioningConfig, null, options);
     }
 
-    private void doProvision(ProvisioningConfig provisioningConfig, ArtifactCoords.Ga uninstallGa, Map<String, String> options) throws ProvisioningException {
+    private void doProvision(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options) throws ProvisioningException {
         checkInstallationDir(installationHome);
 
         if(!provisioningConfig.hasFeaturePackDeps()) {
@@ -268,11 +273,7 @@ public class ProvisioningManager {
             return;
         }
 
-        if(artifactResolver == null) {
-            throw new ProvisioningException("Artifact resolver has not been provided.");
-        }
-
-        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, uninstallGa, options)) {
+        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, uninstallFpid, options)) {
             if(runtime == null) {
                 return;
             }
@@ -295,16 +296,16 @@ public class ProvisioningManager {
         }
     }
 
-    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, ArtifactCoords.Ga uninstallGa, Map<String, String> options)
+    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options)
             throws ProvisioningException {
         final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                .setArtifactResolver(artifactResolver)
+                .setUniverseResolver(universeResolver)
                 .setConfig(provisioningConfig)
                 .setEncoding(encoding)
                 .setInstallDir(installationHome)
                 .addOptions(options);
-        if(uninstallGa != null) {
-            builder.uninstall(uninstallGa);
+        if(uninstallFpid != null) {
+            builder.uninstall(uninstallFpid);
         }
         return builder.build();
     }
@@ -351,7 +352,7 @@ public class ProvisioningManager {
      * @throws ProvisioningException in case provisioning fails
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
-        provision(readProvisioningConfig(provisioningXml), options);
+        provision(ProvisioningXmlParser.parse(provisioningXml), options);
     }
 
     /**
@@ -374,7 +375,7 @@ public class ProvisioningManager {
         IoUtils.copy(userProvisionedXml, exportPath);
     }
 
-    public void exportConfigurationChanges(Path location, ArtifactCoords.Gav diffGav, Map<String, String> options) throws ProvisioningException, IOException {
+    public void exportConfigurationChanges(Path location,  FPID fpid, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();
         if (configuration == null) {
             final Path userProvisionedXml = PathsUtils.getProvisioningXml(installationHome);
@@ -390,7 +391,7 @@ public class ProvisioningManager {
         Path tempInstallationDir = IoUtils.createRandomTmpDir();
         try {
             ProvisioningManager reference = new ProvisioningManager(ProvisioningManager.builder()
-                    .setArtifactResolver(artifactResolver)
+                    .setUniverseFactoryLoader(universeResolver.getFactoryLoader())
                     .setEncoding(encoding)
                     .setInstallationHome(tempInstallationDir)
                     .setMessageWriter(new MessageWriter() {
@@ -421,15 +422,15 @@ public class ProvisioningManager {
                     }));
             reference.provision(configuration);
             try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                    .setArtifactResolver(artifactResolver)
+                    .setUniverseResolver(universeResolver)
                     .setConfig(configuration)
                     .setEncoding(encoding)
                     .setInstallDir(tempInstallationDir)
                     .addOptions(options)
-                    .setOperation(diffGav != null ? "diff-to-feature-pack" : "diff")
+                    .setOperation(fpid != null ? "diff-to-feature-pack" : "diff")
                     .build()) {
-                if(diffGav != null) {
-                    ProvisioningRuntime.exportToFeaturePack(runtime, diffGav, location, installationHome);
+                if(fpid != null) {
+                    ProvisioningRuntime.exportToFeaturePack(runtime, fpid, location, installationHome);
                 } else {
                     ProvisioningRuntime.diff(runtime, location, installationHome);
                     runtime.getDiff().toXML(location, installationHome);
@@ -442,13 +443,16 @@ public class ProvisioningManager {
         }
     }
 
+    /**
+     * @deprecated
+     */
     public void upgrade(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();
         Path tempInstallationDir = IoUtils.createRandomTmpDir();
         Path stagedDir = IoUtils.createRandomTmpDir();
         try {
             ProvisioningManager reference = new ProvisioningManager(ProvisioningManager.builder()
-                    .setArtifactResolver(artifactResolver)
+                    .setUniverseFactoryLoader(universeResolver.getFactoryLoader())
                     .setEncoding(encoding)
                     .setInstallationHome(tempInstallationDir)
                     .setMessageWriter(new MessageWriter() {
@@ -480,7 +484,7 @@ public class ProvisioningManager {
             reference.provision(configuration);
             Files.createDirectories(stagedDir);
             reference = new ProvisioningManager(ProvisioningManager.builder()
-                    .setArtifactResolver(artifactResolver)
+                    .setUniverseFactoryLoader(universeResolver.getFactoryLoader())
                     .setEncoding(encoding)
                     .setInstallationHome(stagedDir)
                     .setMessageWriter(new MessageWriter() {
@@ -509,9 +513,9 @@ public class ProvisioningManager {
                             return;
                         }
                     }));
-            reference.provision(ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forGav(fpGav)).build());
+            reference.provision(ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.toFpl(fpGav))).build());
             try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                    .setArtifactResolver(artifactResolver)
+                    .setUniverseResolver(universeResolver)
                     .setConfig(configuration)
                     .setEncoding(encoding)
                     .setInstallDir(tempInstallationDir)
@@ -526,19 +530,6 @@ public class ProvisioningManager {
             }
         } finally {
             IoUtils.recursiveDelete(tempInstallationDir);
-        }
-    }
-
-    public ProvisioningConfig readProvisioningConfig(Path path) throws ProvisioningException {
-        if (!Files.exists(path)) {
-            return null;
-        }
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
-            final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
-            XmlParsers.parse(reader, builder);
-            return builder.build();
-        } catch (IOException | XMLStreamException e) {
-            throw new ProvisioningException(Errors.parseXml(path), e);
         }
     }
 }

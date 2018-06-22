@@ -39,10 +39,10 @@ public class InstalledStreamCompleter extends AbstractCompleter {
             ProvisioningManager.checkInstallationDir(currentDir);
             ProvisioningManager mgr = ProvisioningManager.builder().setInstallationHome(currentDir).build();
             for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {
-                if(fp.getGav().getVersion() == null) {
+                if(fp.getLocation().getBuild() == null) {
                     continue;
                 }
-                items.add(fp.getGav().toString());
+                items.add(fp.getLocation().toString());
             }
         } catch (Exception ex) {
             // not a proper installation

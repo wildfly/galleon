@@ -23,6 +23,7 @@ import java.util.Set;
 import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
@@ -31,6 +32,7 @@ import org.jboss.galleon.cli.cmd.state.AbstractFPProvisionedCommand;
 import org.jboss.galleon.cli.model.Identity;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -81,7 +83,7 @@ public abstract class AbstractProvisionedPackageCommand extends AbstractFPProvis
                     String pkg = cmd.getPackage();
                     for (FeaturePackConfig fc : session.getConfig().getFeaturePackDeps()) {
                         if (cmd.getTargetedPackages(fc).contains(pkg)) {
-                            lst.add(Identity.buildOrigin(fc.getGav()));
+                            lst.add(Identity.buildOrigin(fc.getLocation().getChannel()));
                         }
                     }
                 }
@@ -100,11 +102,11 @@ public abstract class AbstractProvisionedPackageCommand extends AbstractFPProvis
     protected String origin;
 
     @Override
-    public ArtifactCoords.Ga getGa(PmSession session) throws CommandExecutionException {
+    public ChannelSpec getChannel(PmSession session) throws CommandExecutionException {
         if (origin == null) {
             return null;
         }
-        return ArtifactCoords.newGav(origin).toGa();
+        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getChannel();
     }
 
     protected String getPackage() {

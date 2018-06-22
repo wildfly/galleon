@@ -16,11 +16,11 @@
  */
 package org.jboss.galleon.plugin;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.runtime.ResolvedFeatureSpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
+import org.jboss.galleon.universe.FeaturePackLocation;
 
 
 /**
@@ -31,7 +31,7 @@ public interface ProvisionedConfigHandler {
 
     default void prepare(ProvisionedConfig config) throws ProvisioningException {};
 
-    default void nextFeaturePack(ArtifactCoords.Gav fpGav) throws ProvisioningException {};
+    default void nextFeaturePack(FeaturePackLocation.FPID fpid) throws ProvisioningException {};
 
     default void nextSpec(ResolvedFeatureSpec spec) throws ProvisioningException {};
 

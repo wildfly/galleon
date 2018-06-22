@@ -17,10 +17,10 @@
 package org.jboss.galleon.type.builtin;
 
 import org.jboss.galleon.Constants;
-import org.jboss.galleon.ArtifactCoords.Ga;
 import org.jboss.galleon.type.FeatureParameterType;
 import org.jboss.galleon.type.ParameterTypeNotFoundException;
 import org.jboss.galleon.type.ParameterTypeProvider;
+import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.util.formatparser.FormatParser;
 import org.jboss.galleon.util.formatparser.FormatParsingException;
 
@@ -37,7 +37,7 @@ public class BuiltInParameterTypeProvider implements ParameterTypeProvider {
     }
 
     @Override
-    public FeatureParameterType getType(Ga fpGa, String name) throws ParameterTypeNotFoundException {
+    public FeatureParameterType getType(ChannelSpec fpChannel, String name) throws ParameterTypeNotFoundException {
         if(Constants.BUILT_IN_TYPE_STRING.equals(name)) {
             return StringParameterType.getInstance();
         } else {

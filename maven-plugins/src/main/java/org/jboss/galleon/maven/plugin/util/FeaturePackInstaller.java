@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
@@ -134,7 +135,7 @@ public class FeaturePackInstaller {
                     throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
                 }
             }
-            FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(fpGav)
+            FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(LegacyGalleon1Universe.newFPID(fpGav.getGroupId(), fpGav.getArtifactId(), fpGav.getVersion()).getLocation())
                     .setInheritPackages(inheritPackages)
                     .setInheritConfigs(inheritConfigs);
             if(includedConfigs != null && ! includedConfigs.isEmpty()) {
@@ -167,9 +168,9 @@ public class FeaturePackInstaller {
         }
     }
 
-    private ProvisioningManager getManager() {
+    private ProvisioningManager getManager() throws ProvisioningException {
         return ProvisioningManager.builder()
-                .setArtifactResolver(FeaturePackRepositoryManager.newInstance(repoHome))
+                .addArtifactResolver(FeaturePackRepositoryManager.newInstance(repoHome))
                 .setInstallationHome(installationDir)
                 .build();
     }

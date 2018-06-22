@@ -19,7 +19,7 @@ package org.jboss.galleon.cli.cmd.state.fp;
 import java.io.IOException;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -42,7 +42,7 @@ public class StateAddFeaturePackCommand extends AbstractFPProvisioningCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session,
-            ArtifactCoords.Gav gav) throws IOException, ProvisioningException, CommandExecutionException {
-        session.addDependency(invoc.getPmSession(), streamName, gav, inheritConfigs, inheritPackages);
+            FeaturePackLocation fpl) throws IOException, ProvisioningException, CommandExecutionException {
+        session.addDependency(invoc.getPmSession(), streamName, fpl, inheritConfigs, inheritPackages);
     }
 }

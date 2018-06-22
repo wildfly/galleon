@@ -16,14 +16,13 @@
  */
 package org.jboss.galleon.config.arranger.basic;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -40,11 +39,11 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class AnonymousFeaturesWithBranchPerSpecFalseTestCase extends PmInstallFeaturePackTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP1_GAV)
 
             .addSpec(FeatureSpec.builder("specA")
@@ -65,13 +64,13 @@ public class AnonymousFeaturesWithBranchPerSpecFalseTestCase extends PmInstallFe
                     .addFeature(new FeatureConfig("specB").setParam("b", "3"))
 
                     .build())
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() {
-        return FeaturePackConfig.forGav(FP1_GAV);
+        return FeaturePackConfig.forLocation(FP1_GAV.getLocation());
     }
 
     @Override
@@ -86,9 +85,9 @@ public class AnonymousFeaturesWithBranchPerSpecFalseTestCase extends PmInstallFe
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "2")).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "3")).build())
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV, "specB")).setConfigParam("b", "1").build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV, "specB")).setConfigParam("b", "2").build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV, "specB")).setConfigParam("b", "3").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV.getChannel(), "specB")).setConfigParam("b", "1").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV.getChannel(), "specB")).setConfigParam("b", "2").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV.getChannel(), "specB")).setConfigParam("b", "3").build())
 
                         .build())
                 .build();

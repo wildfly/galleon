@@ -21,8 +21,12 @@ import java.util.Set;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
@@ -33,26 +37,31 @@ import org.jboss.galleon.util.StringUtils;
  */
 public class FeaturePackSpec extends FeaturePackDepsConfig {
 
-    public static class Builder extends FeaturePackDepsConfigBuilder<Builder>{
+    public static class Builder extends FeaturePackDepsConfigBuilder<Builder> {
 
-        private ArtifactCoords.Gav gav;
+        private FeaturePackLocation.FPID fpid;
         private Set<String> defPackages = Collections.emptySet();
 
         protected Builder() {
-            this(null);
         }
 
-        protected Builder(ArtifactCoords.Gav gav) {
-            this.gav = gav;
-        }
-
-        public Builder setGav(ArtifactCoords.Gav gav) {
-            this.gav = gav;
+        public Builder setFPID(FeaturePackLocation.FPID fpid) {
+            this.fpid = fpid;
             return this;
         }
 
-        public ArtifactCoords.Gav getGav() {
-            return gav;
+        public FeaturePackLocation.FPID getFPID() {
+            return fpid;
+        }
+
+        @Override
+        public boolean hasDefaultUniverse() {
+            return true;
+        }
+
+        @Override
+        public UniverseSpec getDefaultUniverse() {
+            return this.defaultUniverse == null ? fpid.getLocation().getUniverse() : this.defaultUniverse;
         }
 
         public Builder addDefaultPackage(String packageName) {
@@ -62,29 +71,56 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         }
 
         public FeaturePackSpec build() throws ProvisioningDescriptionException {
-            return new FeaturePackSpec(this);
+            try {
+                return new FeaturePackSpec(this);
+            } catch(ProvisioningDescriptionException e) {
+                throw new ProvisioningDescriptionException("Failed to build feature-pack spec for " + fpid, e);
+            }
         }
     }
 
     public static Builder builder() {
-        return builder(null);
+        return new Builder();
     }
 
+    /**
+     * @deprecated
+     */
     public static Builder builder(ArtifactCoords.Gav gav) {
-        return new Builder(gav);
+        return new Builder().setFPID(LegacyGalleon1Universe.toFpl(gav).getFPID());
     }
 
-    private final ArtifactCoords.Gav gav;
+    public static Builder builder(FeaturePackLocation.FPID fpid) {
+        return new Builder().setFPID(fpid);
+    }
+
+    private final FeaturePackLocation.FPID fpid;
     private final Set<String> defPackages;
 
-    protected FeaturePackSpec(Builder builder) {
+    private ArtifactCoords.Gav legacyGav;
+
+    protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
-        this.gav = builder.gav;
+        this.fpid = builder.fpid;
         this.defPackages = CollectionUtils.unmodifiable(builder.defPackages);
     }
 
+    /**
+     * @deprecated
+     */
     public ArtifactCoords.Gav getGav() {
-        return gav;
+        if(legacyGav == null) {
+            try {
+                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
+            } catch (ProvisioningException e) {
+                throw new IllegalStateException("Failed to translate fpl to gav", e);
+            }
+        }
+        return legacyGav;
+    }
+
+    public FeaturePackLocation.FPID getFPID() {
+        return fpid;
     }
 
     public boolean hasDefaultPackages() {
@@ -104,7 +140,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((defPackages == null) ? 0 : defPackages.hashCode());
-        result = prime * result + ((gav == null) ? 0 : gav.hashCode());
+        result = prime * result + ((fpid == null) ? 0 : fpid.hashCode());
         return result;
     }
 
@@ -122,10 +158,10 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
                 return false;
         } else if (!defPackages.equals(other.defPackages))
             return false;
-        if (gav == null) {
-            if (other.gav != null)
+        if (fpid == null) {
+            if (other.fpid != null)
                 return false;
-        } else if (!gav.equals(other.gav))
+        } else if (!fpid.equals(other.fpid))
             return false;
         return true;
     }
@@ -133,7 +169,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
-        buf.append("[gav=").append(gav);
+        buf.append('[').append(fpid);
         if(!fpDeps.isEmpty()) {
             buf.append("; dependencies: ");
             StringUtils.append(buf, fpDeps.keySet());

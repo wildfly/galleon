@@ -40,6 +40,7 @@ import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -55,7 +56,7 @@ public class InstallCommand extends AbstractPluginsCommand {
     protected void runCommand(PmCommandInvocation session, Map<String, String> options, ArtifactCoords.Gav gav) throws CommandExecutionException {
         try {
             final ProvisioningManager manager = getManager(session);
-            manager.install(gav, options);
+            manager.install(LegacyGalleon1Universe.toFpl(gav), options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }

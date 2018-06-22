@@ -30,7 +30,7 @@ public abstract class PmInstallFeaturePackTestBase extends PmTestBase {
 
     protected boolean replaceInstalled;
 
-    protected void setReplacedInstalled(boolean replaceInstalled) {
+    protected void setReplaceInstalled(boolean replaceInstalled) {
         this.replaceInstalled = replaceInstalled;
     }
 

@@ -64,15 +64,18 @@ public class XmlParsers {
 
     private XmlParsers() {
         mapper = XMLMapper.Factory.create();
-        new FeaturePackXmlParser10().plugin(this);
-        new PackageXmlParser10().plugin(this);
-        new ProvisionedStateXmlParser10().plugin(this);
-        new ProvisioningXmlParser10().plugin(this);
-        new FeatureSpecXmlParser10().plugin(this);
+        new ConfigXmlParser10().plugin(this);
         new FeatureConfigXmlParser10().plugin(this);
         new FeatureGroupXmlParser10().plugin(this);
+        new FeaturePackXmlParser10().plugin(this);
+        new FeaturePackXmlParser20().plugin(this);
+        new FeatureSpecXmlParser10().plugin(this);
         new FileSystemDiffResultParser10().plugin(this);
-        new ConfigXmlParser10().plugin(this);
+        new PackageXmlParser10().plugin(this);
+        new ProvisionedStateXmlParser10().plugin(this);
+        new ProvisionedStateXmlParser20().plugin(this);
+        new ProvisioningXmlParser10().plugin(this);
+        new ProvisioningXmlParser20().plugin(this);
     }
 
     public void plugin(QName root, XMLElementReader<?> reader) {

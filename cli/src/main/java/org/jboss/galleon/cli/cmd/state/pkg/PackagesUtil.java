@@ -19,7 +19,7 @@ package org.jboss.galleon.cli.cmd.state.pkg;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
@@ -39,11 +39,11 @@ import org.jboss.galleon.config.PackageConfig;
  */
 public class PackagesUtil {
 
-    public static String getPackage(PmSession session, ArtifactCoords.Gav gav, String pkg) throws PathParserException, PathConsumerException, ProvisioningException, Exception {
+    public static String getPackage(PmSession session, FeaturePackLocation.FPID fpid, String pkg) throws PathParserException, PathConsumerException, ProvisioningException, Exception {
         String path = FeatureContainerPathConsumer.PACKAGES_PATH
                 + pkg + (pkg.endsWith("" + PathParser.PATH_SEPARATOR) ? "" : PathParser.PATH_SEPARATOR);
-        FeatureContainer full = FeatureContainers.fromFeaturePackGav(session, ProvisioningManager.builder()
-                .setArtifactResolver(session.getArtifactResolver()).build(), gav, null);
+        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, ProvisioningManager.builder()
+                .addArtifactResolver(session.getArtifactResolver()).build(), fpid, null);
 
         FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);
         PathParser.parse(path, consumer);

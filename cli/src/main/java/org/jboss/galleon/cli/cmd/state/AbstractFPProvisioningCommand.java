@@ -22,7 +22,6 @@ import static org.jboss.galleon.cli.AbstractFeaturePackCommand.FP_OPTION_NAME;
 import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -33,6 +32,9 @@ import org.jboss.galleon.cli.StreamCompleter;
 import org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand.FPActivator;
 import org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand.StreamNameActivator;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -49,17 +51,19 @@ public abstract class AbstractFPProvisioningCommand extends AbstractStateCommand
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
         ArtifactCoords.Gav gav = getGav(fpCoords, streamName, invoc.getPmSession());
-        if (!invoc.getPmSession().existsInLocalRepository(gav)) {
+        FeaturePackLocation fpl = LegacyGalleon1Universe.toFpl(gav);
+        FPID fpid = fpl.getFPID();
+        if (!invoc.getPmSession().existsInLocalRepository(fpid)) {
             try {
-                invoc.getPmSession().downloadFp(gav);
+                invoc.getPmSession().downloadFp(fpid);
             } catch (ArtifactException ex) {
                 throw new CommandExecutionException(ex);
             }
         }
-        runCommand(invoc, session, gav);
+        runCommand(invoc, session, fpl);
     }
 
-    protected abstract void runCommand(PmCommandInvocation invoc, State session, Gav gav) throws IOException, ProvisioningException, CommandExecutionException;
+    protected abstract void runCommand(PmCommandInvocation invoc, State session, FeaturePackLocation fpl) throws IOException, ProvisioningException, CommandExecutionException;
 
     public static ArtifactCoords.Gav getGav(String fpCoords, String streamName, PmSession session) throws CommandExecutionException {
         if (fpCoords == null && streamName == null) {

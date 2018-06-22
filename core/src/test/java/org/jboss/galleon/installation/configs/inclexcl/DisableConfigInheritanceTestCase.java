@@ -16,14 +16,15 @@
  */
 package org.jboss.galleon.installation.configs.inclexcl;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedState;
@@ -35,12 +36,12 @@ import org.jboss.galleon.test.PmProvisionConfigTestBase;
  */
 public class DisableConfigInheritanceTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "2.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_GAV)
                 .addSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
@@ -57,7 +58,7 @@ public class DisableConfigInheritanceTestCase extends PmProvisionConfigTestBase 
                 .addConfig(ConfigModel.builder("model2", "config2")
                         .addFeature(new FeatureConfig("specA").setParam("id", "22"))
                         .build())
-                .getInstaller()
+                .getCreator()
             .newFeaturePack(FP2_GAV)
                 .addSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
@@ -74,7 +75,7 @@ public class DisableConfigInheritanceTestCase extends PmProvisionConfigTestBase 
                 .addConfig(ConfigModel.builder("model2", "config2")
                         .addFeature(new FeatureConfig("specB").setParam("id", "22"))
                         .build())
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
@@ -82,8 +83,8 @@ public class DisableConfigInheritanceTestCase extends PmProvisionConfigTestBase 
     protected ProvisioningConfig provisioningConfig()
             throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP1_GAV))
-                .addFeaturePackDep(FeaturePackConfig.forGav(FP2_GAV))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP1_GAV.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP2_GAV.getLocation()))
                 .setInheritConfigs(false)
                 .build();
     }

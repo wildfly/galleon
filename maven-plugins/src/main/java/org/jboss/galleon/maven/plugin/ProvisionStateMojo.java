@@ -38,7 +38,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -47,6 +46,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
 /**
@@ -148,8 +148,8 @@ public class ProvisionStateMojo extends AbstractMojo {
             if(fp.getArtifactId() == null) {
                 throw new MojoExecutionException("Feature-pack artifactId is missing");
             }
-            final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(ArtifactCoords.newGav(fp.getGroupId(),
-                    fp.getArtifactId(), fp.getVersion()))
+            final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(LegacyGalleon1Universe.newFPID(fp.getGroupId(),
+                    fp.getArtifactId(), fp.getVersion()).getLocation())
                     .setInheritConfigs(fp.isInheritConfigs())
                     .setInheritPackages(fp.isInheritPackages());
 
@@ -195,8 +195,7 @@ public class ProvisionStateMojo extends AbstractMojo {
         }
 
         final ProvisioningManager pm = ProvisioningManager.builder()
-                .setArtifactResolver(
-                        FeaturePackRepositoryManager.newInstance(repoSession.getLocalRepository().getBasedir().toPath()))
+                .addArtifactResolver(FeaturePackRepositoryManager.newInstance(repoSession.getLocalRepository().getBasedir().toPath()))
                 .setInstallationHome(installDir.toPath())
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
                 .build();

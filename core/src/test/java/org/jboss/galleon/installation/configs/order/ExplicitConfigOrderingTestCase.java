@@ -16,15 +16,16 @@
  */
 package org.jboss.galleon.installation.configs.order;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -40,11 +41,11 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  */
 public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
             .newFeaturePack(FP1_GAV)
                 .addSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
@@ -78,13 +79,13 @@ public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
                         .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build())
                 .addPlugin(ConfigListPlugin.class)
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
-        return ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forGav(FP1_GAV)).build();
+        return ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forLocation(FP1_GAV.getLocation())).build();
     }
 
     @Override
@@ -93,31 +94,31 @@ public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV).build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model2").setName("config1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "21")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "21")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1").setName("config2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "12")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "12")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model2").setName("config2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "22")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "22")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("configA")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "1")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1").setName("config1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "11")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "11")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("configB")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "1")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty("id", "fp1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV,  "specA"), "id", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "1")))
                         .build())
                 .build();
     }

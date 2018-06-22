@@ -16,13 +16,12 @@
  */
 package org.jboss.galleon.featurepack.pkg.origin.test;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
@@ -34,35 +33,35 @@ import org.jboss.galleon.test.util.fs.state.DirState;
  */
 public class ResolveFirstPackageOnFpDepBranchTestCase extends PmProvisionConfigTestBase {
 
-    private static final Gav FP1_GAV = ArtifactCoords.newGav("org.pm.test", "fp1", "1.0.0.Final");
-    private static final Gav FP2_GAV = ArtifactCoords.newGav("org.pm.test", "fp2", "1.0.0.Final");
-    private static final Gav FP3_GAV = ArtifactCoords.newGav("org.pm.test", "fp3", "1.0.0.Final");
-    private static final Gav FP4_GAV = ArtifactCoords.newGav("org.pm.test", "fp4", "1.0.0.Final");
-    private static final Gav FP5_GAV = ArtifactCoords.newGav("org.pm.test", "fp5", "1.0.0.Final");
+    private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0.Final");
+    private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final");
+    private static final FPID FP3_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp3", "1", "1.0.0.Final");
+    private static final FPID FP4_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp4", "1", "1.0.0.Final");
+    private static final FPID FP5_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp5", "1", "1.0.0.Final");
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
         .newFeaturePack(FP1_GAV)
-            .addDependency(FeaturePackConfig.builder(FP2_GAV).setInheritPackages(false).build())
-            .addDependency(FeaturePackConfig.builder(FP3_GAV).setInheritPackages(false).build())
-            .addDependency(FeaturePackConfig.builder(FP5_GAV).setInheritPackages(false).build())
+            .addDependency(FeaturePackConfig.builder(FP2_GAV.getLocation()).setInheritPackages(false).build())
+            .addDependency(FeaturePackConfig.builder(FP3_GAV.getLocation()).setInheritPackages(false).build())
+            .addDependency(FeaturePackConfig.builder(FP5_GAV.getLocation()).setInheritPackages(false).build())
             .newPackage("p1", true)
                 .addDependency("p2")
                 .writeContent("fp1/p1.txt", "p1")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .newFeaturePack(FP2_GAV)
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "p1")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .newFeaturePack(FP3_GAV)
-            .addDependency(FeaturePackConfig.builder(FP4_GAV).setInheritPackages(false).build())
+            .addDependency(FeaturePackConfig.builder(FP4_GAV.getLocation()).setInheritPackages(false).build())
              .newPackage("p1", true)
                  .writeContent("fp3/p1.txt", "p1")
                  .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .newFeaturePack(FP4_GAV)
             .newPackage("p1", true)
                 .writeContent("fp4/p1.txt", "p1")
@@ -70,7 +69,7 @@ public class ResolveFirstPackageOnFpDepBranchTestCase extends PmProvisionConfigT
             .newPackage("p2")
                 .writeContent("fp4/p2.txt", "p2")
                 .getFeaturePack()
-           .getInstaller()
+           .getCreator()
        .newFeaturePack(FP5_GAV)
            .newPackage("p1", true)
                .writeContent("fp5/p1.txt", "p1")
@@ -78,14 +77,14 @@ public class ResolveFirstPackageOnFpDepBranchTestCase extends PmProvisionConfigT
            .newPackage("p2")
                .writeContent("fp5/p2.txt", "p2")
                .getFeaturePack()
-          .getInstaller()
+          .getCreator()
         .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FP1_GAV)
+                .addFeaturePackDep(FP1_GAV.getLocation())
                 .build();
     }
 

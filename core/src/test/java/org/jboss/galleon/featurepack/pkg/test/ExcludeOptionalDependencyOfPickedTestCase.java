@@ -16,11 +16,11 @@
  */
 package org.jboss.galleon.featurepack.pkg.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
@@ -33,9 +33,9 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 public class ExcludeOptionalDependencyOfPickedTestCase extends PmInstallFeaturePackTestBase {
 
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
-        .newFeaturePack(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"))
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
+        .newFeaturePack(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1"))
             .newPackage("a", true)
                 .addDependency("b")
                 .writeContent("a.txt", "a")
@@ -54,14 +54,14 @@ public class ExcludeOptionalDependencyOfPickedTestCase extends PmInstallFeatureP
             .newPackage("e")
                 .writeContent("c/e.txt", "e")
                 .getFeaturePack()
-            .getInstaller()
+            .getCreator()
         .install();
     }
 
     @Override
     protected FeaturePackConfig featurePackConfig() throws ProvisioningDescriptionException {
         return FeaturePackConfig
-                .builder(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"), false)
+                .builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1").getLocation(), false)
                 .includePackage("b")
                 .includePackage("c")
                 .excludePackage("d")
@@ -71,7 +71,7 @@ public class ExcludeOptionalDependencyOfPickedTestCase extends PmInstallFeatureP
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.pm.test", "fp-install", "1.0.0.Beta1"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1"))
                         .addPackage("b")
                         .addPackage("c")
                         .build())

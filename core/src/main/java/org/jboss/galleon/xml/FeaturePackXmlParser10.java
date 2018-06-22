@@ -31,6 +31,7 @@ import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeaturePackSpec.Builder;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 
@@ -45,7 +46,6 @@ public class FeaturePackXmlParser10 implements PlugableXmlParser<FeaturePackSpec
 
     public enum Element implements XmlNameProvider {
 
-        ARTIFACT("artifact"),
         CONFIG("config"),
         DEFAULT_CONFIGS("default-configs"),
         DEFAULT_PACKAGES("default-packages"),
@@ -64,8 +64,7 @@ public class FeaturePackXmlParser10 implements PlugableXmlParser<FeaturePackSpec
         private static final Map<String, Element> elements;
 
         static {
-            elements = new HashMap<>(13);
-            elements.put(ARTIFACT.name, ARTIFACT);
+            elements = new HashMap<>(12);
             elements.put(CONFIG.name, CONFIG);
             elements.put(DEFAULT_CONFIGS.name, DEFAULT_CONFIGS);
             elements.put(DEFAULT_PACKAGES.name, DEFAULT_PACKAGES);
@@ -174,7 +173,32 @@ public class FeaturePackXmlParser10 implements PlugableXmlParser<FeaturePackSpec
 
     @Override
     public void readElement(XMLExtendedStreamReader reader, Builder fpBuilder) throws XMLStreamException {
-        fpBuilder.setGav(readArtifactCoords(reader, "zip").toGav());
+        String groupId = null;
+        String artifactId = null;
+        String version = null;
+        final int count = reader.getAttributeCount();
+        final Set<Attribute> required = EnumSet.of(Attribute.GROUP_ID, Attribute.ARTIFACT_ID);
+        for (int i = 0; i < count; i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
+            required.remove(attribute);
+            switch (attribute) {
+                case GROUP_ID:
+                    groupId = reader.getAttributeValue(i);
+                    break;
+                case ARTIFACT_ID:
+                    artifactId = reader.getAttributeValue(i);
+                    break;
+                case VERSION:
+                    version = reader.getAttributeValue(i);
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        if (!required.isEmpty()) {
+            throw ParsingUtils.missingAttributes(reader.getLocation(), required);
+        }
+        fpBuilder.setFPID(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getFPID());
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
@@ -212,35 +236,6 @@ public class FeaturePackXmlParser10 implements PlugableXmlParser<FeaturePackSpec
             }
         }
         throw ParsingUtils.endOfDocument(reader.getLocation());
-    }
-
-    private ArtifactCoords readArtifactCoords(XMLExtendedStreamReader reader, String extension) throws XMLStreamException {
-        String groupId = null;
-        String artifactId = null;
-        String version = null;
-        final int count = reader.getAttributeCount();
-        final Set<Attribute> required = EnumSet.of(Attribute.GROUP_ID, Attribute.ARTIFACT_ID);
-        for (int i = 0; i < count; i++) {
-            final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
-            required.remove(attribute);
-            switch (attribute) {
-                case GROUP_ID:
-                    groupId = reader.getAttributeValue(i);
-                    break;
-                case ARTIFACT_ID:
-                    artifactId = reader.getAttributeValue(i);
-                    break;
-                case VERSION:
-                    version = reader.getAttributeValue(i);
-                    break;
-                default:
-                    throw ParsingUtils.unexpectedContent(reader);
-            }
-        }
-        if (!required.isEmpty()) {
-            throw ParsingUtils.missingAttributes(reader.getLocation(), required);
-        }
-        return new ArtifactCoords(groupId, artifactId, version, "", extension);
     }
 
     private static void readFeaturePackDeps(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> fpBuilder) throws XMLStreamException {

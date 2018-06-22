@@ -33,6 +33,8 @@ import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -108,7 +110,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
     @Option(name = FP_OPTION_NAME, completer = GavCompleter.class, activator = FPGavActivator.class)
     protected String fpCoords;
 
-    protected ArtifactCoords.Gav getGav(PmSession session) throws CommandExecutionException {
+    protected FeaturePackLocation getFpl(PmSession session) throws CommandExecutionException {
         if (session.getState() != null) {
             return null;
         }
@@ -129,7 +131,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
         } else {
             coords = fpCoords;
         }
-        return ArtifactCoords.newGav(coords);
+        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(coords));
     }
 
     protected String getName() {
@@ -145,9 +147,9 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
         return null;
     }
 
-    protected ProvisioningManager getManager(PmSession session, AeshContext ctx) {
+    protected ProvisioningManager getManager(PmSession session, AeshContext ctx) throws ProvisioningException {
         ProvisioningManager.Builder builder = ProvisioningManager.builder()
-                .setArtifactResolver(session.getArtifactResolver());
+                .addArtifactResolver(session.getArtifactResolver());
         builder.setInstallationHome(getTargetDir(ctx));
         return builder.build();
     }
@@ -162,15 +164,15 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
             return session.getContainer();
         }
         FeatureContainer container;
-        ArtifactCoords.Gav gav = null;
+        FeaturePackLocation fpl = null;
         try {
-            gav = getGav(session);
+            fpl = getFpl(session);
         } catch (Exception ex) {
-            // Ok no gav, try file.
+            // Ok no fpl, try file.
         }
         ProvisioningManager manager = getManager(session, ctx);
-        if (gav != null) {
-            container = FeatureContainers.fromFeaturePackGav(session, manager, gav, streamName);
+        if (fpl != null) {
+            container = FeatureContainers.fromFeaturePackId(session, manager, fpl.getFPID(), streamName);
         } else {
             if (manager.getProvisionedState() == null) {
                 throw new CommandExecutionException("Specified directory doesn't contain an installation");

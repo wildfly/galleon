@@ -16,12 +16,13 @@
  */
 package org.jboss.galleon.featurepack.dependency.override.test;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
@@ -33,15 +34,17 @@ import org.jboss.galleon.test.util.fs.state.DirState;
  */
 public class ExcludeOptionalPackagesFromExternalDependenciesTestCase extends PmProvisionConfigTestBase {
 
+    private static final FPID FP1_ID = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+
     @Override
-    protected void setupRepo(FeaturePackRepositoryManager repoManager) throws ProvisioningDescriptionException {
-        repoManager.installer()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final"))
+    protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+        creator
+            .newFeaturePack(FP1_ID)
                 .addDependency(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "1.0.0.Final"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final").getLocation())
                         .build())
                 .addDependency(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp3", "1.0.0.Final"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final").getLocation())
                         .setInheritPackages(false)
                         .excludePackage("p2")
                         .build())
@@ -54,15 +57,15 @@ public class ExcludeOptionalPackagesFromExternalDependenciesTestCase extends PmP
                 .newPackage("p3")
                     .writeContent("fp1/p3.txt", "p3")
                     .getFeaturePack()
-                .getInstaller()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "1.0.0.Final"))
+                .getCreator()
+            .newFeaturePack(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final"))
                 .addDependency(FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final"))
+                        .builder(FP1_ID.getLocation())
                         .setInheritPackages(false)
                         .excludePackage("p2")
                         .build())
                 .addDependency("fp3", FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp3", "1.0.0.Final"))
+                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final").getLocation())
                         .setInheritPackages(false)
                         .build())
                 .newPackage("p1", true)
@@ -71,10 +74,10 @@ public class ExcludeOptionalPackagesFromExternalDependenciesTestCase extends PmP
                     .addDependency("fp3", "p3")
                     .writeContent("fp2/p1.txt", "p1")
                     .getFeaturePack()
-                .getInstaller()
-            .newFeaturePack(ArtifactCoords.newGav("org.jboss.pm.test", "fp3", "1.0.0.Final"))
+                .getCreator()
+            .newFeaturePack(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final"))
                 .addDependency("fp1", FeaturePackConfig
-                        .builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final"))
+                        .builder(FP1_ID.getLocation())
                         .setInheritPackages(false)
                         .build())
                 .newPackage("p1", true)
@@ -89,29 +92,27 @@ public class ExcludeOptionalPackagesFromExternalDependenciesTestCase extends PmP
                     .addDependency("fp1", "p2", true)
                     .writeContent("fp3/p3.txt", "p3")
                     .getFeaturePack()
-                .getInstaller()
+                .getCreator()
             .install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(
-                        FeaturePackConfig.forGav(
-                                ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final")))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP1_ID.getLocation()))
                 .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp1", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp2", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final"))
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(ArtifactCoords.newGav("org.jboss.pm.test", "fp3", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final"))
                         .addPackage("p3")
                         .build())
                 .build();
