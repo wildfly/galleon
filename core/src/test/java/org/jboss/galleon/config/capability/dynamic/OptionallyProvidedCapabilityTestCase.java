@@ -87,7 +87,7 @@ public class OptionallyProvidedCapabilityTestCase extends PmInstallFeaturePackTe
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(
-                "No provider found for capability cap.c2 required by {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b2 as cap.$c",
+                "No provider found for capability cap.c2 required by {org.jboss.pm.test:fp1@galleon1:1}specB:b=b2 as cap.$c",
                 e.getMessage());
     }
 }

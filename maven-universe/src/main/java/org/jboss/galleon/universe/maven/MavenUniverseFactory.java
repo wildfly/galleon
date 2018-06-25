@@ -31,7 +31,7 @@ import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 public class MavenUniverseFactory implements UniverseFactory {
 
     public static final String DEFAULT_REPO_ID = RepositoryArtifactResolver.ID_PREFIX + MavenUniverseConstants.MAVEN;
-    public static final String ID = UniverseFactory.ID_PREFIX + MavenUniverseConstants.MAVEN;
+    public static final String ID = MavenUniverseConstants.MAVEN;
 
     /* (non-Javadoc)
      * @see org.jboss.galleon.universe.UniverseFactory#getRepoType()

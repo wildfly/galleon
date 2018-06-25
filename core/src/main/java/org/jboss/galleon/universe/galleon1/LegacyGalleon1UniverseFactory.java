@@ -29,7 +29,7 @@ import org.jboss.galleon.universe.UniverseFactory;
  */
 public class LegacyGalleon1UniverseFactory implements UniverseFactory {
 
-    public static final String ID = UniverseFactory.ID_PREFIX + "galleon1";
+    public static final String ID = "galleon1";
     public static final String DEFAULT_REPO_ID = ArtifactRepositoryManager.REPOSITORY_ID;
 
     /* (non-Javadoc)

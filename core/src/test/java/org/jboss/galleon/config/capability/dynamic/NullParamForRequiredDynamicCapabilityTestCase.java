@@ -76,7 +76,7 @@ public class NullParamForRequiredDynamicCapabilityTestCase extends PmInstallFeat
         Assert.assertEquals("Failed to build config", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b1", e.getMessage());
+        Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals("Parameter a is missing value to resolve capability cap.$a", e.getMessage());

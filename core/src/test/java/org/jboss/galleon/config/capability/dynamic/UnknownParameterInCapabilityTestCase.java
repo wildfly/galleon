@@ -77,7 +77,7 @@ public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTe
         Assert.assertEquals("Failed to build config", e.getMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b1", e.getMessage());
+        Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1", e.getMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(Errors.unknownFeatureParameter(new ResolvedSpecId(FP_GAV.getChannel(), "specB"), "a"), e.getMessage());

@@ -26,8 +26,6 @@ import org.jboss.galleon.repo.RepositoryArtifactResolver;
  */
 public interface UniverseFactory {
 
-    String ID_PREFIX = "universe.factory.";
-
     String getFactoryId();
 
     String getRepositoryId();
