@@ -50,7 +50,7 @@ public class LegacyGalleon1Channel implements Channel {
      */
     @Override
     public Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
-        return universe.artifactResolver.resolve(LegacyGalleon1Universe.toArtifactCoords(fpl));
+        return universe.artifactResolver.resolve(LegacyGalleon1Universe.toArtifactCoords(fpl).toString());
     }
 
     @Override

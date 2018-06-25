@@ -430,11 +430,10 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append(groupId).append(':').append(artifactId);
+        if(extension != null) {
+            buf.append(':').append(extension);
+        }
         if(!classifier.isEmpty()) {
-            buf.append(':');
-            if(extension != null) {
-                buf.append(extension);
-            }
             buf.append(':').append(classifier);
         }
         if(version != null) {

@@ -36,6 +36,8 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.jboss.galleon.maven.plugin.util.ArtifactItem;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePackInstaller;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  * This maven plugin  installs a feature-pack into an empty directory or a
@@ -102,12 +104,22 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     private boolean inheritConfigs;
 
     /**
-     * Feature-pack artifact (groupId - artifactId - version) if not specified
-     * the feature-pack must be a transitive dependency of a feature-pack with
+     * Legacy Galleon 1.x feature-pack artifact coordinates as (groupId - artifactId - version)
+     * if not specified the feature-pack must be a transitive dependency of a feature-pack with
      * the version specified.
-    */
-    @Parameter(alias = "feature-pack", required = true)
+     *
+     * NOTE: either this parameter or 'location' must be configured.
+     */
+    @Parameter(alias = "feature-pack", required = false)
     private ArtifactItem featurePack;
+
+    /**
+     * Galleon2 feature-pack location
+     *
+     * NOTE: either this parameter or 'feature-pack' must be configured.
+     */
+    @Parameter(required = false)
+    private String location;
 
     /**
      * Default feature-pack configs that should be included.
@@ -136,10 +148,19 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         resetProperties();
+        final FeaturePackLocation fpl;
+        if(featurePack != null) {
+            fpl = LegacyGalleon1Universe.toFpl(featurePack.getArtifactCoords().toGav());
+        } else if(location != null) {
+            fpl = FeaturePackLocation.fromString(location);
+        } else {
+            throw new MojoExecutionException("Either 'location' or 'feature-pack' must be configured");
+        }
+
         final FeaturePackInstaller fpInstaller = FeaturePackInstaller.newInstance(
                 repoSession.getLocalRepository().getBasedir().toPath(),
                 installDir.toPath(),
-                featurePack.getArtifactCoords().toGav())
+                fpl)
                 .setInheritConfigs(inheritConfigs)
                 .includeConfigs(includedConfigs)
                 .setInheritPackages(inheritPackages)

@@ -32,10 +32,12 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
 
     private String groupId;
     private String artifactId;
-    private String version = null;
+    private String version;
     private String type = "zip";
     private String classifier;
     private String extension = "zip";
+
+    private String location;
 
     private boolean inheritConfigs = true;
     private List<ConfigurationId> includedConfigs = Collections.emptyList();
@@ -51,6 +53,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     }
 
     public void setGroupId(String groupId) {
+        assertGalleon1Location();
         this.groupId = groupId;
     }
 
@@ -60,6 +63,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     }
 
     public void setArtifactId(String artifactId) {
+        assertGalleon1Location();
         this.artifactId = artifactId;
     }
 
@@ -69,6 +73,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     }
 
     public void setVersion(String version) {
+        assertGalleon1Location();
         this.version = version;
     }
 
@@ -78,6 +83,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     }
 
     public void setType(String type) {
+        assertGalleon1Location();
         this.type = type;
     }
 
@@ -87,6 +93,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     }
 
     public void setClassifier(String classifier) {
+        assertGalleon1Location();
         this.classifier = classifier;
     }
 
@@ -96,7 +103,17 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     }
 
     public void setExtension(String extension) {
+        assertGalleon1Location();
         this.extension = extension;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        assertGalleon2Location();
+        this.location = location;
     }
 
     public boolean isInheritPackages() {
@@ -171,5 +188,17 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
             StringUtils.appendList(buf, excludedConfigs);
         }
         return buf.append('}').toString();
+    }
+
+    private void assertGalleon2Location() {
+        if(groupId != null || artifactId != null || version != null) {
+            throw new IllegalStateException("Galleon 2.x location cannot be used: feature-pack Maven coordinates have already been initialized");
+        }
+    }
+
+    private void assertGalleon1Location() {
+        if(location != null) {
+            throw new IllegalStateException("Galleon 1.x feature-pack Maven coordinates cannot be used: Galleon 2.x feature-pack location has already been initialized");
+        }
     }
 }

@@ -53,9 +53,6 @@ public class LegacyGalleon1UniverseFactory implements UniverseFactory {
      */
     @Override
     public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException {
-        if(!(artifactResolver instanceof ArtifactRepositoryManager)) {
-            throw new ProvisioningException("Repository artifact resolver does not implement " + RepositoryArtifactResolver.class.getName());
-        }
-        return new LegacyGalleon1Universe((ArtifactRepositoryManager) artifactResolver);
+        return new LegacyGalleon1Universe(artifactResolver);
     }
 }
