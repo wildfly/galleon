@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.xml.ConfigXmlParser;
@@ -44,12 +45,16 @@ import org.jboss.galleon.xml.ConfigXmlParser;
 public class FeaturePackInstaller {
 
     public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, ArtifactCoords.Gav fpGav) {
-        return new FeaturePackInstaller(repoHome, installationDir, fpGav);
+        return new FeaturePackInstaller(repoHome, installationDir, LegacyGalleon1Universe.toFpl(fpGav));
+    }
+
+    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, FeaturePackLocation fpl) {
+        return new FeaturePackInstaller(repoHome, installationDir, fpl);
     }
 
     private final Path repoHome;
     private final Path installationDir;
-    private final ArtifactCoords.Gav fpGav;
+    private final FeaturePackLocation fpl;
     private boolean inheritConfigs = true;
     private List<ConfigurationId> includedConfigs = Collections.emptyList();
     private Path customConfig;
@@ -58,10 +63,10 @@ public class FeaturePackInstaller {
     private List<String> excludedPackages = Collections.emptyList();
     private Map<String, String> pluginOptions = Collections.emptyMap();
 
-    private FeaturePackInstaller(Path repoHome, Path installationDir, ArtifactCoords.Gav fpGav) {
+    private FeaturePackInstaller(Path repoHome, Path installationDir, FeaturePackLocation fpl) {
         this.repoHome = repoHome;
         this.installationDir = installationDir;
-        this.fpGav = fpGav;
+        this.fpl = fpl;
     }
 
     public FeaturePackInstaller setInheritConfigs(boolean inheritConfigs) {
@@ -135,7 +140,7 @@ public class FeaturePackInstaller {
                     throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
                 }
             }
-            FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(LegacyGalleon1Universe.newFPID(fpGav.getGroupId(), fpGav.getArtifactId(), fpGav.getVersion()).getLocation())
+            FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(fpl)
                     .setInheritPackages(inheritPackages)
                     .setInheritConfigs(inheritConfigs);
             if(includedConfigs != null && ! includedConfigs.isEmpty()) {
@@ -162,7 +167,7 @@ public class FeaturePackInstaller {
             }
             manager.install(fpConfigBuilder.build(), pluginOptions);
         } catch (ProvisioningException ex) {
-            throw new IllegalArgumentException("Couldn't install the feature pack " + fpGav, ex);
+            throw new IllegalArgumentException("Couldn't install feature-pack " + fpl, ex);
         } finally {
             System.clearProperty("org.wildfly.logging.skipLogManagerCheck");
         }

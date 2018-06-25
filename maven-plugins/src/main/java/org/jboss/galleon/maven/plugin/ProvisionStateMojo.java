@@ -38,6 +38,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -45,7 +46,8 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
+import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
@@ -142,14 +144,16 @@ public class ProvisionStateMojo extends AbstractMojo {
     private void doProvision() throws MojoExecutionException, ProvisioningException {
         final ProvisioningConfig.Builder state = ProvisioningConfig.builder();
         for(FeaturePack fp : featurePacks) {
-            if(fp.getGroupId() == null) {
-                throw new MojoExecutionException("Feature-pack groupId is missing");
+            final FeaturePackLocation fpl;
+            if(fp.getLocation() == null) {
+                if(fp.getGroupId() == null || fp.getArtifactId() == null) {
+                    throw new MojoExecutionException("Feature-pack location or Maven GAV is missing");
+                }
+                fpl = LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(fp.getGroupId(), fp.getArtifactId(), fp.getVersion()));
+            } else {
+                fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
-            if(fp.getArtifactId() == null) {
-                throw new MojoExecutionException("Feature-pack artifactId is missing");
-            }
-            final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(LegacyGalleon1Universe.newFPID(fp.getGroupId(),
-                    fp.getArtifactId(), fp.getVersion()).getLocation())
+            final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(fpl)
                     .setInheritConfigs(fp.isInheritConfigs())
                     .setInheritPackages(fp.isInheritPackages());
 
@@ -195,7 +199,7 @@ public class ProvisionStateMojo extends AbstractMojo {
         }
 
         final ProvisioningManager pm = ProvisioningManager.builder()
-                .addArtifactResolver(FeaturePackRepositoryManager.newInstance(repoSession.getLocalRepository().getBasedir().toPath()))
+                .addArtifactResolver(new MavenArtifactRepositoryManager(repoSystem, repoSession))
                 .setInstallationHome(installDir.toPath())
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
                 .build();

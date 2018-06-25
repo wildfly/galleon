@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -80,10 +80,10 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
         return new FeaturePackLocation(new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null), producer, channel, null, null).getChannel();
     }
 
-    final ArtifactRepositoryManager artifactResolver;
+    final RepositoryArtifactResolver artifactResolver;
     private Map<String, LegacyGalleon1Producer> producers = Collections.emptyMap();
 
-    public LegacyGalleon1Universe(ArtifactRepositoryManager artifactResolver) {
+    public LegacyGalleon1Universe(RepositoryArtifactResolver artifactResolver) {
         this.artifactResolver = artifactResolver;
     }
 
