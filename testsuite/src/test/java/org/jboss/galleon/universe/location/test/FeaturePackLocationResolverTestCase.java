@@ -86,6 +86,7 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
             artifact.setGroupId(FP_GROUP_ID);
             artifact.setArtifactId(PRODUCER1_FP_ARTIFACT_ID);
             artifact.setExtension("zip");
+            artifact.setVersionRange("[5.0-alpha,6.0-alpha)");
             Assert.assertEquals(MavenErrors.artifactNotFound(artifact, repoHome).getLocalizedMessage(), e.getLocalizedMessage());
         }
 

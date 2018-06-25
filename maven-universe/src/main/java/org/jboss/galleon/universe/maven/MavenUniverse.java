@@ -64,8 +64,10 @@ public class MavenUniverse extends MavenUniverseBase {
         if(!artifact.isResolved()) {
             if(artifact.getVersionRange() != null) {
                 repoManager.resolveLatestVersion(artifact);
-            } else {
+            } else if(artifact.getVersion() != null) {
                 repoManager.resolve(artifact);
+            } else {
+                throw new MavenUniverseException("Neither version not version range has been specified");
             }
         }
     }

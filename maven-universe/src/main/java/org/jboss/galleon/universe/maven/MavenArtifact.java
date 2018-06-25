@@ -27,19 +27,15 @@ import java.util.regex.Pattern;
  */
 public class MavenArtifact {
 
-    private static Pattern COORDS_PATTERN;
+    private static final Pattern COORDS_PATTERN = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
 
     public static final String EXT_JAR = "jar";
     public static final String EXT_ZIP = "zip";
 
     public static MavenArtifact fromString(String str) throws MavenUniverseException {
-        if(COORDS_PATTERN == null) {
-            COORDS_PATTERN = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
-        }
         final Matcher m = COORDS_PATTERN.matcher(str);
         if (!m.matches()) {
-            throw new MavenUniverseException("Bad artifact coordinates " + str
-                    + ", expected format is <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>");
+            illegalFormat(str);
         }
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(m.group(1));
@@ -54,6 +50,11 @@ public class MavenArtifact {
         }
         artifact.setVersion(m.group(7));
         return artifact;
+    }
+
+    private static void illegalFormat(String str) throws MavenUniverseException {
+        throw new MavenUniverseException("Bad artifact coordinates " + str
+                + ", expected format is <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>");
     }
 
     private String groupId;
@@ -164,6 +165,8 @@ public class MavenArtifact {
         }
         if(version != null) {
             buf.append(':').append(version);
+        } else if(versionRange != null) {
+            buf.append(':').append(versionRange);
         }
         return buf.toString();
     }
