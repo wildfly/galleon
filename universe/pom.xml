@@ -32,5 +32,5 @@
   <packaging>jar</packaging>
 
   <name>Universe</name>
-  <url>http://maven.apache.org</url>
+
 </project>
