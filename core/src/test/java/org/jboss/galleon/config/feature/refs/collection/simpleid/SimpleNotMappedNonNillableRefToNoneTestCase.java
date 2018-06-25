@@ -75,7 +75,7 @@ public class SimpleNotMappedNonNillableRefToNoneTestCase extends PmInstallFeatur
     protected String[] pmErrors() {
         return new String[] {
                 Errors.failedToBuildConfigSpec(null, null),
-                "Reference specA of {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b1 cannot be null"
+                "Reference specA of {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1 cannot be null"
         };
     }
 

@@ -77,7 +77,7 @@ public class UnsetRequiredCapabilityNillableParameterTestCase extends PmInstallF
     @Override
     protected String[] pmErrors() {
         return new String[] {Errors.failedToBuildConfigSpec(null, null),
-                "Failed to resolve capability cap.$p1 for {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specA:name=a1",
+                "Failed to resolve capability cap.$p1 for {org.jboss.pm.test:fp1@galleon1:1}specA:name=a1",
                 "Parameter p1 is missing value to resolve capability cap.$p1"};
     }
 

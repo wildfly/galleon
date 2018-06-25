@@ -66,7 +66,7 @@ public class EmptyCollectionForRequiredCapConsumerTestCase extends PmInstallFeat
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {
                 Errors.failedToBuildConfigSpec(null, null),
-                "Failed to resolve capability cap.$p1 for {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specA:a=1",
+                "Failed to resolve capability cap.$p1 for {org.jboss.pm.test:fp1@galleon1:1}specA:a=1",
                 Errors.capabilityMissingParameter(CapabilitySpec.fromString("cap.$p1"), "p1")
         };
     }

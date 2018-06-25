@@ -153,12 +153,12 @@ public class ProvisionedStateXmlWriterTestCase {
         newState.getConfigs().iterator().next().handle(handler);
         Iterator<ProvisionedFeature> iterator = handler.features.iterator();
 
-        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec1:create-param=a", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec2:create-param=b", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp2}spec3:id-param=b", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp2}spec3:id-param=a", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@universe.factory.galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec1:create-param=a", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec2:create-param=b", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1:fp2}spec3:id-param=b", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1:fp2}spec3:id-param=a", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
     }
 
     @Test

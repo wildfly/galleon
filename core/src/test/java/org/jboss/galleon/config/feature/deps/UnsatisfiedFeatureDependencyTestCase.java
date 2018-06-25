@@ -74,6 +74,6 @@ public class UnsatisfiedFeatureDependencyTestCase extends PmInstallFeaturePackTe
         Assert.assertEquals("Failed to build config named config1", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("{org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specA:id=a", e.getMessage());
+        Assert.assertEquals("{org.jboss.pm.test:fp1@galleon1:1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@galleon1:1}specA:id=a", e.getMessage());
     }
 }

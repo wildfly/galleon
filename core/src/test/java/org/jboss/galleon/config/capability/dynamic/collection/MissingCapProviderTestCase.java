@@ -74,7 +74,7 @@ public class MissingCapProviderTestCase extends PmInstallFeaturePackTestBase {
     protected String[] pmErrors() {
         return new String[] {
                 Errors.failedToBuildConfigSpec(null, null),
-                "No provider found for capability cap.2 required by {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:b=b1 as cap.$col"
+                "No provider found for capability cap.2 required by {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1 as cap.$col"
         };
     }
 

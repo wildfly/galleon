@@ -77,7 +77,7 @@ public class ResetOptionalCapabilityNillableParameterTestCase extends PmInstallF
     @Override
     protected String[] pmErrors() {
         return new String[] {Errors.failedToBuildConfigSpec(null, null),
-                "No provider found for capability cap.spec required by {org.jboss.pm.test:fp1@universe.factory.galleon1:1}specB:name=b1"};
+                "No provider found for capability cap.spec required by {org.jboss.pm.test:fp1@galleon1:1}specB:name=b1"};
     }
 
     @Override
