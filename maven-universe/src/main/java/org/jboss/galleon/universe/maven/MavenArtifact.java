@@ -18,8 +18,6 @@
 package org.jboss.galleon.universe.maven;
 
 import java.nio.file.Path;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -27,29 +25,60 @@ import java.util.regex.Pattern;
  */
 public class MavenArtifact {
 
-    private static final Pattern COORDS_PATTERN = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
-
     public static final String EXT_JAR = "jar";
     public static final String EXT_ZIP = "zip";
 
     public static MavenArtifact fromString(String str) throws MavenUniverseException {
-        final Matcher m = COORDS_PATTERN.matcher(str);
-        if (!m.matches()) {
+        final MavenArtifact artifact = new MavenArtifact();
+        int colon = str.indexOf(':');
+        final int length = str.length();
+        if(colon < 1 || colon == length - 1) {
             illegalFormat(str);
         }
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(m.group(1));
-        artifact.setArtifactId(m.group(2));
-        String v = m.group(4);
-        if(v != null && v.length() > 0) {
-            artifact.setExtension(v);
+        artifact.setGroupId(str.substring(0, colon));
+        int offset = colon + 1;
+        colon = str.indexOf(':', offset);
+        if(colon < 0) {
+            artifact.setArtifactId(str.substring(offset, length));
+            return artifact;
         }
-        v = m.group(6);
-        if(v != null && v.length() > 0) {
-            artifact.setClassifier(v);
+        if(colon == length - 1) {
+            illegalFormat(str);
         }
-        artifact.setVersion(m.group(7));
+        artifact.setArtifactId(str.substring(offset, colon));
+        offset = colon + 1;
+        colon = str.indexOf(':', offset);
+        if(colon < 0) {
+            setVersionOrRange(artifact, str.substring(offset, length));
+            return artifact;
+        }
+        if(colon == length - 1) {
+            illegalFormat(str);
+        }
+        artifact.setExtension(str.substring(offset, colon));
+        offset = colon + 1;
+        colon = str.indexOf(':', offset);
+        if(colon < 0) {
+            setVersionOrRange(artifact, str.substring(offset, length));
+            return artifact;
+        }
+        if(colon == length - 1) {
+            illegalFormat(str);
+        }
+        artifact.setClassifier(str.substring(offset, colon));
+        setVersionOrRange(artifact, str.substring(colon + 1));
         return artifact;
+    }
+
+    private static void setVersionOrRange(final MavenArtifact artifact, final String v) {
+        switch(v.charAt(0)) {
+            case '[':
+            case '(':
+                artifact.setVersionRange(v);
+                break;
+            default:
+                artifact.setVersion(v);
+        }
     }
 
     private static void illegalFormat(String str) throws MavenUniverseException {
@@ -84,6 +113,10 @@ public class MavenArtifact {
     public MavenArtifact setArtifactId(String artifactId) {
         this.artifactId = artifactId;
         return this;
+    }
+
+    public boolean hasVersion() {
+        return version != null;
     }
 
     public String getVersion() {
@@ -157,18 +190,22 @@ public class MavenArtifact {
     public String getCoordsAsString() {
         final StringBuilder buf = new StringBuilder();
         buf.append(groupId).append(':').append(artifactId);
+        final String v = version == null ? versionRange : version;
+        if(v == null) {
+            return buf.toString();
+        }
         if(extension != null) {
             buf.append(':').append(extension);
         }
         if(!classifier.isEmpty()) {
             buf.append(':').append(classifier);
         }
-        if(version != null) {
-            buf.append(':').append(version);
-        } else if(versionRange != null) {
-            buf.append(':').append(versionRange);
-        }
-        return buf.toString();
+        return buf.append(':').append(v).toString();
+    }
+
+    @Override
+    public String toString() {
+        return getCoordsAsString();
     }
 
     @Override

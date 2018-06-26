@@ -45,6 +45,8 @@ import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
  */
 public class MavenUniverse extends MavenUniverseBase {
 
+    private static final String DEFAULT_RANGE = "[0.0,)";
+
     private Map<String, MavenProducer> producers = Collections.emptyMap();
     private boolean fullyLoaded;
 
@@ -67,7 +69,8 @@ public class MavenUniverse extends MavenUniverseBase {
             } else if(artifact.getVersion() != null) {
                 repoManager.resolve(artifact);
             } else {
-                throw new MavenUniverseException("Neither version not version range has been specified");
+                artifact.setVersionRange(DEFAULT_RANGE);
+                repoManager.resolveLatestVersion(artifact);
             }
         }
     }

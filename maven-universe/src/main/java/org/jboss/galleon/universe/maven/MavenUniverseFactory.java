@@ -60,11 +60,6 @@ public class MavenUniverseFactory implements UniverseFactory {
         } else {
             repo = SimplisticMavenRepoManager.getInstance();
         }
-        final MavenArtifact artifact = MavenArtifact.fromString(location);
-        final char c = artifact.getVersion().charAt(0);
-        if(c == '[' || c == '(') {
-            artifact.setVersionRange(artifact.getVersion());
-        }
-        return new MavenUniverse(repo, artifact);
+        return new MavenUniverse(repo, MavenArtifact.fromString(location));
     }
 }
