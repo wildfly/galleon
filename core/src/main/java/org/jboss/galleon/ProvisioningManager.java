@@ -38,11 +38,13 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.xml.ProvisionedStateXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
+import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
 /**
  *
@@ -98,6 +100,32 @@ public class ProvisioningManager {
         return new Builder();
     }
 
+    public static void checkInstallationDir(Path installationHome) throws ProvisioningException {
+        if (!Files.exists(installationHome)) {
+            return;
+        }
+        if (!Files.isDirectory(installationHome)) {
+            throw new ProvisioningException(Errors.notADir(installationHome));
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(installationHome)) {
+            boolean usableDir = true;
+            final Iterator<Path> i = stream.iterator();
+            while (i.hasNext()) {
+                if (i.next().getFileName().toString().equals(Constants.PROVISIONED_STATE_DIR)) {
+                    usableDir = true;
+                    break;
+                } else {
+                    usableDir = false;
+                }
+            }
+            if (!usableDir) {
+                throw new ProvisioningException(Errors.homeDirNotUsable(installationHome));
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.readDirectory(installationHome));
+        }
+    }
+
     private final String encoding;
     private final Path installationHome;
     private final UniverseResolver universeResolver;
@@ -119,6 +147,53 @@ public class ProvisioningManager {
      */
     public Path getInstallationHome() {
         return installationHome;
+    }
+
+    /**
+     * Add named universe spec to the provisioning configuration
+     *
+     * @param name  universe name
+     * @param universeSpec  universe spec
+     * @throws ProvisioningException  in case of an error
+     */
+    public void addUniverse(String name, UniverseSpec universeSpec) throws ProvisioningException {
+        ProvisioningConfig config = getProvisioningConfig();
+        config = (config == null ? ProvisioningConfig.builder() : ProvisioningConfig.builder(config)).addUniverse(name, universeSpec).build();
+        try {
+            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(installationHome));
+        } catch (Exception e) {
+            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(installationHome)), e);
+        }
+        this.provisioningConfig = config;
+    }
+
+    /**
+     * Removes universe spec associated with the name from the provisioning configuration
+     * @param name  name of the universe spec or null for the default universe spec
+     * @throws ProvisioningException  in case of an error
+     */
+    public void removeUniverse(String name) throws ProvisioningException {
+        ProvisioningConfig config = getProvisioningConfig();
+        if(config == null || !config.hasUniverse(name)) {
+            return;
+        }
+        config = ProvisioningConfig.builder(config).removeUniverse(name).build();
+        try {
+            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(installationHome));
+        } catch (Exception e) {
+            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(installationHome)), e);
+        }
+        this.provisioningConfig = config;
+    }
+
+    /**
+     * Set the default universe spec for the installation
+     *
+     * @param universeSpec  universe spec
+     * @throws ProvisioningException  in case of an error
+     */
+    public void setDefaultUniverse(UniverseSpec universeSpec) throws ProvisioningException {
+        addUniverse(null, universeSpec);
     }
 
     /**
@@ -148,22 +223,22 @@ public class ProvisioningManager {
     /**
      * Installs the specified feature-pack.
      *
-     * @param fps  feature-pack source
+     * @param fpl  feature-pack location
      * @throws ProvisioningException  in case the installation fails
      */
-    public void install(FeaturePackLocation fps) throws ProvisioningException {
-        install(FeaturePackConfig.forLocation(fps));
+    public void install(FeaturePackLocation fpl) throws ProvisioningException {
+        install(FeaturePackConfig.forLocation(fpl));
     }
 
     /**
      * Installs the specified feature-pack taking into account provided plug-in options.
      *
-     * @param  fps feature-pack source
+     * @param  fpl feature-pack location
      * @param options  plug-in options
      * @throws ProvisioningException  in case the installation fails
      */
-    public void install(FeaturePackLocation fps, Map<String, String> options) throws ProvisioningException {
-        install(FeaturePackConfig.forLocation(fps), options);
+    public void install(FeaturePackLocation fpl, Map<String, String> options) throws ProvisioningException {
+        install(FeaturePackConfig.forLocation(fpl), options);
     }
 
     /**
@@ -187,40 +262,36 @@ public class ProvisioningManager {
     public void install(FeaturePackConfig fpConfig, boolean replaceInstalledVersion, Map<String, String> options)
             throws ProvisioningException {
         final ProvisioningConfig provisionedConfig = this.getProvisioningConfig();
-        if(provisionedConfig == null) {
-            provision(ProvisioningConfig.builder()
-                    .addFeaturePackDep(fpConfig)
-                    .build(), options);
-            return;
-        }
-
-        final ProvisionedFeaturePack installedFp = getProvisionedState().getFeaturePack(fpConfig.getLocation().getChannel());
-        // if it's installed neither explicitly nor implicitly as a dependency
-        if(installedFp == null) {
-            provision(ProvisioningConfig.builder(provisionedConfig).addFeaturePackDep(fpConfig).build(), options);
-            return;
-        }
-
-        if(!replaceInstalledVersion) {
-            if (installedFp.getFPID().equals(fpConfig.getLocation().getFPID())) {
-                throw new ProvisioningException(Errors.featurePackAlreadyInstalled(fpConfig.getLocation().getFPID()));
-            } else {
-                throw new ProvisioningException(Errors.featurePackVersionConflict(fpConfig.getLocation().getFPID(), installedFp.getFPID()));
+        final ProvisioningConfig.Builder configBuilder = provisionedConfig == null ? ProvisioningConfig.builder() : ProvisioningConfig.builder(provisionedConfig);
+        String origin = null;
+        if (provisionedConfig != null) {
+            final UniverseSpec fpUniverse = fpConfig.getLocation().getUniverse();
+            final String fpUniverseName = fpUniverse == null ? null : fpUniverse.toString();
+            if(provisionedConfig.hasUniverse(fpUniverseName)) {
+                fpConfig = FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(provisionedConfig.getUniverseSpec(fpUniverseName)))
+                        .init(fpConfig)
+                        .build();
+            }
+            final ProvisionedState provisionedState = getProvisionedState();
+            final ProvisionedFeaturePack installedFp = provisionedState == null ? null
+                    : provisionedState.getFeaturePack(fpConfig.getLocation().getChannel());
+            if (installedFp != null) {
+                if (!replaceInstalledVersion) {
+                    if (installedFp.getFPID().equals(fpConfig.getLocation().getFPID())) {
+                        throw new ProvisioningException(Errors.featurePackAlreadyInstalled(fpConfig.getLocation().getFPID()));
+                    }
+                    throw new ProvisioningException(
+                            Errors.featurePackVersionConflict(fpConfig.getLocation().getFPID(), installedFp.getFPID()));
+                }
+                // if it's installed explicitly, replace the explicit config
+                if (provisionedConfig.hasFeaturePackDep(fpConfig.getLocation().getChannel())) {
+                    final FeaturePackConfig installedFpConfig = provisionedConfig.getFeaturePackDep(fpConfig.getLocation().getChannel());
+                    origin = provisionedConfig.originOf(fpConfig.getLocation().getChannel());
+                    configBuilder.removeFeaturePackDep(installedFpConfig.getLocation());
+                }
             }
         }
-
-        // if it's installed explicitly, replace the explicit config
-        if(provisionedConfig.hasFeaturePackDep(fpConfig.getLocation().getChannel())) {
-            final FeaturePackConfig installedFpConfig = provisionedConfig.getFeaturePackDep(fpConfig.getLocation().getChannel());
-            final String origin = provisionedConfig.originOf(fpConfig.getLocation().getChannel());
-            provision(ProvisioningConfig.builder(provisionedConfig)
-                    .removeFeaturePackDep(installedFpConfig.getLocation())
-                    .addFeaturePackDep(origin, fpConfig)
-                    .build(), options);
-            return;
-        }
-
-        provision(ProvisioningConfig.builder(provisionedConfig).addFeaturePackDep(fpConfig).build(), options);
+        doProvision(configBuilder.addFeaturePackDep(origin, fpConfig).build(), null, options);
     }
 
     /**
@@ -233,6 +304,10 @@ public class ProvisioningManager {
         final ProvisioningConfig provisionedConfig = getProvisioningConfig();
         if(provisionedConfig == null) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+        }
+        final String universeName = fpid.getLocation().getUniverse() == null ? null : fpid.getLocation().getUniverse().toString();
+        if(provisionedConfig.hasUniverse(universeName)) {
+            fpid = fpid.getLocation().replaceUniverse(provisionedConfig.getUniverseSpec(universeName)).getFPID();
         }
         if(!provisioningConfig.hasFeaturePackDep(fpid.getChannel())) {
             if(getProvisionedState().hasFeaturePack(fpid.getChannel())) {
@@ -250,7 +325,7 @@ public class ProvisioningManager {
      * @throws ProvisioningException  in case the re-provisioning fails
      */
     public void provision(ProvisioningConfig provisioningConfig) throws ProvisioningException {
-        doProvision(provisioningConfig, null, Collections.emptyMap());
+        provision(provisioningConfig, Collections.emptyMap());
     }
 
     /**
@@ -264,76 +339,6 @@ public class ProvisioningManager {
         doProvision(provisioningConfig, null, options);
     }
 
-    private void doProvision(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options) throws ProvisioningException {
-        checkInstallationDir(installationHome);
-
-        if(!provisioningConfig.hasFeaturePackDeps()) {
-            emptyHomeDir();
-            this.provisioningConfig = null;
-            return;
-        }
-
-        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, uninstallFpid, options)) {
-            if(runtime == null) {
-                return;
-            }
-            // install the software
-            ProvisioningRuntime.install(runtime);
-        } finally {
-            this.provisioningConfig = null;
-        }
-    }
-
-    private void emptyHomeDir() throws ProvisioningException {
-        if(Files.exists(installationHome)) {
-            try(DirectoryStream<Path> stream = Files.newDirectoryStream(installationHome)) {
-                for(Path p : stream) {
-                    IoUtils.recursiveDelete(p);
-                }
-            } catch (IOException e) {
-                throw new ProvisioningException(Errors.readDirectory(installationHome));
-            }
-        }
-    }
-
-    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options)
-            throws ProvisioningException {
-        final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                .setUniverseResolver(universeResolver)
-                .setConfig(provisioningConfig)
-                .setEncoding(encoding)
-                .setInstallDir(installationHome)
-                .addOptions(options);
-        if(uninstallFpid != null) {
-            builder.uninstall(uninstallFpid);
-        }
-        return builder.build();
-    }
-
-    public static void checkInstallationDir(Path installationHome) throws ProvisioningException {
-        if (Files.exists(installationHome)) {
-            if (!Files.isDirectory(installationHome)) {
-                throw new ProvisioningException(Errors.notADir(installationHome));
-            }
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(installationHome)) {
-                boolean usableDir = true;
-                final Iterator<Path> i = stream.iterator();
-                while (i.hasNext()) {
-                    if (i.next().getFileName().toString().equals(Constants.PROVISIONED_STATE_DIR)) {
-                        usableDir = true;
-                        break;
-                    } else {
-                        usableDir = false;
-                    }
-                }
-                if (!usableDir) {
-                    throw new ProvisioningException(Errors.homeDirNotUsable(installationHome));
-                }
-            } catch (IOException e) {
-                throw new ProvisioningException(Errors.readDirectory(installationHome));
-            }
-        }
-    }
     /**
      * Provision the state described in the specified XML file.
      *
@@ -352,7 +357,7 @@ public class ProvisioningManager {
      * @throws ProvisioningException in case provisioning fails
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
-        provision(ProvisioningXmlParser.parse(provisioningXml), options);
+        doProvision(ProvisioningXmlParser.parse(provisioningXml), null, options);
     }
 
     /**
@@ -530,6 +535,53 @@ public class ProvisioningManager {
             }
         } finally {
             IoUtils.recursiveDelete(tempInstallationDir);
+        }
+    }
+
+    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options)
+            throws ProvisioningException {
+        final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
+                .setUniverseResolver(universeResolver)
+                .setConfig(provisioningConfig)
+                .setEncoding(encoding)
+                .setInstallDir(installationHome)
+                .addOptions(options);
+        if(uninstallFpid != null) {
+            builder.uninstall(uninstallFpid);
+        }
+        return builder.build();
+    }
+
+    private void doProvision(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options) throws ProvisioningException {
+        checkInstallationDir(installationHome);
+
+        if(!provisioningConfig.hasFeaturePackDeps()) {
+            emptyHomeDir();
+            this.provisioningConfig = null;
+            return;
+        }
+
+        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, uninstallFpid, options)) {
+            if(runtime == null) {
+                return;
+            }
+            // install the software
+            ProvisioningRuntime.install(runtime);
+        } finally {
+            this.provisioningConfig = null;
+        }
+    }
+
+    private void emptyHomeDir() throws ProvisioningException {
+        if(!Files.exists(installationHome)) {
+            return;
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(installationHome)) {
+            for (Path p : stream) {
+                IoUtils.recursiveDelete(p);
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.readDirectory(installationHome));
         }
     }
 }

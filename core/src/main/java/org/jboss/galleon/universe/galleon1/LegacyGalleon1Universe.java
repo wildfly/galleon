@@ -41,7 +41,7 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
 
     private static UniverseSpec universeSource;
 
-    public static UniverseSpec getUniverseSource() {
+    public static UniverseSpec getUniverseSpec() {
         if(universeSource == null) {
             universeSource = new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null);
         }
@@ -73,7 +73,7 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
     }
 
     public static FPID newFPID(String producer, String channel, String build) {
-        return new FeaturePackLocation(getUniverseSource(), producer, channel, null, build).getFPID();
+        return new FeaturePackLocation(getUniverseSpec(), producer, channel, null, build).getFPID();
     }
 
     public static ChannelSpec newChannel(String producer, String channel) {

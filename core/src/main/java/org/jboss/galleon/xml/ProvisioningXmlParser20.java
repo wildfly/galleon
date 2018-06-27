@@ -180,13 +180,9 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
     @Override
     public void readElement(XMLExtendedStreamReader reader, ProvisioningConfig.Builder builder) throws XMLStreamException {
         ParsingUtils.parseNoAttributes(reader);
-        boolean hasFp = false;
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
-                    if (!hasFp) {
-                        throw ParsingUtils.expectedAtLeastOneChild(reader, Element.INSTALLATION, Element.FEATURE_PACK);
-                    }
                     return;
                 }
                 case XMLStreamConstants.START_ELEMENT: {
@@ -196,7 +192,6 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                             readUniverses(reader, builder);
                             break;
                         case FEATURE_PACK:
-                            hasFp = true;
                             readFeaturePackDep(reader, builder);
                             break;
                         case DEFAULT_CONFIGS:

@@ -35,14 +35,17 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         }
 
         private Builder(ProvisioningConfig provisioningConfig) throws ProvisioningDescriptionException {
-            if(provisioningConfig.defaultUniverse != null) {
-                setDefaultUniverse(provisioningConfig.defaultUniverse);
-            }
-            for(Map.Entry<String, UniverseSpec> universe : provisioningConfig.universeConfigs.entrySet()) {
-                addUniverse(universe.getKey(), universe.getValue());
-            }
-            for(FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
-                addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getChannel()), fp);
+            if(provisioningConfig != null) {
+                if (provisioningConfig.defaultUniverse != null) {
+                    setDefaultUniverse(provisioningConfig.defaultUniverse);
+                }
+                for (Map.Entry<String, UniverseSpec> universe : provisioningConfig.universeSpecs.entrySet()) {
+                    addUniverse(universe.getKey(), universe.getValue());
+                }
+                for (FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
+                    addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getChannel()), fp);
+                }
+                init(provisioningConfig);
             }
         }
 
@@ -106,6 +109,17 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder().append('[');
+        if(defaultUniverse != null) {
+            buf.append("default-universe=").append(defaultUniverse);
+        }
+        if(!universeSpecs.isEmpty()) {
+            if(defaultUniverse != null) {
+                buf.append(' ');
+            }
+            buf.append("universes=[");
+            StringUtils.append(buf, universeSpecs.entrySet());
+            buf.append("] ");
+        }
         StringUtils.append(buf, fpDeps.values());
         append(buf);
         return buf.append(']').toString();

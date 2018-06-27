@@ -169,17 +169,20 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     @SuppressWarnings("unchecked")
     public B addUniverse(String name, UniverseSpec universe) throws ProvisioningDescriptionException {
         if(name == null) {
-            if(defaultUniverse != null) {
-                if(defaultUniverse.equals(universe)) {
-                    return (B) this;
-                }
-                throw new ProvisioningDescriptionException("Failed to make " + universe + " the default universe, "
-                        + defaultUniverse + " has already been configured as the default one");
-            }
             defaultUniverse = universe;
             return (B) this;
         }
         universeSpecs = CollectionUtils.put(universeSpecs, name, universe);
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B removeUniverse(String name) throws ProvisioningDescriptionException {
+        if(name == null) {
+            defaultUniverse = null;
+            return (B) this;
+        }
+        universeSpecs = CollectionUtils.remove(universeSpecs, name);
         return (B) this;
     }
 
