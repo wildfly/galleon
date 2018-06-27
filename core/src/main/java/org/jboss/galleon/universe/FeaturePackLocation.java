@@ -266,7 +266,7 @@ public class FeaturePackLocation {
     private final String frequency;
     private final String build;
 
-    private ChannelSpec channelSrc;
+    private ChannelSpec channelSpec;
     private FPID fpid;
 
     private final int hash;
@@ -310,11 +310,15 @@ public class FeaturePackLocation {
     }
 
     public ChannelSpec getChannel() {
-        return channelSrc == null ? channelSrc = new ChannelSpec() : channelSrc;
+        return channelSpec == null ? channelSpec = new ChannelSpec() : channelSpec;
     }
 
     public FPID getFPID() {
         return fpid == null ? fpid = new FPID() : fpid;
+    }
+
+    public FeaturePackLocation replaceUniverse(UniverseSpec universe) {
+        return new FeaturePackLocation(universe, producer, channel, frequency, build);
     }
 
     @Override

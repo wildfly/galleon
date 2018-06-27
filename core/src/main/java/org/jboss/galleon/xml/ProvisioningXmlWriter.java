@@ -76,11 +76,11 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
             universesEl = addElement(parent, Element.UNIVERSES.getLocalName(), parent.getNamespace());
             writeUniverseConfig(universesEl, null, universeSpec.getFactory(), universeSpec.getLocation());
         }
-        if(fpDeps.hasUniverseNamedConfigs()) {
+        if(fpDeps.hasUniverseNamedSpecs()) {
             if(universesEl == null) {
                 universesEl = addElement(parent, Element.UNIVERSES.getLocalName(), parent.getNamespace());
             }
-            for(Map.Entry<String, UniverseSpec> universe : fpDeps.getNamedUniverses().entrySet()) {
+            for(Map.Entry<String, UniverseSpec> universe : fpDeps.getUniverseNamedSpecs().entrySet()) {
                 writeUniverseConfig(universesEl, universe.getKey(), universe.getValue().getFactory(), universe.getValue().getLocation());
             }
         }

@@ -96,7 +96,7 @@ public class FpVersionsResolver {
             if(rt.config.hasDefaultUniverse()) {
                 builder.setDefaultUniverse(rt.config.getDefaultUniverse());
             }
-            for(Map.Entry<String, UniverseSpec> universe : rt.config.getNamedUniverses().entrySet()) {
+            for(Map.Entry<String, UniverseSpec> universe : rt.config.getUniverseNamedSpecs().entrySet()) {
                 builder.addUniverse(universe.getKey(), universe.getValue());
             }
             for(FeaturePackConfig fpConfig : rt.config.getFeaturePackDeps()) {
