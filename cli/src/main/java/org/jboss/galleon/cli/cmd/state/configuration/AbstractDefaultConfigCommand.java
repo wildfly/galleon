@@ -35,7 +35,7 @@ import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathParser;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
@@ -136,11 +136,11 @@ public abstract class AbstractDefaultConfigCommand extends AbstractFPProvisioned
     }
 
     @Override
-    public ChannelSpec getChannel(PmSession session) throws CommandExecutionException {
+    public ProducerSpec getProducer(PmSession session) throws CommandExecutionException {
         if (origin == null) {
             return null;
         }
-        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getChannel();
+        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getProducer();
     }
 
 }

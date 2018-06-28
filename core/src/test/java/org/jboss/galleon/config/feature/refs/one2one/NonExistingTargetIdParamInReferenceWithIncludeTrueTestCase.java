@@ -89,7 +89,7 @@ public class NonExistingTargetIdParamInReferenceWithIncludeTrueTestCase extends 
                             .setParam("a", "a")), t.getLocalizedMessage());
         t = t.getCause();
         Assert.assertNotNull(t);
-        Assert.assertEquals(Errors.nonExistingForeignKeyParam("specA", new ResolvedSpecId(FP_GAV.getChannel(), "specB"), "name"),
+        Assert.assertEquals(Errors.nonExistingForeignKeyParam("specA", new ResolvedSpecId(FP_GAV.getProducer(), "specB"), "name"),
                 t.getLocalizedMessage());
     }
 }

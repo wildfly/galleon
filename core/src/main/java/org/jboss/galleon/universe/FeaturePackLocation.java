@@ -72,6 +72,10 @@ public class FeaturePackLocation {
             this.hash = hash;
         }
 
+        public ProducerSpec getProducer() {
+            return FeaturePackLocation.this.getProducer();
+        }
+
         public ChannelSpec getChannel() {
             return FeaturePackLocation.this.getChannel();
         }
@@ -134,7 +138,7 @@ public class FeaturePackLocation {
             this.hash = hash;
         }
 
-        public UniverseSpec getUniverseSource() {
+        public UniverseSpec getUniverse() {
             return universeSpec;
         }
 
@@ -142,7 +146,7 @@ public class FeaturePackLocation {
             return producer;
         }
 
-        public String getChannel() {
+        public String getName() {
             return channel;
         }
 
@@ -164,7 +168,7 @@ public class FeaturePackLocation {
             if (getClass() != obj.getClass())
                 return false;
             ChannelSpec other = (ChannelSpec) obj;
-            Object otherField = other.getChannel();
+            Object otherField = other.getName();
             if (channel == null) {
                 if (otherField != null)
                     return false;
@@ -176,7 +180,7 @@ public class FeaturePackLocation {
                     return false;
             } else if (!producer.equals(otherField))
                 return false;
-            otherField = other.getUniverseSource();
+            otherField = other.getUniverse();
             if (universeSpec == null) {
                 if (otherField != null)
                     return false;
@@ -191,8 +195,67 @@ public class FeaturePackLocation {
         }
     }
 
+    public class ProducerSpec {
+
+        private final int hash;
+
+        private ProducerSpec() {
+            final int prime = 31;
+            int hash = 1;
+            hash = prime * hash + producer.hashCode();
+            hash = prime * hash + (universeSpec == null ? 0 : universeSpec.hashCode());
+            this.hash = hash;
+        }
+
+        public UniverseSpec getUniverse() {
+            return universeSpec;
+        }
+
+        public String getName() {
+            return producer;
+        }
+
+        public FeaturePackLocation getLocation() {
+            return FeaturePackLocation.this;
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ProducerSpec other = (ProducerSpec) obj;
+            Object otherField = other.getName();
+            if (producer == null) {
+                if (otherField != null)
+                    return false;
+            } else if (!producer.equals(otherField))
+                return false;
+            otherField = other.getUniverse();
+            if (universeSpec == null) {
+                if (otherField != null)
+                    return false;
+            } else if (!universeSpec.equals(otherField))
+                return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return FeaturePackLocation.toString(universeSpec, producer, null, null, null);
+        }
+    }
+
     /**
-     * Creates feature-pack source from its string representation.
+     * Creates feature-pack location from its string representation.
      *
      * @param str  string representation of a feature-pack location
      * @return  feature-pack source
@@ -209,11 +272,15 @@ public class FeaturePackLocation {
         }
         int universeEnd = buildSep;
         int channelNameEnd = buildSep;
+        int producerEnd = 0;
         loop: while(universeEnd > 0) {
             switch(str.charAt(--universeEnd)) {
                 case FREQUENCY_START:
                     channelNameEnd = universeEnd;
                     break;
+                case UNIVERSE_START:
+                    producerEnd = universeEnd;
+                    universeEnd = buildSep;
                 case CHANNEL_START:
                     break loop;
             }
@@ -221,20 +288,21 @@ public class FeaturePackLocation {
         if(universeEnd <= 0) {
             throw unexpectedFormat(str);
         }
-        int producerEnd = 0;
-        while(producerEnd < universeEnd) {
-            if(str.charAt(producerEnd) == UNIVERSE_START) {
-                break;
+        if (producerEnd == 0) {
+            while (producerEnd < universeEnd) {
+                if (str.charAt(producerEnd) == UNIVERSE_START) {
+                    break;
+                }
+                ++producerEnd;
             }
-            ++producerEnd;
-        }
-        if(producerEnd == 0) {
-            throw unexpectedFormat(str);
+            if(producerEnd == 0) {
+                throw unexpectedFormat(str);
+            }
         }
         return new FeaturePackLocation(
                 producerEnd == universeEnd ? null : UniverseSpec.fromString(str.substring(producerEnd + 1, universeEnd)),
                 str.substring(0, producerEnd),
-                str.substring(universeEnd + 1, channelNameEnd),
+                universeEnd == channelNameEnd ? null : str.substring(universeEnd + 1, channelNameEnd),
                 channelNameEnd == buildSep ? null : str.substring(channelNameEnd + 1, buildSep),
                 buildSep == str.length() ? null : str.substring(buildSep + 1)
                 );
@@ -250,7 +318,9 @@ public class FeaturePackLocation {
         if(universeSpec != null) {
             buf.append(UNIVERSE_START).append(universeSpec);
         }
-        buf.append(CHANNEL_START).append(channel);
+        if(channel != null) {
+            buf.append(CHANNEL_START).append(channel);
+        }
         if(frequency != null) {
             buf.append(FREQUENCY_START).append(frequency);
         }
@@ -266,6 +336,7 @@ public class FeaturePackLocation {
     private final String frequency;
     private final String build;
 
+    private ProducerSpec producerSpec;
     private ChannelSpec channelSpec;
     private FPID fpid;
 
@@ -289,11 +360,15 @@ public class FeaturePackLocation {
         this.hash = hash;
     }
 
+    public boolean hasUniverse() {
+        return universeSpec != null;
+    }
+
     public UniverseSpec getUniverse() {
         return universeSpec;
     }
 
-    public String getProducer() {
+    public String getProducerName() {
         return producer;
     }
 
@@ -307,6 +382,10 @@ public class FeaturePackLocation {
 
     public String getBuild() {
         return build;
+    }
+
+    public ProducerSpec getProducer() {
+        return producerSpec == null ? producerSpec = new ProducerSpec() : producerSpec;
     }
 
     public ChannelSpec getChannel() {

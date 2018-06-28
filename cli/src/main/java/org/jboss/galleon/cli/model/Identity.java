@@ -21,7 +21,7 @@ import java.util.Objects;
 import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
@@ -42,7 +42,7 @@ public class Identity implements Comparable<Identity> {
         return new Identity(FeaturePackConfig.getDefaultOriginName(LegacyGalleon1Universe.toFpl(origin)), name);
     }
 
-    public static Identity fromChannel(ChannelSpec origin, String name) {
+    public static Identity fromChannel(ProducerSpec origin, String name) {
         return new Identity(FeaturePackConfig.getDefaultOriginName(origin.getLocation()), name);
     }
 
@@ -54,8 +54,8 @@ public class Identity implements Comparable<Identity> {
         return new Identity(EMPTY, name);
     }
 
-    public static String buildOrigin(ChannelSpec channel) {
-        return FeaturePackConfig.getDefaultOriginName(channel.getLocation());
+    public static String buildOrigin(ProducerSpec producer) {
+        return FeaturePackConfig.getDefaultOriginName(producer.getLocation());
     }
 
     @Override

@@ -96,7 +96,7 @@ public class FeatureSpecInfo {
     }
 
     public String getFeatureSpecOrigin() {
-        return Identity.buildOrigin(specId.getChannel());
+        return Identity.buildOrigin(specId.getProducer());
     }
 
     @Override

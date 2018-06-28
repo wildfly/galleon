@@ -80,6 +80,6 @@ public class ExcludedFeatureDependencyIncludedFeatureTestCase extends PmInstallF
         Assert.assertEquals("Failed to build config", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("{org.jboss.pm.test:fp1@galleon1:1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@galleon1:1}specA:id=a", e.getMessage());
+        Assert.assertEquals("{org.jboss.pm.test:fp1@galleon1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@galleon1}specA:id=a", e.getMessage());
     }
 }

@@ -112,9 +112,9 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
         final Map<String, String> params = new HashMap<>();
         params.put("id", "c1");
         params.put("a", "a2");
-        Assert.assertEquals(Errors.failedToInitializeForeignKeyParams(new ResolvedSpecId(FP_GAV.getChannel(), "specC"), ResolvedFeatureId.create(new ResolvedSpecId(FP_GAV.getChannel(), "specA"), "id", "a1"), params), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToInitializeForeignKeyParams(new ResolvedSpecId(FP_GAV.getProducer(), "specC"), ResolvedFeatureId.create(new ResolvedSpecId(FP_GAV.getProducer(), "specA"), "id", "a1"), params), e.getLocalizedMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals(Errors.idParamForeignKeyInitConflict(new ResolvedSpecId(FP_GAV.getChannel(), "specC"), "a", "a2", "a1"), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.idParamForeignKeyInitConflict(new ResolvedSpecId(FP_GAV.getProducer(), "specC"), "a", "a2", "a1"), e.getLocalizedMessage());
     }
 }

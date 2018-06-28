@@ -87,7 +87,7 @@ public class ExplicitlyInstalledFpAlreadyInstalledErrorTestCase extends PmInstal
     @Override
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {
-                Errors.featurePackVersionConflict(FP1_101_GAV, FP1_100_GAV)
+                Errors.featurePackAlreadyConfigured(FP1_101_GAV.getProducer())
                 };
     }
 }

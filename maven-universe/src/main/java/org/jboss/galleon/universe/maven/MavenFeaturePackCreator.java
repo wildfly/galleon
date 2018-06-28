@@ -45,7 +45,7 @@ public class MavenFeaturePackCreator implements UniverseFeaturePackCreator {
     public void install(Universe<?> universe, FPID fpid, Path fpContentDir) throws ProvisioningException {
         final MavenUniverse mvnUni = (MavenUniverse) universe;
         final FeaturePackLocation fps = fpid.getLocation();
-        final MavenProducer producer = mvnUni.getProducer(fps.getProducer());
+        final MavenProducer producer = mvnUni.getProducer(fps.getProducerName());
         // make sure the channel exists
         producer.getChannel(fps.getChannelName());
 

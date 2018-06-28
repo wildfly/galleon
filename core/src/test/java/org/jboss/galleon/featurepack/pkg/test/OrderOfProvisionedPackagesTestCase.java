@@ -95,7 +95,7 @@ public class OrderOfProvisionedPackagesTestCase extends PmInstallFeaturePackTest
     protected void testPm(ProvisioningManager pm) throws ProvisioningException {
         super.testPm(pm);
         final ProvisionedState state = pm.getProvisionedState();
-        final Iterator<String> packageNames = state.getFeaturePack(LegacyGalleon1Universe.newChannel("org.pm.test:fp-install", "1"))
+        final Iterator<String> packageNames = state.getFeaturePack(LegacyGalleon1Universe.newProducer("org.pm.test:fp-install"))
                 .getPackageNames().iterator();
         Assert.assertTrue(packageNames.hasNext());
         Assert.assertEquals("e", packageNames.next());

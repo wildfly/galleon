@@ -157,8 +157,7 @@ public class ProvisioningManager {
      * @throws ProvisioningException  in case of an error
      */
     public void addUniverse(String name, UniverseSpec universeSpec) throws ProvisioningException {
-        ProvisioningConfig config = getProvisioningConfig();
-        config = (config == null ? ProvisioningConfig.builder() : ProvisioningConfig.builder(config)).addUniverse(name, universeSpec).build();
+        final ProvisioningConfig config = getInstallationConfig().addUniverse(name, universeSpec).build();
         try {
             ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(installationHome));
         } catch (Exception e) {
@@ -261,37 +260,20 @@ public class ProvisioningManager {
 
     public void install(FeaturePackConfig fpConfig, boolean replaceInstalledVersion, Map<String, String> options)
             throws ProvisioningException {
-        final ProvisioningConfig provisionedConfig = this.getProvisioningConfig();
-        final ProvisioningConfig.Builder configBuilder = provisionedConfig == null ? ProvisioningConfig.builder() : ProvisioningConfig.builder(provisionedConfig);
-        String origin = null;
-        if (provisionedConfig != null) {
-            final UniverseSpec fpUniverse = fpConfig.getLocation().getUniverse();
-            final String fpUniverseName = fpUniverse == null ? null : fpUniverse.toString();
-            if(provisionedConfig.hasUniverse(fpUniverseName)) {
-                fpConfig = FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(provisionedConfig.getUniverseSpec(fpUniverseName)))
-                        .init(fpConfig)
-                        .build();
-            }
-            final ProvisionedState provisionedState = getProvisionedState();
-            final ProvisionedFeaturePack installedFp = provisionedState == null ? null
-                    : provisionedState.getFeaturePack(fpConfig.getLocation().getChannel());
-            if (installedFp != null) {
-                if (!replaceInstalledVersion) {
-                    if (installedFp.getFPID().equals(fpConfig.getLocation().getFPID())) {
-                        throw new ProvisioningException(Errors.featurePackAlreadyInstalled(fpConfig.getLocation().getFPID()));
-                    }
-                    throw new ProvisioningException(
-                            Errors.featurePackVersionConflict(fpConfig.getLocation().getFPID(), installedFp.getFPID()));
-                }
-                // if it's installed explicitly, replace the explicit config
-                if (provisionedConfig.hasFeaturePackDep(fpConfig.getLocation().getChannel())) {
-                    final FeaturePackConfig installedFpConfig = provisionedConfig.getFeaturePackDep(fpConfig.getLocation().getChannel());
-                    origin = provisionedConfig.originOf(fpConfig.getLocation().getChannel());
-                    configBuilder.removeFeaturePackDep(installedFpConfig.getLocation());
-                }
+        final ProvisioningConfig.Builder configBuilder = getInstallationConfig();
+        final ProvisionedState state = getProvisionedState();
+        if(state != null) {
+            final ProvisionedFeaturePack installedFp = state.getFeaturePack(configBuilder.resolveUniverseSpec(fpConfig.getLocation()).getProducer());
+            if(installedFp != null && !installedFp.getFPID().getChannel().getName().equals(fpConfig.getLocation().getChannelName()) && !replaceInstalledVersion) {
+                throw new ProvisioningException(Errors.featurePackVersionConflict(fpConfig.getLocation().getFPID(), installedFp.getFPID()));
             }
         }
-        doProvision(configBuilder.addFeaturePackDep(origin, fpConfig).build(), null, options);
+        if(replaceInstalledVersion) {
+            configBuilder.updateFeaturePackDep(fpConfig);
+        } else {
+            configBuilder.addFeaturePackDep(fpConfig);
+        }
+        doProvision(configBuilder.build(), null, options);
     }
 
     /**
@@ -309,9 +291,9 @@ public class ProvisioningManager {
         if(provisionedConfig.hasUniverse(universeName)) {
             fpid = fpid.getLocation().replaceUniverse(provisionedConfig.getUniverseSpec(universeName)).getFPID();
         }
-        if(!provisioningConfig.hasFeaturePackDep(fpid.getChannel())) {
-            if(getProvisionedState().hasFeaturePack(fpid.getChannel())) {
-                throw new ProvisioningException(Errors.unsatisfiedFeaturePackDep(fpid.getChannel()));
+        if(!provisioningConfig.hasFeaturePackDep(fpid.getProducer())) {
+            if(getProvisionedState().hasFeaturePack(fpid.getProducer())) {
+                throw new ProvisioningException(Errors.unsatisfiedFeaturePackDep(fpid.getProducer()));
             }
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
@@ -550,6 +532,10 @@ public class ProvisioningManager {
             builder.uninstall(uninstallFpid);
         }
         return builder.build();
+    }
+
+    private ProvisioningConfig.Builder getInstallationConfig() throws ProvisioningException {
+        return ProvisioningConfig.builder(getProvisioningConfig());
     }
 
     private void doProvision(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options) throws ProvisioningException {

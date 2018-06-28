@@ -76,7 +76,7 @@ public class StateInfoUtil {
         session.println("");
         session.println("Type       : " + f.getType());
         session.println("Path       : " + f.getPath());
-        session.println("Origin     : " + f.getSpecId().getChannel());
+        session.println("Origin     : " + f.getSpecId().getProducer());
         session.println("Description: " + f.getDescription());
         session.println("");
         session.println("Parameters id");
@@ -118,7 +118,7 @@ public class StateInfoUtil {
         FeatureSpecInfo f = grp.getSpec();
         session.println("");
         session.println("Feature type       : " + f.getSpecId().getName());
-        session.println("Feature origin     : " + f.getSpecId().getChannel());
+        session.println("Feature origin     : " + f.getSpecId().getProducer());
         session.println("Feature description: " + f.getDescription());
         if (!f.isEnabled()) {
             session.println("WARNING! The feature is not enabled.");

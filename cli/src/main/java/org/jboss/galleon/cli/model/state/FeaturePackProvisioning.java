@@ -69,7 +69,7 @@ class FeaturePackProvisioning {
         @Override
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
             index = builder.getFeaturePackDepIndex(fpl);
-            fpConfig = current.getFeaturePackDep(fpl.getChannel());
+            fpConfig = current.getFeaturePackDep(fpl.getProducer());
             builder.removeFeaturePackDep(fpl);
         }
 

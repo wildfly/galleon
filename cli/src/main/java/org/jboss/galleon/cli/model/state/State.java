@@ -279,7 +279,7 @@ public class State {
         ProvisioningManager manager = ProvisioningManager.builder()
                 .addArtifactResolver(session.getArtifactResolver()).build();
         for (FeaturePackLocation.FPID fpid : dependencies) {
-            String orig = Identity.buildOrigin(fpid.getChannel());
+            String orig = Identity.buildOrigin(fpid.getProducer());
             if (!deps.containsKey(orig)) {
                 // Need to add individual featurepack.
                 deps.put(orig, FeatureContainers.fromFeaturePackId(session, manager, fpid, null));

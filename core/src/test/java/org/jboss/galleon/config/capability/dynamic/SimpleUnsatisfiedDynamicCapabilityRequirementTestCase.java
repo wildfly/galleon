@@ -76,7 +76,7 @@ public class SimpleUnsatisfiedDynamicCapabilityRequirementTestCase extends PmIns
         Assert.assertEquals("Failed to build config", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("No provider found for capability cap.b1 required by {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1 as cap.$b", e.getMessage());
+        Assert.assertEquals("No provider found for capability cap.b1 required by {org.jboss.pm.test:fp1@galleon1}specB:b=b1 as cap.$b", e.getMessage());
     }
 
     @Override

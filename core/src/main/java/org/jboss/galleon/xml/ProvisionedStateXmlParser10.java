@@ -35,7 +35,7 @@ import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedPackage;
 import org.jboss.galleon.state.ProvisionedState;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
@@ -471,7 +471,7 @@ class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.
                     final Element element = Element.of(reader.getName());
                     switch (element) {
                         case SPEC:
-                            readSpec(reader, LegacyGalleon1Universe.newFPID(group, artifact, version).getChannel(), config);
+                            readSpec(reader, LegacyGalleon1Universe.newFPID(group, artifact, version).getProducer(), config);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -486,7 +486,7 @@ class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.
         throw ParsingUtils.endOfDocument(reader.getLocation());
    }
 
-    private static void readSpec(XMLExtendedStreamReader reader, ChannelSpec channel, ProvisionedConfigBuilder config) throws XMLStreamException {
+    private static void readSpec(XMLExtendedStreamReader reader, ProducerSpec producer, ProvisionedConfigBuilder config) throws XMLStreamException {
         String name = null;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
@@ -502,7 +502,7 @@ class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.
         if (name == null) {
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
         }
-        final ResolvedSpecId specId = new ResolvedSpecId(channel, name);
+        final ResolvedSpecId specId = new ResolvedSpecId(producer, name);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {

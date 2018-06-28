@@ -17,7 +17,7 @@
 package org.jboss.galleon.installation.fpversions;
 
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
@@ -34,9 +34,9 @@ import org.jboss.galleon.test.PmProvisionConfigTestBase;
 public class MissingFpVersionsTestCase extends PmProvisionConfigTestBase {
 
     private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
-    private static final ChannelSpec FP1_GA = LegacyGalleon1Universe.newChannel("org.jboss.pm.test:fp1", "1");
+    private static final ProducerSpec FP1_GA = LegacyGalleon1Universe.newProducer("org.jboss.pm.test:fp1");
     private static final FPID FP2_200_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final");
-    private static final ChannelSpec FP3_GA = LegacyGalleon1Universe.newChannel("org.jboss.pm.test:fp3", "1");
+    private static final ProducerSpec FP3_GA = LegacyGalleon1Universe.newProducer("org.jboss.pm.test:fp3");
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {

@@ -36,14 +36,14 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
 
         private Builder(ProvisioningConfig provisioningConfig) throws ProvisioningDescriptionException {
             if(provisioningConfig != null) {
+                for (FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
+                    addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getProducer()), fp);
+                }
                 if (provisioningConfig.defaultUniverse != null) {
                     setDefaultUniverse(provisioningConfig.defaultUniverse);
                 }
                 for (Map.Entry<String, UniverseSpec> universe : provisioningConfig.universeSpecs.entrySet()) {
                     addUniverse(universe.getKey(), universe.getValue());
-                }
-                for (FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
-                    addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getChannel()), fp);
                 }
                 init(provisioningConfig);
             }

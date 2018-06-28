@@ -74,6 +74,6 @@ public class SimplestUnsatisfiedStaticCapabilityRequirementTestCase extends PmIn
         Assert.assertEquals("Failed to build config", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
-        Assert.assertEquals("No provider found for capability cap.a required by {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1", e.getMessage());
+        Assert.assertEquals("No provider found for capability cap.a required by {org.jboss.pm.test:fp1@galleon1}specB:b=b1", e.getMessage());
     }
 }

@@ -18,6 +18,7 @@
 package org.jboss.galleon.universe.spec.name.test;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
@@ -89,7 +90,7 @@ public class UniverseAliasInFeaturePackDepsTestCase extends ProvisionConfigMvnTe
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
                 .addUniverse("universe1", MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
-                .addFeaturePackDep(FP1_FPL)
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP1_FPL))
                 .build();
     }
 

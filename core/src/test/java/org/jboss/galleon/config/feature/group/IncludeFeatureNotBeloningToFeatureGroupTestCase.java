@@ -80,6 +80,6 @@ public class IncludeFeatureNotBeloningToFeatureGroupTestCase extends PmInstallFe
         Assert.assertEquals(Errors.failedToProcess(FP_GAV, "group1"), t.getLocalizedMessage());
         Assert.assertNotNull(t.getCause());
         t = t.getCause();
-        Assert.assertEquals(Errors.featureNotInScope(ResolvedFeatureId.create(new ResolvedSpecId(FP_GAV.getChannel(), "specP"), "parent", "p2"), "group1", FP_GAV), t.getLocalizedMessage());
+        Assert.assertEquals(Errors.featureNotInScope(ResolvedFeatureId.create(new ResolvedSpecId(FP_GAV.getProducer(), "specP"), "parent", "p2"), "group1", FP_GAV), t.getLocalizedMessage());
     }
 }

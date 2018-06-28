@@ -16,30 +16,30 @@
  */
 package org.jboss.galleon.runtime;
 
-import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
  *
  * @author Alexey Loubyansky
  */
 public class ResolvedSpecId {
-    final FeaturePackLocation.ChannelSpec channel;
+    final ProducerSpec producer;
     final String name;
     private final int hash;
 
-    public ResolvedSpecId(FeaturePackLocation.ChannelSpec channel, String name) {
-        this.channel = channel;
+    public ResolvedSpecId(ProducerSpec producer, String name) {
+        this.producer = producer;
         this.name = name;
 
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((channel == null) ? 0 : channel.hashCode());
+        result = prime * result + ((producer == null) ? 0 : producer.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         hash = result;
     }
 
-    public FeaturePackLocation.ChannelSpec getChannel() {
-        return channel;
+    public ProducerSpec getProducer() {
+        return producer;
     }
 
     public String getName() {
@@ -60,10 +60,10 @@ public class ResolvedSpecId {
         if (getClass() != obj.getClass())
             return false;
         ResolvedSpecId other = (ResolvedSpecId) obj;
-        if (channel == null) {
-            if (other.channel != null)
+        if (producer == null) {
+            if (other.producer != null)
                 return false;
-        } else if (!channel.equals(other.channel))
+        } else if (!producer.equals(other.producer))
             return false;
         if (name == null) {
             if (other.name != null)
@@ -75,6 +75,6 @@ public class ResolvedSpecId {
 
     @Override
     public String toString() {
-        return '{' + channel.toString() + "}" + name;
+        return '{' + producer.toString() + "}" + name;
     }
 }

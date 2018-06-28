@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -102,7 +102,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
     }
 
     @Override
-    public ChannelSpec getChannel(PmSession session) throws CommandExecutionException {
+    public ProducerSpec getProducer(PmSession session) throws CommandExecutionException {
         if (pkg == null) {
             throw new CommandExecutionException("No package set.");
         }
@@ -119,7 +119,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
             if (info == null) {
                 throw new CommandExecutionException("Invalid package " + pkg);
             }
-            return info.getFPID().getChannel();
+            return info.getFPID().getProducer();
         } catch (PathParserException | PathConsumerException ex) {
             throw new CommandExecutionException(ex);
         }

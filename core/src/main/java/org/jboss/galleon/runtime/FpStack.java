@@ -27,7 +27,7 @@ import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -80,23 +80,23 @@ class FpStack {
             return fpConfigs.get(currentFp).isInheritPackages();
         }
 
-        Boolean isInheritPackages(ChannelSpec fpChannel) {
-            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
+        Boolean isInheritPackages(ProducerSpec producer) {
+            final FeaturePackConfig fpConfig = getFpConfig(producer);
             return fpConfig == null ? null : fpConfig.isInheritPackages();
         }
 
-        boolean isPackageExcluded(ChannelSpec fpChannel, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
+        boolean isPackageExcluded(ProducerSpec producer, String packageName) {
+            final FeaturePackConfig fpConfig = getFpConfig(producer);
             return fpConfig == null ? false : fpConfig.isPackageExcluded(packageName);
         }
 
-        boolean isPackageIncluded(ChannelSpec fpChannel, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
+        boolean isPackageIncluded(ProducerSpec producer, String packageName) {
+            final FeaturePackConfig fpConfig = getFpConfig(producer);
             return fpConfig == null ? false : fpConfig.isPackageIncluded(packageName);
         }
 
-        Boolean isPackageFilteredOut(ChannelSpec fpChannel, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(fpChannel);
+        Boolean isPackageFilteredOut(ProducerSpec producer, String packageName) {
+            final FeaturePackConfig fpConfig = getFpConfig(producer);
             if(fpConfig == null) {
                 return null;
             }
@@ -106,10 +106,10 @@ class FpStack {
             return !fpConfig.isPackageIncluded(packageName);
         }
 
-        private FeaturePackConfig getFpConfig(ChannelSpec fpChannel) {
+        private FeaturePackConfig getFpConfig(ProducerSpec producer) {
             for(int i = fpConfigs.size() - 1; i >= 0; --i) {
                 final FeaturePackConfig fpConfig = fpConfigs.get(i);
-                if(fpConfig.getLocation().getChannel().equals(fpChannel)) {
+                if(fpConfig.getLocation().getProducer().equals(producer)) {
                     return fpConfig;
                 }
             }
@@ -217,22 +217,22 @@ class FpStack {
         if(isEmpty()) {
             return true;
         }
-        final ChannelSpec fpChannel = fpConfig.getLocation().getChannel();
-        final Boolean pkgRelevancy = isInheritPackages(fpChannel);
+        final ProducerSpec producer = fpConfig.getLocation().getProducer();
+        final Boolean pkgRelevancy = isInheritPackages(producer);
         if(pkgRelevancy == null) {
             return true;
         }
         if(pkgRelevancy) {
             if(fpConfig.hasExcludedPackages()) {
                 for(String excluded : fpConfig.getExcludedPackages()) {
-                    if(!isPackageExcluded(fpChannel, excluded) && !isPackageIncluded(fpChannel, excluded)) {
+                    if(!isPackageExcluded(producer, excluded) && !isPackageIncluded(producer, excluded)) {
                         return true;
                     }
                 }
             }
             if(fpConfig.hasIncludedPackages()) {
                 for(PackageConfig included : fpConfig.getIncludedPackages()) {
-                    if(!isPackageIncluded(fpChannel, included.getName()) && !isPackageExcluded(fpChannel, included.getName())) {
+                    if(!isPackageIncluded(producer, included.getName()) && !isPackageExcluded(producer, included.getName())) {
                         return true;
                     }
                 }
@@ -267,10 +267,10 @@ class FpStack {
         return false;
     }
 
-    private Boolean isInheritPackages(ChannelSpec fpChannel) {
+    private Boolean isInheritPackages(ProducerSpec producer) {
         Boolean result = null;
         for(int i = levels.size() - 1; i >= 0; --i) {
-            final Boolean levelResult = levels.get(i).isInheritPackages(fpChannel);
+            final Boolean levelResult = levels.get(i).isInheritPackages(producer);
             if(levelResult == null) {
                  continue;
             }
@@ -282,31 +282,31 @@ class FpStack {
         return result;
     }
 
-    boolean isPackageExcluded(ChannelSpec fpChannel, String packageName) {
+    boolean isPackageExcluded(ProducerSpec producer, String packageName) {
         for(int i = levels.size() - 1; i >= 0; --i) {
-            if(levels.get(i).isPackageExcluded(fpChannel, packageName)) {
+            if(levels.get(i).isPackageExcluded(producer, packageName)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isPackageIncluded(ChannelSpec fpChannel, String packageName) {
+    private boolean isPackageIncluded(ProducerSpec producer, String packageName) {
         for(int i = levels.size() - 1; i >= 0; --i) {
-            if(levels.get(i).isPackageIncluded(fpChannel, packageName)) {
+            if(levels.get(i).isPackageIncluded(producer, packageName)) {
                 return true;
             }
         }
         return false;
     }
 
-    boolean isPackageFilteredOut(ChannelSpec fpChannel, String packageName, boolean fromPrevLevel) {
+    boolean isPackageFilteredOut(ProducerSpec producer, String packageName, boolean fromPrevLevel) {
         int i = levels.size() - (fromPrevLevel ? 2 : 1);
         if(i < 0) {
             return false;
         }
         Level level = levels.get(i--);
-        Boolean filteredOut = level.isPackageFilteredOut(fpChannel, packageName);
+        Boolean filteredOut = level.isPackageFilteredOut(producer, packageName);
         if(filteredOut != null && filteredOut) {
             return true;
         }
@@ -315,7 +315,7 @@ class FpStack {
             if(filteredOut == null && !level.isInheritPackages()) {
                 return true;
             }
-            filteredOut = level.isPackageFilteredOut(fpChannel, packageName);
+            filteredOut = level.isPackageFilteredOut(producer, packageName);
             if(filteredOut != null && filteredOut) {
                 return true;
             }

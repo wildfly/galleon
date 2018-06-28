@@ -25,7 +25,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
  *
@@ -33,7 +33,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
  */
 public abstract class AbstractFPProvisionedCommand extends AbstractStateCommand {
 
-    public abstract ChannelSpec getChannel(PmSession session) throws CommandExecutionException;
+    public abstract ProducerSpec getProducer(PmSession session) throws CommandExecutionException;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
@@ -42,13 +42,13 @@ public abstract class AbstractFPProvisionedCommand extends AbstractStateCommand 
     }
 
     public FeaturePackConfig getProvisionedFP(PmSession session) throws CommandExecutionException {
-        ChannelSpec channel = getChannel(session);
+        ProducerSpec channel = getProducer(session);
         if (channel == null) {
             return null;
         }
         ProvisioningConfig config = session.getState().getConfig();
         for (FeaturePackConfig dep : config.getFeaturePackDeps()) {
-            if (dep.getLocation().getChannel().equals(channel)) {
+            if (dep.getLocation().getProducer().equals(channel)) {
                 return dep;
             }
         }

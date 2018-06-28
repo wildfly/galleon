@@ -254,7 +254,7 @@ public class SearchCommand extends PmSessionCommand {
 
     private String toPath(ResolvedSpecId id) {
         return FeatureContainerPathConsumer.FEATURES_PATH
-                + Identity.buildOrigin(id.getChannel()) + PathParser.PATH_SEPARATOR
+                + Identity.buildOrigin(id.getProducer()) + PathParser.PATH_SEPARATOR
                 + id.getName().replaceAll("\\.", "" + PathParser.PATH_SEPARATOR);
     }
 

@@ -205,7 +205,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         String coords = null;
         if (streamName != null) {
             try {
-                coords = session.getUniverses().resolveStream(streamName).toString();
+                coords = session.getUniverses().resolveStream(streamName).toGav().toString();
             } catch (ArtifactException ex) {
                 throw new CommandExecutionException(ex);
             }

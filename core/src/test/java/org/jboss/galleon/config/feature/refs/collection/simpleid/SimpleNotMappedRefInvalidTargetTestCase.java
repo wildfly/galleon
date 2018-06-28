@@ -75,7 +75,7 @@ public class SimpleNotMappedRefInvalidTargetTestCase extends PmInstallFeaturePac
     protected String[] pmErrors() {
         return new String[] {
                 Errors.failedToBuildConfigSpec(null, null),
-                "{org.jboss.pm.test:fp1@galleon1:1}specB:b=b1 has unresolved dependency on {org.jboss.pm.test:fp1@galleon1:1}specA:a=a2"
+                "{org.jboss.pm.test:fp1@galleon1}specB:b=b1 has unresolved dependency on {org.jboss.pm.test:fp1@galleon1}specA:a=a2"
         };
     }
 

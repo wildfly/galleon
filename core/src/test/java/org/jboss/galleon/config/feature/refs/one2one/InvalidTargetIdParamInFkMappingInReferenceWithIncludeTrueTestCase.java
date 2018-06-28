@@ -90,7 +90,7 @@ public class InvalidTargetIdParamInFkMappingInReferenceWithIncludeTrueTestCase e
                             .setParam("a", "a")), t.getLocalizedMessage());
         t = t.getCause();
         Assert.assertNotNull(t);
-        Assert.assertEquals(Errors.nonExistingForeignKeyTarget("a", "specA", new ResolvedSpecId(FP_GAV.getChannel(), "specB"), "r", new ResolvedSpecId(FP_GAV.getChannel(), "specA")),
+        Assert.assertEquals(Errors.nonExistingForeignKeyTarget("a", "specA", new ResolvedSpecId(FP_GAV.getProducer(), "specB"), "r", new ResolvedSpecId(FP_GAV.getProducer(), "specA")),
                 t.getLocalizedMessage());
     }
 }
