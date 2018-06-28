@@ -130,8 +130,8 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
         ResolvedSpecId lastHandledSpecId = null;
         for(ProvisionedFeature feature : features) {
             if(!feature.getSpecId().equals(lastHandledSpecId)) {
-                if (lastHandledSpecId == null || !feature.getSpecId().getChannel().equals(lastHandledSpecId.getChannel())) {
-                    handler.nextFeaturePack(feature.getSpecId().getChannel().getLocation().getFPID());
+                if (lastHandledSpecId == null || !feature.getSpecId().getProducer().equals(lastHandledSpecId.getProducer())) {
+                    handler.nextFeaturePack(feature.getSpecId().getProducer().getLocation().getFPID());
                 }
                 // TODO: complete spec isn't available here, but specId is enough for marshalling
                 handler.nextSpec(new ResolvedFeatureSpec(feature.getSpecId(), null, FeatureSpec.builder().build()));

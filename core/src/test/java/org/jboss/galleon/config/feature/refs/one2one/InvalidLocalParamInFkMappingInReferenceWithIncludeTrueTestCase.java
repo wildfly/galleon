@@ -90,6 +90,6 @@ public class InvalidLocalParamInFkMappingInReferenceWithIncludeTrueTestCase exte
                             .setParam("a", "a")), t.getLocalizedMessage());
         t = t.getCause();
         Assert.assertNotNull(t);
-        Assert.assertEquals(Errors.nonExistingForeignKeyParam("specA", new ResolvedSpecId(FP_GAV.getChannel(), "specB"), "g"), t.getLocalizedMessage());
+        Assert.assertEquals(Errors.nonExistingForeignKeyParam("specA", new ResolvedSpecId(FP_GAV.getProducer(), "specB"), "g"), t.getLocalizedMessage());
     }
 }

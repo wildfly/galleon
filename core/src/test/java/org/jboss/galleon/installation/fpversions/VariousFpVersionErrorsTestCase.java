@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.jboss.galleon.Errors;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
@@ -48,8 +48,8 @@ public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
     private static final FPID FP4_101_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "1", "1.0.1.Final");
     private static final FPID FP5_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp5", "1", "1.0.0.Final");
     private static final FPID FP6_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp6", "1", "1.0.0.Final");
-    private static final ChannelSpec FP7_GA = LegacyGalleon1Universe.newChannel("org.jboss.pm.test:fp7", "1");
-    private static final ChannelSpec FP8_GA = LegacyGalleon1Universe.newChannel("org.jboss.pm.test:fp8", "1");
+    private static final ProducerSpec FP7_GA = LegacyGalleon1Universe.newProducer("org.jboss.pm.test:fp7");
+    private static final ProducerSpec FP8_GA = LegacyGalleon1Universe.newProducer("org.jboss.pm.test:fp8");
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
@@ -127,6 +127,7 @@ public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
         Set<FPID> set = new LinkedHashSet<>(3);
         set.add(FP1_100_GAV);
         set.add(FP1_101_GAV);
+        set.add(FP1_200_GAV);
         conflicts.add(set);
         set = new LinkedHashSet<>(2);
         set.add(FP4_100_GAV);

@@ -27,7 +27,7 @@ import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -40,22 +40,22 @@ public class ProvisioningLayout {
 
     public static class Builder {
 
-        private Map<FeaturePackLocation.ChannelSpec, FeaturePackLayout> featurePacks = Collections.emptyMap();
+        private Map<ProducerSpec, FeaturePackLayout> featurePacks = Collections.emptyMap();
 
         private Builder() {
         }
 
         public Builder addFeaturePack(FeaturePackLayout fp) throws ProvisioningDescriptionException {
             assert fp != null : "fp is null";
-            final FeaturePackLocation.ChannelSpec channel = fp.getFPID().getChannel();
-            if(featurePacks.containsKey(channel)) {
-                final FeaturePackLocation.FPID existingId = featurePacks.get(channel).getFPID();
+            final ProducerSpec producer = fp.getFPID().getProducer();
+            if(featurePacks.containsKey(producer)) {
+                final FeaturePackLocation.FPID existingId = featurePacks.get(producer).getFPID();
                 if(existingId.getBuild().equals(fp.getFPID().getBuild())) {
                     return this;
                 }
                 throw new ProvisioningDescriptionException(Errors.featurePackVersionConflict(fp.getFPID(), existingId));
             }
-            featurePacks = CollectionUtils.put(featurePacks, channel, fp);
+            featurePacks = CollectionUtils.put(featurePacks, producer, fp);
             return this;
         }
 
@@ -75,7 +75,7 @@ public class ProvisioningLayout {
                             } catch (ProvisioningDescriptionException e) {
                                 throw new ProvisioningDescriptionException(Errors.unknownFeaturePackDependencyName(fp.getFPID(), pkg.getName(), origin), e);
                             }
-                            final FeaturePackLayout fpDepLayout = featurePacks.get(fpDepConfig.getLocation().getChannel());
+                            final FeaturePackLayout fpDepLayout = featurePacks.get(fpDepConfig.getLocation().getProducer());
                             if (fpDepLayout == null) {
                                 throw new ProvisioningDescriptionException(Errors.unknownFeaturePack(fpDepConfig.getLocation().getFPID()));
                             }
@@ -104,7 +104,7 @@ public class ProvisioningLayout {
         return new Builder();
     }
 
-    private final Map<FeaturePackLocation.ChannelSpec, FeaturePackLayout> featurePacks;
+    private final Map<ProducerSpec, FeaturePackLayout> featurePacks;
 
     private ProvisioningLayout(Builder builder) {
         featurePacks = CollectionUtils.unmodifiable(builder.featurePacks);
@@ -114,12 +114,12 @@ public class ProvisioningLayout {
         return !featurePacks.isEmpty();
     }
 
-    public boolean contains(ChannelSpec channel) {
-        return featurePacks.containsKey(channel);
+    public boolean contains(ProducerSpec producer) {
+        return featurePacks.containsKey(producer);
     }
 
-    public FeaturePackLayout getFeaturePack(ChannelSpec channel) {
-        return featurePacks.get(channel);
+    public FeaturePackLayout getFeaturePack(ProducerSpec producer) {
+        return featurePacks.get(producer);
     }
 
     public Collection<FeaturePackLayout> getFeaturePacks() {

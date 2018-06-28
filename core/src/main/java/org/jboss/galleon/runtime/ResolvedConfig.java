@@ -122,8 +122,8 @@ public class ResolvedConfig implements ProvisionedConfig {
                 handler.startBatch();
             }
             if(!feature.spec.id.equals(lastHandledSpecId)) {
-                if (lastHandledSpecId == null || !feature.spec.id.channel.equals(lastHandledSpecId.channel)) {
-                    handler.nextFeaturePack(feature.spec.id.channel.getLocation().getFPID());
+                if (lastHandledSpecId == null || !feature.spec.id.producer.equals(lastHandledSpecId.producer)) {
+                    handler.nextFeaturePack(feature.spec.id.producer.getLocation().getFPID());
                 }
                 handler.nextSpec(feature.spec);
                 lastHandledSpecId = feature.getSpecId();

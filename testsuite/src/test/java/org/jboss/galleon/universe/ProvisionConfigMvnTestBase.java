@@ -46,6 +46,6 @@ public abstract class ProvisionConfigMvnTestBase extends PmProvisionConfigTestBa
         return new FeaturePackLocation(
                 universeArtifact == null ? null
                         : new UniverseSpec(MavenUniverseFactory.ID, universeArtifact.getCoordsAsString()),
-                fpl.getProducer(), fpl.getChannelName(), fpl.getFrequency(), fpl.getBuild()).getFPID();
+                fpl.getProducerName(), fpl.getChannelName(), fpl.getFrequency(), fpl.getBuild()).getFPID();
     }
 }

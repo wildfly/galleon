@@ -24,6 +24,7 @@ import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
@@ -38,8 +39,8 @@ public class ResolvedFeatureId {
         private final ResolvedSpecId specId;
         private Map<String, Object> params = Collections.emptyMap();
 
-        private Builder(FeaturePackLocation.ChannelSpec channel, String spec) {
-            this.specId = new ResolvedSpecId(channel, spec);
+        private Builder(ProducerSpec producer, String spec) {
+            this.specId = new ResolvedSpecId(producer, spec);
         }
 
         private Builder(ResolvedSpecId specId) {
@@ -68,7 +69,7 @@ public class ResolvedFeatureId {
     }
 
     public static Builder builder(FeaturePackLocation.FPID fpid, String spec) {
-        return new Builder(fpid.getChannel(), spec);
+        return new Builder(fpid.getProducer(), spec);
     }
 
     public static ResolvedFeatureId fromString(String str) throws ProvisioningDescriptionException {
@@ -92,7 +93,7 @@ public class ResolvedFeatureId {
         }
         ResolvedSpecId specId = null;
         try {
-            specId = new ResolvedSpecId(FeaturePackLocation.fromString(str.substring(1, i)).getChannel(), str.substring(i + 1, colon));
+            specId = new ResolvedSpecId(FeaturePackLocation.fromString(str.substring(1, i)).getProducer(), str.substring(i + 1, colon));
         } catch (IllegalArgumentException e) {
             throw new ProvisioningDescriptionException("Failed to parse the channel part of feature id '" + str + "'", e);
         }
@@ -157,7 +158,7 @@ public class ResolvedFeatureId {
                 } else if(version == null) {
                     formatException(str);
                 } else {
-                    specId = new ResolvedSpecId(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getChannel(), buf.toString());
+                    specId = new ResolvedSpecId(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getProducer(), buf.toString());
                     break;
                 }
                 buf.setLength(0);
@@ -205,7 +206,7 @@ public class ResolvedFeatureId {
     }
 
     public static ResolvedFeatureId create(FeaturePackLocation.FPID fpid, String spec, String param, String value) {
-        return new ResolvedFeatureId(new ResolvedSpecId(fpid.getChannel(), spec), Collections.singletonMap(param, value));
+        return new ResolvedFeatureId(new ResolvedSpecId(fpid.getProducer(), spec), Collections.singletonMap(param, value));
     }
 
     public static ResolvedFeatureId create(ResolvedSpecId specId, String param, String value) {

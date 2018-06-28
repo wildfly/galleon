@@ -50,7 +50,7 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
             for (FeaturePackConfig dep : fpSpec.getFeaturePackDeps()) {
                 final ElementNode depElement = addElement(deps, Element.DEPENDENCY);
                 ProvisioningXmlWriter.writeFeaturePackConfig(depElement, depElement.getNamespace(),
-                        fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getChannel()));
+                        fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
             }
         }
 

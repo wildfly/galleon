@@ -298,12 +298,12 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             if(!fpBuilder.hasDefaultUniverse()) {
                 throw new XMLStreamException("Failed to parse feature-pack configuration for " + location + ": default universe was not configured");
             }
-            location = new FeaturePackLocation(fpBuilder.getDefaultUniverse(), location.getProducer(),
+            location = new FeaturePackLocation(fpBuilder.getDefaultUniverse(), location.getProducerName(),
                     location.getChannelName(), location.getFrequency(), location.getBuild());
         } else {
             final UniverseSpec resolvedConfig = fpBuilder.getUniverseSpec(location.getUniverse().toString());
             if(resolvedConfig != null) {
-                location = new FeaturePackLocation(resolvedConfig, location.getProducer(),
+                location = new FeaturePackLocation(resolvedConfig, location.getProducerName(),
                         location.getChannelName(), location.getFrequency(), location.getBuild());
             }
         }

@@ -22,6 +22,7 @@ import java.util.Map;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
@@ -33,9 +34,9 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
 
     protected final UniverseSpec defaultUniverse;
     protected final Map<String, UniverseSpec> universeSpecs;
-    protected final Map<FeaturePackLocation.ChannelSpec, FeaturePackConfig> fpDeps;
+    protected final Map<ProducerSpec, FeaturePackConfig> fpDeps;
     protected final Map<String, FeaturePackConfig> fpDepsByOrigin;
-    private final Map<FeaturePackLocation.ChannelSpec, String> channelToOrigin;
+    private final Map<ProducerSpec, String> channelToOrigin;
 
     protected FeaturePackDepsConfig(FeaturePackDepsConfigBuilder<?> builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -77,12 +78,12 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
     public FeaturePackLocation getUserConfiguredSource(FeaturePackLocation fpSource) {
         final UniverseSpec universeSource = fpSource.getUniverse();
         if(defaultUniverse != null && defaultUniverse.equals(universeSource)) {
-            return new FeaturePackLocation(null, fpSource.getProducer(), fpSource.getChannelName(), fpSource.getFrequency(),
+            return new FeaturePackLocation(null, fpSource.getProducerName(), fpSource.getChannelName(), fpSource.getFrequency(),
                     fpSource.getBuild());
         }
         for (Map.Entry<String, UniverseSpec> entry : universeSpecs.entrySet()) {
             if (entry.getValue().equals(universeSource)) {
-                return new FeaturePackLocation(new UniverseSpec(entry.getKey(), null), fpSource.getProducer(),
+                return new FeaturePackLocation(new UniverseSpec(entry.getKey(), null), fpSource.getProducerName(),
                         fpSource.getChannelName(), fpSource.getFrequency(), fpSource.getBuild());
             }
         }
@@ -93,12 +94,12 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         return !fpDeps.isEmpty();
     }
 
-    public boolean hasFeaturePackDep(FeaturePackLocation.ChannelSpec channel) {
-        return fpDeps.containsKey(channel);
+    public boolean hasFeaturePackDep(ProducerSpec producer) {
+        return fpDeps.containsKey(producer);
     }
 
-    public FeaturePackConfig getFeaturePackDep(FeaturePackLocation.ChannelSpec channel) {
-        return fpDeps.get(channel);
+    public FeaturePackConfig getFeaturePackDep(ProducerSpec producer) {
+        return fpDeps.get(producer);
     }
 
     public Collection<FeaturePackConfig> getFeaturePackDeps() {
@@ -113,8 +114,8 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         return fpDep;
     }
 
-    public String originOf(FeaturePackLocation.ChannelSpec channel) {
-        return channelToOrigin.get(channel);
+    public String originOf(ProducerSpec producer) {
+        return channelToOrigin.get(producer);
     }
 
     @Override

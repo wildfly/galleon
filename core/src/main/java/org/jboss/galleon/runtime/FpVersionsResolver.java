@@ -32,8 +32,8 @@ import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -46,14 +46,14 @@ public class FpVersionsResolver {
         new FpVersionsResolver(rt).assertVersions();
     }
 
-    static Map<ChannelSpec, FPID> resolveDeps(ProvisioningRuntimeBuilder rt, FeaturePackRuntimeBuilder fp, Map<ChannelSpec, FPID> collected)
+    static Map<ProducerSpec, FPID> resolveDeps(ProvisioningRuntimeBuilder rt, FeaturePackRuntimeBuilder fp, Map<ProducerSpec, FPID> collected)
             throws ProvisioningException {
         if(!fp.spec.hasFeaturePackDeps()) {
             return collected;
         }
         for(FeaturePackConfig fpConfig : fp.spec.getFeaturePackDeps()) {
             final int size = collected.size();
-            collected = CollectionUtils.put(collected, fpConfig.getLocation().getChannel(), fpConfig.getLocation().getFPID());
+            collected = CollectionUtils.put(collected, fpConfig.getLocation().getProducer(), fpConfig.getLocation().getFPID());
             if(size == collected.size()) {
                 continue;
             }
@@ -63,10 +63,10 @@ public class FpVersionsResolver {
     }
 
     private final ProvisioningRuntimeBuilder rt;
-    private Set<ChannelSpec> missingVersions = Collections.emptySet();
-    private List<ChannelSpec> branch = new ArrayList<>();
-    private Map<ChannelSpec, Set<FPID>> conflicts = Collections.emptyMap();
-    private Map<ChannelSpec, FeaturePackRuntimeBuilder> loaded = Collections.emptyMap();
+    private Set<ProducerSpec> missingVersions = Collections.emptySet();
+    private List<ProducerSpec> branch = new ArrayList<>();
+    private Map<ProducerSpec, Set<FPID>> conflicts = Collections.emptyMap();
+    private Map<ProducerSpec, FeaturePackRuntimeBuilder> loaded = Collections.emptyMap();
 
     private FpVersionsResolver(ProvisioningRuntimeBuilder rt) {
         this.rt = rt;
@@ -76,7 +76,7 @@ public class FpVersionsResolver {
         return !missingVersions.isEmpty();
     }
 
-    public Set<ChannelSpec> getMissingVersions() {
+    public Set<ProducerSpec> getMissingVersions() {
         return missingVersions;
     }
 
@@ -84,7 +84,7 @@ public class FpVersionsResolver {
         return !conflicts.isEmpty();
     }
 
-    public Map<ChannelSpec, Set<FPID>> getVersionConflicts() {
+    public Map<ProducerSpec, Set<FPID>> getVersionConflicts() {
         return conflicts;
     }
 
@@ -100,17 +100,17 @@ public class FpVersionsResolver {
                 builder.addUniverse(universe.getKey(), universe.getValue());
             }
             for(FeaturePackConfig fpConfig : rt.config.getFeaturePackDeps()) {
-                final ChannelSpec channel = fpConfig.getLocation().getChannel();
-                if(missingVersions.contains(channel)) {
+                final ProducerSpec producer = fpConfig.getLocation().getProducer();
+                if(missingVersions.contains(producer)) {
                     fpConfig = FeaturePackConfig.builder(rt.universeResolver.resolveLatestBuild(fpConfig.getLocation()))
                             .init(fpConfig)
                             .build();
-                    missingVersions = CollectionUtils.remove(missingVersions, channel);
+                    missingVersions = CollectionUtils.remove(missingVersions, producer);
                 }
-                builder.addFeaturePackDep(rt.config.originOf(channel), fpConfig);
+                builder.addFeaturePackDep(rt.config.originOf(producer), fpConfig);
             }
-            for(ChannelSpec channel : missingVersions) {
-                builder.addFeaturePackDep(FeaturePackConfig.forLocation(rt.universeResolver.resolveLatestBuild(channel.getLocation())));
+            for(ProducerSpec producer : missingVersions) {
+                builder.addFeaturePackDep(FeaturePackConfig.forLocation(rt.universeResolver.resolveLatestBuild(producer.getLocation())));
             }
             rt.config = builder.build();
             missingVersions = Collections.emptySet();
@@ -132,13 +132,13 @@ public class FpVersionsResolver {
         for(FeaturePackConfig fpConfig : fpDeps) {
             final FeaturePackLocation fpl = fpConfig.getLocation();
             if(fpl.getBuild() == null) {
-                missingVersions = CollectionUtils.addLinked(missingVersions, fpl.getChannel());
+                missingVersions = CollectionUtils.addLinked(missingVersions, fpl.getProducer());
                 continue;
             }
-            final FeaturePackRuntimeBuilder fp = loaded.get(fpl.getChannel());
+            final FeaturePackRuntimeBuilder fp = loaded.get(fpl.getProducer());
             if(fp != null) {
-                if(!fp.fpid.equals(fpl.getFPID()) && !branch.contains(fpl.getChannel())) {
-                    Set<FPID> versions = conflicts.get(fp.fpid.getChannel());
+                if(!fp.fpid.equals(fpl.getFPID()) && !branch.contains(fpl.getProducer())) {
+                    Set<FPID> versions = conflicts.get(fp.fpid.getProducer());
                     if(versions != null) {
                         versions.add(fpl.getFPID());
                         continue;
@@ -146,24 +146,24 @@ public class FpVersionsResolver {
                     versions = new LinkedHashSet<>();
                     versions.add(fp.fpid);
                     versions.add(fpl.getFPID());
-                    conflicts = CollectionUtils.putLinked(conflicts, fpl.getChannel(), versions);
+                    conflicts = CollectionUtils.putLinked(conflicts, fpl.getProducer(), versions);
                 }
                 skip = CollectionUtils.add(skip, fp.fpid);
                 continue;
             }
             final FeaturePackRuntimeBuilder depFp = rt.getOrLoadFpBuilder(fpConfig.getLocation().getFPID());
-            loaded = CollectionUtils.put(loaded, fpConfig.getLocation().getChannel(), depFp);
+            loaded = CollectionUtils.put(loaded, fpConfig.getLocation().getProducer(), depFp);
             if(!missingVersions.isEmpty()) {
-                missingVersions = CollectionUtils.remove(missingVersions, fpl.getChannel());
+                missingVersions = CollectionUtils.remove(missingVersions, fpl.getProducer());
             }
-            branch.add(fpl.getChannel());
+            branch.add(fpl.getProducer());
         }
         for(FeaturePackConfig fpConfig : fpDeps) {
             final FeaturePackLocation fpl = fpConfig.getLocation();
             if(fpl.getBuild() == null || skip.contains(fpl.getFPID())) {
                 continue;
             }
-            final FeaturePackRuntimeBuilder fp = rt.getFpBuilder(fpl.getChannel(), true);
+            final FeaturePackRuntimeBuilder fp = rt.getFpBuilder(fpl.getProducer(), true);
             assertVersions(fp.spec);
         }
         for(int i = 0; i < branch.size() - branchSize; ++i) {

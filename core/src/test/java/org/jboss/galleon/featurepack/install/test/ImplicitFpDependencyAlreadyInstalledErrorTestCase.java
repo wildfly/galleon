@@ -33,7 +33,7 @@ import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
 public class ImplicitFpDependencyAlreadyInstalledErrorTestCase extends PmInstallFeaturePackTestBase {
 
     private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
-    private static final FPID FP1_101_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.1.Final");
+    private static final FPID FP1_200_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "2", "2.0.0.Final");
     private static final FPID FP2_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final");
 
     @Override
@@ -50,9 +50,9 @@ public class ImplicitFpDependencyAlreadyInstalledErrorTestCase extends PmInstall
                     .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
                     .getFeaturePack()
                 .getCreator()
-            .newFeaturePack(FP1_101_GAV)
+            .newFeaturePack(FP1_200_GAV)
                 .newPackage("p1", true)
-                    .writeContent("fp1/p1.txt", "fp1 1.0.1.Final p1")
+                    .writeContent("fp1/p1.txt", "fp1 2.0.0.Final p1")
                     .getFeaturePack()
                 .getCreator()
             .newFeaturePack(FP2_100_GAV)
@@ -73,13 +73,13 @@ public class ImplicitFpDependencyAlreadyInstalledErrorTestCase extends PmInstall
 
     @Override
     protected FeaturePackConfig featurePackConfig() throws ProvisioningDescriptionException {
-        return FeaturePackConfig.forLocation(FP1_101_GAV.getLocation());
+        return FeaturePackConfig.forLocation(FP1_200_GAV.getLocation());
     }
 
     @Override
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {
-                Errors.featurePackVersionConflict(FP1_101_GAV, FP1_100_GAV)
+                Errors.featurePackVersionConflict(FP1_200_GAV, FP1_100_GAV)
                 };
     }
 }

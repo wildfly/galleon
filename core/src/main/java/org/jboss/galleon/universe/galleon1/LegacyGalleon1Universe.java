@@ -25,8 +25,8 @@ import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.CollectionUtils;
@@ -49,7 +49,7 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
     }
 
     public static ArtifactCoords toArtifactCoords(FeaturePackLocation fpl) throws ProvisioningException {
-        final String producer = fpl.getProducer();
+        final String producer = fpl.getProducerName();
         final int colon = producer.indexOf(':');
         if(colon <= 0) {
             throw new ProvisioningException("Failed to determine group and artifact IDs for " + fpl);
@@ -76,8 +76,8 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
         return new FeaturePackLocation(getUniverseSpec(), producer, channel, null, build).getFPID();
     }
 
-    public static ChannelSpec newChannel(String producer, String channel) {
-        return new FeaturePackLocation(new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null), producer, channel, null, null).getChannel();
+    public static ProducerSpec newProducer(String producer) {
+        return new FeaturePackLocation(new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null), producer, null, null, null).getProducer();
     }
 
     final RepositoryArtifactResolver artifactResolver;

@@ -43,7 +43,7 @@ public class LegacyGalleon1FeaturePackCreator implements UniverseFeaturePackCrea
         final ChannelSpec channel = fpid.getChannel();
         final LegacyGalleon1Producer producer = mvnUni.getProducer(channel.getProducer());
         // make sure the channel exists
-        producer.getChannel(channel.getChannel());
+        producer.getChannel(channel.getName());
 
         if(!(mvnUni.artifactResolver instanceof ArtifactRepositoryManager)) {
             throw new ProvisioningException(mvnUni.artifactResolver.getClass().getName() + " is not an instance of " + ArtifactRepositoryManager.class.getName());

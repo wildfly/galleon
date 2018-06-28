@@ -33,7 +33,7 @@ import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
@@ -92,7 +92,7 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
                         String name = split[1];
                         ConfigId cid = new ConfigId(model, name);
                         if (cmd.getTargetedConfigs(fc).contains(cid)) {
-                            lst.add(Identity.buildOrigin(fc.getLocation().getChannel()));
+                            lst.add(Identity.buildOrigin(fc.getLocation().getProducer()));
                         }
                     }
                 }
@@ -111,11 +111,11 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
     protected String origin;
 
     @Override
-    public ChannelSpec getChannel(PmSession session) throws CommandExecutionException {
+    public ProducerSpec getProducer(PmSession session) throws CommandExecutionException {
         if (origin == null) {
             return null;
         }
-        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getChannel();
+        return LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(origin)).getProducer();
     }
 
     protected String getConfiguration() {

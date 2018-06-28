@@ -37,7 +37,7 @@ public class LayoutUtils {
 
     public static Path getFeaturePackDir(Path fpLayoutDir, FPID fpid, boolean existing) throws ProvisioningDescriptionException {
         final FeaturePackLocation fps = fpid.getLocation();
-        final Path fpPath = fpLayoutDir.resolve(fps.getUniverse().getFactory()).resolve(fps.getProducer()).resolve(fps.getChannelName()).resolve(fpid.getBuild());
+        final Path fpPath = fpLayoutDir.resolve(fps.getUniverse().getFactory()).resolve(fps.getProducerName()).resolve(fps.getChannelName()).resolve(fpid.getBuild());
         if(existing && !Files.exists(fpPath)) {
             throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpPath));
         }

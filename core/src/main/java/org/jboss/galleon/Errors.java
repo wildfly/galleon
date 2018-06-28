@@ -35,6 +35,7 @@ import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -126,7 +127,7 @@ public interface Errors {
         return strWriter.toString();
     }
 
-    static String failedToResolveReleaseVersions(Collection<FeaturePackLocation.ChannelSpec> channels) {
+    static String failedToResolveReleaseVersions(Collection<FeaturePackLocation.ProducerSpec> channels) {
         final StringBuilder buf = new StringBuilder("Missing build number");
         if(channels.size() > 1) {
             buf.append('s');
@@ -152,8 +153,8 @@ public interface Errors {
         return "Feature-pack " + fpid + " is not found";
     }
 
-    static String unsatisfiedFeaturePackDep(FeaturePackLocation.ChannelSpec channel) {
-        return "Feature-pack " + channel + " is required dependency";
+    static String unsatisfiedFeaturePackDep(ProducerSpec producer) {
+        return "Feature-pack " + producer + " is required dependency";
     }
 
     static String featurePackVersionConflict(FeaturePackLocation.FPID fpid1, FeaturePackLocation.FPID fpid2) {
@@ -167,7 +168,7 @@ public interface Errors {
         final Iterator<FeaturePackLocation.FPID> i = fpids.iterator();
         FeaturePackLocation.FPID fpid = i.next();
         final StringBuilder buf = new StringBuilder("Please pick the desired build number for ")
-                .append(fpid.getChannel())
+                .append(fpid.getProducer())
                 .append(" explicitly in the provisioning config. Current configuration references the following versions ")
                 .append(fpid.getBuild());
         while(i.hasNext()) {
@@ -208,8 +209,8 @@ public interface Errors {
         return depName + " was not found among the feature-pack dependencies";
     }
 
-    static String featurePackAlreadyInstalled(FeaturePackLocation.FPID fpid) {
-        return "Feature-pack " + fpid + " is already installed";
+    static String featurePackAlreadyConfigured(ProducerSpec producer) {
+        return "Feature-pack " + producer + " already present in the configuration";
     }
 
     static String unknownFeaturePackDependencyName(FeaturePackLocation.FPID fpid, String pkgName, String depName) {

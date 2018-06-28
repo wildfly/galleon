@@ -16,7 +16,7 @@
  */
 package org.jboss.galleon.type;
 
-import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
  *
@@ -24,5 +24,5 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  */
 public interface ParameterTypeProvider {
 
-    FeatureParameterType getType(FeaturePackLocation.ChannelSpec fpChannel, String name) throws ParameterTypeNotFoundException;
+    FeatureParameterType getType(ProducerSpec producer, String name) throws ParameterTypeNotFoundException;
 }

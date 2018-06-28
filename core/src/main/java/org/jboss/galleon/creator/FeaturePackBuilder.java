@@ -223,7 +223,7 @@ public class FeaturePackBuilder {
         if(fps == null) {
             throw new ProvisioningDescriptionException("Feature-pack location has not been set");
         }
-        if(fps.getProducer() == null) {
+        if(fps.getProducerName() == null) {
             throw new ProvisioningDescriptionException("Feature-pack producer has not been set");
         }
         if(fps.getChannelName() == null) {
@@ -233,7 +233,7 @@ public class FeaturePackBuilder {
             throw new ProvisioningDescriptionException("Feature-pack build number has not been set");
         }
 
-        final Path fpWorkDir = creator.getWorkDir().resolve(fps.getUniverse().getFactory()).resolve(fps.getProducer()).resolve(fps.getChannelName()).resolve(fps.getBuild());
+        final Path fpWorkDir = creator.getWorkDir().resolve(fps.getUniverse().getFactory()).resolve(fps.getProducerName()).resolve(fps.getChannelName()).resolve(fps.getBuild());
         final FeaturePackSpec fpSpec;
         try {
             ensureDir(fpWorkDir);

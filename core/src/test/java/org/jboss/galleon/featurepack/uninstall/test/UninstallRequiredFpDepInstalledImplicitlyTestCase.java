@@ -67,7 +67,7 @@ public class UninstallRequiredFpDepInstalledImplicitlyTestCase extends PmUninsta
     @Override
     protected String[] pmErrors() {
         return new String[] {
-                Errors.unsatisfiedFeaturePackDep(FP2_100_GAV.getChannel())
+                Errors.unsatisfiedFeaturePackDep(FP2_100_GAV.getProducer())
         };
     }
 }

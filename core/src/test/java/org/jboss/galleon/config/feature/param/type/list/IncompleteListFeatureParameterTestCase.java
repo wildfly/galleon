@@ -65,7 +65,7 @@ public class IncompleteListFeatureParameterTestCase extends PmInstallFeaturePack
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {Errors.failedToResolveConfigSpec(null, null),
                 Errors.failedToProcess(FP_GAV, new FeatureConfig("specA").setParam("name", "a1").setParam("my-list", "[c,d")),
-                Errors.failedToResolveParameter(new ResolvedSpecId(FP_GAV.getChannel(), "specA"), "my-list", "[c,d"),
+                Errors.failedToResolveParameter(new ResolvedSpecId(FP_GAV.getProducer(), "specA"), "my-list", "[c,d"),
                 "Failed to parse List parameter value",
                 "Parsing of '[c,d' failed while parsing format List<?> started on index 0",
                 "Format List<?> is incomplete"};

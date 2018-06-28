@@ -91,10 +91,10 @@ public class UniverseResolver {
      */
     public FeaturePackLocation resolveLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
         final String latestBuild = getUniverse(fpl.getUniverse())
-                .getProducer(fpl.getProducer())
+                .getProducer(fpl.getProducerName())
                 .getChannel(fpl.getChannelName())
                 .getLatestBuild(fpl);
-        return new FeaturePackLocation(fpl.getUniverse(), fpl.getProducer(), fpl.getChannelName(), fpl.getFrequency(),
+        return new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), fpl.getFrequency(),
                 latestBuild);
     }
 
@@ -106,7 +106,7 @@ public class UniverseResolver {
      * @throws ProvisioningException  in case the feature-pack could not be resolved
      */
     public Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
-        return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducer()).getChannel(fpl.getChannelName()).resolve(fpl);
+        return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).resolve(fpl);
     }
 
     /**

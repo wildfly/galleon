@@ -56,8 +56,8 @@ import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.plugin.UpgradePlugin;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
-import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.FeaturePackInstallException;
@@ -188,7 +188,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final Path workDir;
     private final Path tmpDir;
     private final Path pluginsDir;
-    private final Map<ChannelSpec, FeaturePackRuntime> fpRuntimes;
+    private final Map<ProducerSpec, FeaturePackRuntime> fpRuntimes;
     private final Map<String, String> pluginOptions;
     private final MessageWriter messageWriter;
     private List<ProvisionedConfig> configs = Collections.emptyList();
@@ -285,7 +285,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     @Override
-    public boolean hasFeaturePack(ChannelSpec channel) {
+    public boolean hasFeaturePack(ProducerSpec producer) {
         throw new UnsupportedOperationException();
     }
 
@@ -295,8 +295,8 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     @Override
-    public FeaturePackRuntime getFeaturePack(ChannelSpec channel) {
-        return fpRuntimes.get(channel);
+    public FeaturePackRuntime getFeaturePack(ProducerSpec producer) {
+        return fpRuntimes.get(producer);
     }
 
     /**

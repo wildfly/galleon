@@ -97,7 +97,7 @@ public class FeatureSpecsBuilder {
                             String r = path.toString();
                             String child = dir.toString().substring(0, dir.toString().length() - 1);
                             String name = child.substring(r.length() + 1);
-                            ResolvedSpecId resolved = new ResolvedSpecId(fpid.getChannel(), name);
+                            ResolvedSpecId resolved = new ResolvedSpecId(fpid.getProducer(), name);
                             if (wantedSpecs == null || wantedSpecs.contains(resolved)) {
                                 FeatureSpecInfo specInfo = allspecs.get(resolved);
                                 if (specInfo == null) {
@@ -105,10 +105,10 @@ public class FeatureSpecsBuilder {
                                         Set<Identity> missingPackages = new HashSet<>();
                                         FeatureSpec spec = getFeatureSpec(fs, name);
                                         specInfo = new FeatureSpecInfo(resolved, id, spec);
-                                        Identity specId = Identity.fromChannel(resolved.getChannel(), resolved.getName());
+                                        Identity specId = Identity.fromChannel(resolved.getProducer(), resolved.getName());
                                         boolean featureEnabled = true;
                                         for (PackageDependencySpec p : spec.getLocalPackageDeps()) {
-                                            Identity id = Identity.fromChannel(resolved.getChannel(), p.getName());
+                                            Identity id = Identity.fromChannel(resolved.getProducer(), p.getName());
                                             Group grp = allPackages.get(id);
                                             // Group can be null if the modules have not been installed.
                                             if (grp != null) {

@@ -69,9 +69,9 @@ class FeaturePackRuntimeBuilder {
 
     FeaturePackRuntimeBuilder(UniverseResolver universeResolver, FPID fpid, Path dir) throws ProvisioningException {
 
-        final FeaturePackLocation fps = fpid.getLocation();
-        final Universe<?> universe = universeResolver.getUniverse(fps.getUniverse());
-        final Path artifactPath = universe.getProducer(fps.getProducer()).getChannel(fps.getChannelName()).resolve(fps);
+        final FeaturePackLocation fpl = fpid.getLocation();
+        final Universe<?> universe = universeResolver.getUniverse(fpl.getUniverse());
+        final Path artifactPath = universe.getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).resolve(fpl);
         try {
             ZipUtils.unzip(artifactPath, dir);
         } catch (IOException e) {
@@ -168,7 +168,7 @@ class FeaturePackRuntimeBuilder {
             try (BufferedReader reader = Files.newBufferedReader(specXml)) {
                 final FeatureSpec xmlSpec = FeatureSpecXmlParser.getInstance().parse(reader);
                 final ResolvedFeatureSpec resolvedSpec = new ResolvedFeatureSpec(
-                        new ResolvedSpecId(fpid.getChannel(), xmlSpec.getName()), featureParamTypeProvider, xmlSpec);
+                        new ResolvedSpecId(fpid.getProducer(), xmlSpec.getName()), featureParamTypeProvider, xmlSpec);
                 if(featureSpecs == null) {
                     featureSpecs = new HashMap<>();
                 }

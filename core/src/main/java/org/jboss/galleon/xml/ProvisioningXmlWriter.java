@@ -60,7 +60,7 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
             for(FeaturePackConfig fp : config.getFeaturePackDeps()) {
                 final ElementNode fpElement = addElement(install, Element.FEATURE_PACK);
                 writeFeaturePackConfig(fpElement, fpElement.getNamespace(), config.getUserConfiguredSource(fp.getLocation()), fp,
-                        config.originOf(fp.getLocation().getChannel()));
+                        config.originOf(fp.getLocation().getProducer()));
             }
         }
 

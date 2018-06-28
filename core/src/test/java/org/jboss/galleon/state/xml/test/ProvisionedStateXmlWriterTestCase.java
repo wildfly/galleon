@@ -92,7 +92,7 @@ public class ProvisionedStateXmlWriterTestCase {
                                         "spec2", "create-param", "c"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getChannel(), "spec3"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getProducer(), "spec3"))
                                 .setIdParam("id-param", "config")
                                 .build())
                         .setModel("model")
@@ -129,11 +129,11 @@ public class ProvisionedStateXmlWriterTestCase {
                                         "spec1", "create-param", "c"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getChannel(), "spec3"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getProducer(), "spec3"))
                                 .setIdParam("id-param", "b")
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getChannel(), "spec3"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp2", "1.0").getProducer(), "spec3"))
                                 .setIdParam("id-param", "a")
                                 .build()
                         )
@@ -153,12 +153,12 @@ public class ProvisionedStateXmlWriterTestCase {
         newState.getConfigs().iterator().next().handle(handler);
         Iterator<ProvisionedFeature> iterator = handler.features.iterator();
 
-        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec1:create-param=a", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec2:create-param=b", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@galleon1:fp2}spec3:id-param=b", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@galleon1:fp2}spec3:id-param=a", iterator.next().getId().toString());
-        Assert.assertEquals("{org.jboss.group@galleon1:fp1}spec1:create-param=c", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1}spec1:create-param=a", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1}spec2:create-param=b", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1}spec1:create-param=c", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1}spec3:id-param=b", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1}spec3:id-param=a", iterator.next().getId().toString());
+        Assert.assertEquals("{org.jboss.group@galleon1}spec1:create-param=c", iterator.next().getId().toString());
     }
 
     @Test
@@ -166,7 +166,7 @@ public class ProvisionedStateXmlWriterTestCase {
         ProvisionedState originalState = ProvisionedState.builder()
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp", "1.0").getChannel(), "spec"))
+                                new ResolvedSpecId(LegacyGalleon1Universe.newFPID("org.jboss.group", "fp", "1.0").getProducer(), "spec"))
                                 .setIdParam("id-param", "config")
                                 .setIdParam("id-param2", "config")
                                 .setConfigParam("param", "config")

@@ -85,7 +85,7 @@ public class MissingCapProviderFromMultipleCollectionParamValuesTestCase extends
     protected String[] pmErrors() {
         return new String[] {
                 Errors.failedToBuildConfigSpec(null, null),
-                "No provider found for capability 2.b required by {org.jboss.pm.test:fp1@galleon1:1}specB:b=b1 as $p1.$p2"
+                "No provider found for capability 2.b required by {org.jboss.pm.test:fp1@galleon1}specB:b=b1 as $p1.$p2"
         };
     }
     @Override

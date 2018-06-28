@@ -86,11 +86,11 @@ public class UpdatedConfigDepTestCase extends ConfigOrderTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV).build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1").setName("config3")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "13")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getProducer(),  "specA"), "id", "13")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1").setName("config2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getChannel(),  "specA"), "id", "12")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getProducer(),  "specA"), "id", "12")))
                         .build())
                 .build();
     }
