@@ -19,6 +19,7 @@ package org.jboss.galleon.maven.plugin.util;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -26,6 +27,7 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.installation.InstallRequest;
 import org.eclipse.aether.installation.InstallationException;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
@@ -52,17 +54,25 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
 
     private final RepositorySystem repoSystem;
     private final RepositorySystemSession session;
+    private final List<RemoteRepository> repositories;
 
-    public MavenArtifactRepositoryManager(final RepositorySystem repoSystem, final RepositorySystemSession repoSession){
+
+    public MavenArtifactRepositoryManager(final RepositorySystem repoSystem, final RepositorySystemSession repoSession, final List<RemoteRepository> repositories){
         this.repoSystem = repoSystem;
         this.session = repoSession;
+        this.repositories = repositories;
     }
 
     @Override
     public void resolve(MavenArtifact coords) throws MavenUniverseException {
-        final ArtifactRequest request = new ArtifactRequest();
-        request.setArtifact(new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(), coords.getClassifier(),
-                coords.getExtension(), coords.getVersion()));
+        final DefaultArtifact defaultArtifact = new DefaultArtifact(coords.getGroupId(), coords.getArtifactId(),
+                coords.getClassifier(), coords.getExtension(),
+                coords.getVersion());
+
+        final ArtifactRequest request = new ArtifactRequest()
+                .setArtifact(defaultArtifact)
+                .setRepositories(this.repositories);
+
         final ArtifactResult result;
         try {
             result = repoSystem.resolveArtifact(session, request);
@@ -85,11 +95,14 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
 
     @Override
     public String getLatestVersion(MavenArtifact coords, String lowestQualifier) throws MavenUniverseException {
-        Artifact artifact = new DefaultArtifact(coords.getGroupId(),
+        final Artifact artifact = new DefaultArtifact(coords.getGroupId(),
                 coords.getArtifactId(), coords.getExtension(), coords.getVersionRange());
-        VersionRangeRequest rangeRequest = new VersionRangeRequest();
-        rangeRequest.setArtifact(artifact);
-        VersionRangeResult rangeResult;
+
+        final VersionRangeRequest rangeRequest = new VersionRangeRequest()
+                .setArtifact(artifact)
+                .setRepositories(this.repositories);
+
+        final VersionRangeResult rangeResult;
         try {
             rangeResult = repoSystem.resolveVersionRange(session, rangeRequest);
         } catch (VersionRangeResolutionException ex) {
