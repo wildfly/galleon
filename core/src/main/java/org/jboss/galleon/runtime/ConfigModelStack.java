@@ -73,13 +73,12 @@ class ConfigModelStack {
             return true;
         }
 
-        boolean pop() throws ProvisioningException {
+        void pop() throws ProvisioningException {
             if(groupStack.isEmpty()) {
                 throw new IllegalStateException("Feature group stack is empty");
             }
             final ResolvedFeatureGroupConfig last = groupStack.remove(groupStack.size() - 1);
-            final boolean processed = rt.processIncludedFeatures(last);
-            return processed;
+            rt.processIncludedFeatures(last);
         }
 
         boolean isFilteredOut(ResolvedSpecId specId, final ResolvedFeatureId id) {
@@ -124,8 +123,8 @@ class ConfigModelStack {
             for(int i = groupStack.size() - 1; i >= 0; --i) {
                 final ResolvedFeatureGroupConfig stacked = groupStack.get(i);
                 if (stacked.fg.getId() == null
-                        || stacked.fpid == null || resolvedFg.fpid == null
-                        || !stacked.fpid.equals(resolvedFg.fpid)
+                        || stacked.producer == null || resolvedFg.producer == null
+                        || !stacked.producer.equals(resolvedFg.producer)
                         || !stacked.fg.getId().equals(resolvedFg.fg.getId())) {
                     continue;
                 }
@@ -221,9 +220,9 @@ class ConfigModelStack {
         return true;
     }
 
-    boolean popGroup() throws ProvisioningException {
+    void popGroup() throws ProvisioningException {
         mergeFgScope();
-        return lastConfig.pop();
+        lastConfig.pop();
     }
 
     private void newFgScope() {

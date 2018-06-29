@@ -30,6 +30,7 @@ import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.runtime.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;
@@ -41,7 +42,7 @@ import org.jboss.galleon.xml.FeatureSpecXmlParser;
  *
  * @author Alexey Loubyansky
  */
-public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
+public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeaturePackLayout {
 
     private final FPID fpid;
     private final ProvisioningRuntime runtime;
@@ -54,7 +55,7 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
 
     FeaturePackRuntime(FeaturePackRuntimeBuilder builder, ProvisioningRuntime runtime) throws ProvisioningException {
         this.runtime = runtime;
-        this.fpid = builder.fpid;
+        this.fpid = builder.producer.getLocation().getFPID();
         this.spec = builder.spec;
         this.dir = builder.dir;
         this.featureSpecs = builder.featureSpecs;
@@ -72,8 +73,14 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime> {
         return runtime;
     }
 
+    @Override
     public FeaturePackSpec getSpec() {
         return spec;
+    }
+
+    @Override
+    public Path getDir() {
+        throw new UnsupportedOperationException();
     }
 
     /**

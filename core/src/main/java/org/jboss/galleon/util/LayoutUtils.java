@@ -24,6 +24,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.UniverseSpec;
 
 /**
  *
@@ -37,7 +38,12 @@ public class LayoutUtils {
 
     public static Path getFeaturePackDir(Path fpLayoutDir, FPID fpid, boolean existing) throws ProvisioningDescriptionException {
         final FeaturePackLocation fps = fpid.getLocation();
-        final Path fpPath = fpLayoutDir.resolve(fps.getUniverse().getFactory()).resolve(fps.getProducerName()).resolve(fps.getChannelName()).resolve(fpid.getBuild());
+        final UniverseSpec universe = fps.getUniverse();
+        Path fpPath = fpLayoutDir.resolve(universe.getFactory());
+        if(universe.getLocation() != null) {
+            fpPath = fpPath.resolve(universe.getLocation());
+        }
+        fpPath = fpPath.resolve(fps.getProducerName()).resolve(fps.getChannelName()).resolve(fpid.getBuild());
         if(existing && !Files.exists(fpPath)) {
             throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpPath));
         }

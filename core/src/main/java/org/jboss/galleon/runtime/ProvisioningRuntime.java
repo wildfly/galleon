@@ -25,19 +25,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.stream.Stream;
-
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
-import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -54,11 +49,11 @@ import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.plugin.UpgradePlugin;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.FeaturePackInstallException;
 import org.jboss.galleon.util.IoUtils;
@@ -79,7 +74,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     public static void install(ProvisioningRuntime runtime) throws ProvisioningException {
         // copy package content
-        for(FeaturePackRuntime fp : runtime.fpRuntimes.values()) {
+        for(FeaturePackRuntime fp : runtime.layout.getOrderedFeaturePacks()) {
             runtime.messageWriter.verbose("Installing %s", fp.getFPID());
             for(PackageRuntime pkg : fp.getPackages()) {
                 final Path pkgSrcDir = pkg.getContentDir();
@@ -125,9 +120,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         diff(runtime, location, installationHome);
 
         final FeaturePackCreator creator = FeaturePackCreator.getInstance();
-        org.jboss.galleon.creator.FeaturePackBuilder fpBuilder = creator.newFeaturePack(fpid);
-        //FeaturePackRepositoryManager fpRepoManager = FeaturePackRepositoryManager.newInstance(location);
-        //FeaturePackBuilder fpBuilder = fpRepoManager.installer().newFeaturePack(exportGav);
+        FeaturePackBuilder fpBuilder = creator.newFeaturePack(fpid);
         Map<String, FeaturePackConfig.Builder> builders = new HashMap<>();
         for (FeaturePackConfig fpConfig : runtime.getProvisioningConfig().getFeaturePackDeps()) {
             FeaturePackConfig.Builder builder = FeaturePackConfig.builder(fpConfig.getLocation());
@@ -150,14 +143,16 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         for(Entry<String,FeaturePackConfig.Builder> entry : builders.entrySet()) {
             fpBuilder.addDependency(entry.getKey(), entry.getValue().build());
         }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(runtime.pluginsDir)) {
-            for(Path file : stream) {
-                if((Files.isRegularFile(file))) {
-                    fpBuilder.addPlugin(file);
+        if(runtime.layout.hasPlugins()) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(runtime.layout.getPluginsDir())) {
+                for (Path file : stream) {
+                    if ((Files.isRegularFile(file))) {
+                        fpBuilder.addPlugin(file);
+                    }
                 }
+            } catch (IOException ioex) {
+                throw new ProvisioningException(ioex);
             }
-        } catch(IOException ioex) {
-            throw new ProvisioningException(ioex);
         }
         fpBuilder.getCreator().install();
     }
@@ -181,71 +176,40 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     private final long startTime;
-    private final UniverseResolver universeResolver;
     private ProvisioningConfig config;
     private Path installDir;
     private final Path stagedDir;
-    private final Path workDir;
-    private final Path tmpDir;
-    private final Path pluginsDir;
-    private final Map<ProducerSpec, FeaturePackRuntime> fpRuntimes;
+    private final ProvisioningLayout<FeaturePackRuntime> layout;
     private final Map<String, String> pluginOptions;
     private final MessageWriter messageWriter;
     private List<ProvisionedConfig> configs = Collections.emptyList();
     private FileSystemDiffResult diff = FileSystemDiffResult.empty();
     private final String operation;
-    private ClassLoader pluginsClassLoader;
-    private boolean closePluginsCl;
+    private RepositoryArtifactResolver maven;
 
     ProvisioningRuntime(ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
-        this.universeResolver = builder.universeResolver;
         this.config = builder.config;
-        this.fpRuntimes = builder.getFpRuntimes(this);
-        this.pluginsDir = builder.pluginsDir; // the pluginsDir is initialized during the getFpRuntimes() invocation, atm
+        this.layout = builder.layout.transform(new ProvisioningLayout.FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
+            @Override
+            public FeaturePackRuntime transform(FeaturePackRuntimeBuilder other) throws ProvisioningException {
+                return other.build(ProvisioningRuntime.this);
+            }
+        });
+
+        try {
         this.configs = builder.getResolvedConfigs();
+        this.stagedDir = layout.newStagedDir();
+        } catch(ProvisioningException | RuntimeException | Error e) {
+            layout.close();
+            throw e;
+        }
+
         pluginOptions = CollectionUtils.unmodifiable(builder.pluginOptions);
         this.operation = builder.operation;
-
-        this.workDir = builder.workDir;
         this.installDir = builder.installDir;
-        this.stagedDir = workDir.resolve("staged");
-        try {
-            Files.createDirectories(stagedDir);
-        } catch(IOException e) {
-            throw new ProvisioningException(Errors.mkdirs(stagedDir), e);
-        }
 
-        this.tmpDir = workDir.resolve("tmp");
         this.messageWriter = messageWriter;
-    }
-
-    private ClassLoader getPluginClassloader() throws ProvisioningException {
-        if(pluginsClassLoader != null) {
-            return pluginsClassLoader;
-        }
-        if (pluginsDir != null) {
-            List<java.net.URL> urls = new ArrayList<>();
-            try (Stream<Path> stream = Files.list(pluginsDir)) {
-                final Iterator<Path> i = stream.iterator();
-                while(i.hasNext()) {
-                    urls.add(i.next().toUri().toURL());
-                }
-            } catch (IOException e) {
-                throw new ProvisioningException(Errors.readDirectory(pluginsDir), e);
-            }
-            if (!urls.isEmpty()) {
-                closePluginsCl = true;
-                final Thread thread = Thread.currentThread();
-                pluginsClassLoader = new java.net.URLClassLoader(urls.toArray(
-                        new java.net.URL[urls.size()]), thread.getContextClassLoader());
-            } else {
-                pluginsClassLoader = Thread.currentThread().getContextClassLoader();
-            }
-        } else {
-            pluginsClassLoader = Thread.currentThread().getContextClassLoader();
-        }
-        return pluginsClassLoader;
     }
 
     /**
@@ -281,22 +245,22 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     @Override
     public boolean hasFeaturePacks() {
-        return !fpRuntimes.isEmpty();
+        return layout.hasFeaturePacks();
     }
 
     @Override
     public boolean hasFeaturePack(ProducerSpec producer) {
-        throw new UnsupportedOperationException();
+        return layout.hasFeaturePack(producer);
     }
 
     @Override
     public Collection<FeaturePackRuntime> getFeaturePacks() {
-        return fpRuntimes.values();
+        return layout.getOrderedFeaturePacks();
     }
 
     @Override
-    public FeaturePackRuntime getFeaturePack(ProducerSpec producer) {
-        return fpRuntimes.get(producer);
+    public FeaturePackRuntime getFeaturePack(ProducerSpec producer) throws ProvisioningException {
+        return layout.getFeaturePack(producer);
     }
 
     /**
@@ -322,7 +286,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public void exportDiffResultToFeaturePack(FeaturePackBuilder fpBuilder, Map<String, FeaturePackConfig.Builder> builders, Path installationHome) throws ProvisioningException {
-        ClassLoader pluginClassLoader = getPluginClassloader();
+        ClassLoader pluginClassLoader = layout.getPluginsClassLoader();
         if (pluginClassLoader != null) {
             final Thread thread = Thread.currentThread();
             final ClassLoader ocl = thread.getContextClassLoader();
@@ -344,24 +308,19 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return operation;
     }
 
+    public ProvisioningLayoutFactory getLayoutFactory() {
+        return layout.getFactory();
+    }
+
     /**
      * Returns a resource path for the provisioning setup.
      *
      * @param path  path to the resource relative to the global resources directory
      * @return  file-system path for the resource
+     * @throws ProvisioningException
      */
-    public Path getResource(String... path) {
-        if(path.length == 0) {
-            throw new IllegalArgumentException("Resource path is null");
-        }
-        if(path.length == 1) {
-            return workDir.resolve(Constants.RESOURCES).resolve(path[0]);
-        }
-        Path p = workDir.resolve(Constants.RESOURCES);
-        for(String name : path) {
-            p = p.resolve(name);
-        }
-        return p;
+    public Path getResource(String... path) throws ProvisioningException {
+        return layout.getResource(path);
     }
 
     /**
@@ -371,17 +330,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      * @return  temporary file-system path
      */
     public Path getTmpPath(String... path) {
-        if(path.length == 0) {
-            return tmpDir;
-        }
-        if(path.length == 1) {
-            return tmpDir.resolve(path[0]);
-        }
-        Path p = tmpDir;
-        for(String name : path) {
-            p = p.resolve(name);
-        }
-        return p;
+        return layout.getTmpPath(path);
     }
 
     public boolean isOptionSet(PluginOption option) throws ProvisioningException {
@@ -429,16 +378,12 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return pluginOptions;
     }
 
-    public UniverseResolver getUniverseResolver() {
-        return universeResolver;
-    }
-
     /**
      * @deprecated
      */
     public Path resolveArtifact(ArtifactCoords coords) throws ArtifactException {
         try {
-            return universeResolver.getArtifactResolver("repository.maven").resolve(coords.toString());
+            return getMaven().resolve(coords.toString());
         } catch (ProvisioningException e) {
             throw new ArtifactException("Failed to resolve " + coords, e);
         }
@@ -511,40 +456,12 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public <T extends ProvisioningPlugin> void visitPlugins(PluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
-        ClassLoader pluginClassLoader = getPluginClassloader();
-        if (pluginClassLoader != null) {
-            final Thread thread = Thread.currentThread();
-            final ServiceLoader<T> pluginLoader = ServiceLoader.load(clazz, pluginClassLoader);
-            final Iterator<T> pluginIterator = pluginLoader.iterator();
-            if (pluginIterator.hasNext()) {
-                final ClassLoader ocl = thread.getContextClassLoader();
-                try {
-                    thread.setContextClassLoader(pluginClassLoader);
-                    final T plugin = pluginIterator.next();
-                    visitor.visitPlugin(plugin);
-                    while (pluginIterator.hasNext()) {
-                        visitor.visitPlugin(pluginIterator.next());
-                    }
-                } finally {
-                    thread.setContextClassLoader(ocl);
-                }
-            }
-        }
+        layout.visitPlugins(visitor, clazz);
     }
 
     @Override
     public void close() {
-        if(closePluginsCl) {
-            try {
-                ((java.net.URLClassLoader)pluginsClassLoader).close();
-            } catch (IOException e) {
-                if(messageWriter.isVerboseEnabled()) {
-                    messageWriter.verbose("Failed to close plugins classloader");
-                    e.printStackTrace();
-                }
-            }
-        }
-        IoUtils.recursiveDelete(workDir);
+        layout.close();
         //if (messageWriter.isVerboseEnabled()) {
             final long time = System.currentTimeMillis() - startTime;
             final long seconds = time / 1000;
@@ -570,5 +487,9 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             }
         };
         visitCheckOptionsPlugins(visitor, UpgradePlugin.class);
+    }
+
+    private RepositoryArtifactResolver getMaven() throws ProvisioningException {
+        return maven == null ? maven = layout.getFactory().getUniverseResolver().getArtifactResolver("repository.maven") : maven;
     }
 }

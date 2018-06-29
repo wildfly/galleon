@@ -38,7 +38,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class DontIheritConfigsIncludeModelExcludeNamedConfigTestCase extends PmProvisionConfigTestBase {
+public class DontInheritConfigsIncludeModelExcludeNamedConfigTestCase extends PmProvisionConfigTestBase {
 
     private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
     private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final");
@@ -85,7 +85,7 @@ public class DontIheritConfigsIncludeModelExcludeNamedConfigTestCase extends PmP
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
-                //.addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config1")
                         .setModel("model1")

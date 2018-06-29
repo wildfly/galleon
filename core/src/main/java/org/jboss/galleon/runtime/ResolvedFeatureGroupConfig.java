@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroupSupport;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -32,7 +32,7 @@ import org.jboss.galleon.util.CollectionUtils;
 public class ResolvedFeatureGroupConfig {
 
     final ConfigModelStack configStack;
-    final FPID fpid;
+    final ProducerSpec producer;
     final FeatureGroupSupport fg;
 
     boolean inheritFeatures = true;
@@ -41,9 +41,9 @@ public class ResolvedFeatureGroupConfig {
     Set<ResolvedSpecId> excludedSpecs = Collections.emptySet();
     Set<ResolvedFeatureId> excludedFeatures = Collections.emptySet();
 
-    ResolvedFeatureGroupConfig(ConfigModelStack configStack, FeatureGroupSupport fg, FPID fpid) {
+    ResolvedFeatureGroupConfig(ConfigModelStack configStack, FeatureGroupSupport fg, ProducerSpec producer) {
         this.configStack = configStack;
-        this.fpid = fpid;
+        this.producer = producer;
         this.fg = fg;
     }
 

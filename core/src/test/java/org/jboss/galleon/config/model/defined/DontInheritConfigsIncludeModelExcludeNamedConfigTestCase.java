@@ -38,7 +38,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class DontIheritConfigsIncludeModelExcludeNamedConfigTestCase extends PmProvisionConfigTestBase {
+public class DontInheritConfigsIncludeModelExcludeNamedConfigTestCase extends PmProvisionConfigTestBase {
 
     private static final FPID FP_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
 

@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.jboss.galleon.Errors;
+
 /**
  *
  * @author Alexey Loubyansky
@@ -48,18 +50,32 @@ public class IoUtils {
 
     private static final Path TMP_DIR = Paths.get(PropertyUtils.getSystemProperty("java.io.tmpdir"));
 
+    private static void failedToMkDir(final Path dir) {
+        throw new IllegalStateException(Errors.mkdirs(dir));
+    }
+
     public static Path createTmpDir(String name) {
         final Path dir = TMP_DIR.resolve(name);
         try {
             Files.createDirectories(dir);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to create " + dir.toAbsolutePath());
+            failedToMkDir(dir);
         }
         return dir;
     }
 
     public static Path createRandomTmpDir() {
         return createTmpDir(UUID.randomUUID().toString());
+    }
+
+    public static Path createRandomDir(Path parentDir) {
+        final Path dir = parentDir.resolve(UUID.randomUUID().toString());
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            failedToMkDir(dir);
+        }
+        return dir;
     }
 
     public static void recursiveDelete(Path root) {

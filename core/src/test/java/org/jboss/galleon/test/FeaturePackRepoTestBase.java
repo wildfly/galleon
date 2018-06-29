@@ -26,13 +26,10 @@ import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.TestUtils;
-import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.IoUtils;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  *
@@ -40,26 +37,17 @@ import org.junit.BeforeClass;
  */
 public class FeaturePackRepoTestBase {
 
-    protected static Path repoHome;
-
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        repoHome = TestUtils.mkRandomTmpDir();
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-        IoUtils.recursiveDelete(repoHome);
-    }
-
+    protected Path workDir;
+    protected Path repoHome;
     protected Path installHome;
     protected RepositoryArtifactResolver repo;
-    protected UniverseResolver universeResolver;
     protected FeaturePackCreator creator;
 
     @Before
     public void before() throws Exception {
-        installHome = TestUtils.mkRandomTmpDir();
+        workDir = TestUtils.mkRandomTmpDir();
+        installHome = TestUtils.mkdirs(workDir, "dist");
+        repoHome = TestUtils.mkdirs(workDir, "repo");
         repo = initRepoManager(repoHome);
         doBefore();
     }
@@ -70,7 +58,7 @@ public class FeaturePackRepoTestBase {
     @After
     public void after() throws Exception {
         doAfter();
-        IoUtils.recursiveDelete(installHome);
+        IoUtils.recursiveDelete(workDir);
     }
 
     protected void doAfter() throws Exception {

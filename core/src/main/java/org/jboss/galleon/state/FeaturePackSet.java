@@ -19,6 +19,7 @@ package org.jboss.galleon.state;
 import java.util.Collection;
 import java.util.List;
 
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
@@ -33,7 +34,7 @@ public interface FeaturePackSet<F extends FeaturePack<?>> {
 
     boolean hasFeaturePack(ProducerSpec producer);
 
-    F getFeaturePack(ProducerSpec producer);
+    F getFeaturePack(ProducerSpec producer) throws ProvisioningException;
 
     boolean hasConfigs();
 

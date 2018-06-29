@@ -86,6 +86,8 @@ public class DisableInheritanceOfCustomPackageSetFromTheTopFpTestCase extends Pm
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .addPackage("p2")
                         .build())

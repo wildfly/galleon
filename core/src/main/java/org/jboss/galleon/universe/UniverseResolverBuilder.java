@@ -51,7 +51,7 @@ public abstract class UniverseResolverBuilder<T extends UniverseResolverBuilder<
         return new UniverseResolver(this);
     }
 
-    protected UniverseFactoryLoader getUfl() {
+    protected UniverseFactoryLoader getUfl() throws ProvisioningException {
         if(ufl == null) {
             ufl = UniverseFactoryLoader.getInstance();
         }

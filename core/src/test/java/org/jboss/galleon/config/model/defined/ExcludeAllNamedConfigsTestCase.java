@@ -25,6 +25,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmInstallFeaturePackTestBase;
 
@@ -71,6 +72,6 @@ public class ExcludeAllNamedConfigsTestCase extends PmInstallFeaturePackTestBase
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
-        return ProvisionedState.builder().build();
+        return ProvisionedState.builder().addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV)).build();
     }
 }
