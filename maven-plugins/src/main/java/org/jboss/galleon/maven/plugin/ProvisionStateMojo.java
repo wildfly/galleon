@@ -38,6 +38,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
@@ -92,6 +93,9 @@ public class ProvisionStateMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
+
+    @Parameter( defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true )
+    private List<RemoteRepository> repositories;
 
     /**
     * The target installation directory.
@@ -197,9 +201,8 @@ public class ProvisionStateMojo extends AbstractMojo {
                 throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
             }
         }
-
         final ProvisioningManager pm = ProvisioningManager.builder()
-                .addArtifactResolver(new MavenArtifactRepositoryManager(repoSystem, repoSession))
+                .addArtifactResolver(new MavenArtifactRepositoryManager(repoSystem, repoSession, this.repositories))
                 .setInstallationHome(installDir.toPath())
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
                 .build();
