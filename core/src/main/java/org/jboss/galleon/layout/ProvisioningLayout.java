@@ -393,8 +393,9 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                             .init(fpConfig).build();
                     missingVersions = CollectionUtils.remove(missingVersions, producer);
                 }
-                builder.addFeaturePackDep(config.originOf(producer), fpConfig);
+                builder.updateFeaturePackDep(config.originOf(producer), fpConfig);
             }
+            builder.initConfigs(config);
             for (ProducerSpec producer : missingVersions) {
                 builder.addFeaturePackDep(
                         FeaturePackConfig.forLocation(layoutFactory.getUniverseResolver().resolveLatestBuild(producer.getLocation())));

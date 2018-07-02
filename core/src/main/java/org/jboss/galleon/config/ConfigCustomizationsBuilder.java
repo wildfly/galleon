@@ -39,7 +39,8 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
     protected List<ConfigModel> definedConfigs = Collections.emptyList();
     protected boolean hasModelOnlyConfigs = false;
 
-    protected void init(ConfigCustomizations clone) {
+    @SuppressWarnings("unchecked")
+    public B initConfigs(ConfigCustomizations clone) {
         inheritConfigs = clone.inheritConfigs;
         inheritModelOnlyConfigs = clone.inheritModelOnlyConfigs;
         includedModels = CollectionUtils.clone(clone.includedModels);
@@ -48,6 +49,7 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
         excludedConfigs = CollectionUtils.clone(clone.excludedConfigs);
         definedConfigs = CollectionUtils.clone(clone.definedConfigs);
         hasModelOnlyConfigs = clone.hasModelOnlyConfigs;
+        return (B) this;
     }
 
     @SuppressWarnings("unchecked")

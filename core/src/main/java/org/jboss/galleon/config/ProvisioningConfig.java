@@ -45,7 +45,7 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
                 for (Map.Entry<String, UniverseSpec> universe : provisioningConfig.universeSpecs.entrySet()) {
                     addUniverse(universe.getKey(), universe.getValue());
                 }
-                init(provisioningConfig);
+                initConfigs(provisioningConfig);
             }
         }
 

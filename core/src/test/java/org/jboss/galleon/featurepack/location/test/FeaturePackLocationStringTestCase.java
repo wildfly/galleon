@@ -190,6 +190,27 @@ public class FeaturePackLocationStringTestCase {
     }
 
     @Test
+    public void testMavenProducerWithUniverseToString() throws Exception {
+        final ProducerSpec producer = new FeaturePackLocation(
+                new UniverseSpec("maven", "org.jboss.universe:jboss-universe:1.0.0.Final"),
+                "producer", "channel", "frequency", "build")
+        .getProducer();
+        Assert.assertEquals("producer@maven(org.jboss.universe:jboss-universe:1.0.0.Final)", producer.toString());
+    }
+
+    @Test
+    public void testMavenProducerWithUniverseLocationFromString() throws Exception {
+        final FeaturePackLocation parsedCoords = FeaturePackLocation.fromString("producer@maven(org.jboss.universe:jboss-universe:1.0.0.Final)");
+        Assert.assertNotNull(parsedCoords);
+        Assert.assertEquals("maven", parsedCoords.getUniverse().getFactory());
+        Assert.assertEquals("org.jboss.universe:jboss-universe:1.0.0.Final", parsedCoords.getUniverse().getLocation());
+        Assert.assertEquals("producer", parsedCoords.getProducerName());
+        Assert.assertNull(parsedCoords.getChannelName());
+        Assert.assertNull(parsedCoords.getFrequency());
+        Assert.assertNull(parsedCoords.getBuild());
+    }
+
+    @Test
     public void testFeaturePackIdWithUniverseLocationToString() throws Exception {
         final FeaturePackLocation.FPID fpid = new FeaturePackLocation(
                 new UniverseSpec("factory", "location"),
