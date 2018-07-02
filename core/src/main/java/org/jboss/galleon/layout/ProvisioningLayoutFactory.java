@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.runtime;
+package org.jboss.galleon.layout;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -26,9 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.runtime.ProvisioningLayout.FeaturePackLayout;
-import org.jboss.galleon.runtime.ProvisioningLayout.FeaturePackLayoutFactory;
+import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.IoUtils;
@@ -60,6 +61,30 @@ public class ProvisioningLayoutFactory implements Closeable {
 
     public UniverseResolver getUniverseResolver() {
         return universeResolver;
+    }
+
+    public ProvisioningLayout<FeaturePackLayout> newConfigLayout(ProvisioningConfig config) throws ProvisioningException {
+        return newConfigLayout(config, new FeaturePackLayoutFactory<FeaturePackLayout>() {
+            @Override
+            public FeaturePackLayout newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir) {
+                return new FeaturePackLayout() {
+                    @Override
+                    public FPID getFPID() {
+                        return fpl.getFPID();
+                    }
+
+                    @Override
+                    public FeaturePackSpec getSpec() {
+                        return spec;
+                    }
+
+                    @Override
+                    public Path getDir() {
+                        return dir;
+                    }
+
+                };
+            }});
     }
 
     public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory) throws ProvisioningException {

@@ -44,6 +44,10 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackBuilder;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.diff.FileSystemDiffResult;
+import org.jboss.galleon.layout.FeaturePackLayoutTransformer;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
@@ -67,10 +71,6 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  * @author Alexey Loubyansky
  */
 public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable {
-
-    public interface PluginVisitor<T extends ProvisioningPlugin> {
-        void visitPlugin(T plugin) throws ProvisioningException;
-    }
 
     public static void install(ProvisioningRuntime runtime) throws ProvisioningException {
         // copy package content
@@ -190,7 +190,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     ProvisioningRuntime(ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
         this.config = builder.config;
-        this.layout = builder.layout.transform(new ProvisioningLayout.FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
+        this.layout = builder.layout.transform(new FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
             @Override
             public FeaturePackRuntime transform(FeaturePackRuntimeBuilder other) throws ProvisioningException {
                 return other.build(ProvisioningRuntime.this);
@@ -400,7 +400,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     private void executePlugins() throws ProvisioningException {
-        PluginVisitor<InstallPlugin> visitor = new PluginVisitor<InstallPlugin>() {
+        FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
             @Override
             public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
                 plugin.postInstall(ProvisioningRuntime.this);
@@ -409,14 +409,14 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         visitCheckOptionsPlugins(visitor, InstallPlugin.class);
     }
 
-    private <T extends ProvisioningPlugin> void visitCheckOptionsPlugins(PluginVisitor<T> visitor,
+    private <T extends ProvisioningPlugin> void visitCheckOptionsPlugins(FeaturePackPluginVisitor<T> visitor,
             Class<T> clazz) throws ProvisioningException {
         List<T> plugins = new ArrayList<>();
         Set<String> options = new HashSet<>();
         Thread thread = Thread.currentThread();
         ClassLoader ocl = thread.getContextClassLoader();
         List<ClassLoader> pluginLoaderHolder = new ArrayList<>(1);
-        PluginVisitor<T> v = new PluginVisitor<T>() {
+        FeaturePackPluginVisitor<T> v = new FeaturePackPluginVisitor<T>() {
             @Override
             public void visitPlugin(T plugin) throws ProvisioningException {
                 //check for missing required options.
@@ -455,7 +455,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         }
     }
 
-    public <T extends ProvisioningPlugin> void visitPlugins(PluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
+    public <T extends ProvisioningPlugin> void visitPlugins(FeaturePackPluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
         layout.visitPlugins(visitor, clazz);
     }
 
@@ -470,7 +470,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     private void executeDiffPlugins(Path target, Path customizedInstallation) throws ProvisioningException, IOException {
-        PluginVisitor<DiffPlugin> visitor = new PluginVisitor<DiffPlugin>() {
+        FeaturePackPluginVisitor<DiffPlugin> visitor = new FeaturePackPluginVisitor<DiffPlugin>() {
             @Override
             public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
                 plugin.computeDiff(ProvisioningRuntime.this, customizedInstallation, target);
@@ -480,7 +480,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     private void executeUpgradePlugins(Path customizedInstallation) throws ProvisioningException {
-        PluginVisitor<UpgradePlugin> visitor = new PluginVisitor<UpgradePlugin>() {
+        FeaturePackPluginVisitor<UpgradePlugin> visitor = new FeaturePackPluginVisitor<UpgradePlugin>() {
             @Override
             public void visitPlugin(UpgradePlugin plugin) throws ProvisioningException {
                 plugin.upgrade(ProvisioningRuntime.this, customizedInstallation);

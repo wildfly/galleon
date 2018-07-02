@@ -46,7 +46,9 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.runtime.ProvisioningLayout.FeaturePackLayoutFactory;
+import org.jboss.galleon.layout.FeaturePackLayoutFactory;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeaturePackSpec;
@@ -70,7 +72,7 @@ public class ProvisioningRuntimeBuilder {
 
     private static final FeaturePackLayoutFactory<FeaturePackRuntimeBuilder> FP_BUILDER_FACTORY = new FeaturePackLayoutFactory<FeaturePackRuntimeBuilder>() {
         @Override
-        public FeaturePackRuntimeBuilder repoFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path fpDir) {
+        public FeaturePackRuntimeBuilder newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path fpDir) {
             return new FeaturePackRuntimeBuilder(fpl.getFPID(), spec, fpDir);
         }
     };

@@ -46,6 +46,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.state.StateNoExplorationActivator;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
@@ -120,7 +121,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
 
     private Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {
         Set<PluginOption> pluginOptions = new HashSet<>();
-        ProvisioningRuntime.PluginVisitor<InstallPlugin> visitor = new ProvisioningRuntime.PluginVisitor<InstallPlugin>() {
+        FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
             @Override
             public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
                 pluginOptions.addAll(plugin.getOptions().values());
