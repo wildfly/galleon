@@ -48,6 +48,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.xml.ConfigXmlParser;
@@ -120,6 +121,13 @@ public class ProvisionStateMojo extends AbstractMojo {
     */
     @Parameter(alias = "feature-packs", required = true)
     private List<FeaturePack> featurePacks = Collections.emptyList();
+
+    /**
+     * Whether to use offline mode when the plugin resolves an artifact.
+     * In offline mode the plugin will only use the local Maven repository for an artifact resolution.
+     */
+    @Parameter(alias = "offline", defaultValue = "true")
+    private boolean offline;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -201,8 +209,12 @@ public class ProvisionStateMojo extends AbstractMojo {
                 throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
             }
         }
+
+        final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
+                :  new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
+
         final ProvisioningManager pm = ProvisioningManager.builder()
-                .addArtifactResolver(new MavenArtifactRepositoryManager(repoSystem, repoSession, this.repositories))
+                .addArtifactResolver(artifactResolver)
                 .setInstallationHome(installDir.toPath())
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
                 .build();

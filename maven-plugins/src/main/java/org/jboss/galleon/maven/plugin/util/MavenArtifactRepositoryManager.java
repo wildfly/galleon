@@ -56,7 +56,26 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
     private final RepositorySystemSession session;
     private final List<RemoteRepository> repositories;
 
+    /**
+     * Creates an instance that only will resolve artifacts using the Maven local repository.
+     *
+     * @param repoSystem The repository system instance, must not be {@code null}.
+     * @param repoSession The repository session, must not be {@code null}.
+     */
+    public MavenArtifactRepositoryManager(final RepositorySystem repoSystem, final RepositorySystemSession repoSession){
+        this.repoSystem = repoSystem;
+        this.session = repoSession;
+        this.repositories = null;
+    }
 
+    /**
+     * Creates an instance that will use a list of remote repositories where to find an artifact if the artifact is not in
+     * the local Maven repository.
+     *
+     * @param repoSystem The repository system instance, must not be {@code null}.
+     * @param repoSession The repository session, must not be {@code null}.
+     * @param repositories The list of remote repositories where to find the artifact if it is not in the local Maven repository.
+     */
     public MavenArtifactRepositoryManager(final RepositorySystem repoSystem, final RepositorySystemSession repoSession, final List<RemoteRepository> repositories){
         this.repoSystem = repoSystem;
         this.session = repoSession;
@@ -71,7 +90,7 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
 
         final ArtifactRequest request = new ArtifactRequest()
                 .setArtifact(defaultArtifact)
-                .setRepositories(this.repositories);
+                .setRepositories(repositories);
 
         final ArtifactResult result;
         try {
@@ -100,7 +119,7 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
 
         final VersionRangeRequest rangeRequest = new VersionRangeRequest()
                 .setArtifact(artifact)
-                .setRepositories(this.repositories);
+                .setRepositories(repositories);
 
         final VersionRangeResult rangeResult;
         try {
