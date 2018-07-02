@@ -57,6 +57,7 @@ public class ProvisioningManager {
         private String encoding = "UTF-8";
         private Path installationHome;
         private MessageWriter messageWriter;
+        private UniverseResolver resolver;
 
         private Builder() {
         }
@@ -87,12 +88,17 @@ public class ProvisioningManager {
             return this;
         }
 
+        public Builder setUniverseResolver(UniverseResolver resolver) {
+            this.resolver = resolver;
+            return this;
+        }
+
         public ProvisioningManager build() throws ProvisioningException {
             return new ProvisioningManager(this);
         }
 
         protected UniverseResolver getUniverseResolver() throws ProvisioningException {
-            return buildUniverseResolver();
+            return resolver == null ? buildUniverseResolver() : resolver;
         }
     }
 

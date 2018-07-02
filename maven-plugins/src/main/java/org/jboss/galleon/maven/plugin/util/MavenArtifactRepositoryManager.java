@@ -204,4 +204,13 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
         return version;
     }
 */
+    @Override
+    public boolean isResolved(MavenArtifact artifact) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

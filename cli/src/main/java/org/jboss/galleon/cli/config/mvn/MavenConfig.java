@@ -41,6 +41,13 @@ import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
  */
 public class MavenConfig {
 
+    private static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
+    static {
+        DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("jboss-public-repository-group",
+                "default", "http://repository.jboss.org/nexus/content/groups/public/"));
+        DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("maven-central", "default",
+                "http://repo1.maven.org/maven2/"));
+    }
     public interface MavenChangeListener {
         void configurationChanged(MavenConfig config) throws XMLStreamException, IOException;
     }
@@ -81,7 +88,7 @@ public class MavenConfig {
     }
 
     public Collection<MavenRemoteRepository> getRemoteRepositories() {
-        return Collections.unmodifiableCollection(repositories.values());
+        return repositories.isEmpty() ? DEFAULT_REPOSITORIES : Collections.unmodifiableCollection(repositories.values());
     }
 
     public Set<String> getRemoteRepositoryNames() {

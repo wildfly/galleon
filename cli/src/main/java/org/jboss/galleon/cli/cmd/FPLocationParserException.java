@@ -14,25 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.jboss.galleon.universe;
-
-import java.nio.file.Path;
-
-import org.jboss.galleon.ProvisioningException;
+package org.jboss.galleon.cli.cmd;
 
 /**
- * Feature-pack channel
  *
- * @author Alexey Loubyansky
+ * @author jdenise@redhat.com
  */
-public interface Channel {
-
-    String getName();
-
-    String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException;
-
-    Path resolve(FeaturePackLocation fpl) throws ProvisioningException;
-
-    boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException;
+public class FPLocationParserException extends Exception {
+    FPLocationParserException(String message) {
+        super(message);
+    }
 }

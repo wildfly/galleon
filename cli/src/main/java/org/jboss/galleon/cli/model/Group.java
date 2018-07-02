@@ -20,8 +20,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.jboss.galleon.ArtifactCoords;
-
 /**
  * Can contain other groups, spec, feature or package.
  *
@@ -38,10 +36,6 @@ public class Group implements Comparable<Group> {
 
     private Group(Identity id) {
         this.id = id;
-    }
-
-    static Group fromGav(ArtifactCoords.Gav origin, String name) {
-        return new Group(Identity.fromGav(origin, name));
     }
 
     static Group fromIdentity(Identity id) {

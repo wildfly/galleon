@@ -105,8 +105,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
             if (file == null) {
                 return Collections.emptyList();
             }
-            ProvisioningManager manager = ProvisioningManager.builder()
-                    .addArtifactResolver(pmSession.getArtifactResolver()).build();
+            ProvisioningManager manager = ProvisioningManager.builder().build();
             rt = manager.getRuntime(ProvisioningXmlParser.parse(getAbsolutePath(file, ctx)),
                     null, Collections.emptyMap());
         }
@@ -236,7 +235,6 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
 
     private ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return ProvisioningManager.builder()
-                .addArtifactResolver(session.getPmSession().getArtifactResolver())
                 .setInstallationHome(getInstallationHome(session.getAeshContext()))
                 .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), isVerbose()))
                 .build();

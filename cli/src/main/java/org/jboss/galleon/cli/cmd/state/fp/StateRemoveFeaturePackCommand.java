@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -30,7 +29,6 @@ import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -47,7 +45,9 @@ public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
             List<String> lst = new ArrayList<>();
             if (session != null) {
                 for (FeaturePackConfig fp : session.getConfig().getFeaturePackDeps()) {
-                    lst.add(fp.getLocation().getChannelName().toString());
+                    String loc = completerInvocation.getPmSession().
+                            getExposedLocation(fp.getLocation()).toString();
+                    lst.add(loc);
                 }
             }
             return lst;
@@ -59,7 +59,7 @@ public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
-        session.removeDependency(invoc.getPmSession(), LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(coords)));
+        session.removeDependency(invoc.getPmSession(), invoc.getPmSession().getResolvedLocation(coords));
     }
 
 }

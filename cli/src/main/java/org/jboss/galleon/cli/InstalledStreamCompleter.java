@@ -19,6 +19,8 @@ package org.jboss.galleon.cli;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -45,7 +47,8 @@ public class InstalledStreamCompleter extends AbstractCompleter {
                 items.add(fp.getLocation().toString());
             }
         } catch (Exception ex) {
-            // not a proper installation
+            Logger.getLogger(InstalledStreamCompleter.class.getName()).log(Level.FINEST,
+                    "Exception while completing: {0}", ex.getLocalizedMessage());
         }
         return items;
     }

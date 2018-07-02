@@ -49,4 +49,12 @@ public interface FpMavenErrors {
     static String artifactMissing(ArtifactCoords gav) {
         return "Repository is missing artifact " + gav;
     }
+
+    static String artifactResolution(String gav) {
+        return "Failed to resolve " + gav;
+    }
+
+    static String artifactMissing(String gav) {
+        return "Repository is missing artifact " + gav;
+    }
 }

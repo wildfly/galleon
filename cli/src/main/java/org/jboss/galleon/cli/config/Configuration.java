@@ -24,14 +24,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.cli.UniverseLocation;
 import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
 import org.jboss.galleon.xml.XmlParsers;
 import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
@@ -49,7 +45,6 @@ public class Configuration implements MavenChangeListener {
     private static final String CONFIG_FILE_NAME = ".galleon-cli";
 
     private static final File DEFAULT_HISTORY_FILE = new File(System.getProperty("user.home"), ".galleon-history");
-    private final List<UniverseLocation> universes = new ArrayList<>();
     private File historyFile = DEFAULT_HISTORY_FILE;
     private final MavenConfig maven;
 
@@ -67,7 +62,7 @@ public class Configuration implements MavenChangeListener {
         needRewrite();
     }
 
-    private void needRewrite() throws XMLStreamException, IOException {
+    public void needRewrite() throws XMLStreamException, IOException {
         Path path = getStoragePath();
         Files.deleteIfExists(path);
         try (BufferedWriter bw = Files.newBufferedWriter(path,
@@ -88,15 +83,8 @@ public class Configuration implements MavenChangeListener {
         return historyFile;
     }
 
-    public List<UniverseLocation> getUniversesLocations() {
-        return Collections.unmodifiableList(universes);
-    }
-
     public static Configuration parse() throws ProvisioningException {
-        // For now, no XML config for universe.
-        // TODO
         Configuration config = new Configuration();
-        config.universes.add(UniverseLocation.DEFAULT);
         Path configFile = getStoragePath();
         if (Files.exists(configFile)) {
             try (BufferedReader reader = Files.newBufferedReader(configFile)) {

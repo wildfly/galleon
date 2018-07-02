@@ -14,29 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli;
+package org.jboss.galleon.cli.cmd.universe;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jboss.galleon.cli.Universe.StreamLocation;
+import org.aesh.command.Command;
+import org.aesh.command.CommandException;
+import org.aesh.command.CommandResult;
+import org.aesh.command.GroupCommandDefinition;
+import org.aesh.command.invocation.CommandInvocation;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-public class StreamCompleter extends AbstractCompleter {
+@GroupCommandDefinition(description = "", name = "universe", groupCommands = {UniverseAddCommand.class, UniverseRemoveCommand.class,
+    UniverseListCommand.class, UniverseSearchCommand.class})
+public class UniverseCommand implements Command<CommandInvocation> {
 
     @Override
-    protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        PmSession session = completerInvocation.getPmSession();
-        List<String> streams = new ArrayList<>();
-        for (Universe universe : session.getUniverses().getUniverses()) {
-            for (StreamLocation loc : universe.getStreamLocations()) {
-                streams.add(loc.getName());
-            }
-        }
-        return streams;
+    public CommandResult execute(CommandInvocation commandInvocation) throws CommandException, InterruptedException {
+        commandInvocation.println("subcommand missing");
+        return CommandResult.FAILURE;
     }
 
 }
