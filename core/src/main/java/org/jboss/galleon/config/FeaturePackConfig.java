@@ -53,7 +53,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         }
 
         public Builder init(FeaturePackConfig fpConfig) {
-            super.init(fpConfig);
+            super.initConfigs(fpConfig);
             inheritPackages = fpConfig.inheritPackages;
             excludedPackages = CollectionUtils.clone(fpConfig.excludedPackages);
             includedPackages = CollectionUtils.clone(fpConfig.includedPackages);

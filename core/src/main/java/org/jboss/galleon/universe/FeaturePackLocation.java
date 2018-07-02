@@ -283,6 +283,9 @@ public class FeaturePackLocation {
                     universeEnd = buildSep;
                 case CHANNEL_START:
                     break loop;
+                case UNIVERSE_LOCATION_END:
+                    ++universeEnd;
+                    break loop;
             }
         }
         if(universeEnd <= 0) {
