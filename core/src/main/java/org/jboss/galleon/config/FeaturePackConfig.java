@@ -88,6 +88,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return this;
         }
 
+        public boolean isPackageExcluded(String packageName) {
+            return excludedPackages.contains(packageName);
+        }
+
         public Builder includeAllPackages(Collection<PackageConfig> packageConfigs) throws ProvisioningDescriptionException {
             for(PackageConfig packageConfig : packageConfigs) {
                 includePackage(packageConfig);
@@ -113,6 +117,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
             }
             includedPackages = CollectionUtils.put(includedPackages, packageConfig.getName(), packageConfig);
             return this;
+        }
+
+        public boolean isPackageIncluded(String packageName) {
+            return includedPackages.containsKey(packageName);
         }
 
         public FeaturePackConfig build() {

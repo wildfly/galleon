@@ -147,6 +147,10 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
         return (B) this;
     }
 
+    public boolean isDefaultConfigIncluded(ConfigId configId) {
+        return includedConfigs.contains(configId);
+    }
+
     public B excludeDefaultConfig(String model, String name) {
         return excludeDefaultConfig(new ConfigId(model, name));
     }
@@ -165,4 +169,9 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
         excludedConfigs = CollectionUtils.add(excludedConfigs, configId);
         return (B) this;
     }
+
+    public boolean isDefaultConfigExcluded(ConfigId configId) {
+        return excludedConfigs.contains(configId);
+    }
+
 }
