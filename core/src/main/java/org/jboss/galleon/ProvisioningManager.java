@@ -30,8 +30,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.runtime.ProvisioningLayout;
-import org.jboss.galleon.runtime.ProvisioningLayoutFactory;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.state.ProvisionedFeaturePack;

@@ -32,12 +32,12 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.plugin.CliPlugin;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.PackageRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
-import org.jboss.galleon.runtime.ProvisioningRuntime.PluginVisitor;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
@@ -83,7 +83,7 @@ public abstract class FeatureContainers {
             fp.addDependency(rt.getFPID());
         }
         List<CliPlugin> cliPlugins = new ArrayList<>();
-        PluginVisitor visitor = new ProvisioningRuntime.PluginVisitor<CliPlugin>() {
+        FeaturePackPluginVisitor<CliPlugin> visitor = new FeaturePackPluginVisitor<CliPlugin>() {
             @Override
             public void visitPlugin(CliPlugin plugin) throws ProvisioningException {
                 cliPlugins.add(plugin);

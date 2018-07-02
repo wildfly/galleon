@@ -36,53 +36,14 @@ import org.jboss.galleon.xml.PackageXmlParser;
 import org.jboss.galleon.xml.XmlParsers;
 
 /**
+ * @deprecated
+ *
  * Builds a layout description by analyzing the feature-pack layout
  * structure and parsing included XML files.
  *
  * @author Alexey Loubyansky
  */
 public class FeaturePackLayoutDescriber {
-
-    public static ProvisioningLayout describe(Path fpLayout, String encoding) throws ProvisioningDescriptionException {
-        if(!Files.exists(fpLayout)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpLayout));
-        }
-        if(!Files.isDirectory(fpLayout)) {
-            throw new UnsupportedOperationException(); // TODO
-        }
-
-        final ProvisioningLayout.Builder layoutBuilder = ProvisioningLayout.builder();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(fpLayout)) {
-            for(Path packageDir : stream) {
-                processGroup(layoutBuilder, packageDir, encoding);
-            }
-        } catch (IOException e) {
-            failedToReadDirectory(fpLayout, e);
-        }
-        return layoutBuilder.build();
-    }
-
-    private static void processGroup(final ProvisioningLayout.Builder layoutBuilder, Path groupDir, String encoding) throws ProvisioningDescriptionException {
-        assertDirectory(groupDir);
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(groupDir)) {
-            for(Path artifactDir : stream) {
-                processArtifact(layoutBuilder, artifactDir, encoding);
-            }
-        } catch (IOException e) {
-            failedToReadDirectory(groupDir, e);
-        }
-    }
-
-    private static void processArtifact(final ProvisioningLayout.Builder layoutBuilder, Path artifactDir, String encoding) throws ProvisioningDescriptionException {
-        assertDirectory(artifactDir);
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(artifactDir)) {
-            for(Path p : stream) {
-                layoutBuilder.addFeaturePack(describeFeaturePack(p, encoding));
-            }
-        } catch (IOException e) {
-            failedToReadDirectory(artifactDir, e);
-        }
-    }
 
     public static FeaturePackLayout describeFeaturePackZip(Path artifactZip) throws IOException, ProvisioningDescriptionException {
         try (FileSystem zipfs = FileSystems.newFileSystem(artifactZip, null)) {

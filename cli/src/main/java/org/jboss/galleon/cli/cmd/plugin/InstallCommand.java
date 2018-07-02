@@ -36,6 +36,7 @@ import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
@@ -64,7 +65,7 @@ public class InstallCommand extends AbstractPluginsCommand {
     @Override
     protected Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {
         Set<PluginOption> pluginOptions = new HashSet<>();
-        ProvisioningRuntime.PluginVisitor<InstallPlugin> visitor = new ProvisioningRuntime.PluginVisitor<InstallPlugin>() {
+        FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
             @Override
             public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
                 pluginOptions.addAll(plugin.getOptions().values());

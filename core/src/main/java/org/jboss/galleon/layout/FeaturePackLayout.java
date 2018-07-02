@@ -33,6 +33,8 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
+ * @deprecated
+ *
  * This class combines the feature-pack and the package specs that belong
  * to the feature-pack.
  *

@@ -30,7 +30,7 @@ import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.runtime.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;

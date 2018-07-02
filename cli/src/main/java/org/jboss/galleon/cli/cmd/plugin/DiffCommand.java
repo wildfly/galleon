@@ -34,6 +34,7 @@ import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
@@ -64,7 +65,7 @@ public class DiffCommand extends AbstractPluginsCommand {
     @Override
     protected Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {
         Set<PluginOption> pluginOptions = new HashSet<>();
-        ProvisioningRuntime.PluginVisitor<DiffPlugin> visitor = new ProvisioningRuntime.PluginVisitor<DiffPlugin>() {
+        FeaturePackPluginVisitor<DiffPlugin> visitor = new FeaturePackPluginVisitor<DiffPlugin>() {
             @Override
             public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
                 pluginOptions.addAll(plugin.getOptions().values());
