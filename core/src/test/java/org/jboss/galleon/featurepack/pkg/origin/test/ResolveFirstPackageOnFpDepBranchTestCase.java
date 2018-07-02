@@ -91,9 +91,12 @@ public class ResolveFirstPackageOnFpDepBranchTestCase extends PmProvisionConfigT
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP4_GAV)
                         .addPackage("p2")
                         .build())
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP5_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .addPackage("p1")
                         .build())

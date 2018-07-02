@@ -29,6 +29,7 @@ import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -123,7 +124,7 @@ public class FeaturePackLayout {
         this.unresolvedLocalPkgs = CollectionUtils.unmodifiable(notFound);
     }
 
-    public FeaturePackLocation.FPID getFPID() {
+    public FPID getFPID() {
         return fpid;
     }
 

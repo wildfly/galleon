@@ -38,7 +38,7 @@ public class UniverseResolver {
             this.ufl = ufl;
         }
 
-        public UniverseResolver build() {
+        public UniverseResolver build() throws ProvisioningException {
             return new UniverseResolver(this);
         }
     }
@@ -54,7 +54,7 @@ public class UniverseResolver {
     private final UniverseFactoryLoader ufl;
     private Map<UniverseSpec, Universe<?>> resolvedUniverses = Collections.emptyMap();
 
-    UniverseResolver(UniverseResolverBuilder<?> builder) {
+    UniverseResolver(UniverseResolverBuilder<?> builder) throws ProvisioningException {
         this.ufl = builder.getUfl();
     }
 

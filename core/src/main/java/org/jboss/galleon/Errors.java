@@ -154,7 +154,7 @@ public interface Errors {
     }
 
     static String unsatisfiedFeaturePackDep(ProducerSpec producer) {
-        return "Feature-pack " + producer + " is required dependency";
+        return "Feature-pack " + producer + " is a required dependency";
     }
 
     static String featurePackVersionConflict(FeaturePackLocation.FPID fpid1, FeaturePackLocation.FPID fpid2) {

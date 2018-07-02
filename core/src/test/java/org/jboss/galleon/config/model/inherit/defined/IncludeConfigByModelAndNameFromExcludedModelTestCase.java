@@ -85,7 +85,7 @@ public class IncludeConfigByModelAndNameFromExcludedModelTestCase extends PmProv
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
-                //.addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config1")
                         .setModel("model1")

@@ -65,9 +65,10 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
         createFeaturePacks(initCreator());
         initialProvisioningConfig = initialState();
         if(initialProvisioningConfig != null) {
-            final ProvisioningManager pm = getPm();
-            pm.provision(initialProvisioningConfig);
-            initialProvisionedState = pm.getProvisionedState();
+            try (ProvisioningManager pm = getPm()) {
+                pm.provision(initialProvisioningConfig);
+                initialProvisionedState = pm.getProvisionedState();
+            }
         }
         initialHomeDirState = DirState.rootBuilder().init(installHome).build();
     }
@@ -82,15 +83,17 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
 
     @Test
     public void main() throws Throwable {
-        final ProvisioningManager pm = getPm();
         final String[] errors = pmErrors();
         boolean failed = false;
+        ProvisioningManager pm = getPm();
         try {
             testPm(pm);
             pmSuccess();
             if(errors != null) {
                 Assert.fail("Expected failures: " + Arrays.asList(errors));
             }
+            assertProvisionedConfig(pm);
+            assertProvisionedState(pm);
         } catch(AssertionError e) {
             throw e;
         } catch(Throwable t) {
@@ -100,13 +103,10 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
             } else {
                 assertErrors(t, errors);
             }
-        }
-        if(failed) {
             assertProvisioningConfig(pm, initialProvisioningConfig);
             assertProvisionedState(pm, initialProvisionedState);
-        } else {
-            assertProvisionedConfig(pm);
-            assertProvisionedState(pm);
+        } finally {
+            pm.close();
         }
 
         DirState expectedHomeDir = provisionedHomeDir();

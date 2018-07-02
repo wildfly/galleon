@@ -97,7 +97,7 @@ public class ExtendConfigModelWithDefinedConfigInFpDepDeclarationTestCase extend
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .addPackage("p1")
                         .build())
-                //.addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config1")
                         .setModel("model1")

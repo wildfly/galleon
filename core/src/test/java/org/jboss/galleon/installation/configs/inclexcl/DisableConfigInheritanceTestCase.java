@@ -27,6 +27,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
 
@@ -91,6 +92,9 @@ public class DisableConfigInheritanceTestCase extends PmProvisionConfigTestBase 
 
     @Override
     protected ProvisionedState provisionedState() {
-        return ProvisionedState.builder().build();
+        return ProvisionedState.builder()
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
+                .build();
     }
 }

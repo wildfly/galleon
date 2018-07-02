@@ -78,6 +78,7 @@ public class ExcludeAffectsFirstFoundPackageTestCase extends PmProvisionConfigTe
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV)
                         .addPackage("p1")
                         .build())
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
                 .build();
     }
 
