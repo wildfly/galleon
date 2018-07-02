@@ -417,7 +417,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException in case provisioning fails
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, null, options)) {
+        try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), null, options)) {
             doProvision(runtime);
         }
     }
