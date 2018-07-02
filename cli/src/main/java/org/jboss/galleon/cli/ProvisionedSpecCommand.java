@@ -25,7 +25,6 @@ import org.aesh.command.GroupCommand;
 import org.aesh.command.GroupCommandDefinition;
 import org.aesh.command.container.CommandContainer;
 import org.aesh.command.parser.CommandLineParserException;
-import org.aesh.readline.AeshContext;
 import org.jboss.galleon.cli.cmd.plugin.DiffCommand;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
@@ -47,10 +46,6 @@ public class ProvisionedSpecCommand implements GroupCommand<PmCommandInvocation,
         commands.add(new ProvisionedSpecDisplayCommand());
         commands.add(new ProvisionedSpecExportCommand());
         return commands;
-    }
-
-    public void setAeshContext(AeshContext ctx) {
-        diffCommand.setAeshContext(ctx);
     }
 
     @Override

@@ -109,7 +109,7 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
         repoSystem.install(getSettings().getSession(), request);
     }
 
-    private String dogetHighestVersion(Artifact artifact, String coords) throws ArtifactException {
+    private String doGetHighestVersion(Artifact artifact, String coords) throws ArtifactException {
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
         rangeRequest.setArtifact(artifact);
         rangeRequest.setRepositories(getSettings().getRepositories());
@@ -160,7 +160,7 @@ public class MavenArtifactRepositoryManager implements MavenRepoManager {
         Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
                 mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
         try {
-            String version = dogetHighestVersion(artifact, mavenArtifact.getCoordsAsString());
+            String version = doGetHighestVersion(artifact, mavenArtifact.getCoordsAsString());
             mavenArtifact.setVersion(version);
             resolve(mavenArtifact);
         } catch (ArtifactException ex) {

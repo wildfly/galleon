@@ -19,7 +19,6 @@ package org.jboss.galleon.cli;
 import java.nio.file.Path;
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
-import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NAME;
@@ -46,10 +45,6 @@ abstract class FromInstallationCommand extends PmSessionCommand {
     }
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return ProvisioningManager.builder()
-                .setInstallationHome(getTargetDir(session))
-                .setMessageWriter(new DefaultMessageWriter(session.getOut(),
-                        session.getErr(), verbose))
-                .build();
+        return session.getPmSession().newProvisioningManager(getTargetDir(session), verbose);
     }
 }

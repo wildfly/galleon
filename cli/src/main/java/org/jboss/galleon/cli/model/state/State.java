@@ -72,21 +72,23 @@ public class State {
 
     public State(PmSession pmSession) throws ProvisioningException, IOException {
         builder = ProvisioningConfig.builder();
-        ProvisioningManager manager = ProvisioningManager.builder().build();
+        ProvisioningManager manager = pmSession.newProvisioningManager(null, false);
         init(pmSession, manager);
+    }
+
+    public void close() {
+        runtime.close();
     }
 
     public State(PmSession pmSession, Path installation) throws ProvisioningException, IOException {
         ProvisioningManager manager;
         ProvisioningConfig conf;
         if (Files.isRegularFile(installation)) {
-            manager = ProvisioningManager.builder().build();
+            manager = pmSession.newProvisioningManager(null, false);
             conf = ProvisioningXmlParser.parse(installation);
             builder = conf.getBuilder();
         } else {
-            manager = ProvisioningManager.builder().
-                    setInstallationHome(installation).
-                    build();
+            manager = pmSession.newProvisioningManager(installation, false);
             if (manager.getProvisionedState() == null) {
                 throw new ProvisioningException(installation + " is not an installation dir");
             }
@@ -260,7 +262,8 @@ public class State {
 
     private ProvisioningConfig buildNewConfig(PmSession pmSession) throws ProvisioningException, IOException {
         ProvisioningConfig tmp = builder.build();
-        ProvisioningManager manager = ProvisioningManager.builder().build();
+        ProvisioningManager manager = pmSession.newProvisioningManager(null, false);
+        runtime.close();
         runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
@@ -283,7 +286,7 @@ public class State {
     }
 
     private void buildDependencies(PmSession session, Set<FeaturePackLocation.FPID> dependencies, Map<String, FeatureContainer> deps) throws ProvisioningException, IOException {
-        ProvisioningManager manager = ProvisioningManager.builder().build();
+        ProvisioningManager manager = session.newProvisioningManager(null, false);
         for (FeaturePackLocation.FPID fpid : dependencies) {
             String orig = Identity.buildOrigin(fpid.getProducer());
             if (!deps.containsKey(orig)) {

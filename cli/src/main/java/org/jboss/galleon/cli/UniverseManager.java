@@ -16,15 +16,20 @@
  */
 package org.jboss.galleon.cli;
 
+import org.jboss.galleon.cli.resolver.PluginResolver;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -37,7 +42,9 @@ import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.Channel;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
+import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
@@ -52,7 +59,7 @@ import org.jboss.galleon.util.PathsUtils;
 public class UniverseManager implements MavenChangeListener {
 
     public static final String JBOSS_UNIVERSE_GROUP_ID = "org.jboss.universe";
-    public static final String JBOSS_UNIVERSE_ARTIFACT_ID = "jboss-universe";
+    public static final String JBOSS_UNIVERSE_ARTIFACT_ID = "community-universe";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool(new ThreadFactory() {
         @Override
@@ -68,6 +75,8 @@ public class UniverseManager implements MavenChangeListener {
     private final UniverseResolver universeResolver;
     private AeshContext aeshContext;
     private final PmSession pmSession;
+    private final List<Future<?>> submited = new ArrayList<>();
+    private volatile boolean closed;
     UniverseManager(PmSession pmSession, Configuration config, MavenArtifactRepositoryManager maven) throws ProvisioningException {
         this.pmSession = pmSession;
         config.getMavenConfig().addListener(this);
@@ -80,26 +89,80 @@ public class UniverseManager implements MavenChangeListener {
      * Universe resolution is done in a separate thread to not impact startup
      * time.
      */
-    void resolveBuiltinUniverse() {
-        executorService.submit(() -> {
+    synchronized void resolveBuiltinUniverse() {
+        if (closed) {
+            return;
+        }
+        Future<?> f = executorService.submit(() -> {
             synchronized (this) {
+                if (closed) {
+                    return;
+                }
                 try {
+                    List<FeaturePackLocation> deps = new ArrayList<>();
                     builtinUniverse = (MavenUniverse) universeResolver.getUniverse(builtinUniverseSpec);
+                    if (closed) {
+                        return;
+                    }
                     //speed-up future completion and execution by retrieving producers and channels
                     for (Producer<?> p : builtinUniverse.getProducers()) {
+                        if (closed) {
+                            return;
+                        }
                         for (Channel c : p.getChannels()) {
+                            if (closed) {
+                                return;
+                            }
+                            FeaturePackLocation ploc = new FeaturePackLocation(builtinUniverseSpec, p.getName(), c.getName(), null, null);
+                            deps.add(ploc);
                         }
                     }
+                    // Then resolve plugins
+                    Future<?> f2 = executorService.submit(() -> {
+                        try {
+                            for (FeaturePackLocation loc : deps) {
+                                if (closed) {
+                                    return;
+                                }
+                                pmSession.getResolver().resolveSync(loc.toString(), PluginResolver.newResolver(pmSession, loc));
+                            }
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
+                        }
+                    });
+                    submited.add(f2);
                     LOGGER.log(Level.FINE, "Successfully resolved builtin universe.");
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
                 }
             }
         });
+        submited.add(f);
     }
 
-    void close() {
+    synchronized void close() {
+        closed = true;
         executorService.shutdownNow();
+        boolean terminated = true;
+        for (Future<?> f : submited) {
+            if (!f.isDone()) {
+                terminated = false;
+                break;
+            }
+        }
+        if (!terminated) {
+            // We need to in order to have all the layout closed before the factory.
+            // This should not exeed few seconds, resolution stops has soon as it
+            // detects that we are closed (closing == true).
+            pmSession.println("Awaiting termination of background resolution...");
+            try {
+                executorService.awaitTermination(20, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                Thread.interrupted();
+                pmSession.println("Interrupted");
+            }
+        }
+
     }
 
     void setAeshContext(AeshContext aeshContext) {
@@ -127,15 +190,15 @@ public class UniverseManager implements MavenChangeListener {
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException("Local directory is not an installation directory");
         }
-        ProvisioningManager mgr = ProvisioningManager.builder()
-                .setInstallationHome(workDir)
-                .build();
+        ProvisioningManager mgr = pmSession.newProvisioningManager(workDir, false);
         return mgr;
     }
 
     public void addUniverse(String name, String factory, String location) throws ProvisioningException, IOException {
+        UniverseSpec u = new UniverseSpec(factory, location);
         if (pmSession.getState() != null) {
             pmSession.getState().addUniverse(pmSession, name, factory, location);
+            resolveUniverse(u);
             return;
         }
         Path workDir = getWorkDir(aeshContext);
@@ -143,11 +206,21 @@ public class UniverseManager implements MavenChangeListener {
             throw new ProvisioningException("Local directory is not an installation directory");
         }
         ProvisioningManager mgr = getProvisioningManager();
-        UniverseSpec u = new UniverseSpec(factory, location);
+
         if (name != null) {
             mgr.addUniverse(name, u);
         } else {
             mgr.setDefaultUniverse(u);
+        }
+        resolveUniverse(u);
+    }
+
+    private void resolveUniverse(UniverseSpec u) throws ProvisioningException {
+        // Resolve universe synchronously.
+        Universe<?> universe = universeResolver.getUniverse(u);
+        for (Producer<?> p : universe.getProducers()) {
+            for (Channel c : p.getChannels()) {
+            }
         }
     }
 

@@ -33,7 +33,6 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
-import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
@@ -44,8 +43,11 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand.RESOLUTION_MESSAGE;
 import org.jboss.galleon.cli.cmd.state.StateNoExplorationActivator;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.cli.resolver.PluginResolver;
+import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
@@ -99,19 +101,19 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
     protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
         ProvisioningRuntime rt;
+        Set<PluginOption> opts;
         if (state != null) {
             rt = state.getRuntime();
+            opts = getPluginOptions(rt);
         } else {
             String file = getFile();
             if (file == null) {
                 return Collections.emptyList();
             }
-            ProvisioningManager manager = ProvisioningManager.builder().build();
-            rt = manager.getRuntime(ProvisioningXmlParser.parse(getAbsolutePath(file, ctx)),
-                    null, Collections.emptyMap());
+            ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, ctx));
+            opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config),
+                    RESOLUTION_MESSAGE).getInstall();
         }
-
-        Set<PluginOption> opts = getPluginOptions(rt);
         for (PluginOption opt : opts) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
@@ -235,10 +237,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
     }
 
     private ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return ProvisioningManager.builder()
-                .setInstallationHome(getInstallationHome(session.getAeshContext()))
-                .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), isVerbose()))
-                .build();
+        return session.getPmSession().newProvisioningManager(getInstallationHome(session.getAeshContext()), isVerbose());
     }
 
     private Path getInstallationHome(AeshContext context) {

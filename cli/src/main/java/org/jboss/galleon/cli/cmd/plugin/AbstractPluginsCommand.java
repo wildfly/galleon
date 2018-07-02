@@ -28,7 +28,6 @@ import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.aesh.utils.Config;
-import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -38,10 +37,7 @@ import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NA
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import org.jboss.galleon.cli.model.state.State;
-import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.PluginOption;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -53,14 +49,10 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
  */
 public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
-    private AeshContext ctx;
+    static final String RESOLUTION_MESSAGE = "Resolving options";
 
     public AbstractPluginsCommand(PmSession pmSession) {
         super(pmSession, true, true);
-    }
-
-    public void setAeshContext(AeshContext ctx) {
-        this.ctx = ctx;
     }
 
     protected boolean isVerbose() {
@@ -122,13 +114,8 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     @Override
     protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
-        ProvisioningManager manager = getManager(ctx);
         FeaturePackLocation fpl = pmSession.getResolvedLocation(id);
-        checkLocalArtifact(fpl.getFPID());
-        FeaturePackConfig config = FeaturePackConfig.forLocation(fpl);
-        ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
-        ProvisioningRuntime runtime = manager.getRuntime(provisioning, null, Collections.emptyMap());
-        Set<PluginOption> pluginOptions = getPluginOptions(runtime);
+        Set<PluginOption> pluginOptions = getPluginOptions(fpl);
         for (PluginOption opt : pluginOptions) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
@@ -136,23 +123,12 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         return options;
     }
 
-    protected abstract Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException;
+    protected abstract Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException;
 
     protected abstract Path getInstallationHome(AeshContext ctx);
 
-    private ProvisioningManager getManager(AeshContext ctx) throws ProvisioningException {
-        ProvisioningManager manager = ProvisioningManager.builder()
-                .setInstallationHome(getInstallationHome(ctx))
-                .build();
-        return manager;
-    }
-
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return ProvisioningManager.builder()
-                .setUniverseResolver(session.getPmSession().getUniverse().getUniverseResolver())
-                .setInstallationHome(getInstallationHome(session.getAeshContext()))
-                .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), isVerbose()))
-                .build();
+        return session.getPmSession().newProvisioningManager(getInstallationHome(session.getAeshContext()), isVerbose());
     }
 
     @Override
@@ -162,7 +138,14 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
             // Check in argument or option, that is the option completion case.
             streamName = getArgumentValue();
         }
-        return streamName;
+        if (streamName != null) {
+            try {
+                return session.getResolvedLocation(streamName).toString();
+            } catch (ProvisioningException ex) {
+                // Ok, no id set.
+            }
+        }
+        return null;
     }
 
     private void checkLocalArtifact(FPID fpid) throws CommandExecutionException, ProvisioningException {

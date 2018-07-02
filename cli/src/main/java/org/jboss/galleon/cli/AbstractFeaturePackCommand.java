@@ -98,9 +98,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
     }
 
     protected ProvisioningManager getManager(PmSession session, AeshContext ctx) throws ProvisioningException {
-        ProvisioningManager.Builder builder = ProvisioningManager.builder();
-        builder.setInstallationHome(getTargetDir(ctx));
-        return builder.build();
+        return session.newProvisioningManager(getTargetDir(ctx), false);
     }
 
     protected Path getTargetDir(AeshContext context) {
@@ -127,8 +125,9 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
                 throw new CommandExecutionException("Specified directory doesn't contain an installation");
             }
             ProvisioningConfig config = manager.getProvisioningConfig();
-            ProvisioningRuntime runtime = manager.getRuntime(config, null, Collections.emptyMap());
-            container = FeatureContainers.fromProvisioningRuntime(session, manager, runtime);
+            try (ProvisioningRuntime runtime = manager.getRuntime(config, null, Collections.emptyMap())) {
+                container = FeatureContainers.fromProvisioningRuntime(session, manager, runtime);
+            }
         }
         return container;
     }

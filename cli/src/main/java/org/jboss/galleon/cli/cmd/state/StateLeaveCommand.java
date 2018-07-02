@@ -35,6 +35,7 @@ public class StateLeaveCommand extends PmSessionCommand {
             throw new CommandExecutionException("Nothing to leave.");
         }
         if (invoc.getPmSession().getState() != null) {
+            invoc.getPmSession().getState().close();
             invoc.getPmSession().setState(null);
         } else if (invoc.getPmSession().getExploredContainer() != null) {
             invoc.getPmSession().setExploredContainer(null);

@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
@@ -42,7 +41,7 @@ public class PackagesUtil {
     public static String getPackage(PmSession session, FeaturePackLocation.FPID fpid, String pkg) throws PathParserException, PathConsumerException, ProvisioningException, Exception {
         String path = FeatureContainerPathConsumer.PACKAGES_PATH
                 + pkg + (pkg.endsWith("" + PathParser.PATH_SEPARATOR) ? "" : PathParser.PATH_SEPARATOR);
-        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, ProvisioningManager.builder().build(), fpid, null);
+        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, session.newProvisioningManager(null, false), fpid, null);
 
         FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);
         PathParser.parse(path, consumer);
