@@ -56,11 +56,20 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
 
         writeUniverseSpecs(config, install);
 
+        if(config.hasTransitiveDeps()) {
+            final ElementNode transitives = addElement(install, Element.TRANSITIVE);
+            for(FeaturePackConfig dep : config.getTransitiveDeps()) {
+                writeFeaturePackConfig(addElement(transitives, Element.FEATURE_PACK), Element.FEATURE_PACK.getNamespace(),
+                        config.getUserConfiguredSource(dep.getLocation()), dep,
+                        config.originOf(dep.getLocation().getProducer()));
+            }
+        }
+
         if (config.hasFeaturePackDeps()) {
             for(FeaturePackConfig fp : config.getFeaturePackDeps()) {
                 final ElementNode fpElement = addElement(install, Element.FEATURE_PACK);
-                writeFeaturePackConfig(fpElement, fpElement.getNamespace(), config.getUserConfiguredSource(fp.getLocation()), fp,
-                        config.originOf(fp.getLocation().getProducer()));
+                writeFeaturePackConfig(fpElement, fpElement.getNamespace(), config.getUserConfiguredSource(fp.getLocation()),
+                        fp, config.originOf(fp.getLocation().getProducer()));
             }
         }
 

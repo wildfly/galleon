@@ -93,9 +93,9 @@ public class UniverseFactoryLoader {
         return factory.getUniverse(artifactResolver, location);
     }
 
-    public Universe<?> getUniverse(UniverseSpec universeSource) throws ProvisioningException {
-        final UniverseFactory factory = getUniverseFactory(universeSource.getFactory());
-        return factory.getUniverse(getArtifactResolver(factory.getRepositoryId()), universeSource.getLocation());
+    public Universe<?> getUniverse(UniverseSpec universeSpec) throws ProvisioningException {
+        final UniverseFactory factory = getUniverseFactory(universeSpec.getFactory());
+        return factory.getUniverse(getArtifactResolver(factory.getRepositoryId()), universeSpec.getLocation());
     }
 
     private UniverseFactory getUniverseFactory(String factoryId) throws ProvisioningException {

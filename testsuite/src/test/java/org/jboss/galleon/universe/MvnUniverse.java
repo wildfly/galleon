@@ -34,6 +34,7 @@ import org.jboss.galleon.util.CollectionUtils;
  */
 public class MvnUniverse {
 
+    private static final String FP_SUFFIX = "-feature-pack";
     public static String[] frequencies = new String[] {"alpha", "beta", "snapshot"};
 
     public static MvnUniverse getInstance(String name, MavenRepoManager repoManager) {
@@ -47,6 +48,10 @@ public class MvnUniverse {
     private MvnUniverse(String name, MavenRepoManager repoManager) {
         this.name = name;
         this.repoManager = repoManager;
+    }
+
+    public MvnUniverse createProducer(String producerName) throws ProvisioningException {
+        return createProducer(producerName, producerName + FP_SUFFIX);
     }
 
     public MvnUniverse createProducer(String producerName, String fpArtifactId) throws ProvisioningException {
@@ -64,7 +69,7 @@ public class MvnUniverse {
         final MavenArtifact universeArtifact = new MavenArtifact().setGroupId(TestConstants.GROUP_ID).setArtifactId(name).setVersion("1.0.0.Final");
         final MavenUniverseInstaller installer = new MavenUniverseInstaller(repoManager, universeArtifact);
         for(MavenProducerBase p : producers) {
-            installer.addProducer(p.getName(), p.getArtifact().setPath(null).setVersionRange("[1.0,2.0-alpha)"));
+            installer.addProducer(p.getName(), p.getArtifact().setPath(null).setVersionRange("[1.0,)"));
         }
         installer.install();
         return universeArtifact;

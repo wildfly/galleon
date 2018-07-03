@@ -38,6 +38,10 @@ public class UniverseSpec {
     private final String location;
     private final int hash;
 
+    public UniverseSpec(String factory) {
+        this(factory, null);
+    }
+
     public UniverseSpec(String factory, String location) {
         this.factory = factory;
         this.location = location;

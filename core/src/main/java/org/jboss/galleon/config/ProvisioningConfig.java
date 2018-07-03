@@ -83,27 +83,12 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((fpDeps == null) ? 0 : fpDeps.hashCode());
-        return result;
+        return super.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ProvisioningConfig other = (ProvisioningConfig) obj;
-        if (fpDeps == null) {
-            if (other.fpDeps != null)
-                return false;
-        } else if (!fpDeps.equals(other.fpDeps))
-            return false;
-        return true;
+        return super.equals(obj);
     }
 
     @Override
@@ -119,6 +104,11 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
             buf.append("universes=[");
             StringUtils.append(buf, universeSpecs.entrySet());
             buf.append("] ");
+        }
+        if(!transitiveDeps.isEmpty()) {
+            buf.append("transitive=");
+            StringUtils.append(buf, transitiveDeps.values());
+            buf.append(' ');
         }
         StringUtils.append(buf, fpDeps.values());
         append(buf);

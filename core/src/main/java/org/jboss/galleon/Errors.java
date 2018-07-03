@@ -390,6 +390,10 @@ public interface Errors {
         return buf.toString();
     }
 
+    static String transitiveDependencyNotFound(ProducerSpec producer) {
+        return "Failed to locate " + producer + " among transitive dependencies";
+    }
+
     static void appendConfig(final StringBuilder buf, String model, String name) {
         if (model != null) {
             buf.append(" model ").append(model);

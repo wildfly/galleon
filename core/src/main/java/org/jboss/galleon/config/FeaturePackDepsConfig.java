@@ -37,12 +37,14 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
     protected final Map<ProducerSpec, FeaturePackConfig> fpDeps;
     protected final Map<String, FeaturePackConfig> fpDepsByOrigin;
     private final Map<ProducerSpec, String> channelToOrigin;
+    protected final Map<ProducerSpec, FeaturePackConfig> transitiveDeps;
 
     protected FeaturePackDepsConfig(FeaturePackDepsConfigBuilder<?> builder) throws ProvisioningDescriptionException {
         super(builder);
         this.fpDeps = CollectionUtils.unmodifiable(builder.fpDeps);
         this.fpDepsByOrigin = CollectionUtils.unmodifiable(builder.fpDepsByOrigin);
         this.channelToOrigin = builder.channelToOrigin;
+        this.transitiveDeps = CollectionUtils.unmodifiable(builder.transitiveDeps);
         this.defaultUniverse = builder.defaultUniverse;
         this.universeSpecs = CollectionUtils.unmodifiable(builder.universeSpecs);
     }
@@ -118,6 +120,22 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         return channelToOrigin.get(producer);
     }
 
+    public boolean hasTransitiveDeps() {
+        return !transitiveDeps.isEmpty();
+    }
+
+    public boolean hasTransitiveDep(ProducerSpec producer) {
+        return transitiveDeps.containsKey(producer);
+    }
+
+    public FeaturePackConfig getTransitiveDep(ProducerSpec producer) {
+        return transitiveDeps.get(producer);
+    }
+
+    public Collection<FeaturePackConfig> getTransitiveDeps() {
+        return transitiveDeps.values();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -126,6 +144,7 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         result = prime * result + ((defaultUniverse == null) ? 0 : defaultUniverse.hashCode());
         result = prime * result + ((fpDeps == null) ? 0 : fpDeps.hashCode());
         result = prime * result + ((fpDepsByOrigin == null) ? 0 : fpDepsByOrigin.hashCode());
+        result = prime * result + ((transitiveDeps == null) ? 0 : transitiveDeps.hashCode());
         result = prime * result + ((universeSpecs == null) ? 0 : universeSpecs.hashCode());
         return result;
     }
@@ -158,6 +177,11 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
             if (other.fpDepsByOrigin != null)
                 return false;
         } else if (!fpDepsByOrigin.equals(other.fpDepsByOrigin))
+            return false;
+        if (transitiveDeps == null) {
+            if (other.transitiveDeps != null)
+                return false;
+        } else if (!transitiveDeps.equals(other.transitiveDeps))
             return false;
         if (universeSpecs == null) {
             if (other.universeSpecs != null)
