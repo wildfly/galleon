@@ -46,7 +46,8 @@ public class CliMain {
     public static void main(String[] args) throws Exception {
         Configuration config = Configuration.parse();
         final PmSession pmSession = new PmSession(config);
-
+        // Side effect is to resolve plugins.
+        pmSession.getUniverse().resolveBuiltinUniverse();
         // Create commands that are dynamic (or contain dynamic sub commands).
         // Options are discovered at execution time
         InstallCommand install = new InstallCommand(pmSession);
@@ -96,10 +97,8 @@ public class CliMain {
         ReadlineConsole console = new ReadlineConsole(settings);
 
         // These commands require the aeshContext to properly operate
-        install.setAeshContext(console.context());
         state.setAeshContext(console.context());
         pmSession.getUniverse().setAeshContext(console.context());
-        pmSession.getUniverse().resolveBuiltinUniverse();
         console.setPrompt(PmSession.buildPrompt(settings.aeshContext()));
         console.start();
     }

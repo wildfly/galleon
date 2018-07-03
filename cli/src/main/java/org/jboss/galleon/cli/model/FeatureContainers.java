@@ -61,9 +61,10 @@ public abstract class FeatureContainers {
             session.downloadFp(fpid);
         }
         fp = new FeaturePackInfo(name, fpid);
-        ProvisioningRuntime rt = buildFullRuntime(fpid, manager);
-        populateFeatureContainer(fp, session, rt, true);
-        Caches.addFeaturePackInfo(fpid, fp);
+        try (ProvisioningRuntime rt = buildFullRuntime(fpid, manager)) {
+            populateFeatureContainer(fp, session, rt, true);
+            Caches.addFeaturePackInfo(fpid, fp);
+        }
         return fp;
     }
 

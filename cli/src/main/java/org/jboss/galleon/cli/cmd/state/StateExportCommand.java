@@ -28,7 +28,6 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
 import org.aesh.readline.AeshContext;
-import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
@@ -102,10 +101,7 @@ public class StateExportCommand extends PmSessionCommand {
     }
 
     private ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return ProvisioningManager.builder()
-                .setInstallationHome(getTargetDir(session.getAeshContext()))
-                .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), false))
-                .build();
+        return session.getPmSession().newProvisioningManager(getTargetDir(session.getAeshContext()), false);
     }
 
     private Path getTargetDir(AeshContext context) {

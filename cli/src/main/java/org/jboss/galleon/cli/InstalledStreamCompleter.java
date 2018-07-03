@@ -39,7 +39,8 @@ public class InstalledStreamCompleter extends AbstractCompleter {
         List<String> items = new ArrayList<>();
         try {
             ProvisioningManager.checkInstallationDir(currentDir);
-            ProvisioningManager mgr = ProvisioningManager.builder().setInstallationHome(currentDir).build();
+            ProvisioningManager mgr = completerInvocation.getPmSession().
+                    newProvisioningManager(currentDir, false);
             for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {
                 if(fp.getLocation().getBuild() == null) {
                     continue;

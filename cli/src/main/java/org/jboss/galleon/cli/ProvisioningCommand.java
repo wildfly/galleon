@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
-import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
@@ -46,9 +45,6 @@ public abstract class ProvisioningCommand extends PmSessionCommand {
     }
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return ProvisioningManager.builder()
-                .setInstallationHome(getTargetDir(session.getAeshContext()))
-                .setMessageWriter(new DefaultMessageWriter(session.getOut(), session.getErr(), verbose))
-                .build();
+        return session.getPmSession().newProvisioningManager(getTargetDir(session.getAeshContext()), verbose);
     }
 }

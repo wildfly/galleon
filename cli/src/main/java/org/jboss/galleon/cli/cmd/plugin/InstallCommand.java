@@ -18,7 +18,6 @@ package org.jboss.galleon.cli.cmd.plugin;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,14 +31,12 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
-import org.jboss.galleon.layout.FeaturePackPluginVisitor;
-import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
@@ -63,16 +60,15 @@ public class InstallCommand extends AbstractPluginsCommand {
     }
 
     @Override
-    protected Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {
-        Set<PluginOption> pluginOptions = new HashSet<>();
-        FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
-            @Override
-            public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
-                pluginOptions.addAll(plugin.getOptions().values());
-            }
-        };
-        runtime.visitPlugins(visitor, InstallPlugin.class);
-        return pluginOptions;
+    protected Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException {
+        try {
+            return pmSession.getResolver().get(loc.toString(),
+                    PluginResolver.newResolver(pmSession, loc),
+                    RESOLUTION_MESSAGE).getInstall();
+        } catch (InterruptedException ex) {
+            Thread.interrupted();
+            throw new ProvisioningException(ex);
+        }
     }
 
     @Override

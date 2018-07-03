@@ -70,7 +70,6 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
     }
 
     public void setAeshContext(AeshContext ctx) {
-        diffCommand.setAeshContext(ctx);
         provisionCommand.setAeshContext(ctx);
     }
 

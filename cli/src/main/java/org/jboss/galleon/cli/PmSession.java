@@ -33,12 +33,17 @@ import org.aesh.utils.Config;
 import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
+import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.cli.resolver.ResourceResolver;
+import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseSpec;
 
 /**
@@ -183,18 +188,49 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private final MavenArtifactRepositoryManager maven;
     private final MavenListener mavenListener;
     private UniverseManager universe;
-
+    private final ResourceResolver resolver;
+    private final ProvisioningLayoutFactory layoutFactory;
     public PmSession(Configuration config) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
         this.maven = new MavenArtifactRepositoryManager(config.getMavenConfig(),
                 mavenListener);
         universe = new UniverseManager(this, config, maven);
+        layoutFactory = ProvisioningLayoutFactory.getInstance(universe.getUniverseResolver());
+        resolver = new ResourceResolver(this);
         // Abort running universe resolution if any.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            universe.close();
+            try {
+                if (state != null) {
+                    state.close();
+                }
+            } finally {
+                try {
+                    universe.close();
+                } finally {
+                    layoutFactory.close();
+                }
+            }
         }));
+    }
 
+    public ProvisioningManager newProvisioningManager(Path installation, boolean verbose) throws ProvisioningException {
+        ProvisioningManager.Builder builder = ProvisioningManager.builder();
+        builder.setLayoutFactory(getLayoutFactory());
+        if (installation != null) {
+            builder.setInstallationHome(installation);
+        }
+        builder.setMessageWriter(new DefaultMessageWriter(out,
+                err, verbose));
+        return builder.build();
+    }
+
+    public ProvisioningLayoutFactory getLayoutFactory() {
+        return layoutFactory;
+    }
+
+    public ResourceResolver getResolver() {
+        return resolver;
     }
 
     public UniverseManager getUniverse() {
@@ -202,6 +238,10 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     }
 
     public FeaturePackLocation getResolvedLocation(String location) throws ProvisioningException {
+        if (location.endsWith("" + FeaturePackLocation.FREQUENCY_START)
+                || location.endsWith("" + FeaturePackLocation.BUILD_START)) {
+            location = location.substring(0, location.length() - 1);
+        }
         FeaturePackLocation loc = FeaturePackLocation.fromString(location);
         return getResolvedLocation(loc);
     }
@@ -322,7 +362,13 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
 
     public boolean existsInLocalRepository(FPID fpid) throws ProvisioningException {
         FeaturePackLocation loc = getResolvedLocation(fpid.getLocation());
-        String freq = loc.getFrequency() == null ? "alpha" : loc.getFrequency();
+        Producer<?> producer = universe.getUniverseResolver().getUniverse(loc.
+                getUniverse()).getProducer(loc.getProducerName());
+        boolean hasFrequency = false;
+        if (producer != null) {
+            hasFrequency = producer.hasFrequencies();
+        }
+        String freq = loc.getFrequency() == null && hasFrequency ? "alpha" : loc.getFrequency();
         loc = new FeaturePackLocation(loc.getUniverse(),
                 loc.getProducerName(), loc.getChannelName(), freq, loc.getBuild());
         return universe.getUniverseResolver().isResolved(loc);
@@ -338,7 +384,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
             if (spec.getLocation() == null) {
                 spec = universe.getUniverseSpec(spec.getFactory());
                 if (spec == null) {
-                    throw new ProvisioningException("Unknown universe " + spec.getFactory());
+                    throw new ProvisioningException("Unknown universe for " + fplocation);
                 }
             }
         } else {
