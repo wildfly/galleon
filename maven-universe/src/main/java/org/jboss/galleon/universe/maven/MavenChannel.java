@@ -31,7 +31,7 @@ import org.jboss.galleon.util.StringUtils;
  *
  * @author Alexey Loubyansky
  */
-public class MavenChannel implements Channel {
+public class MavenChannel implements Channel, MavenChannelDescription {
 
     private final String name;
     private final String versionRange;
@@ -91,6 +91,7 @@ public class MavenChannel implements Channel {
         return producer.getFrequencies();
     }
 
+    @Override
     public String getVersionRange() {
         return versionRange;
     }

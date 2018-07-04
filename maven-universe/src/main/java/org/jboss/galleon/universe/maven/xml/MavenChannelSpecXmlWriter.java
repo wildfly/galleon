@@ -19,7 +19,7 @@ package org.jboss.galleon.universe.maven.xml;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.universe.maven.MavenChannel;
+import org.jboss.galleon.universe.maven.MavenChannelDescription;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlParser10.Attribute;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlParser10.Element;
 import org.jboss.galleon.xml.BaseXmlWriter;
@@ -30,7 +30,7 @@ import org.jboss.galleon.xml.util.TextNode;
  *
  * @author Alexey Loubyansky
  */
-public class MavenChannelSpecXmlWriter extends BaseXmlWriter<MavenChannel> {
+public class MavenChannelSpecXmlWriter extends BaseXmlWriter<MavenChannelDescription> {
 
     private static final MavenChannelSpecXmlWriter INSTANCE = new MavenChannelSpecXmlWriter();
 
@@ -39,7 +39,7 @@ public class MavenChannelSpecXmlWriter extends BaseXmlWriter<MavenChannel> {
     }
 
     @Override
-    protected ElementNode toElement(MavenChannel channel) throws XMLStreamException {
+    protected ElementNode toElement(MavenChannelDescription channel) throws XMLStreamException {
         final ElementNode producerEl = addElement(null, Element.CHANNEL);
         addAttribute(producerEl, Attribute.NAME, channel.getName());
         String value = channel.getVersionRange();

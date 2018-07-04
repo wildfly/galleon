@@ -17,11 +17,7 @@
 package org.jboss.galleon.maven.plugin;
 
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,44 +30,17 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.universe.maven.MavenProducers;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
-import org.jboss.galleon.universe.maven.MavenUniverseInstaller;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
 /**
- * Creates a new Maven universe artifact.
+ * Creates a new Maven artifact which combines multiple producers.
  *
  * @author Alexey Loubyansky
  */
-@Mojo(name = "create-universe")
-public class CreateUniverseMojo extends AbstractMojo {
-
-    public static class ProducerSpec {
-
-        /**
-         * Producer name
-         */
-        @Parameter(required = true)
-        String name;
-
-        /**
-         * Producer artifact groupId
-         */
-        @Parameter(required = true)
-        String groupId;
-
-        /**
-         * Producer artifact artifactId
-         */
-        @Parameter(required = true)
-        String artifactId;
-
-        /**
-         * Producer artifact version range
-         */
-        @Parameter(required = true)
-        String versionRange;
-    }
+@Mojo(name = "create-producers")
+public class CreateProducersMojo extends AbstractMojo {
 
     @Component
     protected RepositorySystem repoSystem;
@@ -89,58 +58,44 @@ public class CreateUniverseMojo extends AbstractMojo {
     private MavenProjectHelper projectHelper;
 
     /**
-     * Universe groupId
+     * Producer groupId
      */
     @Parameter(required = true, defaultValue="${project.groupId}")
     private String groupId;
 
     /**
-     * Universe artifactId
+     * Producer artifactId
      */
     @Parameter(required = true, defaultValue="${project.artifactId}")
     private String artifactId;
 
     /**
-     * Universe version
+     * Producer version
      */
     @Parameter(required = true, defaultValue="${project.version}")
     private String version;
 
     /**
-     * Feature-pack producers that are members of the universe
+     * Producers
      */
     @Parameter(required = true)
-    private List<ProducerSpec> producers = Collections.emptyList();
+    private List<ProducerDescription> producers;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-
-        final MavenArtifact universeArtifact = new MavenArtifact()
-                .setGroupId(groupId)
-                .setArtifactId(artifactId)
-                .setVersion(version);
-        final MavenUniverseInstaller installer = new MavenUniverseInstaller(
-                SimplisticMavenRepoManager.getInstance(
-                        Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),
+        final MavenArtifact artifact = new MavenArtifact().setGroupId(groupId).setArtifactId(artifactId).setVersion(version);
+        final MavenProducers installer = MavenProducers.getInstance(
+                SimplisticMavenRepoManager.getInstance(Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),
                         SimplisticMavenRepoManager.getInstance(repoSession.getLocalRepository().getBasedir().toPath())),
-                universeArtifact);
-
-        final Set<String> names = new HashSet<>(producers.size());
-        for(ProducerSpec producer : producers) {
-            if(!names.add(producer.name)) {
-                throw new MojoExecutionException("Duplicate producer " + producer.name);
-            }
-            try {
-                installer.addProducer(producer.name, producer.groupId, producer.artifactId, producer.versionRange);
-            } catch (MavenUniverseException e) {
-                throw new MojoExecutionException("Failed to add producer " + producer.name, e);
-            }
+                artifact);
+        for(ProducerDescription producer : producers) {
+            installer.addProducer(producer);
         }
         try {
             installer.install();
         } catch (MavenUniverseException e) {
-            throw new MojoExecutionException("Failed to create universe", e);
+            throw new MojoExecutionException("Failed to create producers artifact", e);
         }
-        projectHelper.attachArtifact(project, "jar", universeArtifact.getPath().toFile());
+        projectHelper.attachArtifact(project, "jar", artifact.getPath().toFile());
     }
 }
