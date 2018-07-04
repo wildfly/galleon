@@ -33,6 +33,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
@@ -57,6 +59,9 @@ public class CreateProducerMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
+
+    @Parameter( defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true )
+    private List<RemoteRepository> repositories;
 
     @Component
     private MavenProjectHelper projectHelper;
@@ -127,7 +132,7 @@ public class CreateProducerMojo extends AbstractMojo {
                 name,
                 SimplisticMavenRepoManager.getInstance(
                         Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),
-                        SimplisticMavenRepoManager.getInstance(repoSession.getLocalRepository().getBasedir().toPath())),
+                        new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories)),
                 producerArtifact,
                 featurePackGroupId, featurePackArtifactId);
 
