@@ -1,4 +1,4 @@
-## Maven configuration
+## CLI tool Maven configuration
 By default the following maven repositories are used to retrieve FP. 
 
 * _http://repository.jboss.org/nexus/content/groups/public/_
