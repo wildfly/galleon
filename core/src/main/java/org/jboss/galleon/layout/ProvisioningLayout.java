@@ -323,7 +323,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
      *
      * @param path  path to the resource relative to the global resources directory
      * @return  file-system path for the resource
-     * @throws ProvisioningException
+     * @throws ProvisioningException  in case the layout does not include any resources
      */
     public Path getResource(String... path) throws ProvisioningException {
         return handle.getResource(path);

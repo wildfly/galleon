@@ -68,6 +68,9 @@ public class ProvisioningManager implements AutoCloseable {
 
         /**
          * @deprecated
+         *
+         * @param arm  artifact repository manager
+         * @return  this builder instance
          */
         public Builder setArtifactResolver(ArtifactRepositoryManager arm) {
             try {
@@ -510,6 +513,11 @@ public class ProvisioningManager implements AutoCloseable {
 
     /**
      * @deprecated
+     *
+     * @param fpGav  Feature-pack Maven artifact GAV
+     * @param options  plugin options
+     * @throws ProvisioningException  in case upgrade fails
+     * @throws IOException  in case upgrade fails
      */
     public void upgrade(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();

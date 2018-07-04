@@ -85,6 +85,9 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
     /**
      * @deprecated
+     *
+     * @param gav  Feature-pack artifact GAV
+     * @return  this builder instance
      */
     public static Builder builder(ArtifactCoords.Gav gav) {
         return new Builder().setFPID(LegacyGalleon1Universe.toFpl(gav).getFPID());
@@ -107,6 +110,8 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
     /**
      * @deprecated
+     *
+     * @return  Feature-pack artifact GAV
      */
     public ArtifactCoords.Gav getGav() {
         if(legacyGav == null) {

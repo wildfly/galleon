@@ -85,6 +85,8 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
 
     /**
      * @deprecated
+     *
+     * @return  Feature-pack Maven artifact GAV
      */
     public ArtifactCoords.Gav getGav() {
         if(legacyGav == null) {

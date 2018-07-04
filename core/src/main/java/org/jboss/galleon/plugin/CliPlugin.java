@@ -37,9 +37,9 @@ public interface CliPlugin extends ProvisioningPlugin {
      *
      * @param pkg The package.
      * @return null if no custom content.
-     * @throws ProvisioningDescriptionException
-     * @throws ProvisioningException
-     * @throws IOException
+     * @throws ProvisioningDescriptionException  in case handling failed
+     * @throws ProvisioningException  in case handling failed
+     * @throws IOException  in case handling failed
      */
     CustomPackageContent handlePackageContent(PackageRuntime pkg)
             throws ProvisioningException, ProvisioningDescriptionException, IOException;

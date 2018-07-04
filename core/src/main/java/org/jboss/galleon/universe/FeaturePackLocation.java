@@ -17,8 +17,6 @@
 
 package org.jboss.galleon.universe;
 
-import org.jboss.galleon.ProvisioningDescriptionException;
-
 /**
  * Complete feature-pack location incorporates two things: the feature-pack
  * identity and its origin.
@@ -259,7 +257,6 @@ public class FeaturePackLocation {
      *
      * @param str  string representation of a feature-pack location
      * @return  feature-pack source
-     * @throws ProvisioningDescriptionException  in case the string is not following the syntax
      */
     public static FeaturePackLocation fromString(String str) {
         if(str == null) {

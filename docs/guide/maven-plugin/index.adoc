@@ -8,8 +8,8 @@ The coordinates of the Maven plugin are
 ----
 <dependency>
     <groupId>org.jboss.galleon</groupId>
-    <artifactId>galleon-maven-plugins</artifactId>
-    <version>2.0.0.Alpha1-SNAPSHOT</version>
+    <artifactId>galleon-maven-plugin</artifactId>
+    <version>2.0.0.Alpha1</version>
 </dependency>
 ----
 
@@ -20,6 +20,6 @@ The coordinates of the Maven plugin are
 |<<_provision,provision>> |Provisions an installation that consists of one or more feature-packs at a specified location
 |===
 
-include::../../../maven-plugins/target/generated-sources/plugin/install-feature-pack-mojo.adoc[]
+include::../../../maven-plugin/target/generated-sources/plugin/install-feature-pack-mojo.adoc[]
 
 include::provision.adoc[]

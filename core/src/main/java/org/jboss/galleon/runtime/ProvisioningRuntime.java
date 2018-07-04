@@ -380,6 +380,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     /**
      * @deprecated
+     *
+     * @param coords  Maven artifact coordinates
+     * @return  resolved local path to the artifact
+     * @throws ArtifactException  in case resolution fails
      */
     public Path resolveArtifact(ArtifactCoords coords) throws ArtifactException {
         try {

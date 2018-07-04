@@ -1,4 +1,4 @@
-include::../../../maven-plugins/target/generated-sources/plugin/provision-mojo.adoc[]
+include::../../../maven-plugin/target/generated-sources/plugin/provision-mojo.adoc[]
 
 .Feature-pack parameters
 [%autowidth.stretch]

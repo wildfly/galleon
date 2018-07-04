@@ -56,7 +56,7 @@ import org.jboss.galleon.xml.ConfigXmlParser;
 /**
  * This maven plugin provisions an installation that consists of one or more feature-packs.
  * If the target installation directory already contains an installation, the existing
- * installation will be fully replaced with the newly provisioned one.<br/>
+ * installation will be fully replaced with the newly provisioned one.<p>
  * In other words, the configuration provided for this goal fully describes the
  * state of the final installation.
  *

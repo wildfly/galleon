@@ -130,6 +130,9 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
     /**
      * @deprecated
+     *
+     * @param gav  Feature-pack artifact GAV
+     * @return  this builder instance
      */
     public static Builder builder(ArtifactCoords.Gav gav) {
         return new Builder(LegacyGalleon1Universe.toFpl(gav));
@@ -175,6 +178,8 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
     /**
      * @deprecated
+     *
+     * @return  Feature-pack artifact GAV
      */
     public ArtifactCoords.Gav getGav() {
         if(legacyGav == null) {
