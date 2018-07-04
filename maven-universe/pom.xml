@@ -30,7 +30,7 @@
   <artifactId>galleon-maven-universe</artifactId>
   <packaging>jar</packaging>
 
-  <name>Galleon Maven universe</name>
+  <name>Galleon Maven Universe</name>
 
   <dependencies>
 

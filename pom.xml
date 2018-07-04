@@ -32,7 +32,7 @@
   <version>2.0.0.Alpha2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Galleon parent</name>
+  <name>Galleon Parent</name>
   <inceptionYear>2016</inceptionYear>
   <licenses>
     <license>
@@ -46,7 +46,6 @@
     <module>core</module>
     <module>maven-plugin</module>
     <module>cli</module>
-    <module>universe</module>
     <module>maven-universe</module>
     <module>testsuite</module>
   </modules>
@@ -184,7 +183,7 @@
         <artifactId>maven-aether-provider</artifactId>
         <version>${version.maven-aether-provider}</version>
       </dependency>
-      
+ 
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-settings-builder</artifactId>
