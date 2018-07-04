@@ -157,16 +157,7 @@ public class MavenProducerInstaller extends MavenProducerBase {
         try {
             tmpDir = Files.createTempDirectory("gln-mvn-channel");
             final Path zipRoot = tmpDir.resolve("root");
-            final Path producerDir = getProducerDir(zipRoot, name);
-            MavenProducerXmlWriter.getInstance().write(this, producerDir.resolve(MAVEN_PRODUCER_XML));
-            final Path channelsDir = producerDir.resolve(CHANNELS);
-            Files.createDirectory(channelsDir);
-            for(MavenChannel channel : channels.values()) {
-                final Path channelDir = channelsDir.resolve(channel.getName());
-                Files.createDirectory(channelDir);
-                final Path channelXml = channelDir.resolve(MAVEN_CHANNEL_XML);
-                MavenChannelSpecXmlWriter.getInstance().write(channel, channelXml);
-            }
+            addProducerDescription(this, zipRoot);
             final Path artifactFile = tmpDir.resolve(artifact.getArtifactFileName());
             Files.createDirectories(artifactFile.getParent());
             ZipUtils.zip(zipRoot, artifactFile);
@@ -179,6 +170,19 @@ public class MavenProducerInstaller extends MavenProducerBase {
             if(tmpDir != null) {
                 IoUtils.recursiveDelete(tmpDir);
             }
+        }
+    }
+
+    static void addProducerDescription(MavenProducerDescription<?> producer, final Path zipRoot) throws XMLStreamException, IOException, MavenUniverseException {
+        final Path producerDir = getProducerDir(zipRoot, producer.getName());
+        MavenProducerXmlWriter.getInstance().write(producer, producerDir.resolve(MAVEN_PRODUCER_XML));
+        final Path channelsDir = producerDir.resolve(CHANNELS);
+        Files.createDirectory(channelsDir);
+        for(MavenChannelDescription channel : producer.getChannels()) {
+            final Path channelDir = channelsDir.resolve(channel.getName());
+            Files.createDirectory(channelDir);
+            final Path channelXml = channelDir.resolve(MAVEN_CHANNEL_XML);
+            MavenChannelSpecXmlWriter.getInstance().write(channel, channelXml);
         }
     }
 }

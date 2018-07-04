@@ -28,7 +28,7 @@ import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
  *
  * @author Alexey Loubyansky
  */
-public abstract class MavenProducerBase implements Producer<MavenChannel> {
+public abstract class MavenProducerBase implements Producer<MavenChannel>, MavenProducerDescription<MavenChannel> {
 
     protected final String name;
     protected final MavenRepoManager repo;
@@ -55,11 +55,12 @@ public abstract class MavenProducerBase implements Producer<MavenChannel> {
         return repo;
     }
 
-
+    @Override
     public String getFeaturePackGroupId() {
         return fpGroupId;
     }
 
+    @Override
     public String getFeaturePackArtifactId() {
         return fpArtifactId;
     }
@@ -68,7 +69,7 @@ public abstract class MavenProducerBase implements Producer<MavenChannel> {
         return zipfs.getPath(GALLEON, UNIVERSE, PRODUCER, producerName);
     }
 
-    protected static Path getProducerDir(Path root, String producerName) {
+    static Path getProducerDir(Path root, String producerName) {
         return root.resolve(GALLEON).resolve(UNIVERSE).resolve(PRODUCER).resolve(producerName);
     }
 

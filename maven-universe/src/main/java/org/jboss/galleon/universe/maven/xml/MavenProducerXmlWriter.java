@@ -21,7 +21,7 @@ import java.util.Collection;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.universe.maven.MavenProducerBase;
+import org.jboss.galleon.universe.maven.MavenProducerDescription;
 import org.jboss.galleon.universe.maven.xml.MavenProducerXmlParser10.Attribute;
 import org.jboss.galleon.universe.maven.xml.MavenProducerXmlParser10.Element;
 import org.jboss.galleon.xml.BaseXmlWriter;
@@ -32,7 +32,7 @@ import org.jboss.galleon.xml.util.TextNode;
  *
  * @author Alexey Loubyansky
  */
-public class MavenProducerXmlWriter extends BaseXmlWriter<MavenProducerBase> {
+public class MavenProducerXmlWriter extends BaseXmlWriter<MavenProducerDescription<?>> {
 
     private static final MavenProducerXmlWriter INSTANCE = new MavenProducerXmlWriter();
 
@@ -41,7 +41,7 @@ public class MavenProducerXmlWriter extends BaseXmlWriter<MavenProducerBase> {
     }
 
     @Override
-    protected ElementNode toElement(MavenProducerBase producer) throws XMLStreamException {
+    protected ElementNode toElement(MavenProducerDescription<?> producer) throws XMLStreamException {
         final ElementNode producerEl = addElement(null, Element.PRODUCER);
         addAttribute(producerEl, Attribute.NAME, producer.getName());
         if(producer.getFeaturePackGroupId() != null) {

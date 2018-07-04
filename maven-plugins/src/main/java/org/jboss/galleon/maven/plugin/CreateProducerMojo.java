@@ -39,27 +39,12 @@ import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
 /**
- * Creates a new Maven producer artifact.
+ * Creates a new Maven artifact containing a producer spec.
  *
  * @author Alexey Loubyansky
  */
 @Mojo(name = "create-producer")
 public class CreateProducerMojo extends AbstractMojo {
-
-    public static class ChannelSpec {
-
-        /**
-         * Producer name
-         */
-        @Parameter(required = true)
-        String name;
-
-        /**
-         * Producer artifact version range
-         */
-        @Parameter(required = true)
-        String versionRange;
-    }
 
     @Component
     protected RepositorySystem repoSystem;
@@ -85,19 +70,19 @@ public class CreateProducerMojo extends AbstractMojo {
     /**
      * Producer groupId
      */
-    @Parameter(required = true)
+    @Parameter(required = true, defaultValue="${project.groupId}")
     private String groupId;
 
     /**
      * Producer artifactId
      */
-    @Parameter(required = true)
+    @Parameter(required = true, defaultValue="${project.artifactId}")
     private String artifactId;
 
     /**
      * Producer version
      */
-    @Parameter(required = true)
+    @Parameter(required = true, defaultValue="${project.version}")
     private String version;
 
     /**
@@ -122,7 +107,7 @@ public class CreateProducerMojo extends AbstractMojo {
      * Channels
      */
     @Parameter(required = true)
-    private List<ChannelSpec> channels = Collections.emptyList();
+    private List<ChannelDescription> channels = Collections.emptyList();
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -151,7 +136,7 @@ public class CreateProducerMojo extends AbstractMojo {
         }
 
         final Set<String> names = new HashSet<>(channels.size());
-        for(ChannelSpec channel : channels) {
+        for(ChannelDescription channel : channels) {
             if(!names.add(channel.name)) {
                 throw new MojoExecutionException("Duplicate channel " + channel.name);
             }
