@@ -84,7 +84,7 @@
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>galleon-maven-plugins</artifactId>
+      <artifactId>galleon-maven-plugin</artifactId>
     </dependency>
 
     <!-- Currently not required by any dependencies. However since aether uses slf4j using the slf4j binding with
