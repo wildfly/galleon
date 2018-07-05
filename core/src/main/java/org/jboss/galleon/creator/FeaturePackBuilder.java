@@ -45,6 +45,7 @@ import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.FeatureGroupXmlWriter;
 import org.jboss.galleon.xml.FeaturePackXmlWriter;
@@ -232,8 +233,7 @@ public class FeaturePackBuilder {
         if(fps.getBuild() == null) {
             throw new ProvisioningDescriptionException("Feature-pack build number has not been set");
         }
-
-        final Path fpWorkDir = creator.getWorkDir().resolve(fps.getUniverse().getFactory()).resolve(fps.getProducerName()).resolve(fps.getChannelName()).resolve(fps.getBuild());
+        final Path fpWorkDir = LayoutUtils.getFeaturePackDir(creator.getWorkDir(), fps.getFPID(), false);
         final FeaturePackSpec fpSpec;
         try {
             ensureDir(fpWorkDir);

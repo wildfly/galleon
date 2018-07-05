@@ -39,15 +39,20 @@ public class LayoutUtils {
     public static Path getFeaturePackDir(Path fpLayoutDir, FPID fpid, boolean existing) throws ProvisioningDescriptionException {
         final FeaturePackLocation fps = fpid.getLocation();
         final UniverseSpec universe = fps.getUniverse();
-        Path fpPath = fpLayoutDir.resolve(universe.getFactory());
-        if(universe.getLocation() != null) {
-            fpPath = fpPath.resolve(universe.getLocation());
+        Path fpPath = fpLayoutDir.resolve(replace(universe.getFactory()));
+        if (universe.getLocation() != null) {
+            fpPath = fpPath.resolve(replace(universe.getLocation()));
         }
-        fpPath = fpPath.resolve(fps.getProducerName()).resolve(fps.getChannelName()).resolve(fpid.getBuild());
-        if(existing && !Files.exists(fpPath)) {
+        fpPath = fpPath.resolve(replace(fps.getProducerName())).resolve(replace(fps.getChannelName())).resolve(replace(fpid.getBuild()));
+        if (existing && !Files.exists(fpPath)) {
             throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpPath));
         }
         return fpPath;
+    }
+
+    private static String replace(String value) {
+        // replace characters that are invalid in paths
+        return value.replaceAll("[:\\(\\)\\[\\]\\,]", "_");
     }
 
     public static Path getPackageDir(Path fpDir, String packageName) throws ProvisioningDescriptionException {
