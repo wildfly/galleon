@@ -48,6 +48,8 @@
     <module>cli</module>
     <module>maven-universe</module>
     <module>testsuite</module>
+    <module>docs</module>
+    <module>dist</module>
   </modules>
 
   <properties>
@@ -92,6 +94,7 @@
     <license.failIfMissing>true</license.failIfMissing>
     <license.failIfUnknown>true</license.failIfUnknown>
 
+    <output.dir.prefix>galleon</output.dir.prefix>
   </properties>
 
   <repositories>

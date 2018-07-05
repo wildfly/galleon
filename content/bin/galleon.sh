@@ -16,9 +16,8 @@
 # limitations under the License.
 #
 
+DIRNAME=`dirname "$0"`
 echo=off
-BUILD=package
-RUN=run
 DEBUG_MODE="${DEBUG:-false}"
 DEBUG_PORT="${DEBUG_PORT:-8787}"
 GREP="grep"
@@ -32,12 +31,6 @@ do
               DEBUG_PORT=$2
               shift
           fi
-          ;;
-    build)
-          unset RUN
-          ;;
-     run)
-          unset BUILD
           ;;
     esac
     shift
@@ -53,10 +46,13 @@ if [ "$DEBUG_MODE" = "true" ]; then
     fi
 fi
 
-if [[ -n $BUILD ]]; then
-    mvn clean install
+# Setup the JVM
+if [ "x$JAVA" = "x" ]; then
+    if [ "x$JAVA_HOME" != "x" ]; then
+        JAVA="$JAVA_HOME/bin/java"
+    else
+        JAVA="java"
+    fi
 fi
 
-if [[ -n $RUN ]]; then
-java $JAVA_OPTS -jar ./cli/target/galleon-cli-2.0.0.Alpha3-SNAPSHOT.jar
-fi
+exec "$JAVA" $JAVA_OPTS -jar "$DIRNAME"/galleon-cli.jar "$@"

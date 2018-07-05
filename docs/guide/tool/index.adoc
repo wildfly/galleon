@@ -1,3 +1,2 @@
-include::maven.adoc[]
-
 include::state.adoc[]
+include::maven.adoc[]
