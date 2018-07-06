@@ -75,7 +75,7 @@ public class ResetNillableParamWithDefaultValueTestCase extends PmInstallFeature
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1")).setConfigParam("p1", "spec").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")).setConfigParam("p1", "spec").build())
                         .build())
                 .build();
     }

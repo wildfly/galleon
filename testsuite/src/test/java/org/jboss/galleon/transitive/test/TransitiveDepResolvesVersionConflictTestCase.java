@@ -191,12 +191,12 @@ public class TransitiveDepResolvesVersionConflictTestCase extends ProvisionSingl
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID(), "specC", "p1", "2"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID().getProducer(), "specC", "p1", "2"))
                                 .setConfigParam("p2", "102")
                                 .setConfigParam("p4", "custom")
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID(), "specA", "p1", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID(), "specB", "p1", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specB", "p1", "1")).build())
                         .build())
                 .build();
     }

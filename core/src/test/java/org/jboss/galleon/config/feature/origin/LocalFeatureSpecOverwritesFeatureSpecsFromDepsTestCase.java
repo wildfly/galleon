@@ -83,7 +83,7 @@ public class LocalFeatureSpecOverwritesFeatureSpecsFromDepsTestCase extends PmIn
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP3_GAV, "specA", "id", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP3_GAV.getProducer(), "specA", "id", "1"))
                                 .setConfigParam("p1", "fp3")
                                 .build())
                         .build())

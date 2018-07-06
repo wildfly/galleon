@@ -138,7 +138,7 @@ public class InheritModelOnlyConfigsTestCase extends PmInstallFeaturePackTestBas
                         .setProperty("prop1", "config1")
                         .setProperty("prop2", "config2")
                         .setProperty("prop3", "config2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "name", "a1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p1", "config1")
                                 .setConfigParam("p2", "config2")
                                 .setConfigParam("p3", "fp2")

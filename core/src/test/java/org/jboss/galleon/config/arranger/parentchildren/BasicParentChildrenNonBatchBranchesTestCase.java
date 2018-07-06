@@ -60,29 +60,29 @@ public class BasicParentChildrenNonBatchBranchesTestCase extends PmInstallFeatur
                     branchStartEvent(),
                     featurePackEvent(FP1_GAV),
                     specEvent("specA"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1")),
                     specEvent("specB"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specB").setParam("a", "1").setParam("b", "1").build()),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specB").setParam("a", "1").setParam("b", "1").build()),
                     specEvent("specC"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specC").setParam("a", "1").setParam("b", "1").setParam("c", "1").build()),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specC").setParam("a", "1").setParam("b", "1").setParam("c", "1").build()),
                     specEvent("specD"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specD").setParam("a", "1").setParam("b", "1").setParam("c", "1").setParam("d", "1").build()),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specD").setParam("a", "1").setParam("b", "1").setParam("c", "1").setParam("d", "1").build()),
                     branchEndEvent(),
 
                     branchStartEvent(),
                     specEvent("specE"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specE").setParam("e", "1").build()),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specE").setParam("e", "1").build()),
                     specEvent("specF"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specF").setParam("e", "1").setParam("f", "1").build()),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specF").setParam("e", "1").setParam("f", "1").build()),
                     specEvent("specG"),
-                    featureEvent(ResolvedFeatureId.builder(FP1_GAV, "specG").setParam("e", "1").setParam("f", "1").setParam("g", "1").build()),
+                    featureEvent(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specG").setParam("e", "1").setParam("f", "1").setParam("g", "1").build()),
                     branchEndEvent(),
 
                     branchStartEvent(),
                     specEvent("specH"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specH", "h", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specH", "h", "1")),
                     specEvent("specI"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specI", "i", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specI", "i", "1")),
                     branchEndEvent()
             };
         }
@@ -172,20 +172,20 @@ public class BasicParentChildrenNonBatchBranchesTestCase extends PmInstallFeatur
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1"))
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specB")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specB")
                                 .setParam("a", "1")
                                 .setParam("b", "1")
                                 .build())
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specC")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specC")
                                 .setParam("a", "1")
                                 .setParam("b", "1")
                                 .setParam("c", "1")
                                 .build())
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specD")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specD")
                                 .setParam("a", "1")
                                 .setParam("b", "1")
                                 .setParam("c", "1")
@@ -193,18 +193,18 @@ public class BasicParentChildrenNonBatchBranchesTestCase extends PmInstallFeatur
                                 .build())
                                 .build())
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specE", "e", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specE", "e", "1"))
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specF").setParam("e", "1").setParam("f", "1").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specF").setParam("e", "1").setParam("f", "1").build())
                                 .setConfigParam("a", "1")
                                 .setConfigParam("b", "1")
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV, "specG").setParam("e", "1").setParam("f", "1").setParam("g", "1").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP1_GAV.getProducer(), "specG").setParam("e", "1").setParam("f", "1").setParam("g", "1").build())
                                 .build())
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specH", "h", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specH", "h", "1"))
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specI", "i", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specI", "i", "1"))
                                 .build())
 
                         .build())

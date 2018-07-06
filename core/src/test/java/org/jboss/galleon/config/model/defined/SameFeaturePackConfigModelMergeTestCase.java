@@ -102,7 +102,7 @@ public class SameFeaturePackConfigModelMergeTestCase extends PmInstallFeaturePac
                         .setProperty("prop1", "config1")
                         .setProperty("prop2", "config2")
                         .setProperty("prop3", "main")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p1", "config1")
                                 .setConfigParam("p2", "config2")
                                 .setConfigParam("p3", "main")

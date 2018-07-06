@@ -72,7 +72,7 @@ public class UnsetNonNillableParameterTestCase extends PmInstallFeaturePackTestB
     @Override
     protected String[] pmErrors() {
         return new String[] {Errors.failedToBuildConfigSpec(null, null),
-                Errors.nonNillableParameterIsNull(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1"), "p1")};
+                Errors.nonNillableParameterIsNull(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"), "p1")};
     }
 
     @Override

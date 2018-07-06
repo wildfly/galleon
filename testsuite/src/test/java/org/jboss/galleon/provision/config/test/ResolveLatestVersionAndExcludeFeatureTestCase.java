@@ -106,7 +106,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
                         .setModel("model1")
                         .setName("name1")
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(final1Fpid, "specA", "p1", "2")))
+                                ResolvedFeatureId.create(final1Fpid.getProducer(), "specA", "p1", "2")))
                         .build())
                 .build();
     }

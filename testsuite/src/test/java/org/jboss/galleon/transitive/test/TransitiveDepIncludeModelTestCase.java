@@ -151,7 +151,7 @@ public class TransitiveDepIncludeModelTestCase extends ProvisionSingleUniverseTe
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model2")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID(), "specC", "p1", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID().getProducer(), "specC", "p1", "1"))
                                 .setConfigParam("p2", "102")
                                 .setConfigParam("p4", "102")
                                 .build())
@@ -159,8 +159,8 @@ public class TransitiveDepIncludeModelTestCase extends ProvisionSingleUniverseTe
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID(), "specA", "p1", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID(), "specB", "p1", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specB", "p1", "1")).build())
                         .build())
                 .build();
     }

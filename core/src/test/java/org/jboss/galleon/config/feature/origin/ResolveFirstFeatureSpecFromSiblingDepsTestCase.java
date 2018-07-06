@@ -79,7 +79,7 @@ public class ResolveFirstFeatureSpecFromSiblingDepsTestCase extends PmInstallFea
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV, "specA", "id", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV.getProducer(), "specA", "id", "1"))
                                 .setConfigParam("p1", "fp2")
                                 .build())
                         .build())

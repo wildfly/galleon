@@ -80,7 +80,7 @@ public class ConfigOptionalPackageDependenciesTestCase extends PmInstallFeatureP
                         .addPackage("config1.pkg3")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "config1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "config1")).build())
                         .build())
                 .build();
     }

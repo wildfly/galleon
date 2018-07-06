@@ -106,7 +106,7 @@ public class IncludeConfigByNameTestCase extends PmProvisionConfigTestBase {
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config2")
                         .setProperty("prop1", "c2m2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "name", "a1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p1", "config2")
                                 .build())
                         .build())

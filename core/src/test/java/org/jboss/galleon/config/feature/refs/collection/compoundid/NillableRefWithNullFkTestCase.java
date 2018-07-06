@@ -75,7 +75,7 @@ public class NillableRefWithNullFkTestCase extends PmInstallFeaturePackTestBase 
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specB").setParam("id", "1").setParam("b", "b1").build()).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specB").setParam("id", "1").setParam("b", "b1").build()).build())
                         .build())
                 .build();
     }

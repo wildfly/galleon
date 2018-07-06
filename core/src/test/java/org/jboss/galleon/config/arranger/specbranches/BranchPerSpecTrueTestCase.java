@@ -59,25 +59,25 @@ public class BranchPerSpecTrueTestCase extends PmInstallFeaturePackTestBase {
                     branchStartEvent(),
                     featurePackEvent(FP1_GAV),
                     specEvent("specA"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "2")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "3")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "2")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "3")),
                     branchEndEvent(),
                     branchStartEvent(),
                     specEvent("specB"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specB", "b", "1")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specB", "b", "2")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specB", "b", "3")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specB", "b", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specB", "b", "2")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specB", "b", "3")),
                     specEvent("specD"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specD", "d", "1")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specD", "d", "2")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specD", "d", "3")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specD", "d", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specD", "d", "2")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specD", "d", "3")),
                     branchEndEvent(),
                     branchStartEvent(),
                     specEvent("specC"),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "1")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "2")),
-                    featureEvent(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "3")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specC", "c", "1")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specC", "c", "2")),
+                    featureEvent(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specC", "c", "3")),
                     branchEndEvent()
             };
         }
@@ -140,20 +140,20 @@ public class BranchPerSpecTrueTestCase extends PmInstallFeaturePackTestBase {
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "3")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "2")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "3")).build())
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specB", "b", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specB", "b", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specB", "b", "3")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specD", "d", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specD", "d", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specD", "d", "3")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specB", "b", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specB", "b", "2")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specB", "b", "3")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specD", "d", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specD", "d", "2")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specD", "d", "3")).build())
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specC", "c", "3")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specC", "c", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specC", "c", "2")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specC", "c", "3")).build())
 
                         .build())
                 .build();
