@@ -130,6 +130,42 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return includedPackages.containsKey(packageName);
         }
 
+        @Override
+        public Builder addConfig(ConfigModel config) throws ProvisioningDescriptionException {
+            if(transitive) {
+                transitiveDoesNotDefineConfigs();
+            }
+            return super.addConfig(config);
+        }
+
+        @Override
+        public Builder removeConfig(ConfigId id) throws ProvisioningDescriptionException {
+            if(transitive) {
+                transitiveDoesNotDefineConfigs();
+            }
+            return super.removeConfig(id);
+        }
+
+        @Override
+        public int getDefinedConfigIndex(ConfigId id) throws ProvisioningDescriptionException {
+            if(transitive) {
+                transitiveDoesNotDefineConfigs();
+            }
+            return super.getDefinedConfigIndex(id);
+        }
+
+        @Override
+        public Builder addConfig(int index, ConfigModel config) throws ProvisioningDescriptionException {
+            if(transitive) {
+                transitiveDoesNotDefineConfigs();
+            }
+            return super.addConfig(index, config);
+        }
+
+        private void transitiveDoesNotDefineConfigs() throws ProvisioningDescriptionException {
+            throw new ProvisioningDescriptionException("Transitive dependency does not define configs");
+        }
+
         public FeaturePackConfig build() {
             return new FeaturePackConfig(this);
         }
