@@ -103,7 +103,7 @@ public class DontInheritModelOnlyConfigsFromDependencyTestCase extends PmInstall
                         .setModel("model1")
                         .setName("main")
                         .setProperty("prop3", "main")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p3", "main")
                                 .setConfigParam("p4", "spec")
                                 .build())

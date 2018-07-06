@@ -88,10 +88,10 @@ public class FeatureDependencyIncludeTrueOverwritesFalseBranchedPerSpecTestCase 
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "id", "a1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "id", "a2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "id", "b")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specC", "id", "c")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "id", "a1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "id", "a2")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "id", "b")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specC", "id", "c")).build())
                         .build())
                 .build();
     }

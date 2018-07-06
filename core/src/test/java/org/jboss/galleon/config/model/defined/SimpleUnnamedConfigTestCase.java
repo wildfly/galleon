@@ -71,7 +71,7 @@ public class SimpleUnnamedConfigTestCase extends PmInstallFeaturePackTestBase {
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty("prop1", "value1")
                         .setProperty("prop2", "value2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p1", "config1")
                                 .build())
                         .build())

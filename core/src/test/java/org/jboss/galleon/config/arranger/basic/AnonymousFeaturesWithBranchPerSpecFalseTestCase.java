@@ -81,9 +81,9 @@ public class AnonymousFeaturesWithBranchPerSpecFalseTestCase extends PmInstallFe
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "false")
 
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "2")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "a", "3")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "2")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "3")).build())
 
                         .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV.getProducer(), "specB")).setConfigParam("b", "1").build())
                         .addFeature(ProvisionedFeatureBuilder.builder(new ResolvedSpecId(FP1_GAV.getProducer(), "specB")).setConfigParam("b", "2").build())

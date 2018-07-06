@@ -80,8 +80,8 @@ public class FeatureSpecOrigInProvisioningConfigTestCase extends PmProvisionConf
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV, "specA", "id", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP3_GAV, "specB", "id", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "id", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP3_GAV.getProducer(), "specB", "id", "1")).build())
                         .build())
                 .build();
     }

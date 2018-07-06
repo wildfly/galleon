@@ -78,7 +78,7 @@ public class DefaultValueShouldNotOverwriteNonDefaultOneTestCase extends PmInsta
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "aOne"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "aOne"))
                                 .setConfigParam("a", "fg1")
                                 .build())
                         .build())

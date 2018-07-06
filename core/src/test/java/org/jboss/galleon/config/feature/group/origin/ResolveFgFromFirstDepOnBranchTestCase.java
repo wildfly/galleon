@@ -92,7 +92,7 @@ public class ResolveFgFromFirstDepOnBranchTestCase extends PmInstallFeaturePackT
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV, "specB", "id", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV.getProducer(), "specB", "id", "1"))
                                 .setConfigParam("p1", "fp2.fg1")
                                 .build())
                         .build())

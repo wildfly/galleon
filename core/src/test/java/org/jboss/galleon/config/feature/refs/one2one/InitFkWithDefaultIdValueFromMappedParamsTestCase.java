@@ -76,8 +76,8 @@ public class InitFkWithDefaultIdValueFromMappedParamsTestCase extends PmInstallF
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "defaultA")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specB").setParam("a", "defaultA").setParam("name", "defaultB").build()).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "defaultA")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specB").setParam("a", "defaultA").setParam("name", "defaultB").build()).build())
                         .build())
                 .build();
     }

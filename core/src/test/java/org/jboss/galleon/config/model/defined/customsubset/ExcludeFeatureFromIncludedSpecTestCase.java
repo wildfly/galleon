@@ -87,7 +87,7 @@ public class ExcludeFeatureFromIncludedSpecTestCase extends PmProvisionConfigTes
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config1")
                         .setModel("model1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b2")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "name", "b2")))
                         .build())
                 .build();
     }

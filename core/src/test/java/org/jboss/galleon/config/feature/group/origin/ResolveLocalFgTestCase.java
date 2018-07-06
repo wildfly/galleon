@@ -102,7 +102,7 @@ public class ResolveLocalFgTestCase extends PmInstallFeaturePackTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP3_GAV, "specC", "id", "1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP3_GAV.getProducer(), "specC", "id", "1"))
                                 .setConfigParam("p1", "fp3.fg1")
                                 .build())
                         .build())

@@ -84,10 +84,10 @@ public class MappedNillableRefToNoneTestCase extends PmInstallFeaturePackTestBas
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specB").setParam("id", "1").setParam("b", "b1").build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specB").setParam("id", "1").setParam("b", "b1").build())
                                 .setConfigParam("afk", "[]")
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV, "specA").setParam("id", "1").setParam("a", "a1").build()).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specA").setParam("id", "1").setParam("a", "a1").build()).build())
                         .build())
                 .build();
     }

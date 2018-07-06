@@ -163,10 +163,10 @@ public class TransitiveDepOverridenTestCase extends ProvisionSingleUniverseTestB
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID(), "specA", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID(), "specB", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp4Fpl.getFPID(), "specD", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID(), "specC", "p1", "2")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specB", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp4Fpl.getFPID().getProducer(), "specD", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID().getProducer(), "specC", "p1", "2")))
                         .build())
                 .build();
     }

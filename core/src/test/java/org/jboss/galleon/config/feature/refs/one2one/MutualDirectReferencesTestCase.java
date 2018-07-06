@@ -55,14 +55,14 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
                     batchStartEvent(),
                     featurePackEvent(FP_GAV),
                     specEvent("specB"),
-                    featureEvent(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b")),
+                    featureEvent(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "name", "b")),
                     specEvent("specA"),
-                    featureEvent(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a")),
+                    featureEvent(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a")),
                     batchEndEvent(),
                     batchStartEvent(),
-                    featureEvent(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1")),
+                    featureEvent(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")),
                     specEvent("specB"),
-                    featureEvent(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b1")),
+                    featureEvent(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "name", "b1")),
                     batchEndEvent()
             };
         }
@@ -128,16 +128,16 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty("prop1", "value1")
                         .setProperty("prop2", "value2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "name", "b"))
                                 .setConfigParam("a", "a")
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a"))
                                 .setConfigParam("b", "b")
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("b", "b1")
                                 .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specB", "name", "b1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "name", "b1"))
                                 .setConfigParam("a", "a1")
                                 .build())
                         .build())

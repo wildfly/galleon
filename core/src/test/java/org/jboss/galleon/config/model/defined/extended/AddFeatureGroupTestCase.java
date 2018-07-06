@@ -85,10 +85,10 @@ public class AddFeatureGroupTestCase extends PmProvisionConfigTestBase {
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("config1")
                         .setModel("model1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1")).setConfigParam("p1", "config1"))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a2")).setConfigParam("p1", "config1"))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "group1.a1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "group1.a2")).setConfigParam("p1", "group1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")).setConfigParam("p1", "config1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a2")).setConfigParam("p1", "config1"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "group1.a1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "group1.a2")).setConfigParam("p1", "group1"))
                         .build())
                 .build();
     }

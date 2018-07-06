@@ -76,7 +76,7 @@ public class ExcludeFeatureFromModelOnlyConfigTestCase extends PmInstallFeatureP
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("name1")
                         .setModel("config1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a2"))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a2"))
                                 .setConfigParam("p1", "config1")
                                 .build())
                         .build())

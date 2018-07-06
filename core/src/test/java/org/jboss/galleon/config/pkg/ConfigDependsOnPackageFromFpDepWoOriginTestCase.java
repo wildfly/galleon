@@ -96,7 +96,7 @@ public class ConfigDependsOnPackageFromFpDepWoOriginTestCase extends PmInstallFe
                         .addPackage("p2")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder().setName("config1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV, "specA", "name", "config1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV.getProducer(), "specA", "name", "config1")).build())
                         .build())
                 .build();
     }

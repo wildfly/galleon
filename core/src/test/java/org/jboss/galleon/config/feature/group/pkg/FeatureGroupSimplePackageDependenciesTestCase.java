@@ -86,7 +86,7 @@ public class FeatureGroupSimplePackageDependenciesTestCase extends PmInstallFeat
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setProperty("prop1", "value1")
                         .setProperty("prop2", "value2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV, "specA", "name", "a1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")).build())
                         .build())
                 .build();
     }

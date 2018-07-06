@@ -68,8 +68,8 @@ public class ResolvedFeatureId {
         return new Builder(specId);
     }
 
-    public static Builder builder(FeaturePackLocation.FPID fpid, String spec) {
-        return new Builder(fpid.getProducer(), spec);
+    public static Builder builder(ProducerSpec producer, String spec) {
+        return new Builder(producer, spec);
     }
 
     public static ResolvedFeatureId fromString(String str) throws ProvisioningDescriptionException {
@@ -205,8 +205,8 @@ public class ResolvedFeatureId {
         throw new ProvisioningDescriptionException("'" + str + "' does not follow format {producer[@universe]:channel}spec_name:param_name=value(,param_name=value)*");
     }
 
-    public static ResolvedFeatureId create(FeaturePackLocation.FPID fpid, String spec, String param, String value) {
-        return new ResolvedFeatureId(new ResolvedSpecId(fpid.getProducer(), spec), Collections.singletonMap(param, value));
+    public static ResolvedFeatureId create(ProducerSpec producer, String spec, String param, String value) {
+        return new ResolvedFeatureId(new ResolvedSpecId(producer, spec), Collections.singletonMap(param, value));
     }
 
     public static ResolvedFeatureId create(ResolvedSpecId specId, String param, String value) {
