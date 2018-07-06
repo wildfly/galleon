@@ -34,6 +34,7 @@ import org.jboss.galleon.universe.maven.MavenErrors;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.MavenUniverseInstaller;
+import org.jboss.galleon.util.IoUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -149,6 +150,49 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
     }
 
+    @Test
+    public void testResolutionLocalPathInstalled() throws Exception {
+        FeaturePackLocation fpl = FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.0.0.Final");
+
+        MavenArtifact artifact = new MavenArtifact().
+                setGroupId(FP_GROUP_ID).
+                setArtifactId(PRODUCER1_FP_ARTIFACT_ID).
+                setExtension("zip").
+                setVersion("5.0.0.Final");
+
+        FeaturePackCreator.getInstance()
+                .addArtifactResolver(repo)
+                .newFeaturePack()
+                .setFPID(fpl.getFPID())
+                .getCreator()
+                .install();
+
+        Path path = resolver.resolve(fpl);
+        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+
+        Path externalPath = repoHome.resolve("external").resolve(path.getFileName().toString());
+        IoUtils.copy(path, externalPath);
+        IoUtils.recursiveDelete(path);
+
+        try {
+            resolver.resolve(fpl);
+            Assert.fail(String.format("The %s artifact is still installed in the local repository", artifact.getCoordsAsString()));
+        } catch (ProvisioningException e) {
+            // Expected exception
+        }
+
+        UniverseResolver resolver = UniverseResolver.builder()
+                .addArtifactResolver(repo)
+                .addLocalFeaturePack(externalPath)
+                .build();
+
+        try {
+            path = resolver.resolve(fpl);
+            Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        } catch (ProvisioningException e) {
+            Assert.fail(String.format("Cannot resolve %s artifact using a resolved with a local feature pack location", artifact.getCoordsAsString()));
+        }
+    }
 
     private void installFp(Gav fpGav) throws ProvisioningException {
         FeaturePackCreator.getInstance()

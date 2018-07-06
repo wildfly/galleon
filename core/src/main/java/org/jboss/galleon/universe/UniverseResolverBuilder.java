@@ -17,8 +17,16 @@
 
 package org.jboss.galleon.universe;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackLayoutDescriber;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -27,6 +35,7 @@ import org.jboss.galleon.repo.RepositoryArtifactResolver;
 public abstract class UniverseResolverBuilder<T extends UniverseResolverBuilder<?>> {
 
     protected UniverseFactoryLoader ufl;
+    protected Map<FPID, Path> localFeaturePacks = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public T setUniverseFactoryLoader(UniverseFactoryLoader ufl) throws ProvisioningException {
@@ -56,5 +65,23 @@ public abstract class UniverseResolverBuilder<T extends UniverseResolverBuilder<
             ufl = UniverseFactoryLoader.getInstance();
         }
         return ufl;
+    }
+
+    public T addLocalFeaturePack(Path path) throws ProvisioningException {
+        if (path == null) {
+            return (T) this;
+        }
+        try {
+            FeaturePackLayout featurePackLayout = FeaturePackLayoutDescriber.describeFeaturePackZip(path);
+            getLocalFeaturePacks().put(featurePackLayout.getFPID(), path);
+
+            return (T) this;
+        } catch (IOException e) {
+            throw new ProvisioningException(e);
+        }
+    }
+
+    protected Map<FPID, Path> getLocalFeaturePacks() {
+        return localFeaturePacks;
     }
 }

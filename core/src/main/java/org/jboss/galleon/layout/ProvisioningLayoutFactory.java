@@ -30,7 +30,6 @@ import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -100,8 +99,7 @@ public class ProvisioningLayoutFactory implements Closeable {
         if(Files.exists(fpDir)) {
             return fpDir;
         }
-        final Universe<?> universe = universeResolver.getUniverse(fpl.getUniverse());
-        final Path artifactPath = universe.getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).resolve(fpl);
+        final Path artifactPath = universeResolver.resolve(fpl);
         try {
             Files.createDirectories(fpDir);
         } catch (IOException e) {
