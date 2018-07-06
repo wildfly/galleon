@@ -55,6 +55,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         INSTALLATION("installation"),
         ORIGIN("origin"),
         PACKAGES("packages"),
+        TRANSITIVE("transitive"),
         UNIVERSES("universes"),
         UNIVERSE("universe"),
 
@@ -65,7 +66,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         private static final Map<String, Element> elementsByLocal;
 
         static {
-            elementsByLocal = new HashMap<>(11);
+            elementsByLocal = new HashMap<>(12);
             elementsByLocal.put(CONFIG.name, CONFIG);
             elementsByLocal.put(DEFAULT_CONFIGS.name, DEFAULT_CONFIGS);
             elementsByLocal.put(EXCLUDE.name, EXCLUDE);
@@ -74,6 +75,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             elementsByLocal.put(INSTALLATION.name, INSTALLATION);
             elementsByLocal.put(ORIGIN.name, ORIGIN);
             elementsByLocal.put(PACKAGES.name, PACKAGES);
+            elementsByLocal.put(TRANSITIVE.name, TRANSITIVE);
             elementsByLocal.put(UNIVERSE.name, UNIVERSE);
             elementsByLocal.put(UNIVERSES.name, UNIVERSES);
             elementsByLocal.put(null, UNKNOWN);
@@ -206,6 +208,9 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                                 throw new XMLStreamException("Failed to parse " + Element.CONFIG, reader.getLocation(), e);
                             }
                             break;
+                        case TRANSITIVE:
+                            readTransitive(reader, builder);
+                            break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
                     }
@@ -274,6 +279,15 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
     }
 
     static void readFeaturePackDep(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> fpBuilder) throws XMLStreamException {
+        doReadFeaturePackDep(reader, fpBuilder, false);
+    }
+
+    static void readTransitiveFeaturePackDep(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> fpBuilder) throws XMLStreamException {
+        doReadFeaturePackDep(reader, fpBuilder, true);
+    }
+
+    private static void doReadFeaturePackDep(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> builder, boolean transitive)
+            throws XMLStreamException {
         FeaturePackLocation location = null;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
@@ -295,13 +309,13 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         }
 
         if(location.getUniverse() == null) {
-            if(!fpBuilder.hasDefaultUniverse()) {
+            if(!builder.hasDefaultUniverse()) {
                 throw new XMLStreamException("Failed to parse feature-pack configuration for " + location + ": default universe was not configured");
             }
-            location = new FeaturePackLocation(fpBuilder.getDefaultUniverse(), location.getProducerName(),
+            location = new FeaturePackLocation(builder.getDefaultUniverse(), location.getProducerName(),
                     location.getChannelName(), location.getFrequency(), location.getBuild());
         } else {
-            final UniverseSpec resolvedConfig = fpBuilder.getUniverseSpec(location.getUniverse().toString());
+            final UniverseSpec resolvedConfig = builder.getUniverseSpec(location.getUniverse().toString());
             if(resolvedConfig != null) {
                 location = new FeaturePackLocation(resolvedConfig, location.getProducerName(),
                         location.getChannelName(), location.getFrequency(), location.getBuild());
@@ -309,14 +323,19 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         }
 
         String origin = null;
-        final FeaturePackConfig.Builder depBuilder = FeaturePackConfig.builder(location);
+        final FeaturePackConfig.Builder depBuilder = transitive ? FeaturePackConfig.transitiveBuilder(location) : FeaturePackConfig.builder(location);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
                     try {
-                        fpBuilder.addFeaturePackDep(origin, depBuilder.build());
+                        builder.addFeaturePackDep(origin, depBuilder.build());
                     } catch (ProvisioningDescriptionException e) {
-                        throw new XMLStreamException("Failed to add feature-pack configuration dependency", e);
+                        final StringBuilder buf = new StringBuilder();
+                        buf.append("Failed to add ").append(location).append(" as a ");
+                        if(transitive) {
+                            buf.append("transitive ");
+                        }
+                        throw new XMLStreamException(buf.append(" feature-pack dependency").toString(), e);
                     }
                     return;
                 }
@@ -439,5 +458,31 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             throw new XMLStreamException(e);
         }
         ParsingUtils.parseNoContent(reader);
+    }
+
+    private static void readTransitive(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> builder) throws XMLStreamException {
+        ParsingUtils.parseNoAttributes(reader);
+        while (reader.hasNext()) {
+            switch (reader.nextTag()) {
+                case XMLStreamConstants.END_ELEMENT: {
+                    return;
+                }
+                case XMLStreamConstants.START_ELEMENT: {
+                    final Element element = Element.of(reader.getLocalName());
+                    switch (element) {
+                        case FEATURE_PACK:
+                            readTransitiveFeaturePackDep(reader, builder);
+                            break;
+                        default:
+                            throw ParsingUtils.unexpectedContent(reader);
+                    }
+                    break;
+                }
+                default: {
+                    throw ParsingUtils.unexpectedContent(reader);
+                }
+            }
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 }

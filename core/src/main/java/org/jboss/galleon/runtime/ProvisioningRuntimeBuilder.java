@@ -241,18 +241,26 @@ public class ProvisioningRuntimeBuilder {
         // the configs are processed in the reverse order to correctly implement config overwrites
 
         List<ConfigModelStack> fpConfigResolvers = Collections.emptyList();
-        for(int i = config.getDefinedConfigs().size() - 1; i >= 0; --i) {
-            final ConfigModel config = this.config.getDefinedConfigs().get(i);
-            if(fpConfigStack.isFilteredOut(config.getId(), true)) {
-                continue;
+        if(config.hasDefinedConfigs()) {
+            final List<ConfigModel> definedConfigs = config.getDefinedConfigs();
+            for (int i = definedConfigs.size() - 1; i >= 0; --i) {
+                final ConfigModel config = definedConfigs.get(i);
+                if (fpConfigStack.isFilteredOut(null, config.getId(), true)) {
+                    continue;
+                }
+                configStack = getConfigStack(config.getId());
+                configStack.pushConfig(config);
+                fpConfigResolvers = CollectionUtils.add(fpConfigResolvers, configStack);
             }
-            configStack = getConfigStack(config.getId());
-            configStack.pushConfig(config);
-            fpConfigResolvers = CollectionUtils.add(fpConfigResolvers, configStack);
         }
 
         final Collection<FeaturePackConfig> fpConfigs = config.getFeaturePackDeps();
         boolean extendedStackLevel = false;
+        if(config.hasTransitiveDeps()) {
+            for (FeaturePackConfig fpConfig : config.getTransitiveDeps()) {
+                extendedStackLevel |= fpConfigStack.push(fpConfig, extendedStackLevel);
+            }
+        }
         for (FeaturePackConfig fpConfig : fpConfigs) {
             extendedStackLevel |= fpConfigStack.push(fpConfig, extendedStackLevel);
         }
@@ -315,33 +323,45 @@ public class ProvisioningRuntimeBuilder {
 
         try {
             List<ConfigModelStack> fpConfigStacks = Collections.emptyList();
-            for (int i = fpConfig.getDefinedConfigs().size() - 1; i >= 0; --i) {
-                final ConfigModel config = fpConfig.getDefinedConfigs().get(i);
-                if (fpConfigStack.isFilteredOut(config.getId(), true)) {
-                    continue;
+            if (fpConfig.hasDefinedConfigs()) {
+                final ProducerSpec producer = currentOrigin.getFPID().getProducer();
+                final List<ConfigModel> definedConfigs = fpConfig.getDefinedConfigs();
+                for (int i = definedConfigs.size() - 1; i >= 0; --i) {
+                    final ConfigModel config = definedConfigs.get(i);
+                    if (fpConfigStack.isFilteredOut(producer, config.getId(), true)) {
+                        continue;
+                    }
+                    configStack = getConfigStack(config.getId());
+                    configStack.pushConfig(config);
+                    fpConfigStacks = CollectionUtils.add(fpConfigStacks, configStack);
                 }
-                configStack = getConfigStack(config.getId());
-                configStack.pushConfig(config);
-                fpConfigStacks = CollectionUtils.add(fpConfigStacks, configStack);
             }
 
             List<ConfigModelStack> specConfigStacks = Collections.emptyList();
-            for (int i = currentOrigin.spec.getDefinedConfigs().size() - 1; i >= 0; --i) {
-                final ConfigModel config = currentOrigin.spec.getDefinedConfigs().get(i);
-                if (fpConfigStack.isFilteredOut(config.getId(), false)) {
-                    continue;
+            if (currentOrigin.spec.hasDefinedConfigs()) {
+                final ProducerSpec producer = currentOrigin.getFPID().getProducer();
+                final List<ConfigModel> definedConfigs = currentOrigin.spec.getDefinedConfigs();
+                for (int i = definedConfigs.size() - 1; i >= 0; --i) {
+                    final ConfigModel config = definedConfigs.get(i);
+                    if (fpConfigStack.isFilteredOut(producer, config.getId(), false)) {
+                        continue;
+                    }
+                    configStack = getConfigStack(config.getId());
+                    configStack.pushConfig(config);
+                    specConfigStacks = CollectionUtils.add(specConfigStacks, configStack);
                 }
-                configStack = getConfigStack(config.getId());
-                configStack.pushConfig(config);
-                specConfigStacks = CollectionUtils.add(specConfigStacks, configStack);
             }
 
             configStack = null;
 
             boolean extendedStackLevel = false;
             if (currentOrigin.spec.hasFeaturePackDeps()) {
-                final Collection<FeaturePackConfig> fpDeps = currentOrigin.spec.getFeaturePackDeps();
-                for (FeaturePackConfig fpDep : fpDeps) {
+                if(currentOrigin.spec.hasTransitiveDeps()) {
+                    for (FeaturePackConfig fpDep : currentOrigin.spec.getTransitiveDeps()) {
+                        extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
+                    }
+                }
+                for (FeaturePackConfig fpDep : currentOrigin.spec.getFeaturePackDeps()) {
                     extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
                 }
                 if (extendedStackLevel) {
@@ -351,17 +371,19 @@ public class ProvisioningRuntimeBuilder {
                 }
             }
 
-            for (int i = specConfigStacks.size() - 1; i >= 0; --i) {
-                final ConfigModelStack configStack = specConfigStacks.get(i);
-                final ConfigModel config = configStack.popConfig();
-                if (config.getId().isModelOnly()) {
-                    recordModelOnlyConfig(fpConfig.getLocation().getFPID(), config);
-                    continue;
+            if(!specConfigStacks.isEmpty()) {
+                for (int i = specConfigStacks.size() - 1; i >= 0; --i) {
+                    final ConfigModelStack configStack = specConfigStacks.get(i);
+                    final ConfigModel config = configStack.popConfig();
+                    if (config.getId().isModelOnly()) {
+                        recordModelOnlyConfig(fpConfig.getLocation().getFPID(), config);
+                        continue;
+                    }
+                    processConfig(configStack, config);
                 }
-                processConfig(configStack, config);
             }
 
-            if (fpConfig.isInheritPackages()) {
+            if (fpConfig.isInheritPackages() && !fpConfig.isTransitive() && currentOrigin.spec.hasDefaultPackages()) {
                 for (String packageName : currentOrigin.spec.getDefaultPackageNames()) {
                     if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName, false)) {
                         continue;
@@ -378,14 +400,16 @@ public class ProvisioningRuntimeBuilder {
                 }
             }
 
-            for (int i = fpConfigStacks.size() - 1; i >= 0; --i) {
-                final ConfigModelStack configStack = fpConfigStacks.get(i);
-                final ConfigModel config = configStack.popConfig();
-                if (config.getId().isModelOnly()) {
-                    recordModelOnlyConfig(fpConfig.getLocation().getFPID(), config);
-                    continue;
+            if(!fpConfigStacks.isEmpty()) {
+                for (int i = fpConfigStacks.size() - 1; i >= 0; --i) {
+                    final ConfigModelStack configStack = fpConfigStacks.get(i);
+                    final ConfigModel config = configStack.popConfig();
+                    if (config.getId().isModelOnly()) {
+                        recordModelOnlyConfig(fpConfig.getLocation().getFPID(), config);
+                        continue;
+                    }
+                    processConfig(configStack, config);
                 }
-                processConfig(configStack, config);
             }
 
             if (extendedStackLevel) {

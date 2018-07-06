@@ -55,6 +55,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         NAME("name"),
         PACKAGES("packages"),
         PACKAGE("package"),
+        TRANSITIVE("transitive"),
         UNIVERSES("universes"),
 
         // default unknown element
@@ -63,7 +64,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         private static final Map<String, Element> elements;
 
         static {
-            elements = new HashMap<>(13);
+            elements = new HashMap<>(14);
             elements.put(CONFIG.name, CONFIG);
             elements.put(DEFAULT_CONFIGS.name, DEFAULT_CONFIGS);
             elements.put(DEFAULT_PACKAGES.name, DEFAULT_PACKAGES);
@@ -75,6 +76,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
             elements.put(NAME.name, NAME);
             elements.put(PACKAGES.name, PACKAGES);
             elements.put(PACKAGE.name, PACKAGE);
+            elements.put(TRANSITIVE.name, TRANSITIVE);
             elements.put(UNIVERSES.name, UNIVERSES);
             elements.put(null, UNKNOWN);
         }
@@ -199,6 +201,9 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                         case DEFAULT_PACKAGES:
                             readDefaultPackages(reader, fpBuilder);
                             break;
+                        case TRANSITIVE:
+                            readTransitive(reader, fpBuilder);
+                            break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
                     }
@@ -252,6 +257,32 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                         case DEPENDENCY:
                             ProvisioningXmlParser20.readFeaturePackDep(reader, fpBuilder);
                             hasChildren = true;
+                            break;
+                        default:
+                            throw ParsingUtils.unexpectedContent(reader);
+                    }
+                    break;
+                }
+                default: {
+                    throw ParsingUtils.unexpectedContent(reader);
+                }
+            }
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static void readTransitive(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> builder) throws XMLStreamException {
+        ParsingUtils.parseNoAttributes(reader);
+        while (reader.hasNext()) {
+            switch (reader.nextTag()) {
+                case XMLStreamConstants.END_ELEMENT: {
+                    return;
+                }
+                case XMLStreamConstants.START_ELEMENT: {
+                    final Element element = Element.of(reader.getLocalName());
+                    switch (element) {
+                        case DEPENDENCY:
+                            ProvisioningXmlParser20.readTransitiveFeaturePackDep(reader, builder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);

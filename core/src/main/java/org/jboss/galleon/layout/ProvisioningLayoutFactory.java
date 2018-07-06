@@ -42,6 +42,10 @@ import org.jboss.galleon.util.ZipUtils;
  */
 public class ProvisioningLayoutFactory implements Closeable {
 
+    public static ProvisioningLayoutFactory getInstance() throws ProvisioningException {
+        return getInstance(UniverseResolver.builder().build());
+    }
+
     public static ProvisioningLayoutFactory getInstance(UniverseResolver universeResolver) {
         return new ProvisioningLayoutFactory(IoUtils.createRandomTmpDir(), universeResolver);
     }

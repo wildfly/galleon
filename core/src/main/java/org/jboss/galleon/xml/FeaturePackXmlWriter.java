@@ -45,6 +45,15 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
 
         ProvisioningXmlWriter.writeUniverseSpecs(fpSpec, fp);
 
+        if (fpSpec.hasTransitiveDeps()) {
+            final ElementNode transitives = addElement(fp, Element.TRANSITIVE);
+            for(FeaturePackConfig dep : fpSpec.getTransitiveDeps()) {
+                final ElementNode depElement = addElement(transitives, Element.DEPENDENCY);
+                ProvisioningXmlWriter.writeFeaturePackConfig(depElement, depElement.getNamespace(),
+                        fpSpec.getUserConfiguredSource(dep.getLocation()), dep, null);
+            }
+        }
+
         if (fpSpec.hasFeaturePackDeps()) {
             final ElementNode deps = addElement(fp, Element.DEPENDENCIES);
             for (FeaturePackConfig dep : fpSpec.getFeaturePackDeps()) {

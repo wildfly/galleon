@@ -57,6 +57,10 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
         return null;
     }
 
+    protected boolean assertProvisionedHomeDir() {
+        return true;
+    }
+
     protected abstract void testPm(ProvisioningManager pm) throws ProvisioningException;
 
     @Override
@@ -111,6 +115,9 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
 
         DirState expectedHomeDir = provisionedHomeDir();
         if(expectedHomeDir == null) {
+            if(!assertProvisionedHomeDir()) {
+                return;
+            }
             if(failed || initialProvisioningConfig != null) {
                 expectedHomeDir = initialHomeDirState;
             } else {

@@ -39,6 +39,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     Map<ProducerSpec, FeaturePackConfig> fpDeps = Collections.emptyMap();
     Map<String, FeaturePackConfig> fpDepsByOrigin = Collections.emptyMap();
     Map<ProducerSpec, String> channelToOrigin = Collections.emptyMap();
+    Map<ProducerSpec, FeaturePackConfig> transitiveDeps = Collections.emptyMap();
 
     protected UniverseSpec getConfiguredUniverse(FeaturePackLocation source) {
         return source.hasUniverse() ? universeSpecs.get(source.getUniverse().toString()) : defaultUniverse;
@@ -57,16 +58,30 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), true);
     }
 
+    public B addTransitiveDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
+        return addTransitiveDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)));
+    }
+
     public B addFeaturePackDep(FeaturePackConfig dependency) throws ProvisioningDescriptionException {
+        if(dependency.isTransitive()) {
+            return addTransitiveDepResolved(null, dependency);
+        }
         return addFeaturePackDep(null, dependency);
     }
 
     public B updateFeaturePackDep(FeaturePackConfig dependency) throws ProvisioningDescriptionException {
+        if(dependency.isTransitive()) {
+            throw new ProvisioningDescriptionException("Transitive dependency can not be updated");
+        }
         return updateFeaturePackDep(null, dependency);
     }
 
     public B addFeaturePackDep(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
         final UniverseSpec configuredUniverse = getConfiguredUniverse(dependency.getLocation());
+        if(dependency.isTransitive()) {
+            return addTransitiveDepResolved(origin,
+                    configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build());
+        }
         return addFeaturePackDepResolved(origin,
                 configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(),
                         false);
@@ -83,6 +98,9 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     private B addFeaturePackDepResolved(String origin, FeaturePackConfig dependency, boolean replaceExistingVersion) throws ProvisioningDescriptionException {
         String existingOrigin = null;
         final ProducerSpec producer = dependency.getLocation().getProducer();
+        if(transitiveDeps.containsKey(producer)) {
+            throw new ProvisioningDescriptionException(producer + " has been already added as a transitive dependency");
+        }
         if(fpDeps.containsKey(producer)) {
             if(!replaceExistingVersion) {
                 throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
@@ -103,6 +121,31 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             fpDepsByOrigin = CollectionUtils.put(fpDepsByOrigin, origin, dependency);
         }
         fpDeps = CollectionUtils.putLinked(fpDeps, producer, dependency);
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private B addTransitiveDepResolved(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
+
+        final ProducerSpec producer = dependency.getLocation().getProducer();
+        if(transitiveDeps.containsKey(producer) || fpDeps.containsKey(producer)) {
+            throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
+        }
+        if(origin != null) {
+            final String existingOrigin = channelToOrigin.get(producer);
+            if(existingOrigin != null) {
+                if (!existingOrigin.equals(origin)) {
+                    fpDepsByOrigin = CollectionUtils.remove(fpDepsByOrigin, existingOrigin);
+                    channelToOrigin = CollectionUtils.put(channelToOrigin, producer, origin);
+                }
+            } else if(fpDepsByOrigin.containsKey(origin)) {
+                throw new ProvisioningDescriptionException(Errors.duplicateDependencyName(origin));
+            } else {
+                channelToOrigin = CollectionUtils.put(channelToOrigin, producer, origin);
+            }
+            fpDepsByOrigin = CollectionUtils.put(fpDepsByOrigin, origin, dependency);
+        }
+        transitiveDeps = CollectionUtils.putLinked(transitiveDeps, producer, dependency);
         return (B) this;
     }
 

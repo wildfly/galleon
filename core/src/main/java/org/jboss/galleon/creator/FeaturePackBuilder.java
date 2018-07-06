@@ -96,16 +96,25 @@ public class FeaturePackBuilder {
         return this;
     }
 
+    public FeaturePackBuilder addDependency(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
+        return addDependency(FeaturePackConfig.forLocation(fpl));
+    }
+
     public FeaturePackBuilder addDependency(FeaturePackConfig dep) throws ProvisioningDescriptionException {
+        if(dep.isTransitive()) {
+            fpBuilder.addFeaturePackDep(dep);
+            return this;
+        }
         return addDependency(null, dep);
     }
 
-    public FeaturePackBuilder addDependency(FeaturePackLocation fps) throws ProvisioningDescriptionException {
-        return addDependency(FeaturePackConfig.forLocation(fps));
+    public FeaturePackBuilder addDependency(String origin, FeaturePackLocation fpl) throws ProvisioningDescriptionException {
+        return addDependency(origin, FeaturePackConfig.forLocation(fpl));
     }
 
-    public FeaturePackBuilder addDependency(String origin, FeaturePackLocation fps) throws ProvisioningDescriptionException {
-        return addDependency(origin, FeaturePackConfig.forLocation(fps));
+    public FeaturePackBuilder addTransitiveDependency(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
+        fpBuilder.addTransitiveDep(fpl);
+        return this;
     }
 
     public FeaturePackBuilder addPackage(PackageBuilder pkg) {

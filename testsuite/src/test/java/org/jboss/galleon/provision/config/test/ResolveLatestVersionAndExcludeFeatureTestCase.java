@@ -89,7 +89,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
     protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
         .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
-        .addFeaturePackDep(FeaturePackLocation.fromString("producer1:1#1.0.1.Final"))
+        .addFeaturePackDep(FINAL1_FPL)
         .addConfig(ConfigModel.builder("model1", "name1")
                 .excludeFeature(FeatureId.create("specA", "p1", "1"))
                 .build())
