@@ -28,6 +28,7 @@ import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
+import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.ProvisionSingleUniverseTestBase;
@@ -38,13 +39,11 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class TransitiveDepWithOriginTestCase extends ProvisionSingleUniverseTestBase {
+public class TransitiveDepWithOriginInFeaturePackSpecTestCase extends ProvisionSingleUniverseTestBase {
 
-    private FeaturePackLocation fp1Fpl;
-    private FeaturePackLocation fp2Fpl;
-    private FeaturePackLocation fp3_100_fpl;
-    private FeaturePackLocation fp3_101_fpl;
-    private FeaturePackLocation fp3_102_fpl;
+    private FeaturePackLocation fp1;
+    private FeaturePackLocation fp2;
+    private FeaturePackLocation fp3;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
@@ -56,15 +55,13 @@ public class TransitiveDepWithOriginTestCase extends ProvisionSingleUniverseTest
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
 
-        fp1Fpl = newFpl("producer1", "1", "1.0.0.Final");
-        fp2Fpl = newFpl("producer2", "1", "1.0.0.Final");
-        fp3_100_fpl = newFpl("producer3", "1", "1.0.0.Final");
-        fp3_101_fpl = newFpl("producer3", "1", "1.0.1.Final");
-        fp3_102_fpl = newFpl("producer3", "1", "1.0.2.Final");
+        fp1 = newFpl("producer1", "1", "1.0.0.Final");
+        fp2 = newFpl("producer2", "1", "1.0.0.Final");
+        fp3 = newFpl("producer3", "1", "1.0.0.Final");
 
         creator.newFeaturePack()
-            .setFPID(fp1Fpl.getFPID())
-            .addDependency(FeaturePackConfig.builder(fp3_100_fpl, false)
+            .setFPID(fp1.getFPID())
+            .addDependency(FeaturePackConfig.builder(fp3, false)
                 .build())
             .addSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
@@ -73,9 +70,13 @@ public class TransitiveDepWithOriginTestCase extends ProvisionSingleUniverseTest
                 .addFeature(new FeatureConfig("specA").setParam("p1", "1")).build());
 
         creator.newFeaturePack()
-            .setFPID(fp2Fpl.getFPID())
-            .addDependency(FeaturePackConfig.builder(fp3_101_fpl)
-                .build())
+            .setFPID(fp2.getFPID())
+            .addDependency(FeaturePackConfig.builder(fp1).build())
+            .addDependency("fp3", FeaturePackConfig.transitiveBuilder(fp3).build())
+            .newPackage("p1", true)
+                .addDependency("fp3", "p1")
+                .writeContent("fp2/p1.txt", "fp2 p1")
+                .getFeaturePack()
             .addSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -84,7 +85,10 @@ public class TransitiveDepWithOriginTestCase extends ProvisionSingleUniverseTest
                 .build());
 
         creator.newFeaturePack()
-            .setFPID(fp3_100_fpl.getFPID())
+            .setFPID(fp3.getFPID())
+            .newPackage("p1")
+                .writeContent("fp3/p1.txt", "fp3 p1")
+                .getFeaturePack()
             .addSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .addParam(FeatureParameterSpec.create("p2", "100"))
@@ -93,67 +97,44 @@ public class TransitiveDepWithOriginTestCase extends ProvisionSingleUniverseTest
                 .addFeature(new FeatureConfig("specA").setParam("p1", "1"))
                 .build());
 
-        creator.newFeaturePack()
-            .setFPID(fp3_101_fpl.getFPID())
-            .addSpec(FeatureSpec.builder("specA")
-                .addParam(FeatureParameterSpec.createId("p1"))
-                .addParam(FeatureParameterSpec.create("p2", "101"))
-                .addParam(FeatureParameterSpec.create("p3", "101"))
-                .build())
-            .addConfig(ConfigModel.builder("model1", "name1")
-                .addFeature(new FeatureConfig("specA").setParam("p1", "2"))
-                .build());
-
-        creator.newFeaturePack()
-            .setFPID(fp3_102_fpl.getFPID())
-            .addSpec(FeatureSpec.builder("specA")
-                .addParam(FeatureParameterSpec.createId("p1"))
-                .addParam(FeatureParameterSpec.create("p2", "102"))
-                .addParam(FeatureParameterSpec.create("p4", "102"))
-                .build())
-            .addConfig(ConfigModel.builder("model1", "name1")
-                .addFeature(new FeatureConfig("specA").setParam("p1", "1"))
-            .build());
-
         creator.install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep("fp3", FeaturePackConfig.transitiveBuilder(fp3_102_fpl)
-                        .setInheritConfigs(false)
-                        .build())
-                .addFeaturePackDep(fp1Fpl)
-                .addFeaturePackDep(fp2Fpl)
-                .addConfig(ConfigModel.builder("model1", "name1")
-                        .addFeature(new FeatureConfig("specA")
-                                .setOrigin("fp3")
-                                .setParam("p1", "config")
-                                .setParam("p4", "custom"))
-                        .build())
+                .addFeaturePackDep(fp2)
                 .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp3_102_fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp3.getFPID())
+                        .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp1Fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp1.getFPID())
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp2Fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp2.getFPID())
+                        .addPackage("p1")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specA", "p1", "1")).build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_102_fpl.getFPID().getProducer(), "specA", "p1", "config"))
-                                .setConfigParam("p2", "102")
-                                .setConfigParam("p4", "custom")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specA", "p1", "1"))
+                                .setConfigParam("p2", "100")
                                 .build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "1")).build())
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specA", "p1", "1")).build())
                         .build())
+                .build();
+    }
+
+    @Override
+    protected DirState provisionedHomeDir() {
+        return newDirBuilder()
+                .addFile("fp2/p1.txt", "fp2 p1")
+                .addFile("fp3/p1.txt", "fp3 p1")
                 .build();
     }
 }

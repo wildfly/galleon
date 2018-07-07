@@ -36,14 +36,14 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
     protected final Map<String, UniverseSpec> universeSpecs;
     protected final Map<ProducerSpec, FeaturePackConfig> fpDeps;
     protected final Map<String, FeaturePackConfig> fpDepsByOrigin;
-    private final Map<ProducerSpec, String> channelToOrigin;
+    private final Map<ProducerSpec, String> producerOrigins;
     protected final Map<ProducerSpec, FeaturePackConfig> transitiveDeps;
 
     protected FeaturePackDepsConfig(FeaturePackDepsConfigBuilder<?> builder) throws ProvisioningDescriptionException {
         super(builder);
         this.fpDeps = CollectionUtils.unmodifiable(builder.fpDeps);
         this.fpDepsByOrigin = CollectionUtils.unmodifiable(builder.fpDepsByOrigin);
-        this.channelToOrigin = builder.channelToOrigin;
+        this.producerOrigins = builder.producerOrigins;
         this.transitiveDeps = CollectionUtils.unmodifiable(builder.transitiveDeps);
         this.defaultUniverse = builder.defaultUniverse;
         this.universeSpecs = CollectionUtils.unmodifiable(builder.universeSpecs);
@@ -117,7 +117,7 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
     }
 
     public String originOf(ProducerSpec producer) {
-        return channelToOrigin.get(producer);
+        return producerOrigins.get(producer);
     }
 
     public boolean hasTransitiveDeps() {
@@ -140,7 +140,7 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + ((channelToOrigin == null) ? 0 : channelToOrigin.hashCode());
+        result = prime * result + ((producerOrigins == null) ? 0 : producerOrigins.hashCode());
         result = prime * result + ((defaultUniverse == null) ? 0 : defaultUniverse.hashCode());
         result = prime * result + ((fpDeps == null) ? 0 : fpDeps.hashCode());
         result = prime * result + ((fpDepsByOrigin == null) ? 0 : fpDepsByOrigin.hashCode());
@@ -158,10 +158,10 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         if (getClass() != obj.getClass())
             return false;
         FeaturePackDepsConfig other = (FeaturePackDepsConfig) obj;
-        if (channelToOrigin == null) {
-            if (other.channelToOrigin != null)
+        if (producerOrigins == null) {
+            if (other.producerOrigins != null)
                 return false;
-        } else if (!channelToOrigin.equals(other.channelToOrigin))
+        } else if (!producerOrigins.equals(other.producerOrigins))
             return false;
         if (defaultUniverse == null) {
             if (other.defaultUniverse != null)
