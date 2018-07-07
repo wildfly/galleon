@@ -38,7 +38,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     Map<String, UniverseSpec> universeSpecs = Collections.emptyMap();
     Map<ProducerSpec, FeaturePackConfig> fpDeps = Collections.emptyMap();
     Map<String, FeaturePackConfig> fpDepsByOrigin = Collections.emptyMap();
-    Map<ProducerSpec, String> channelToOrigin = Collections.emptyMap();
+    Map<ProducerSpec, String> producerOrigins = Collections.emptyMap();
     Map<ProducerSpec, FeaturePackConfig> transitiveDeps = Collections.emptyMap();
 
     protected UniverseSpec getConfiguredUniverse(FeaturePackLocation source) {
@@ -105,18 +105,18 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             if(!replaceExistingVersion) {
                 throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
             }
-            existingOrigin = channelToOrigin.get(producer);
+            existingOrigin = producerOrigins.get(producer);
         }
         if(origin != null) {
             if(existingOrigin != null) {
                 if (!existingOrigin.equals(origin)) {
                     fpDepsByOrigin = CollectionUtils.remove(fpDepsByOrigin, existingOrigin);
-                    channelToOrigin = CollectionUtils.put(channelToOrigin, producer, origin);
+                    producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
                 }
             } else if(fpDepsByOrigin.containsKey(origin)) {
                 throw new ProvisioningDescriptionException(Errors.duplicateDependencyName(origin));
             } else {
-                channelToOrigin = CollectionUtils.put(channelToOrigin, producer, origin);
+                producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
             }
             fpDepsByOrigin = CollectionUtils.put(fpDepsByOrigin, origin, dependency);
         }
@@ -132,16 +132,16 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
         }
         if(origin != null) {
-            final String existingOrigin = channelToOrigin.get(producer);
+            final String existingOrigin = producerOrigins.get(producer);
             if(existingOrigin != null) {
                 if (!existingOrigin.equals(origin)) {
                     fpDepsByOrigin = CollectionUtils.remove(fpDepsByOrigin, existingOrigin);
-                    channelToOrigin = CollectionUtils.put(channelToOrigin, producer, origin);
+                    producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
                 }
             } else if(fpDepsByOrigin.containsKey(origin)) {
                 throw new ProvisioningDescriptionException(Errors.duplicateDependencyName(origin));
             } else {
-                channelToOrigin = CollectionUtils.put(channelToOrigin, producer, origin);
+                producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
             }
             fpDepsByOrigin = CollectionUtils.put(fpDepsByOrigin, origin, dependency);
         }
@@ -167,19 +167,19 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         if(fpDeps.size() == 1) {
             fpDeps = Collections.emptyMap();
             fpDepsByOrigin = Collections.emptyMap();
-            channelToOrigin = Collections.emptyMap();
+            producerOrigins = Collections.emptyMap();
             return (B) this;
         }
         fpDeps = CollectionUtils.remove(fpDeps, producer);
-        if(!channelToOrigin.isEmpty()) {
-            final String origin = channelToOrigin.get(producer);
+        if(!producerOrigins.isEmpty()) {
+            final String origin = producerOrigins.get(producer);
             if(origin != null) {
                 if(fpDepsByOrigin.size() == 1) {
                     fpDepsByOrigin = Collections.emptyMap();
-                    channelToOrigin = Collections.emptyMap();
+                    producerOrigins = Collections.emptyMap();
                 } else {
                     fpDepsByOrigin.remove(origin);
-                    channelToOrigin.remove(producer);
+                    producerOrigins.remove(producer);
                 }
             }
         }
@@ -236,7 +236,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     }
 
     public String originOf(ProducerSpec producer) {
-        return channelToOrigin.get(producer);
+        return producerOrigins.get(producer);
     }
 
     public B setDefaultUniverse(String factory, String location) throws ProvisioningDescriptionException {

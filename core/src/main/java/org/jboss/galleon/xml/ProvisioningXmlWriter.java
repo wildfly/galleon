@@ -106,9 +106,9 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         }
     }
 
-    static void writeFeaturePackConfig(ElementNode fp, String ns, FeaturePackLocation source, FeaturePackConfig featurePack, String origin) {
+    static void writeFeaturePackConfig(ElementNode fp, String ns, FeaturePackLocation location, FeaturePackConfig featurePack, String origin) {
 
-        addAttribute(fp, Attribute.LOCATION, source.toString());
+        addAttribute(fp, Attribute.LOCATION, location.toString());
         if(origin != null) {
             addElement(fp, Element.ORIGIN.getLocalName(), ns).addChild(new TextNode(origin));
         }
