@@ -39,32 +39,30 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class BasicTransitiveDepCustomizationTestCase extends ProvisionSingleUniverseTestBase {
+public class TransitiveInheritExclusionModelOnlyPackageDepFromTestCase extends ProvisionSingleUniverseTestBase {
 
-    private FeaturePackLocation fp1Fpl;
-    private FeaturePackLocation fp2Fpl;
-    private FeaturePackLocation fp3_100_fpl;
-    private FeaturePackLocation fp3_101_fpl;
+    private FeaturePackLocation fp1;
+    private FeaturePackLocation fp2;
+    private FeaturePackLocation fp3;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-        universe.createProducer("producer1");
-        universe.createProducer("producer2");
-        universe.createProducer("producer3");
+        universe.createProducer("prod1");
+        universe.createProducer("prod2");
+        universe.createProducer("prod3");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
 
-        fp1Fpl = newFpl("producer1", "1", "1.0.0.Final");
-        fp2Fpl = newFpl("producer2", "1", "1.0.0.Final");
-        fp3_100_fpl = newFpl("producer3", "1", "1.0.0.Final");
-        fp3_101_fpl = newFpl("producer3", "1", "1.0.1.Final");
+        fp1 = newFpl("prod1", "1", "1.0.0.Final");
+        fp2 = newFpl("prod2", "1", "1.0.0.Final");
+        fp3 = newFpl("prod3", "1", "1.0.0.Final");
 
         creator.newFeaturePack()
-        .setFPID(fp1Fpl.getFPID())
-        .addDependency(fp2Fpl)
-        .addDependency(FeaturePackConfig.transitiveBuilder(fp3_101_fpl)
+        .setFPID(fp1.getFPID())
+        .addDependency(fp2)
+        .addDependency(FeaturePackConfig.transitiveBuilder(fp3)
                 .excludePackage("p2")
                 .includePackage("p3")
                 .build())
@@ -77,8 +75,8 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionSingleUniv
                 .writeContent("fp1/p1.txt", "fp1");
 
         creator.newFeaturePack()
-            .setFPID(fp2Fpl.getFPID())
-            .addDependency(FeaturePackConfig.builder(fp3_100_fpl)
+            .setFPID(fp2.getFPID())
+            .addDependency(FeaturePackConfig.builder(fp3)
                     .excludePackage("p4")
                     .build())
             .addSpec(FeatureSpec.builder("specB")
@@ -91,16 +89,19 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionSingleUniv
                 .writeContent("fp2/p1.txt", "fp2");
 
         creator.newFeaturePack()
-            .setFPID(fp3_100_fpl.getFPID())
+            .setFPID(fp3.getFPID())
             .addSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
+            .addConfig(ConfigModel.builder("model1", null)
+                    .addPackageDep("p4", true)
+                    .addPackageDep("p5", true)
+                    .build())
             .addConfig(ConfigModel.builder("model1", "name1")
                 .addFeature(new FeatureConfig("specC").setParam("p1", "1"))
                 .build())
             .newPackage("p1", true)
-                .addDependency("p2")
-                .addDependency("p4")
+                .addDependency("p2", true)
                 .writeContent("fp3/p1.txt", "fp3 100 p1")
                 .getFeaturePack()
             .newPackage("p2")
@@ -110,30 +111,10 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionSingleUniv
                 .writeContent("fp3/p3.txt", "fp3 100 p3")
                 .getFeaturePack()
             .newPackage("p4")
-                .writeContent("fp3/p4.txt", "fp3 100 p4");
-
-
-        creator.newFeaturePack()
-            .setFPID(fp3_101_fpl.getFPID())
-            .addSpec(FeatureSpec.builder("specC")
-                .addParam(FeatureParameterSpec.createId("p1"))
-                .build())
-            .addConfig(ConfigModel.builder("model1", "name1")
-                .addFeature(new FeatureConfig("specC").setParam("p1", "2"))
-                .build())
-            .newPackage("p1", true)
-                .addDependency("p2", true)
-                .addDependency("p4", true)
-                .writeContent("fp3/p1.txt", "fp3 101 p1")
-                .getFeaturePack()
-            .newPackage("p2")
-                .writeContent("fp3/p2.txt", "fp3 101 p2")
-                .getFeaturePack()
-            .newPackage("p3")
-                .writeContent("fp3/p3.txt", "fp3 101 p3")
-                .getFeaturePack()
-            .newPackage("p4")
-                .writeContent("fp3/p4.txt", "fp3 101 p4");
+                .writeContent("fp3/p4.txt", "fp3 100 p4")
+            .getFeaturePack()
+                .newPackage("p5")
+                    .writeContent("fp3/p5.txt", "fp3 100 p5");
 
         creator.install();
     }
@@ -141,29 +122,30 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionSingleUniv
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(fp1Fpl)
+                .addFeaturePackDep(fp1)
                 .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp3_101_fpl.getFPID())
-                        .addPackage("p1")
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp3.getFPID())
                         .addPackage("p3")
-                        .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp2Fpl.getFPID())
+                        .addPackage("p5")
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp1Fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp2.getFPID())
+                        .addPackage("p1")
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp1.getFPID())
                         .addPackage("p1")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_101_fpl.getFPID().getProducer(), "specC", "p1", "2")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specB", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "1")))
                         .build())
                 .build();
     }
@@ -173,8 +155,9 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionSingleUniv
         return newDirBuilder()
                 .addFile("fp1/p1.txt", "fp1")
                 .addFile("fp2/p1.txt", "fp2")
-                .addFile("fp3/p1.txt", "fp3 101 p1")
-                .addFile("fp3/p3.txt", "fp3 101 p3")
+                .addFile("fp3/p1.txt", "fp3 100 p1")
+                .addFile("fp3/p3.txt", "fp3 100 p3")
+                .addFile("fp3/p5.txt", "fp3 100 p5")
                 .build();
     }
 }
