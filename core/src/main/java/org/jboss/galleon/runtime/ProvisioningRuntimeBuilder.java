@@ -335,62 +335,66 @@ public class ProvisioningRuntimeBuilder {
                     configStack.pushConfig(config);
                     fpConfigStacks = CollectionUtils.add(fpConfigStacks, configStack);
                 }
+                configStack = null;
             }
-
-            List<ConfigModelStack> specConfigStacks = Collections.emptyList();
-            if (currentOrigin.spec.hasDefinedConfigs()) {
-                final ProducerSpec producer = currentOrigin.getFPID().getProducer();
-                final List<ConfigModel> definedConfigs = currentOrigin.spec.getDefinedConfigs();
-                for (int i = definedConfigs.size() - 1; i >= 0; --i) {
-                    final ConfigModel config = definedConfigs.get(i);
-                    if (fpConfigStack.isFilteredOut(producer, config.getId(), false)) {
-                        continue;
-                    }
-                    configStack = getConfigStack(config.getId());
-                    configStack.pushConfig(config);
-                    specConfigStacks = CollectionUtils.add(specConfigStacks, configStack);
-                }
-            }
-
-            configStack = null;
 
             boolean extendedStackLevel = false;
-            if (currentOrigin.spec.hasFeaturePackDeps()) {
-                if(currentOrigin.spec.hasTransitiveDeps()) {
-                    for (FeaturePackConfig fpDep : currentOrigin.spec.getTransitiveDeps()) {
+            if (!fpConfig.isTransitive()) {
+                List<ConfigModelStack> specConfigStacks = Collections.emptyList();
+                final FeaturePackSpec currentSpec = currentOrigin.spec;
+                if (currentSpec.hasDefinedConfigs()) {
+                    final ProducerSpec producer = currentOrigin.getFPID().getProducer();
+                    final List<ConfigModel> definedConfigs = currentSpec.getDefinedConfigs();
+                    for (int i = definedConfigs.size() - 1; i >= 0; --i) {
+                        final ConfigModel config = definedConfigs.get(i);
+                        if (fpConfigStack.isFilteredOut(producer, config.getId(), false)) {
+                            continue;
+                        }
+                        configStack = getConfigStack(config.getId());
+                        configStack.pushConfig(config);
+                        specConfigStacks = CollectionUtils.add(specConfigStacks, configStack);
+                    }
+                    configStack = null;
+                }
+
+                if (currentSpec.hasFeaturePackDeps()) {
+                    if (currentSpec.hasTransitiveDeps()) {
+                        for (FeaturePackConfig fpDep : currentSpec.getTransitiveDeps()) {
+                            extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
+                        }
+                    }
+                    for (FeaturePackConfig fpDep : currentSpec.getFeaturePackDeps()) {
                         extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
                     }
+                    if (extendedStackLevel) {
+                        while (fpConfigStack.hasNext()) {
+                            processFpConfig(fpConfigStack.next());
+                        }
+                    }
                 }
-                for (FeaturePackConfig fpDep : currentOrigin.spec.getFeaturePackDeps()) {
-                    extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
+
+                if (!specConfigStacks.isEmpty()) {
+                    for (int i = specConfigStacks.size() - 1; i >= 0; --i) {
+                        final ConfigModelStack configStack = specConfigStacks.get(i);
+                        final ConfigModel config = configStack.popConfig();
+                        if (config.getId().isModelOnly()) {
+                            recordModelOnlyConfig(fpConfig.getLocation().getFPID(), config);
+                            continue;
+                        }
+                        processConfig(configStack, config);
+                    }
                 }
-                if (extendedStackLevel) {
-                    while (fpConfigStack.hasNext()) {
-                        processFpConfig(fpConfigStack.next());
+
+                if (fpConfig.isInheritPackages() && currentSpec.hasDefaultPackages()) {
+                    for (String packageName : currentSpec.getDefaultPackageNames()) {
+                        if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName, false)) {
+                            continue;
+                        }
+                        resolvePackage(packageName);
                     }
                 }
             }
 
-            if(!specConfigStacks.isEmpty()) {
-                for (int i = specConfigStacks.size() - 1; i >= 0; --i) {
-                    final ConfigModelStack configStack = specConfigStacks.get(i);
-                    final ConfigModel config = configStack.popConfig();
-                    if (config.getId().isModelOnly()) {
-                        recordModelOnlyConfig(fpConfig.getLocation().getFPID(), config);
-                        continue;
-                    }
-                    processConfig(configStack, config);
-                }
-            }
-
-            if (fpConfig.isInheritPackages() && !fpConfig.isTransitive() && currentOrigin.spec.hasDefaultPackages()) {
-                for (String packageName : currentOrigin.spec.getDefaultPackageNames()) {
-                    if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName, false)) {
-                        continue;
-                    }
-                    resolvePackage(packageName);
-                }
-            }
             if (fpConfig.hasIncludedPackages()) {
                 for (PackageConfig pkgConfig : fpConfig.getIncludedPackages()) {
                     if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgConfig.getName(), true)) {
