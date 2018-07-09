@@ -27,6 +27,7 @@ import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.xml.ProvisioningXmlParser20.Attribute;
 import org.jboss.galleon.xml.ProvisioningXmlParser20.Element;
@@ -59,7 +60,7 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         if(config.hasTransitiveDeps()) {
             final ElementNode transitives = addElement(install, Element.TRANSITIVE);
             for(FeaturePackConfig dep : config.getTransitiveDeps()) {
-                writeFeaturePackConfig(addElement(transitives, Element.FEATURE_PACK), Element.FEATURE_PACK.getNamespace(),
+                writeFeaturePackConfig(addElement(transitives, Element.FEATURE_PACK),
                         config.getUserConfiguredSource(dep.getLocation()), dep,
                         config.originOf(dep.getLocation().getProducer()));
             }
@@ -68,7 +69,7 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         if (config.hasFeaturePackDeps()) {
             for(FeaturePackConfig fp : config.getFeaturePackDeps()) {
                 final ElementNode fpElement = addElement(install, Element.FEATURE_PACK);
-                writeFeaturePackConfig(fpElement, fpElement.getNamespace(), config.getUserConfiguredSource(fp.getLocation()),
+                writeFeaturePackConfig(fpElement, config.getUserConfiguredSource(fp.getLocation()),
                         fp, config.originOf(fp.getLocation().getProducer()));
             }
         }
@@ -106,11 +107,20 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         }
     }
 
-    static void writeFeaturePackConfig(ElementNode fp, String ns, FeaturePackLocation location, FeaturePackConfig featurePack, String origin) {
+    static void writeFeaturePackConfig(ElementNode fp, FeaturePackLocation location, FeaturePackConfig featurePack, String origin) {
 
+        final String ns = fp.getNamespace();
         addAttribute(fp, Attribute.LOCATION, location.toString());
         if(origin != null) {
             addElement(fp, Element.ORIGIN.getLocalName(), ns).addChild(new TextNode(origin));
+        }
+
+        if(featurePack.hasPatches()) {
+            final ElementNode patches = addElement(fp, Element.PATCHES.getLocalName(), ns);
+            for(FPID patchId : featurePack.getPatches()) {
+                final ElementNode patch = addElement(patches, Element.PATCH.getLocalName(), ns);
+                addAttribute(patch, Attribute.ID, patchId.toString());
+            }
         }
 
         writeConfigCustomizations(fp, ns, featurePack);

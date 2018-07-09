@@ -17,7 +17,6 @@
 package org.jboss.galleon.featurepack.pkg.external.test;
 
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
-import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -36,7 +35,6 @@ public class IncludeDefaultPackagesOfFpDepTestCase extends PmProvisionConfigTest
 
     private static final FPID FP1_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0.Final");
     private static final FPID FP2_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final");
-    private static final ProducerSpec FP3_GA = LegacyGalleon1Universe.newProducer("org.pm.test:fp3");
     private static final FPID FP3_GAV = LegacyGalleon1Universe.newFPID("org.pm.test:fp3", "1", "1.0.0.Final");
 
     @Override
@@ -80,7 +78,7 @@ public class IncludeDefaultPackagesOfFpDepTestCase extends PmProvisionConfigTest
                         .setInheritPackages(false)
                         .includePackage("p2")
                         .build())
-                .addFeaturePackDep(FeaturePackConfig.builder(FP3_GA.getLocation())
+                .addFeaturePackDep(FeaturePackConfig.builder(FP3_GAV.getLocation())
                         .build())
                 .build();
     }

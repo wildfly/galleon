@@ -32,9 +32,9 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
+import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
-import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -322,21 +322,19 @@ public class ProvisioningManager implements AutoCloseable {
 
     public void install(FeaturePackConfig fpConfig, boolean replaceInstalledVersion, Map<String, String> options)
             throws ProvisioningException {
-        final ProvisioningConfig.Builder configBuilder = getInstallationBuilder();
-        final ProvisionedState state = getProvisionedState();
-        if(state != null) {
-            final ProvisionedFeaturePack installedFp = state.getFeaturePack(configBuilder.resolveUniverseSpec(fpConfig.getLocation()).getProducer());
-            if(installedFp != null && !installedFp.getFPID().getChannel().getName().equals(fpConfig.getLocation().getChannelName()) && !replaceInstalledVersion) {
-                throw new ProvisioningException(Errors.featurePackVersionConflict(fpConfig.getLocation().getFPID(), installedFp.getFPID()));
+        ProvisioningConfig config = getProvisioningConfig();
+        final boolean empty = config == null || !config.hasFeaturePackDeps();
+        if(empty) {
+            config = getInstallationBuilder().addFeaturePackDep(fpConfig).build();
+        }
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
+            if(!empty) {
+                final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
+                layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build());
             }
-        }
-        if(replaceInstalledVersion) {
-            configBuilder.updateFeaturePackDep(fpConfig);
-        } else {
-            configBuilder.addFeaturePackDep(fpConfig);
-        }
-        try(ProvisioningRuntime runtime = getRuntime(configBuilder.build(), null, options)) {
-            doProvision(runtime);
+            try (ProvisioningRuntime runtime = getRuntime(layout, options)) {
+                doProvision(runtime);
+            }
         }
     }
 
@@ -347,22 +345,16 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case the uninstallation fails
      */
     public void uninstall(FeaturePackLocation.FPID fpid) throws ProvisioningException {
-        final ProvisioningConfig provisionedConfig = getProvisioningConfig();
-        if(provisionedConfig == null) {
+        ProvisioningConfig config = getProvisioningConfig();
+        final boolean empty = config == null || !config.hasFeaturePackDeps();
+        if(empty) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
-        final String universeName = fpid.getLocation().getUniverse() == null ? null : fpid.getLocation().getUniverse().toString();
-        if(provisionedConfig.hasUniverse(universeName)) {
-            fpid = fpid.getLocation().replaceUniverse(provisionedConfig.getUniverseSpec(universeName)).getFPID();
-        }
-        if(!provisionedConfig.hasFeaturePackDep(fpid.getProducer())) {
-            if(getProvisionedState().hasFeaturePack(fpid.getProducer())) {
-                throw new ProvisioningException(Errors.unsatisfiedFeaturePackDep(fpid.getProducer()));
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
+            layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID());
+            try (ProvisioningRuntime runtime = getRuntime(layout, Collections.emptyMap())) {
+                doProvision(runtime);
             }
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
-        }
-        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, fpid, Collections.emptyMap())) {
-            doProvision(runtime);
         }
     }
 
@@ -384,7 +376,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case provisioning fails
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, null, options)) {
+        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, options)) {
             doProvision(runtime);
         }
     }
@@ -397,7 +389,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case provisioning fails
      */
     public void provision(ProvisioningLayout<?> provisioningLayout, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(provisioningLayout, null, options)) {
+        try(ProvisioningRuntime runtime = getRuntime(provisioningLayout, options)) {
             doProvision(runtime);
         }
     }
@@ -420,7 +412,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException in case provisioning fails
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), null, options)) {
+        try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), options)) {
             doProvision(runtime);
         }
     }
@@ -607,29 +599,27 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options)
+    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, Map<String, String> options)
             throws ProvisioningException {
         final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
                 .initLayout(getLayoutFactory(), provisioningConfig)
                 .setEncoding(encoding)
                 .setInstallDir(installationHome)
                 .addOptions(options);
-        if(uninstallFpid != null) {
-            builder.uninstall(uninstallFpid);
-        }
         return builder.build();
     }
 
-    public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout, FeaturePackLocation.FPID uninstallFpid, Map<String, String> options)
+    public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout, Map<String, String> options)
             throws ProvisioningException {
+        return doGetRuntime(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY), options);
+    }
+
+    private ProvisioningRuntime doGetRuntime(ProvisioningLayout<FeaturePackRuntimeBuilder> rtLayout, Map<String, String> options) throws ProvisioningException {
         final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                .initLayout(provisioningLayout)
+                .initRtLayout(rtLayout)
                 .setEncoding(encoding)
                 .setInstallDir(installationHome)
                 .addOptions(options);
-        if(uninstallFpid != null) {
-            builder.uninstall(uninstallFpid);
-        }
         return builder.build();
     }
 
@@ -664,6 +654,27 @@ public class ProvisioningManager implements AutoCloseable {
         } catch (IOException e) {
             throw new ProvisioningException(Errors.readDirectory(installationHome));
         }
+    }
+
+    private FeaturePackLocation resolveUniverseSpec(FeaturePackLocation fpl) throws ProvisioningException {
+        final UniverseSpec universeSpec = getConfiguredUniverse(fpl);
+        return universeSpec == null ? fpl : fpl.replaceUniverse(universeSpec);
+    }
+
+    private UniverseSpec getConfiguredUniverse(FeaturePackLocation fpl)
+            throws ProvisioningException, ProvisioningDescriptionException {
+        final ProvisioningConfig config = getProvisioningConfig();
+        if(config == null) {
+            return null;
+        }
+        if(fpl.hasUniverse()) {
+            final String name = fpl.getUniverse().toString();
+            if(config.hasUniverse(name)) {
+                return config.getUniverseSpec(name);
+            }
+            return null;
+        }
+        return config.getDefaultUniverse();
     }
 
     @Override

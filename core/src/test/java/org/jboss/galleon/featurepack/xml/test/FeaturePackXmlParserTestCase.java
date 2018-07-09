@@ -150,7 +150,7 @@ public class FeaturePackXmlParserTestCase  {
 
     @Test
     public void readVersionOptional() throws Exception {
-        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-1.0-version-optional.xml", null, null);
+        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-1.0-version-missing.xml", null, null);
         FeaturePackSpec expected = FeaturePackSpec.builder()
                 .setFPID(LegacyGalleon1Universe.newFPID("org.jboss.fp.group1:fp1", null, null))
                 .addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.jboss.dep.group1:dep1", null, null).getLocation()))

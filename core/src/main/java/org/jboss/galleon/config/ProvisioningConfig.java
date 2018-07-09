@@ -34,18 +34,23 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         private Builder() {
         }
 
-        private Builder(ProvisioningConfig provisioningConfig) throws ProvisioningDescriptionException {
-            if(provisioningConfig != null) {
-                for (FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
-                    addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getProducer()), fp);
+        private Builder(ProvisioningConfig original) throws ProvisioningDescriptionException {
+            if(original != null) {
+                for (FeaturePackConfig fp : original.getFeaturePackDeps()) {
+                    addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
                 }
-                if (provisioningConfig.defaultUniverse != null) {
-                    setDefaultUniverse(provisioningConfig.defaultUniverse);
+                if (original.hasTransitiveDeps()) {
+                    for (FeaturePackConfig fp : original.getTransitiveDeps()) {
+                        addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
+                    }
                 }
-                for (Map.Entry<String, UniverseSpec> universe : provisioningConfig.universeSpecs.entrySet()) {
+                if (original.defaultUniverse != null) {
+                    setDefaultUniverse(original.defaultUniverse);
+                }
+                for (Map.Entry<String, UniverseSpec> universe : original.universeSpecs.entrySet()) {
                     addUniverse(universe.getKey(), universe.getValue());
                 }
-                initConfigs(provisioningConfig);
+                initConfigs(original);
             }
         }
 

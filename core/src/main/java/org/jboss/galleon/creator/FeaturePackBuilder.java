@@ -81,6 +81,11 @@ public class FeaturePackBuilder {
         return this;
     }
 
+    public FeaturePackBuilder setPatchFor(FeaturePackLocation.FPID fpid) {
+        fpBuilder.setPatchFor(fpid);
+        return this;
+    }
+
     public FeaturePackBuilder setDefaultUniverse(String factory, String location) throws ProvisioningDescriptionException {
         fpBuilder.setDefaultUniverse(factory, location);
         return this;

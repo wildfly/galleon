@@ -150,7 +150,7 @@ public interface Errors {
     }
 
     static String unknownFeaturePack(FeaturePackLocation.FPID fpid) {
-        return "Feature-pack " + fpid + " is not found";
+        return "Feature-pack " + fpid + " not found in the configuration";
     }
 
     static String unsatisfiedFeaturePackDep(ProducerSpec producer) {
@@ -390,8 +390,20 @@ public interface Errors {
         return buf.toString();
     }
 
-    static String transitiveDependencyNotFound(ProducerSpec producer) {
-        return "Failed to locate " + producer + " among transitive dependencies";
+    static String transitiveDependencyNotFound(ProducerSpec... producer) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Failed to locate ");
+        StringUtils.append(buf, Arrays.asList(producer));
+        buf.append(" among transitive dependencies");
+        return buf.toString();
+    }
+
+    static String patchAlreadyApplied(FPID patchId) {
+        return "Patch " + patchId + " has already been applied";
+    }
+
+    static String patchNotApplicable(FPID patchId, FPID targetFpid) {
+        return "Patch " + patchId + " applies to " + targetFpid + " which is not a part of the installation";
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {

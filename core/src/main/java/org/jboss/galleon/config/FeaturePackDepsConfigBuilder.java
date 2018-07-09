@@ -19,11 +19,11 @@ package org.jboss.galleon.config;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.CollectionUtils;
@@ -50,6 +50,15 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         return resolved == null ? fpl : fpl.replaceUniverse(resolved);
     }
 
+    @SuppressWarnings("unchecked")
+    public B clearFeaturePackDeps() {
+        fpDeps = Collections.emptyMap();
+        fpDepsByOrigin = Collections.emptyMap();
+        producerOrigins = Collections.emptyMap();
+        transitiveDeps = Collections.emptyMap();
+        return (B) this;
+    }
+
     public B addFeaturePackDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
         return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), false);
     }
@@ -59,13 +68,14 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     }
 
     public B addTransitiveDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
-        return addTransitiveDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)));
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)), false);
+    }
+
+    public B updateTransitiveDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)), true);
     }
 
     public B addFeaturePackDep(FeaturePackConfig dependency) throws ProvisioningDescriptionException {
-        if(dependency.isTransitive()) {
-            return addTransitiveDepResolved(null, dependency);
-        }
         return addFeaturePackDep(null, dependency);
     }
 
@@ -78,34 +88,40 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
 
     public B addFeaturePackDep(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
         final UniverseSpec configuredUniverse = getConfiguredUniverse(dependency.getLocation());
-        if(dependency.isTransitive()) {
-            return addTransitiveDepResolved(origin,
-                    configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build());
-        }
-        return addFeaturePackDepResolved(origin,
-                configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(),
-                        false);
+        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), false);
     }
 
     public B updateFeaturePackDep(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
         final UniverseSpec configuredUniverse = getConfiguredUniverse(dependency.getLocation());
-        return addFeaturePackDepResolved(origin,
-                configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(),
-                        true);
+        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), true);
     }
 
     @SuppressWarnings("unchecked")
     private B addFeaturePackDepResolved(String origin, FeaturePackConfig dependency, boolean replaceExistingVersion) throws ProvisioningDescriptionException {
         String existingOrigin = null;
         final ProducerSpec producer = dependency.getLocation().getProducer();
-        if(transitiveDeps.containsKey(producer)) {
-            throw new ProvisioningDescriptionException(producer + " has been already added as a transitive dependency");
-        }
-        if(fpDeps.containsKey(producer)) {
-            if(!replaceExistingVersion) {
-                throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
+        if(dependency.isTransitive()) {
+            if(fpDeps.containsKey(producer)) {
+                throw new ProvisioningDescriptionException(producer + " has been already added as a direct dependency");
             }
-            existingOrigin = producerOrigins.get(producer);
+            if(transitiveDeps.containsKey(producer)) {
+                if(!replaceExistingVersion) {
+                    throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
+                }
+                existingOrigin = producerOrigins.get(producer);
+            }
+            transitiveDeps = CollectionUtils.putLinked(transitiveDeps, producer, dependency);
+        } else {
+            if(transitiveDeps.containsKey(producer)) {
+                throw new ProvisioningDescriptionException(producer + " has been already added as a transitive dependency");
+            }
+            if(fpDeps.containsKey(producer)) {
+                if(!replaceExistingVersion) {
+                    throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
+                }
+                existingOrigin = producerOrigins.get(producer);
+            }
+            fpDeps = CollectionUtils.putLinked(fpDeps, producer, dependency);
         }
         if(origin != null) {
             if(existingOrigin != null) {
@@ -120,37 +136,15 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             }
             fpDepsByOrigin = CollectionUtils.put(fpDepsByOrigin, origin, dependency);
         }
-        fpDeps = CollectionUtils.putLinked(fpDeps, producer, dependency);
-        return (B) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    private B addTransitiveDepResolved(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
-
-        final ProducerSpec producer = dependency.getLocation().getProducer();
-        if(transitiveDeps.containsKey(producer) || fpDeps.containsKey(producer)) {
-            throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
-        }
-        if(origin != null) {
-            final String existingOrigin = producerOrigins.get(producer);
-            if(existingOrigin != null) {
-                if (!existingOrigin.equals(origin)) {
-                    fpDepsByOrigin = CollectionUtils.remove(fpDepsByOrigin, existingOrigin);
-                    producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
-                }
-            } else if(fpDepsByOrigin.containsKey(origin)) {
-                throw new ProvisioningDescriptionException(Errors.duplicateDependencyName(origin));
-            } else {
-                producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
-            }
-            fpDepsByOrigin = CollectionUtils.put(fpDepsByOrigin, origin, dependency);
-        }
-        transitiveDeps = CollectionUtils.putLinked(transitiveDeps, producer, dependency);
         return (B) this;
     }
 
     public boolean hasFeaturePackDep(ProducerSpec producer) {
         return fpDeps.containsKey(producer);
+    }
+
+    public boolean hasFeaturePackDeps() {
+        return !fpDeps.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -166,24 +160,49 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         }
         if(fpDeps.size() == 1) {
             fpDeps = Collections.emptyMap();
+        } else {
+            fpDeps = CollectionUtils.remove(fpDeps, producer);
+        }
+        updateOriginMappings(producer);
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B removeTransitiveDep(FPID fpid) throws ProvisioningException {
+        final FeaturePackLocation fpl = resolveUniverseSpec(fpid.getLocation());
+        final ProducerSpec producer = fpl.getProducer();
+        final FeaturePackConfig fpDep = transitiveDeps.get(producer);
+        if(fpDep == null) {
+            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+        }
+        if(!fpDep.getLocation().equals(fpl)) {
+            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+        }
+        if(transitiveDeps.size() == 1) {
+            transitiveDeps = Collections.emptyMap();
+            return (B) this;
+        } else {
+            transitiveDeps = CollectionUtils.remove(transitiveDeps, producer);
+        }
+        updateOriginMappings(producer);
+        return (B) this;
+    }
+
+    private void updateOriginMappings(final ProducerSpec producer) {
+        if (producerOrigins.isEmpty()) {
+            return;
+        }
+        final String origin = producerOrigins.get(producer);
+        if (origin == null) {
+            return;
+        }
+        if (fpDepsByOrigin.size() == 1) {
             fpDepsByOrigin = Collections.emptyMap();
             producerOrigins = Collections.emptyMap();
-            return (B) this;
+            return;
         }
-        fpDeps = CollectionUtils.remove(fpDeps, producer);
-        if(!producerOrigins.isEmpty()) {
-            final String origin = producerOrigins.get(producer);
-            if(origin != null) {
-                if(fpDepsByOrigin.size() == 1) {
-                    fpDepsByOrigin = Collections.emptyMap();
-                    producerOrigins = Collections.emptyMap();
-                } else {
-                    fpDepsByOrigin.remove(origin);
-                    producerOrigins.remove(producer);
-                }
-            }
-        }
-        return (B) this;
+        fpDepsByOrigin.remove(origin);
+        producerOrigins.remove(producer);
     }
 
     public int getFeaturePackDepIndex(FeaturePackLocation fpl) throws ProvisioningException {

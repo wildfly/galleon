@@ -112,7 +112,7 @@ public class State {
 
     private void init(PmSession pmSession, ProvisioningManager manager) throws ProvisioningException, IOException {
         config = builder.build();
-        runtime = manager.getRuntime(config, null, Collections.emptyMap());
+        runtime = manager.getRuntime(config, Collections.emptyMap());
         container = FeatureContainers.fromProvisioningRuntime(pmSession, manager, runtime);
         container.setEdit(true);
         path = "" + PathParser.PATH_SEPARATOR;
@@ -264,7 +264,7 @@ public class State {
         ProvisioningConfig tmp = builder.build();
         ProvisioningManager manager = pmSession.newProvisioningManager(null, false);
         runtime.close();
-        runtime = manager.getRuntime(tmp, null, Collections.emptyMap());
+        runtime = manager.getRuntime(tmp, Collections.emptyMap());
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
             dependencies.add(cf.getLocation().getFPID());

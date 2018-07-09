@@ -45,54 +45,49 @@ public class UninstallFpWithCustomizedDepsTestCase extends PmUninstallFeaturePac
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
-        creator
-            .newFeaturePack(FP1_100_GAV)
+        creator.newFeaturePack(FP1_100_GAV)
                 .addDependency(FP2_100_GAV.getLocation())
                 .addDependency(FP4_100_GAV.getLocation())
                 .newPackage("p1", true)
-                    .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
-                    .getFeaturePack()
-                .getCreator()
-            .newFeaturePack(FP2_100_GAV)
+                    .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1");
+
+        creator.newFeaturePack(FP2_100_GAV)
                 .addDependency(FP3_100_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp2/p1.txt", "fp2 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")
-                    .writeContent("fp2/p2.txt", "fp2 1.0.0.Final p2")
-                    .getFeaturePack()
-                .getCreator()
-            .newFeaturePack(FP3_100_GAV)
+                    .writeContent("fp2/p2.txt", "fp2 1.0.0.Final p2");
+
+        creator.newFeaturePack(FP3_100_GAV)
                 .newPackage("p1", true)
                     .addDependency(PackageDependencySpec.forPackage("p2", true))
                     .writeContent("fp3/p1.txt", "fp3 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")
-                    .writeContent("fp3/p2.txt", "fp3 1.0.0.Final p2")
-                    .getFeaturePack()
-                .getCreator()
-            .newFeaturePack(FP4_100_GAV)
+                    .writeContent("fp3/p2.txt", "fp3 1.0.0.Final p2");
+
+        creator.newFeaturePack(FP4_100_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp4/p1.txt", "fp4 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2", true)
-                    .writeContent("fp4/p2.txt", "fp4 1.0.0.Final p2")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .writeContent("fp4/p2.txt", "fp4 1.0.0.Final p2");
+
+        creator.install();
     }
 
     @Override
     protected ProvisioningConfig initialState() throws ProvisioningException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig.forLocation(FP1_100_GAV.getLocation()))
-                .addFeaturePackDep(FeaturePackConfig.builder(FP2_GA.getLocation())
+                .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(FP2_GA.getLocation())
                         .includePackage("p2")
                         .build())
-                .addFeaturePackDep(FeaturePackConfig.builder(FP3_GA.getLocation())
+                .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(FP3_GA.getLocation())
                         .excludePackage("p2")
                         .build())
-                .addFeaturePackDep(FeaturePackConfig.builder(FP4_GA.getLocation())
+                .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(FP4_GA.getLocation())
                         .excludePackage("p2")
                         .build())
                 .build();

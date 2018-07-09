@@ -17,13 +17,13 @@
 
 package org.jboss.galleon.layout.test;
 
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -58,7 +58,7 @@ public class NonExistingTransitiveDependencyTestCase extends ProvisioningLayoutT
     }
 
     @Override
-    protected FPID[] expectedOrder() {
-        return new FPID[] {fpl2.getFPID()};
+    protected String[] errors() {
+        return new String[] {Errors.transitiveDependencyNotFound(fpl1_100.getProducer())};
     }
 }

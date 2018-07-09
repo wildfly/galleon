@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.jboss.galleon.Errors;
-import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
@@ -48,8 +47,6 @@ public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
     private static final FPID FP4_101_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "1", "1.0.1.Final");
     private static final FPID FP5_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp5", "1", "1.0.0.Final");
     private static final FPID FP6_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp6", "1", "1.0.0.Final");
-    private static final ProducerSpec FP7_GA = LegacyGalleon1Universe.newProducer("org.jboss.pm.test:fp7");
-    private static final ProducerSpec FP8_GA = LegacyGalleon1Universe.newProducer("org.jboss.pm.test:fp8");
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
@@ -116,8 +113,6 @@ public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
                 .addFeaturePackDep(FeaturePackConfig.forLocation(FP3_100_GAV.getLocation()))
                 .addFeaturePackDep(FeaturePackConfig.forLocation(FP5_100_GAV.getLocation()))
                 .addFeaturePackDep(FeaturePackConfig.forLocation(FP6_100_GAV.getLocation()))
-                .addFeaturePackDep(FeaturePackConfig.forLocation(FP7_GA.getLocation()))
-                .addFeaturePackDep(FeaturePackConfig.forLocation(FP8_GA.getLocation()))
                 .build();
     }
 
