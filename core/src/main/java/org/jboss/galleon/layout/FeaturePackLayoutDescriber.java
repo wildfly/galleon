@@ -21,7 +21,6 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -32,6 +31,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
+import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.PackageXmlParser;
 import org.jboss.galleon.xml.XmlParsers;
 
@@ -46,7 +46,7 @@ import org.jboss.galleon.xml.XmlParsers;
 public class FeaturePackLayoutDescriber {
 
     public static FeaturePackLayout describeFeaturePackZip(Path artifactZip) throws IOException, ProvisioningDescriptionException {
-        try (FileSystem zipfs = FileSystems.newFileSystem(artifactZip, null)) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifactZip)) {
             for(Path zipRoot : zipfs.getRootDirectories()) {
                 return describeFeaturePack(zipRoot, "UTF-8");
             }

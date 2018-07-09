@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -66,7 +65,7 @@ public class MavenProducer extends MavenProducerBase {
         if(!artifact.isResolved()) {
             repoManager.resolve(artifact);
         }
-        try (FileSystem zipfs = FileSystems.newFileSystem(ZipUtils.toZipUri(artifact.getPath()), Collections.emptyMap())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
             final Path producerXml = getProducerXml(zipfs, name);
             if(!Files.exists(producerXml)) {
                 throw new MavenUniverseException("Failed to locate " + producerXml + " in " + artifact.getCoordsAsString());
@@ -113,14 +112,21 @@ public class MavenProducer extends MavenProducerBase {
         return frequencies;
     }
 
+    /**
+     * This call is synchronized. The set of channels is built lazily and must be
+     * thread safe.
+     * @param name
+     * @return true is the channel exists, false otherwise.
+     * @throws MavenUniverseException
+     */
     @Override
-    public boolean hasChannel(String name) throws MavenUniverseException {
+    public synchronized boolean hasChannel(String name) throws MavenUniverseException {
         if(channels.containsKey(name)) {
             return true;
         } if(fullyLoaded) {
             return false;
         }
-        try (FileSystem zipfs = FileSystems.newFileSystem(ZipUtils.toZipUri(artifact.getPath()), Collections.emptyMap())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
             final Path channelXml = getChannelXml(zipfs, this.name, name);
             if(!Files.exists(channelXml)) {
                 return false;
@@ -144,12 +150,18 @@ public class MavenProducer extends MavenProducerBase {
         return channels.get(channelName);
     }
 
+    /**
+     * This call is synchronized. The set of channels is built lazily and must be
+     * thread safe.
+     * @return The set of channels.
+     * @throws MavenUniverseException
+     */
     @Override
-    public Collection<MavenChannel> getChannels() throws MavenUniverseException {
+    public synchronized Collection<MavenChannel> getChannels() throws MavenUniverseException {
         if(fullyLoaded) {
             return channels.values();
         }
-        try (FileSystem zipfs = FileSystems.newFileSystem(ZipUtils.toZipUri(artifact.getPath()), Collections.emptyMap())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
             try(DirectoryStream<Path> stream = Files.newDirectoryStream(getChannelsDir(zipfs, name))) {
                 for(Path channelDir : stream) {
                     final Path channelXml = channelDir.resolve(MAVEN_CHANNEL_XML);

@@ -21,7 +21,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -35,9 +34,9 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenProducerSpecXmlParser;
 import org.jboss.galleon.universe.maven.xml.ParsedCallbackHandler;
 import org.jboss.galleon.util.CollectionUtils;
-import org.jboss.galleon.util.ZipUtils;
 
 import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
+import org.jboss.galleon.util.ZipUtils;
 
 /**
  *
@@ -80,14 +79,21 @@ public class MavenUniverse extends MavenUniverseBase {
         producers = Collections.emptyMap();
     }
 
+    /**
+     * This call is synchronized. The set of producers is built lazily and must be
+     * thread safe.
+     * @param producerName
+     * @return  true is the producer exists, false otherwise.
+     * @throws MavenUniverseException
+     */
     @Override
-    public boolean hasProducer(String producerName) throws MavenUniverseException {
+    public synchronized boolean hasProducer(String producerName) throws MavenUniverseException {
         if(producers.containsKey(producerName)) {
             return true;
         } if(fullyLoaded) {
             return false;
         }
-        try (FileSystem zipfs = FileSystems.newFileSystem(ZipUtils.toZipUri(artifact.getPath()), Collections.emptyMap())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
             final Path producerXml = getProducerXml(zipfs, producerName);
             if(!Files.exists(producerXml)) {
                 return false;
@@ -111,12 +117,18 @@ public class MavenUniverse extends MavenUniverseBase {
         return producers.get(producerName);
     }
 
+    /**
+     * This call is synchronized. The set of producers is built lazily and must be
+     * thread safe.
+     * @return The set of producers.
+     * @throws MavenUniverseException
+     */
     @Override
-    public Collection<MavenProducer> getProducers() throws MavenUniverseException {
+    public synchronized Collection<MavenProducer> getProducers() throws MavenUniverseException {
         if(fullyLoaded) {
             return producers.values();
         }
-        try (FileSystem zipfs = FileSystems.newFileSystem(ZipUtils.toZipUri(artifact.getPath()), Collections.emptyMap())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
             try(DirectoryStream<Path> stream = Files.newDirectoryStream(getProducerLocations(zipfs))) {
                 for(Path producerDir : stream) {
                     final Path producerXml = producerDir.resolve(MAVEN_PRODUCER_XML);
