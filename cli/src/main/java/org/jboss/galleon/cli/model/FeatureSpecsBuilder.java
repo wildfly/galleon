@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import java.nio.file.Files;
@@ -42,6 +41,7 @@ import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
@@ -73,9 +73,8 @@ public class FeatureSpecsBuilder {
         if (specs == null) {
             specs = new HashSet<>();
             final Set<FeatureSpecInfo> fSpecs = specs;
-            FileSystem fs = FileSystems.newFileSystem(session.getUniverse().
-                    getUniverseResolver().resolve(fpid.getLocation()), null);
-            try {
+            try (FileSystem fs = ZipUtils.newFileSystem(session.getUniverse().
+                    getUniverseResolver().resolve(fpid.getLocation()))) {
                 final Path path = fs.getPath("features/");
                 Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
@@ -157,8 +156,6 @@ public class FeatureSpecsBuilder {
                         return CONTINUE;
                     }
                 });
-            } finally {
-                fs.close();
             }
             if (useCache) {
                 if (allSpecs == null) {

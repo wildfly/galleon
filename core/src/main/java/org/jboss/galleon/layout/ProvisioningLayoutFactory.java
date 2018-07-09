@@ -95,7 +95,7 @@ public class ProvisioningLayoutFactory implements Closeable {
         return new ProvisioningLayout<>(this, config, factory);
     }
 
-    Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
+    synchronized Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
         final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpl.getFPID(), false);
         if(Files.exists(fpDir)) {
             return fpDir;

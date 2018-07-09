@@ -47,8 +47,8 @@ public class ZipUtils {
         if(!Files.exists(targetDir)) {
             Files.createDirectories(targetDir);
         }
-        try (FileSystem zipfs = FileSystems.newFileSystem(toZipUri(zipFile), Collections.emptyMap())) {
-            for(Path zipRoot : zipfs.getRootDirectories()) {
+        try (FileSystem zipfs = newFileSystem(zipFile)) {
+            for (Path zipRoot : zipfs.getRootDirectories()) {
                 copyFromZip(zipRoot, targetDir);
             }
         }
@@ -89,7 +89,7 @@ public class ZipUtils {
     }
 
     public static void zip(Path src, Path zipFile) throws IOException {
-        try (FileSystem zipfs = FileSystems.newFileSystem(toZipUri(zipFile), Files.exists(zipFile) ? Collections.emptyMap() : CREATE_ENV)) {
+        try (FileSystem zipfs = newFileSystem(toZipUri(zipFile), Files.exists(zipFile) ? Collections.emptyMap() : CREATE_ENV)) {
             if(Files.isDirectory(src)) {
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(src)) {
                     for(Path srcPath : stream) {
@@ -126,4 +126,29 @@ public class ZipUtils {
                     }
                 });
     }
+
+    /**
+     * This call is not thread safe, a single of FileSystem can be created for the
+     * profided uri until it is closed.
+     * @param uri The uri to the zip file.
+     * @param env Env map.
+     * @return A new FileSystem.
+     * @throws IOException
+     */
+    public static FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
+        // If Multi threading required, logic should be added to wrap this fs
+        // onto a fs that handles a reference counter and close the fs only when all thread are done
+        // with it.
+        return FileSystems.newFileSystem(uri, env);
+    }
+
+    /**
+     * This call is thread safe, a new FS is created for each invocation.
+     * @param path The zip file.
+     * @return A new FileSystem instance
+     * @throws IOException
+     */
+     public static FileSystem newFileSystem(Path path) throws IOException {
+         return FileSystems.newFileSystem(path, null);
+     }
 }

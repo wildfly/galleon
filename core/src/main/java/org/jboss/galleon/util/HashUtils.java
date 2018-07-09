@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -95,7 +94,7 @@ public class HashUtils {
     public static byte[] hashJar(Path jarFile, boolean ignoreManifest) throws IOException {
         synchronized (DIGEST) {
             DIGEST.reset();
-            try (FileSystem zipfs = FileSystems.newFileSystem(jarFile, null)) {
+            try (FileSystem zipfs = ZipUtils.newFileSystem(jarFile)) {
                 for (Path zipRoot : zipfs.getRootDirectories()) {
                     final Map<String, Path> sortedChildren = new TreeMap<String, Path>();
                     try(DirectoryStream<Path> stream = Files.newDirectoryStream(zipRoot)) {
