@@ -17,20 +17,28 @@
 
 package org.jboss.galleon.universe.galleon1;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
+import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.creator.UniverseFeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.universe.Universe;
+import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.ZipUtils;
 
 /**
  *
  * @author Alexey Loubyansky
  */
 public class LegacyGalleon1FeaturePackCreator implements UniverseFeaturePackCreator {
+    private static final Path tmpdir = Paths.get(getEnvPropertyPrivileged("java.io.tmpdir"));
 
     @Override
     public String getUniverseFactoryId() {
@@ -48,6 +56,41 @@ public class LegacyGalleon1FeaturePackCreator implements UniverseFeaturePackCrea
         if(!(mvnUni.artifactResolver instanceof ArtifactRepositoryManager)) {
             throw new ProvisioningException(mvnUni.artifactResolver.getClass().getName() + " is not an instance of " + ArtifactRepositoryManager.class.getName());
         }
-        ((ArtifactRepositoryManager)mvnUni.artifactResolver).install(LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()), fpContentDir);
+
+        ArtifactCoords coords = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation());
+        Path tmpFile = null;
+        try {
+            tmpFile = tmpdir.resolve(fileNameFromCoords(coords));
+            ZipUtils.zip(fpContentDir, tmpFile);
+            ((ArtifactRepositoryManager) mvnUni.artifactResolver).install(coords, tmpFile);
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to create a temporal artifact zip file before install it", e);
+        } finally {
+            if (tmpFile != null) {
+                IoUtils.recursiveDelete(tmpFile);
+            }
+        }
+    }
+
+    private String fileNameFromCoords(ArtifactCoords coords){
+        final StringBuilder fileName = new StringBuilder();
+        fileName.append(coords.getArtifactId()).append('-').append(coords.getVersion());
+        if(coords.getClassifier() != null && !coords.getClassifier().isEmpty()) {
+            fileName.append('-').append(coords.getClassifier());
+        }
+        fileName.append('.').append(coords.getExtension());
+        return fileName.toString();
+    }
+
+    private static String getEnvPropertyPrivileged(String property) {
+        if (System.getSecurityManager() == null) {
+            return System.getProperty(property);
+        }
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            @Override
+            public String run() {
+                return System.getProperty(property);
+            }
+        });
     }
 }
