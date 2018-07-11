@@ -58,8 +58,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
         artifact.setExtension("zip");
         artifact.setVersionRange(versionRange);
-        producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl));
-        return artifact.getVersion();
+        return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl));
     }
 
     @Override
