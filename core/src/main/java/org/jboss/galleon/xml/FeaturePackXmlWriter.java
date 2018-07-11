@@ -45,11 +45,16 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
 
         ProvisioningXmlWriter.writeUniverseSpecs(fpSpec, fp);
 
+        if(fpSpec.isPatch()) {
+            final ElementNode patchFor = addElement(fp, Element.PATCH);
+            addAttribute(patchFor, Attribute.FOR, fpSpec.getPatchFor().toString());
+        }
+
         if (fpSpec.hasTransitiveDeps()) {
             final ElementNode transitives = addElement(fp, Element.TRANSITIVE);
             for(FeaturePackConfig dep : fpSpec.getTransitiveDeps()) {
                 final ElementNode depElement = addElement(transitives, Element.DEPENDENCY);
-                ProvisioningXmlWriter.writeFeaturePackConfig(depElement, depElement.getNamespace(),
+                ProvisioningXmlWriter.writeFeaturePackConfig(depElement,
                         fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
             }
         }
@@ -58,7 +63,7 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
             final ElementNode deps = addElement(fp, Element.DEPENDENCIES);
             for (FeaturePackConfig dep : fpSpec.getFeaturePackDeps()) {
                 final ElementNode depElement = addElement(deps, Element.DEPENDENCY);
-                ProvisioningXmlWriter.writeFeaturePackConfig(depElement, depElement.getNamespace(),
+                ProvisioningXmlWriter.writeFeaturePackConfig(depElement,
                         fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
             }
         }

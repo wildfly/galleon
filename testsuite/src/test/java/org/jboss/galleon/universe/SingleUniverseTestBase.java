@@ -19,11 +19,9 @@ package org.jboss.galleon.universe;
 
 import java.nio.file.Path;
 
-import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
-import org.jboss.galleon.test.FeaturePackRepoTestBase;
+import org.jboss.galleon.test.PmTestBase;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
@@ -33,7 +31,7 @@ import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
  *
  * @author Alexey Loubyansky
  */
-public abstract class SingleUniverseTestBase extends FeaturePackRepoTestBase {
+public abstract class SingleUniverseTestBase extends PmTestBase {
 
     protected String universeName = "test-universe";
     protected MavenArtifact universeArtifact;
@@ -69,18 +67,11 @@ public abstract class SingleUniverseTestBase extends FeaturePackRepoTestBase {
 
     protected abstract void createProducers(MvnUniverse universe) throws ProvisioningException;
 
-    protected abstract void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException;
-
     @Override
     protected void doBefore() throws Exception {
-        super.doBefore();
-
         final MvnUniverse universe = MvnUniverse.getInstance(universeName, (MavenRepoManager) repo);
         createProducers(universe);
         universeArtifact = universe.install();
-
-        final FeaturePackCreator creator = initCreator();
-        createFeaturePacks(creator);
-        creator.install();
+        super.doBefore();
     }
 }

@@ -18,6 +18,7 @@ package org.jboss.galleon.layout;
 
 import java.nio.file.Path;
 
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -27,5 +28,6 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  * @author Alexey Loubyansky
  */
 public interface FeaturePackLayoutFactory<F extends FeaturePackLayout> {
-    F newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir);
+
+    F newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir) throws ProvisioningException;
 }

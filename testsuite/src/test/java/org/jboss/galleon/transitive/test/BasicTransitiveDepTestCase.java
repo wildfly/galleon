@@ -30,7 +30,7 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.ProvisionSingleUniverseTestBase;
+import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
 
@@ -38,32 +38,32 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class BasicTransitiveDepTestCase extends ProvisionSingleUniverseTestBase {
+public class BasicTransitiveDepTestCase extends ProvisionFromUniverseTestBase {
 
-    private FeaturePackLocation fp1Fpl;
-    private FeaturePackLocation fp2Fpl;
-    private FeaturePackLocation fp3_100_fpl;
-    private FeaturePackLocation fp3_101_fpl;
+    private FeaturePackLocation fp1;
+    private FeaturePackLocation fp2;
+    private FeaturePackLocation fp3_100;
+    private FeaturePackLocation fp3_101;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-        universe.createProducer("producer1");
-        universe.createProducer("producer2");
-        universe.createProducer("producer3");
+        universe.createProducer("prod1");
+        universe.createProducer("prod2");
+        universe.createProducer("prod3");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
 
-        fp1Fpl = newFpl("producer1", "1", "1.0.0.Final");
-        fp2Fpl = newFpl("producer2", "1", "1.0.0.Final");
-        fp3_100_fpl = newFpl("producer3", "1", "1.0.0.Final");
-        fp3_101_fpl = newFpl("producer3", "1", "1.0.1.Final");
+        fp1 = newFpl("prod1", "1", "1.0.0.Final");
+        fp2 = newFpl("prod2", "1", "1.0.0.Final");
+        fp3_100 = newFpl("prod3", "1", "1.0.0.Final");
+        fp3_101 = newFpl("prod3", "1", "1.0.1.Final");
 
         creator.newFeaturePack()
-        .setFPID(fp1Fpl.getFPID())
-        .addDependency(fp2Fpl)
-        .addTransitiveDependency(fp3_101_fpl)
+        .setFPID(fp1.getFPID())
+        .addDependency(fp2)
+        .addTransitiveDependency(fp3_101)
         .addSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -73,8 +73,8 @@ public class BasicTransitiveDepTestCase extends ProvisionSingleUniverseTestBase 
         .writeContent("fp1/p1.txt", "fp1");
 
         creator.newFeaturePack()
-        .setFPID(fp2Fpl.getFPID())
-        .addDependency(fp3_100_fpl)
+        .setFPID(fp2.getFPID())
+        .addDependency(fp3_100)
         .addSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -85,7 +85,7 @@ public class BasicTransitiveDepTestCase extends ProvisionSingleUniverseTestBase 
         .writeContent("fp2/p1.txt", "fp2");
 
         creator.newFeaturePack()
-        .setFPID(fp3_100_fpl.getFPID())
+        .setFPID(fp3_100.getFPID())
         .addSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -96,7 +96,7 @@ public class BasicTransitiveDepTestCase extends ProvisionSingleUniverseTestBase 
         .writeContent("fp3/p1.txt", "fp3 100");
 
         creator.newFeaturePack()
-        .setFPID(fp3_101_fpl.getFPID())
+        .setFPID(fp3_101.getFPID())
         .addSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -112,35 +112,28 @@ public class BasicTransitiveDepTestCase extends ProvisionSingleUniverseTestBase 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(fp1Fpl)
-                .build();
-    }
-
-    @Override
-    protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
-        return ProvisioningConfig.builder()
-                .addFeaturePackDep(fp1Fpl)
+                .addFeaturePackDep(fp1)
                 .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp3_101_fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp3_101.getFPID())
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp2Fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp2.getFPID())
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp1Fpl.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp1.getFPID())
                         .addPackage("p1")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_101_fpl.getFPID().getProducer(), "specC", "p1", "2")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specB", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_101.getFPID().getProducer(), "specC", "p1", "2")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "1")))
                         .build())
                 .build();
     }

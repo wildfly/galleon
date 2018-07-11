@@ -32,7 +32,7 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.ProvisionSingleUniverseTestBase;
+import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
 
@@ -40,7 +40,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class TransitiveDepResolvesVersionConflictTestCase extends ProvisionSingleUniverseTestBase {
+public class TransitiveDepResolvesVersionConflictTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1Fpl;
     private FeaturePackLocation fp2Fpl;
@@ -162,10 +162,11 @@ public class TransitiveDepResolvesVersionConflictTestCase extends ProvisionSingl
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
-        return ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.transitiveBuilder(fp3_102_fpl)
-        .excludePackage("p2")
-        .includePackage("p4")
-        .build())
+        return ProvisioningConfig.builder()
+                .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(fp3_102_fpl)
+                        .excludePackage("p2")
+                        .includePackage("p4")
+                        .build())
                 .addFeaturePackDep(fp1Fpl)
                 .addFeaturePackDep(fp2Fpl)
                 .addConfig(ConfigModel.builder("model1", "name1")

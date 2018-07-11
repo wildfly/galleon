@@ -24,7 +24,7 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
-import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
@@ -39,19 +39,28 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
     public static class Builder extends FeaturePackDepsConfigBuilder<Builder> {
 
-        private FeaturePackLocation.FPID fpid;
+        private FPID fpid;
         private Set<String> defPackages = Collections.emptySet();
+        private FPID patchFor;
 
         protected Builder() {
         }
 
-        public Builder setFPID(FeaturePackLocation.FPID fpid) {
+        public Builder setFPID(FPID fpid) {
             this.fpid = fpid;
             return this;
         }
 
-        public FeaturePackLocation.FPID getFPID() {
+        public FPID getFPID() {
             return fpid;
+        }
+
+        public Builder setPatchFor(FPID patchFor) {
+            if(patchFor.getBuild() == null) {
+                throw new IllegalArgumentException("FPID is missing build number");
+            }
+            this.patchFor = patchFor;
+            return this;
         }
 
         @Override
@@ -93,12 +102,13 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         return new Builder().setFPID(LegacyGalleon1Universe.toFpl(gav).getFPID());
     }
 
-    public static Builder builder(FeaturePackLocation.FPID fpid) {
+    public static Builder builder(FPID fpid) {
         return new Builder().setFPID(fpid);
     }
 
-    private final FeaturePackLocation.FPID fpid;
+    private final FPID fpid;
     private final Set<String> defPackages;
+    private final FPID patchFor;
 
     private ArtifactCoords.Gav legacyGav;
 
@@ -106,6 +116,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         super(builder);
         this.fpid = builder.fpid;
         this.defPackages = CollectionUtils.unmodifiable(builder.defPackages);
+        this.patchFor = builder.patchFor;
     }
 
     /**
@@ -124,8 +135,16 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         return legacyGav;
     }
 
-    public FeaturePackLocation.FPID getFPID() {
+    public FPID getFPID() {
         return fpid;
+    }
+
+    public boolean isPatch() {
+        return patchFor != null;
+    }
+
+    public FPID getPatchFor() {
+        return patchFor;
     }
 
     public boolean hasDefaultPackages() {
@@ -175,6 +194,9 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append('[').append(fpid);
+        if(patchFor != null) {
+            buf.append(" patch-for=").append(patchFor);
+        }
         if(!fpDeps.isEmpty()) {
             buf.append("; dependencies: ");
             StringUtils.append(buf, fpDeps.keySet());

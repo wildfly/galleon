@@ -77,7 +77,7 @@ public class CustomizedImplicitFpDepTestCase extends PmProvisionConfigTestBase {
     protected ProvisioningConfig provisioningConfig()
             throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep("fp1", FeaturePackConfig.forLocation(FP1_GA.getLocation()))
+                .addFeaturePackDep("fp1", FeaturePackConfig.forTransitiveDep(FP1_GA.getLocation()))
                 .addFeaturePackDep("fp2", FeaturePackConfig.forLocation(FP2_GAV.getLocation()))
                 .addConfig(ConfigModel.builder("model1", "config1")
                         .includeFeature(FeatureId.create("specA", "id", "2"),

@@ -30,7 +30,7 @@ import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.ProvisionSingleUniverseTestBase;
+import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
 
@@ -38,7 +38,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class TransitiveDepWithOriginInProvisioningConfigTestCase extends ProvisionSingleUniverseTestBase {
+public class TransitiveDepWithOriginInProvisioningConfigTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1Fpl;
     private FeaturePackLocation fp2Fpl;

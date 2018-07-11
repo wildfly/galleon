@@ -224,7 +224,7 @@ public abstract class FeatureContainers {
     private static ProvisioningRuntime buildFullRuntime(FPID fpid, ProvisioningManager manager) throws ProvisioningException {
         FeaturePackConfig config = FeaturePackConfig.forLocation(fpid.getLocation());
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
-        ProvisioningRuntime runtime = manager.getRuntime(provisioning, null, Collections.emptyMap());
+        ProvisioningRuntime runtime = manager.getRuntime(provisioning, Collections.emptyMap());
         return runtime;
     }
 }

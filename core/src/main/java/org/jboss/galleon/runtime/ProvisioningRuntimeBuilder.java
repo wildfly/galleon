@@ -16,9 +16,6 @@
  */
 package org.jboss.galleon.runtime;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +57,6 @@ import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.CollectionUtils;
 
 
@@ -70,7 +66,7 @@ import org.jboss.galleon.util.CollectionUtils;
  */
 public class ProvisioningRuntimeBuilder {
 
-    private static final FeaturePackLayoutFactory<FeaturePackRuntimeBuilder> FP_BUILDER_FACTORY = new FeaturePackLayoutFactory<FeaturePackRuntimeBuilder>() {
+    public static final FeaturePackLayoutFactory<FeaturePackRuntimeBuilder> FP_RT_FACTORY = new FeaturePackLayoutFactory<FeaturePackRuntimeBuilder>() {
         @Override
         public FeaturePackRuntimeBuilder newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path fpDir) {
             return new FeaturePackRuntimeBuilder(fpl.getFPID(), spec, fpDir);
@@ -90,7 +86,6 @@ public class ProvisioningRuntimeBuilder {
     String operation;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
-    private Map<ProducerSpec, FPID> uninstallFps = Collections.emptyMap();
     Path installDir;
     Map<String, String> pluginOptions = Collections.emptyMap();
     private final MessageWriter messageWriter;
@@ -125,23 +120,23 @@ public class ProvisioningRuntimeBuilder {
         return this;
     }
 
+    public ProvisioningRuntimeBuilder initRtLayout(ProvisioningLayout<FeaturePackRuntimeBuilder> configLayout) throws ProvisioningException {
+        layout = configLayout;
+        return this;
+    }
+
     public ProvisioningRuntimeBuilder initLayout(ProvisioningLayout<?> configLayout) throws ProvisioningException {
-        layout = configLayout.transform(FP_BUILDER_FACTORY);
+        layout = configLayout.transform(FP_RT_FACTORY);
         return this;
     }
 
     public ProvisioningRuntimeBuilder initLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config) throws ProvisioningException {
-        layout = layoutFactory.newConfigLayout(config, FP_BUILDER_FACTORY);
+        layout = layoutFactory.newConfigLayout(config, FP_RT_FACTORY);
         return this;
     }
 
     public ProvisioningRuntimeBuilder setInstallDir(Path installDir) {
         this.installDir = installDir;
-        return this;
-    }
-
-    public ProvisioningRuntimeBuilder uninstall(FeaturePackLocation.FPID fpid) {
-        uninstallFps = CollectionUtils.put(uninstallFps, fpid.getProducer(), fpid);
         return this;
     }
 
@@ -163,79 +158,6 @@ public class ProvisioningRuntimeBuilder {
     private ProvisioningRuntime doBuild() throws ProvisioningException {
 
         config = layout.getConfig();
-
-        if(!uninstallFps.isEmpty()) {
-            Map<ProducerSpec, FPID> depsOfUninstalled = Collections.emptyMap();
-            for(ProducerSpec uninstallFp : uninstallFps.keySet()) {
-                if(!config.hasFeaturePackDep(uninstallFp)) {
-                    throw new ProvisioningException(Errors.unknownFeaturePack(uninstallFp.getLocation().getFPID()));
-                }
-                final FeaturePackRuntimeBuilder fp = getFpBuilder(uninstallFp.getLocation().getProducer());
-                depsOfUninstalled = resolveDeps(fp, depsOfUninstalled);
-            }
-            if(!depsOfUninstalled.isEmpty()) {
-                Map<ProducerSpec, FPID> depsOfRemaining = Collections.emptyMap();
-                for (FeaturePackConfig fpConfig : config.getFeaturePackDeps()) {
-                    if (fpConfig.getLocation().getBuild() == null) {
-                        continue;
-                    }
-                    final FPID uninstallGav = uninstallFps.get(fpConfig.getLocation().getProducer());
-                    if (uninstallGav != null) {
-                        if (!uninstallGav.equals(fpConfig.getLocation().getFPID())) {
-                            throw new ProvisioningException(Errors.unknownFeaturePack(fpConfig.getLocation().getFPID()));
-                        }
-                        continue;
-                    }
-                    if (depsOfRemaining != null) {
-                        depsOfRemaining = resolveDeps(getFpBuilder(fpConfig.getLocation().getProducer()), depsOfRemaining);
-                    }
-                }
-                if (!depsOfRemaining.isEmpty()) {
-                    if (depsOfUninstalled.size() == 1) {
-                        final FPID depOfRemaining = depsOfRemaining.get(depsOfUninstalled.keySet().iterator().next());
-                        if (depOfRemaining != null) {
-                            depsOfUninstalled = Collections.emptyMap();
-                        }
-                    } else {
-                        for (ProducerSpec depOfRemaining : depsOfRemaining.keySet()) {
-                            if (depsOfUninstalled.remove(depOfRemaining) != null) {
-                                if (depsOfUninstalled.isEmpty()) {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // TODO copy the configs
-            final ProvisioningConfig.Builder configBuilder = ProvisioningConfig.builder();
-            for (FeaturePackConfig fpConfig : config.getFeaturePackDeps()) {
-                final ProducerSpec producer = fpConfig.getLocation().getProducer();
-                if(uninstallFps.containsKey(producer)) {
-                    continue;
-                }
-                if(fpConfig.getLocation().getBuild() == null && depsOfUninstalled.containsKey(producer)) {
-                    continue;
-                }
-                final String origin = config.originOf(producer);
-                configBuilder.addFeaturePackDep(origin, fpConfig);
-            }
-            config = configBuilder.build();
-
-            if(!config.hasFeaturePackDeps()) {
-                layout.close();
-                emptyHomeDir();
-                return null;
-            }
-            final ProvisioningLayout<?> originalLayout = layout;
-            try {
-                layout = layout.getFactory().newConfigLayout(config, FP_BUILDER_FACTORY);
-            } finally {
-                originalLayout.close();
-            }
-        }
-
         fpConfigStack = new FpStack(config);
 
         // the configs are processed in the reverse order to correctly implement config overwrites
@@ -777,20 +699,19 @@ public class ProvisioningRuntimeBuilder {
     }
 
     private void resolvePackage(final String pkgName) throws ProvisioningException {
-        if(resolvePackage(currentOrigin, pkgName, Collections.emptySet(), false)) {
-            return;
+        if(!resolvePackage(currentOrigin, pkgName, Collections.emptySet())) {
+            throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.producer.getLocation().getFPID(), pkgName));
         }
-        throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.producer.getLocation().getFPID(), pkgName));
     }
 
-    private boolean resolvePackage(FeaturePackRuntimeBuilder origin, String name, Set<ProducerSpec> visitedChannels, boolean switchOrigin) throws ProvisioningException {
+    private boolean resolvePackage(FeaturePackRuntimeBuilder origin, String name, Set<ProducerSpec> visited) throws ProvisioningException {
         final FeaturePackDepsConfig fpDeps;
         if (origin != null) {
             if(origin.resolvePackage(name, this)) {
                 return true;
             }
             fpDeps = origin.spec;
-            visitedChannels = CollectionUtils.add(visitedChannels, origin.producer);
+            visited = CollectionUtils.add(visited, origin.producer);
         } else {
             fpDeps = config;
         }
@@ -800,10 +721,10 @@ public class ProvisioningRuntimeBuilder {
         }
 
         for (FeaturePackConfig fpDep : fpDeps.getFeaturePackDeps()) {
-            if (visitedChannels.contains(fpDep.getLocation().getProducer())) {
+            if (visited.contains(fpDep.getLocation().getProducer())) {
                 continue;
             }
-            if(resolvePackage(getFpBuilder(fpDep.getLocation().getProducer()), name, visitedChannels, switchOrigin)) {
+            if(resolvePackage(getFpBuilder(fpDep.getLocation().getProducer()), name, visited)) {
                 return true;
             }
         }
@@ -962,19 +883,6 @@ public class ProvisioningRuntimeBuilder {
         return this;
     }
 
-    private void emptyHomeDir() throws ProvisioningException {
-        if(!Files.exists(installDir)) {
-            return;
-        }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(installDir)) {
-            for (Path p : stream) {
-                IoUtils.recursiveDelete(p);
-            }
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.readDirectory(installDir));
-        }
-    }
-
     /**
      * NOTE: this method will change the current origin to the origin of the group!
      */
@@ -1070,21 +978,5 @@ public class ProvisioningRuntimeBuilder {
             }
         }
         return null;
-    }
-
-    private Map<ProducerSpec, FPID> resolveDeps(FeaturePackRuntimeBuilder fp, Map<ProducerSpec, FPID> collected)
-            throws ProvisioningException {
-        if(!fp.spec.hasFeaturePackDeps()) {
-            return collected;
-        }
-        for(FeaturePackConfig fpConfig : fp.spec.getFeaturePackDeps()) {
-            final int size = collected.size();
-            collected = CollectionUtils.put(collected, fpConfig.getLocation().getProducer(), fpConfig.getLocation().getFPID());
-            if(size == collected.size()) {
-                continue;
-            }
-            collected = resolveDeps(getFpBuilder(fpConfig.getLocation().getProducer()), collected);
-        }
-        return collected;
     }
 }

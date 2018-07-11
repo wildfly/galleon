@@ -19,16 +19,28 @@ package org.jboss.galleon.layout.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
+import org.jboss.galleon.test.FeaturePackRepoTestBase;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
-import org.jboss.galleon.universe.SingleUniverseTestBase;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.MvnUniverse;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.universe.maven.MavenUniverseFactory;
+import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
+import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 import org.jboss.galleon.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +49,56 @@ import org.junit.Test;
  *
  * @author Alexey Loubyansky
  */
-public abstract class ProvisioningLayoutTestBase extends SingleUniverseTestBase {
+public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase {
+
+    protected String universeName = "test-universe";
+    protected MavenArtifact universeArtifact;
+    private UniverseSpec universeSpec;
+
+    @Override
+    protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
+        return SimplisticMavenRepoManager.getInstance(repoHome);
+    }
+
+    protected UniverseSpec getUniverseSpec() {
+        if(universeSpec == null) {
+            universeSpec = new UniverseSpec(MavenUniverseFactory.ID, universeArtifact.getGroupId() + ':' + universeArtifact.getArtifactId());
+        }
+        return universeSpec;
+    }
+
+    protected FeaturePackLocation newFpl(String producer, String channel) {
+        return new FeaturePackLocation(getUniverseSpec(), producer, channel, null, null);
+    }
+
+    protected FeaturePackLocation newFpl(String producer, String channel, String build) {
+        return new FeaturePackLocation(getUniverseSpec(), producer, channel, null, build);
+    }
+
+    protected FeaturePackLocation newFpl(String producer, String channel, String frequency, String build) {
+        return new FeaturePackLocation(getUniverseSpec(), producer, channel, frequency, build);
+    }
+
+    protected FeaturePackLocation newFpl(String producer, String universe, String channel, String frequency, String build) {
+        return new FeaturePackLocation(new UniverseSpec(universe, null), producer, channel, frequency, build);
+    }
+
+    protected abstract void createProducers(MvnUniverse universe) throws ProvisioningException;
+
+    protected abstract void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException;
+
+    @Override
+    protected void doBefore() throws Exception {
+        super.doBefore();
+
+        final MvnUniverse universe = MvnUniverse.getInstance(universeName, (MavenRepoManager) repo);
+        createProducers(universe);
+        universeArtifact = universe.install();
+
+        final FeaturePackCreator creator = initCreator();
+        createFeaturePacks(creator);
+        creator.install();
+    }
 
     protected abstract ProvisioningConfig provisioningConfig() throws ProvisioningException;
 

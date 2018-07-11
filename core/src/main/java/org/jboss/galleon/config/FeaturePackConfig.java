@@ -16,8 +16,11 @@
  */
 package org.jboss.galleon.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,8 +29,10 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.StringUtils;
 
 /**
  * This class represents a feature-pack configuration to be installed.
@@ -43,6 +48,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         protected boolean transitive;
         protected Set<String> excludedPackages = Collections.emptySet();
         protected Map<String, PackageConfig> includedPackages = Collections.emptyMap();
+        protected Set<FPID> patches = Collections.emptySet();
 
         protected Builder(FeaturePackLocation fpl) {
             this(fpl, true);
@@ -58,12 +64,45 @@ public class FeaturePackConfig extends ConfigCustomizations {
             this.transitive = transitive;
         }
 
+        protected Builder(FeaturePackConfig config) {
+            this.fpl = config.getLocation();
+            init(config);
+        }
+
         public Builder init(FeaturePackConfig fpConfig) {
             super.initConfigs(fpConfig);
             inheritPackages = fpConfig.inheritPackages;
             excludedPackages = CollectionUtils.clone(fpConfig.excludedPackages);
             includedPackages = CollectionUtils.clone(fpConfig.includedPackages);
             transitive = fpConfig.transitive;
+            if(!fpConfig.patches.isEmpty()) {
+                if(fpConfig.patches.size() == 1) {
+                    patches = Collections.singleton(fpConfig.patches.get(0));
+                } else {
+                    patches = new LinkedHashSet<>(fpConfig.patches.size());
+                    for(FPID patchId : fpConfig.patches) {
+                        patches.add(patchId);
+                    }
+                }
+            }
+            return this;
+        }
+
+        public Builder addPatch(FPID patchId) throws ProvisioningDescriptionException {
+            final int size = patches.size();
+            patches = CollectionUtils.addLinked(patches, patchId);
+            if(size == patches.size()) {
+                throw new ProvisioningDescriptionException("Patch " + patchId + " has already been configured for " + fpl);
+            }
+            return this;
+        }
+
+        public Builder removePatch(FPID patchId) throws ProvisioningDescriptionException {
+            final int size = patches.size();
+            patches = CollectionUtils.remove(patches, patchId);
+            if(size == patches.size()) {
+                throw new ProvisioningDescriptionException("Patch " + patchId + " was not configured for " + fpl);
+            }
             return this;
         }
 
@@ -216,6 +255,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
         return new Builder(fpl, true, true);
     }
 
+    public static Builder builder(FeaturePackConfig config) {
+        return new Builder(config);
+    }
+
     /**
      * Creates the default configuration for a transitive feature-pack dependency
      *
@@ -235,6 +278,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     protected final Set<String> excludedPackages;
     protected final Map<String, PackageConfig> includedPackages;
     protected final boolean transitive;
+    protected final List<FPID> patches;
     private final Builder builder;
 
     private ArtifactCoords.Gav legacyGav;
@@ -247,6 +291,20 @@ public class FeaturePackConfig extends ConfigCustomizations {
         this.excludedPackages = CollectionUtils.unmodifiable(builder.excludedPackages);
         this.includedPackages = CollectionUtils.unmodifiable(builder.includedPackages);
         this.transitive = builder.transitive;
+        switch(builder.patches.size()) {
+            case 0:
+                patches = Collections.emptyList();
+                break;
+            case 1:
+                patches = Collections.singletonList(builder.patches.iterator().next());
+                break;
+            default:
+                final List<FPID> tmp = new ArrayList<>(builder.patches.size());
+                for(FPID fpid : builder.patches) {
+                    tmp.add(fpid);
+                }
+                patches = Collections.unmodifiableList(tmp);
+        }
         this.builder = builder;
     }
 
@@ -276,6 +334,14 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
     public boolean isTransitive() {
         return transitive;
+    }
+
+    public boolean hasPatches() {
+        return !patches.isEmpty();
+    }
+
+    public List<FPID> getPatches() {
+        return patches;
     }
 
     public boolean isInheritPackages() {
@@ -314,6 +380,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         result = prime * result + ((fpl == null) ? 0 : fpl.hashCode());
         result = prime * result + ((includedPackages == null) ? 0 : includedPackages.hashCode());
         result = prime * result + (inheritPackages ? 1231 : 1237);
+        result = prime * result + ((patches == null) ? 0 : patches.hashCode());
         result = prime * result + (transitive ? 1231 : 1237);
         return result;
     }
@@ -344,6 +411,11 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return false;
         if (inheritPackages != other.inheritPackages)
             return false;
+        if (patches == null) {
+            if (other.patches != null)
+                return false;
+        } else if (!patches.equals(other.patches))
+            return false;
         if (transitive != other.transitive)
             return false;
         return true;
@@ -357,6 +429,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
             buf.append("transitive ");
         }
         buf.append(fpl.toString());
+        if(!patches.isEmpty()) {
+            buf.append(" patches=");
+            StringUtils.append(buf, patches);
+        }
         append(buf);
         return buf.append(']').toString();
     }

@@ -86,7 +86,6 @@ public class ProvisioningLayoutFactory implements Closeable {
                     public Path getDir() {
                         return dir;
                     }
-
                 };
             }});
     }

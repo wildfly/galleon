@@ -125,7 +125,7 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
                 throw new CommandExecutionException("Specified directory doesn't contain an installation");
             }
             ProvisioningConfig config = manager.getProvisioningConfig();
-            try (ProvisioningRuntime runtime = manager.getRuntime(config, null, Collections.emptyMap())) {
+            try (ProvisioningRuntime runtime = manager.getRuntime(config, Collections.emptyMap())) {
                 container = FeatureContainers.fromProvisioningRuntime(session, manager, runtime);
             }
         }

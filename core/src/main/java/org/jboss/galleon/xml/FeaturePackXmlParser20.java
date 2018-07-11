@@ -30,6 +30,7 @@ import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeaturePackSpec.Builder;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 
@@ -55,6 +56,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         NAME("name"),
         PACKAGES("packages"),
         PACKAGE("package"),
+        PATCH("patch"),
         TRANSITIVE("transitive"),
         UNIVERSES("universes"),
 
@@ -64,7 +66,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         private static final Map<String, Element> elements;
 
         static {
-            elements = new HashMap<>(14);
+            elements = new HashMap<>(15);
             elements.put(CONFIG.name, CONFIG);
             elements.put(DEFAULT_CONFIGS.name, DEFAULT_CONFIGS);
             elements.put(DEFAULT_PACKAGES.name, DEFAULT_PACKAGES);
@@ -76,6 +78,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
             elements.put(NAME.name, NAME);
             elements.put(PACKAGES.name, PACKAGES);
             elements.put(PACKAGE.name, PACKAGE);
+            elements.put(PATCH.name, PATCH);
             elements.put(TRANSITIVE.name, TRANSITIVE);
             elements.put(UNIVERSES.name, UNIVERSES);
             elements.put(null, UNKNOWN);
@@ -114,6 +117,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         CLASSIFIER("classifier"),
         COORDS("coords"),
         EXTENSION("extension"),
+        FOR("for"),
         INHERIT("inherit"),
         LOCATION("location"),
         MODEL("model"),
@@ -125,10 +129,11 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         private static final Map<String, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(9);
+            attributes = new HashMap<>(10);
             attributes.put(CLASSIFIER.getLocalName(), CLASSIFIER);
             attributes.put(COORDS.getLocalName(), COORDS);
             attributes.put(EXTENSION.getLocalName(), EXTENSION);
+            attributes.put(FOR.getLocalName(), FOR);
             attributes.put(INHERIT.getLocalName(), INHERIT);
             attributes.put(LOCATION.getLocalName(), LOCATION);
             attributes.put(MODEL.getLocalName(), MODEL);
@@ -203,6 +208,9 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                             break;
                         case TRANSITIVE:
                             readTransitive(reader, fpBuilder);
+                            break;
+                        case PATCH:
+                            parsePatchFor(reader, fpBuilder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -328,22 +336,51 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
         throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 
-    private String parseName(final XMLExtendedStreamReader reader) throws XMLStreamException {
+    private void parsePatchFor(final XMLExtendedStreamReader reader, FeaturePackSpec.Builder builder) throws XMLStreamException {
         final int count = reader.getAttributeCount();
-        String path = null;
-        boolean parsedTarget = false;
+        FPID patchFor = null;
         for (int i = 0; i < count; i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
             switch (attribute) {
-                case NAME:
-                    path = reader.getAttributeValue(i);
-                    parsedTarget = true;
+                case FOR:
+                    final FeaturePackLocation location;
+                    try {
+                        location = FeaturePackLocation.fromString(reader.getAttributeValue(i));
+                    } catch(IllegalArgumentException e) {
+                        throw new XMLStreamException("Failed to parse patch for FPID '" + reader.getAttributeValue(i) + "'", e);
+                    }
+                    patchFor = ProvisioningXmlParser20.resolveUniverse(builder, location).getFPID();
                     break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);
             }
         }
-        if (!parsedTarget) {
+        if (patchFor == null) {
+            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.FOR));
+        }
+        ParsingUtils.parseNoContent(reader);
+
+        if(patchFor.getBuild() == null) {
+            throw new XMLStreamException("Build number is missing for the version the patch is applied to: " + patchFor);
+        }
+
+        builder.setPatchFor(patchFor);
+    }
+
+    private String parseName(final XMLExtendedStreamReader reader) throws XMLStreamException {
+        final int count = reader.getAttributeCount();
+        String path = null;
+        for (int i = 0; i < count; i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
+            switch (attribute) {
+                case NAME:
+                    path = reader.getAttributeValue(i);
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        if (path == null) {
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
         }
         ParsingUtils.parseNoContent(reader);

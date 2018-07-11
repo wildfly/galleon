@@ -31,7 +31,7 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.ProvisionSingleUniverseTestBase;
+import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
 
@@ -39,7 +39,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class TransitiveDepOverridenTestCase extends ProvisionSingleUniverseTestBase {
+public class TransitiveDepOverridenTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1Fpl;
     private FeaturePackLocation fp2Fpl;

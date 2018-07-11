@@ -32,6 +32,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
@@ -55,6 +56,8 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         INSTALLATION("installation"),
         ORIGIN("origin"),
         PACKAGES("packages"),
+        PATCHES("patches"),
+        PATCH("patch"),
         TRANSITIVE("transitive"),
         UNIVERSES("universes"),
         UNIVERSE("universe"),
@@ -66,7 +69,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         private static final Map<String, Element> elementsByLocal;
 
         static {
-            elementsByLocal = new HashMap<>(12);
+            elementsByLocal = new HashMap<>(14);
             elementsByLocal.put(CONFIG.name, CONFIG);
             elementsByLocal.put(DEFAULT_CONFIGS.name, DEFAULT_CONFIGS);
             elementsByLocal.put(EXCLUDE.name, EXCLUDE);
@@ -75,6 +78,8 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             elementsByLocal.put(INSTALLATION.name, INSTALLATION);
             elementsByLocal.put(ORIGIN.name, ORIGIN);
             elementsByLocal.put(PACKAGES.name, PACKAGES);
+            elementsByLocal.put(PATCHES.name, PATCHES);
+            elementsByLocal.put(PATCH.name, PATCH);
             elementsByLocal.put(TRANSITIVE.name, TRANSITIVE);
             elementsByLocal.put(UNIVERSE.name, UNIVERSE);
             elementsByLocal.put(UNIVERSES.name, UNIVERSES);
@@ -117,6 +122,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
     enum Attribute implements XmlNameProvider {
 
         FACTORY("factory"),
+        ID("id"),
         INHERIT("inherit"),
         INHERIT_UNNAMED_MODELS("inherit-unnamed-models"),
         LOCATION("location"),
@@ -130,8 +136,9 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
         private static final Map<String, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(8);
+            attributes = new HashMap<>(9);
             attributes.put(FACTORY.name, FACTORY);
+            attributes.put(ID.name, ID);
             attributes.put(INHERIT.name, INHERIT);
             attributes.put(INHERIT_UNNAMED_MODELS.name, INHERIT_UNNAMED_MODELS);
             attributes.put(MODEL.name, MODEL);
@@ -294,11 +301,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
             switch (attribute) {
                 case LOCATION:
-                    try {
-                        location = FeaturePackLocation.fromString(reader.getAttributeValue(i));
-                    } catch(IllegalArgumentException e) {
-                        throw ParsingUtils.error("Failed to parse feature-pack location " + reader.getAttributeValue(i), reader.getLocation(), e);
-                    }
+                    location = parseFpl(reader, i);
                     break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);
@@ -308,19 +311,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.LOCATION));
         }
 
-        if(location.getUniverse() == null) {
-            if(!builder.hasDefaultUniverse()) {
-                throw new XMLStreamException("Failed to parse feature-pack configuration for " + location + ": default universe was not configured");
-            }
-            location = new FeaturePackLocation(builder.getDefaultUniverse(), location.getProducerName(),
-                    location.getChannelName(), location.getFrequency(), location.getBuild());
-        } else {
-            final UniverseSpec resolvedConfig = builder.getUniverseSpec(location.getUniverse().toString());
-            if(resolvedConfig != null) {
-                location = new FeaturePackLocation(resolvedConfig, location.getProducerName(),
-                        location.getChannelName(), location.getFrequency(), location.getBuild());
-            }
-        }
+        location = resolveUniverse(builder, location);
 
         String origin = null;
         final FeaturePackConfig.Builder depBuilder = transitive ? FeaturePackConfig.transitiveBuilder(location) : FeaturePackConfig.builder(location);
@@ -335,7 +326,8 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                         if(transitive) {
                             buf.append("transitive ");
                         }
-                        throw new XMLStreamException(buf.append(" feature-pack dependency").toString(), e);
+                        buf.append(" feature-pack dependency");
+                        throw new XMLStreamException(ParsingUtils.error(buf.toString(), reader.getLocation()), e);
                     }
                     return;
                 }
@@ -363,6 +355,9 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                             } catch (ProvisioningDescriptionException e) {
                                 throw new XMLStreamException("Failed to parse " + Element.CONFIG, reader.getLocation(), e);
                             }
+                            break;
+                        case PATCHES:
+                            readPatches(reader, depBuilder, builder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -484,5 +479,83 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
             }
         }
         throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static void readPatches(XMLExtendedStreamReader reader, FeaturePackConfig.Builder fpConfigBuilder, FeaturePackDepsConfigBuilder<?> depsBuilder) throws XMLStreamException {
+        ParsingUtils.parseNoAttributes(reader);
+        while (reader.hasNext()) {
+            switch (reader.nextTag()) {
+                case XMLStreamConstants.END_ELEMENT: {
+                    return;
+                }
+                case XMLStreamConstants.START_ELEMENT: {
+                    final Element element = Element.of(reader.getLocalName());
+                    switch (element) {
+                        case PATCH:
+                            final FPID patchId = readPatch(reader, depsBuilder);
+                            try {
+                                fpConfigBuilder.addPatch(patchId);
+                            } catch (ProvisioningDescriptionException e) {
+                                throw new XMLStreamException("Failed to add patch " + patchId + " to config", e);
+                            }
+                            break;
+                        default:
+                            throw ParsingUtils.unexpectedContent(reader);
+                    }
+                    break;
+                }
+                default: {
+                    throw ParsingUtils.unexpectedContent(reader);
+                }
+            }
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static FPID readPatch(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> depsBuilder) throws XMLStreamException {
+        FeaturePackLocation fpl = null;
+        for (int i = 0; i < reader.getAttributeCount(); i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
+            switch (attribute) {
+                case ID:
+                    fpl = parseFpl(reader, i);
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        if(fpl == null) {
+            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.ID));
+        }
+        ParsingUtils.parseNoContent(reader);
+        fpl = resolveUniverse(depsBuilder, fpl);
+        return fpl.getFPID();
+    }
+
+    static FeaturePackLocation resolveUniverse(FeaturePackDepsConfigBuilder<?> builder, FeaturePackLocation location)
+            throws XMLStreamException {
+        if(location.getUniverse() == null) {
+            if(!builder.hasDefaultUniverse()) {
+                throw new XMLStreamException("Failed to parse feature-pack configuration for " + location + ": default universe was not configured");
+            }
+            location = new FeaturePackLocation(builder.getDefaultUniverse(), location.getProducerName(),
+                    location.getChannelName(), location.getFrequency(), location.getBuild());
+        } else {
+            final UniverseSpec resolvedConfig = builder.getUniverseSpec(location.getUniverse().toString());
+            if(resolvedConfig != null) {
+                location = new FeaturePackLocation(resolvedConfig, location.getProducerName(),
+                        location.getChannelName(), location.getFrequency(), location.getBuild());
+            }
+        }
+        return location;
+    }
+
+    static FeaturePackLocation parseFpl(XMLExtendedStreamReader reader, int i)
+            throws XMLStreamException {
+        try {
+            return FeaturePackLocation.fromString(reader.getAttributeValue(i));
+        } catch(IllegalArgumentException e) {
+            throw ParsingUtils.error("Failed to parse feature-pack location " + reader.getAttributeValue(i), reader.getLocation(), e);
+        }
     }
 }
