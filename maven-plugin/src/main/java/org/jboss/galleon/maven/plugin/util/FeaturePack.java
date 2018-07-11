@@ -37,7 +37,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     private String classifier;
     private String extension = "zip";
 
-    private boolean transientDep;
+    private boolean transitiveDep;
     private String location;
 
     private boolean inheritConfigs = true;
@@ -108,12 +108,12 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.extension = extension;
     }
 
-    public boolean isTransient() {
-        return transientDep;
+    public boolean isTransitive() {
+        return transitiveDep;
     }
 
-    public void setTransient(boolean transientDep) {
-        this.transientDep = transientDep;
+    public void setTransitive(boolean transitiveDep) {
+        this.transitiveDep = transitiveDep;
     }
 
     public String getLocation() {
@@ -177,8 +177,8 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append('{');
-        if(transientDep) {
-            buf.append("transient ");
+        if(transitiveDep) {
+            buf.append("transitive ");
         }
         if(location != null) {
             buf.append(location);
