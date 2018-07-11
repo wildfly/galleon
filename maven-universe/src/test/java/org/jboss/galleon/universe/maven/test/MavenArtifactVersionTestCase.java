@@ -62,6 +62,14 @@ public class MavenArtifactVersionTestCase {
     }
 
     @Test
+    public void testIsSnapshot() {
+        Assert.assertFalse(new MavenArtifactVersion("1.0.0.Alpha2").isSnapshot());
+        Assert.assertTrue(new MavenArtifactVersion("1.0.0.Alpha2-SNAPSHOT").isSnapshot());
+        Assert.assertFalse(new MavenArtifactVersion("1.0").isSnapshot());
+        Assert.assertFalse(new MavenArtifactVersion("1.0.ZSNAPSHOT").isSnapshot());
+    }
+
+    @Test
     public void testQualifierWeight() throws Exception {
         Assert.assertTrue(new MavenArtifactVersion("1.0.0.Beta").isQualifierHigher("alpha", false));
         Assert.assertFalse(new MavenArtifactVersion("1.0.0.Beta").isQualifierHigher("Beta", false));

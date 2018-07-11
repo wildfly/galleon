@@ -34,8 +34,6 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
-import org.eclipse.aether.version.Version;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.maven.plugin.FpMavenErrors;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
@@ -52,10 +50,6 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 public abstract class AbstractMavenArtifactRepositoryManager implements MavenRepoManager {
 
     private static final MavenArtifactVersionRangeParser versionRangeParser = new MavenArtifactVersionRangeParser();
-
-    private static ArtifactCoords toLegacyCoords(MavenArtifact artifact) {
-        return ArtifactCoords.newInstance(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), artifact.getExtension());
-    }
 
     private final RepositorySystem repoSystem;
 
@@ -121,34 +115,15 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         } catch (VersionRangeResolutionException ex) {
             throw new MavenUniverseException(ex.getLocalizedMessage(), ex);
         }
-        MavenArtifactVersion latest = null;
-        if (rangeResult != null) {
-            if (lowestQualifier == null) {
-                lowestQualifier = "";
-            }
-            for (Version version : rangeResult.getVersions()) {
-                final MavenArtifactVersion next = new MavenArtifactVersion(version.toString());
-                boolean expectSnapshot = lowestQualifier.equals(MavenArtifactVersion.SNAPSHOT);
-                if (next.isSnapshot() && expectSnapshot) {
-                    // Compare to keep the latest snapshot.
-                    if (latest == null || latest.compareTo(next) <= 0) {
-                        latest = next;
-                    }
-                } else if (!next.isSnapshot() && !expectSnapshot) {
-                    // get the latest version that is greater than the provided qualifier
-                    if (!next.isQualifierHigher(lowestQualifier, true)) {
-                        continue;
-                    }
-                    if (latest == null || latest.compareTo(next) <= 0) {
-                        latest = next;
-                    }
-                }
-            }
-        }
+        final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult, lowestQualifier);
         if (latest == null) {
             throw new MavenUniverseException("No version retrieved for " + coords);
         }
         return latest.toString();
+    }
+
+    private static MavenArtifactVersion resolveLatest(VersionRangeResult rangeResult, String lowestQualifier) throws MavenUniverseException {
+        return MavenArtifactVersion.getLatest(rangeResult.getVersions(), lowestQualifier);
     }
 
     @Override
