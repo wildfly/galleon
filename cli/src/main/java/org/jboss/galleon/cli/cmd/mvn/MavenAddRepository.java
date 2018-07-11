@@ -22,7 +22,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
-import static org.jboss.galleon.cli.MavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
+import static org.jboss.galleon.cli.CliMavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.config.mvn.MavenRemoteRepository;

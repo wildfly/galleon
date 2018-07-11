@@ -77,7 +77,7 @@ public class UniverseManager implements MavenChangeListener {
     private final PmSession pmSession;
     private final List<Future<?>> submited = new ArrayList<>();
     private volatile boolean closed;
-    UniverseManager(PmSession pmSession, Configuration config, MavenArtifactRepositoryManager maven) throws ProvisioningException {
+    UniverseManager(PmSession pmSession, Configuration config, CliMavenArtifactRepositoryManager maven) throws ProvisioningException {
         this.pmSession = pmSession;
         config.getMavenConfig().addListener(this);
         UniverseFactoryLoader.getInstance().addArtifactResolver(maven);

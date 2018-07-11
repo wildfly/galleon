@@ -185,7 +185,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private State state;
     private FeatureContainer exploredContainer;
     private String currentPath;
-    private final MavenArtifactRepositoryManager maven;
+    private final CliMavenArtifactRepositoryManager maven;
     private final MavenListener mavenListener;
     private UniverseManager universe;
     private final ResourceResolver resolver;
@@ -193,7 +193,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     public PmSession(Configuration config) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
-        this.maven = new MavenArtifactRepositoryManager(config.getMavenConfig(),
+        this.maven = new CliMavenArtifactRepositoryManager(config.getMavenConfig(),
                 mavenListener);
         universe = new UniverseManager(this, config, maven);
         layoutFactory = ProvisioningLayoutFactory.getInstance(universe.getUniverseResolver());

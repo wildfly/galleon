@@ -33,6 +33,8 @@ import org.jboss.galleon.universe.maven.MavenUniverseException;
  */
 public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
 
+    public static final String SNAPSHOT = "snapshot";
+
     private final String version;
 
     private final Item[] items;
@@ -48,6 +50,10 @@ public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
         this.version = version;
         items = parse(version);
         hash = Arrays.hashCode(items);
+    }
+
+    public boolean isSnapshot() {
+        return version.toLowerCase().endsWith("-" + SNAPSHOT);
     }
 
     public boolean isQualifierHigher(String qualifier, boolean orEqual) throws MavenUniverseException {
@@ -183,7 +189,7 @@ public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
             QUALIFIERS.put("milestone", QUALIFIER_MILESTONE);
             QUALIFIERS.put("cr", -2);
             QUALIFIERS.put("rc", -2);
-            QUALIFIERS.put("snapshot", -1);
+            QUALIFIERS.put(SNAPSHOT, -1);
             QUALIFIERS.put("ga", 0);
             QUALIFIERS.put("final", 0);
             QUALIFIERS.put("", 0);
