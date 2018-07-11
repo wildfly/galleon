@@ -69,20 +69,6 @@ public class ProvisionStateMojo extends AbstractMojo {
     // These WildFly specific props should be cleaned up
     private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
 
-    private static final String SYSPROP_KEY_JBOSS_SERVER_BASE_DIR = "jboss.server.base.dir";
-    private static final String SYSPROP_KEY_JBOSS_SERVER_CONFIG_DIR = "jboss.server.config.dir";
-    private static final String SYSPROP_KEY_JBOSS_SERVER_DEPLOY_DIR = "jboss.server.deploy.dir";
-    private static final String SYSPROP_KEY_JBOSS_SERVER_TEMP_DIR = "jboss.server.temp.dir";
-    private static final String SYSPROP_KEY_JBOSS_SERVER_LOG_DIR = "jboss.server.log.dir";
-    private static final String SYSPROP_KEY_JBOSS_SERVER_DATA_DIR = "jboss.server.data.dir";
-
-    private static final String SYSPROP_KEY_JBOSS_DOMAIN_BASE_DIR = "jboss.domain.base.dir";
-    private static final String SYSPROP_KEY_JBOSS_DOMAIN_CONFIG_DIR = "jboss.domain.config.dir";
-    private static final String SYSPROP_KEY_JBOSS_DOMAIN_DEPLOYMENT_DIR = "jboss.domain.deployment.dir";
-    private static final String SYSPROP_KEY_JBOSS_DOMAIN_TEMP_DIR = "jboss.domain.temp.dir";
-    private static final String SYSPROP_KEY_JBOSS_DOMAIN_LOG_DIR = "jboss.domain.log.dir";
-    private static final String SYSPROP_KEY_JBOSS_DOMAIN_DATA_DIR = "jboss.domain.data.dir";
-
     @Component
     protected RepositorySystem repoSystem;
 
@@ -138,13 +124,10 @@ public class ProvisionStateMojo extends AbstractMojo {
         final String originalMavenRepoLocal = System.getProperty(MAVEN_REPO_LOCAL);
         System.setProperty(MAVEN_REPO_LOCAL, session.getSettings().getLocalRepository());
         try {
-            System.setProperty("org.wildfly.logging.skipLogManagerCheck", "true");
             doProvision();
         } catch (ProvisioningException e) {
             throw new MojoExecutionException("Failed to provision the state", e);
         } finally {
-            System.clearProperty("org.wildfly.logging.skipLogManagerCheck");
-            resetProperties();
             if(originalMavenRepoLocal == null) {
                 System.clearProperty(MAVEN_REPO_LOCAL);
             } else {
@@ -220,20 +203,5 @@ public class ProvisionStateMojo extends AbstractMojo {
                 .build();
 
         pm.provision(state.build(), pluginOptions);
-    }
-
-    private static void resetProperties() {
-        System.clearProperty(SYSPROP_KEY_JBOSS_SERVER_BASE_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_SERVER_CONFIG_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_SERVER_DATA_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_SERVER_DEPLOY_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_SERVER_TEMP_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_SERVER_LOG_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_DOMAIN_BASE_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_DOMAIN_CONFIG_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_DOMAIN_DATA_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_DOMAIN_DEPLOYMENT_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_DOMAIN_TEMP_DIR);
-        System.clearProperty(SYSPROP_KEY_JBOSS_DOMAIN_LOG_DIR);
     }
 }
