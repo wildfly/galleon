@@ -80,9 +80,6 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     }
 
     public B updateFeaturePackDep(FeaturePackConfig dependency) throws ProvisioningDescriptionException {
-        if(dependency.isTransitive()) {
-            throw new ProvisioningDescriptionException("Transitive dependency can not be updated");
-        }
         return updateFeaturePackDep(null, dependency);
     }
 
