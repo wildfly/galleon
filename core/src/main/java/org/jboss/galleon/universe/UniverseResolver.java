@@ -53,9 +53,11 @@ public class UniverseResolver {
 
     private final UniverseFactoryLoader ufl;
     private Map<UniverseSpec, Universe<?>> resolvedUniverses = Collections.emptyMap();
+    private final Map<FeaturePackLocation.FPID, Path> localFeaturePacks;
 
     UniverseResolver(UniverseResolverBuilder<?> builder) throws ProvisioningException {
         this.ufl = builder.getUfl();
+        this.localFeaturePacks = builder.getLocalFeaturePacks();
     }
 
     /**
@@ -109,6 +111,10 @@ public class UniverseResolver {
      * @throws ProvisioningException  in case the feature-pack could not be resolved
      */
     public Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
+        if (localFeaturePacks.containsKey(fpl.getFPID())) {
+            return localFeaturePacks.get(fpl.getFPID());
+        }
+
         return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).resolve(fpl);
     }
 
