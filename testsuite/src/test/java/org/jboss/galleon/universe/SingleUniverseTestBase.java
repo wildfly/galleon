@@ -33,6 +33,7 @@ import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
  */
 public abstract class SingleUniverseTestBase extends PmTestBase {
 
+    protected MvnUniverse mvnUniverse;
     protected String universeName = "test-universe";
     protected MavenArtifact universeArtifact;
     private UniverseSpec universeSpec;
@@ -69,9 +70,9 @@ public abstract class SingleUniverseTestBase extends PmTestBase {
 
     @Override
     protected void doBefore() throws Exception {
-        final MvnUniverse universe = MvnUniverse.getInstance(universeName, (MavenRepoManager) repo);
-        createProducers(universe);
-        universeArtifact = universe.install();
+        mvnUniverse = MvnUniverse.getInstance(universeName, (MavenRepoManager) repo);
+        createProducers(mvnUniverse);
+        universeArtifact = mvnUniverse.install();
         super.doBefore();
     }
 }
