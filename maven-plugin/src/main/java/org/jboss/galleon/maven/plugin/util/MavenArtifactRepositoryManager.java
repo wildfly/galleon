@@ -21,8 +21,6 @@ import java.util.List;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 
 /**
@@ -31,10 +29,6 @@ import org.jboss.galleon.universe.maven.MavenUniverseException;
  * @author Alexey Loubyansky
  */
 public class MavenArtifactRepositoryManager extends AbstractMavenArtifactRepositoryManager {
-
-    private static ArtifactCoords toLegacyCoords(MavenArtifact artifact) {
-        return ArtifactCoords.newInstance(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), artifact.getExtension());
-    }
 
     private final RepositorySystemSession session;
     private final List<RemoteRepository> repositories;

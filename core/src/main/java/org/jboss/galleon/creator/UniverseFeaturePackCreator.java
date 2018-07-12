@@ -42,7 +42,7 @@ public interface UniverseFeaturePackCreator {
      *
      * @param universe  target universe
      * @param fpid  feature-pack id
-     * @param fpContentDir  directory containing prepare feature-pack content
+     * @param fpContentDir  directory containing prepared feature-pack content
      * @throws ProvisioningException  in case anything goes wrong
      */
     void install(Universe<?> universe, FeaturePackLocation.FPID fpid, Path fpContentDir) throws ProvisioningException;

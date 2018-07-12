@@ -35,6 +35,53 @@ public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
 
     public static final String SNAPSHOT = "snapshot";
 
+    private static boolean isSnapshot(final String version) {
+        final int vLength = version.length();
+        return vLength > SNAPSHOT.length() + 2 &&
+                version.charAt(vLength - SNAPSHOT.length() - 1) == '-' &&
+                version.regionMatches(true, vLength - SNAPSHOT.length(), SNAPSHOT, 0, SNAPSHOT.length());
+    }
+
+    public static MavenArtifactVersion getLatest(Iterable<?> versions, String lowestQualifier) throws MavenUniverseException {
+        final boolean snapshotsAllowed;
+        if (lowestQualifier == null) {
+            lowestQualifier = "";
+            snapshotsAllowed = false;
+        } else {
+            snapshotsAllowed = lowestQualifier.equalsIgnoreCase(MavenArtifactVersion.SNAPSHOT);
+        }
+        MavenArtifactVersion latestRelease = null;
+        String latestSnapshot = null;
+        for (Object version : versions) {
+            final String v = version.toString();
+            final boolean snapshot = isSnapshot(v);
+            final MavenArtifactVersion next;
+            if(snapshot) {
+                if(!snapshotsAllowed) {
+                    continue;
+                }
+                next = new MavenArtifactVersion(v.substring(0, v.length() - SNAPSHOT.length() - 1));
+            } else {
+                next = new MavenArtifactVersion(v);
+                if (!snapshotsAllowed && !next.isQualifierHigher(lowestQualifier, true)) {
+                    continue;
+                }
+            }
+            if(latestRelease == null) {
+                latestRelease = next;
+                latestSnapshot = snapshot ? v : null;
+                continue;
+            }
+            final int c = latestRelease.compareTo(next);
+            if(c > 0 || c == 0 && latestSnapshot == null) {
+                continue;
+            }
+            latestRelease = next;
+            latestSnapshot = snapshot ? v : null;
+        }
+        return latestSnapshot == null ? latestRelease : new MavenArtifactVersion(latestSnapshot);
+    }
+
     private final String version;
 
     private final Item[] items;
@@ -53,7 +100,7 @@ public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
     }
 
     public boolean isSnapshot() {
-        return version.toLowerCase().endsWith("-" + SNAPSHOT);
+        return isSnapshot(this.version);
     }
 
     public boolean isQualifierHigher(String qualifier, boolean orEqual) throws MavenUniverseException {

@@ -22,6 +22,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
@@ -211,26 +213,52 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
         if(lowestQualifier == null) {
             lowestQualifier = "";
         }
-        Path latestDir = null;
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(artifactDir)) {
-            MavenArtifactVersion latest = null;
-            for(Path versionDir : stream) {
-                final MavenArtifactVersion next = new MavenArtifactVersion(versionDir.getFileName().toString());
-                if(!range.includesVersion(next) || !next.isQualifierHigher(lowestQualifier, true)) {
-                    continue;
+
+            final Iterable<String> versions = new Iterable<String>() {
+                @Override
+                public Iterator<String> iterator() {
+                    return new Iterator<String>() {
+                        final Iterator<Path> i = stream.iterator();
+                        Path nextPath = toNext(range);
+
+                        @Override
+                        public boolean hasNext() {
+                            return nextPath != null;
+                        }
+
+                        @Override
+                        public String next() {
+                            if(nextPath != null) {
+                                final String s = nextPath.getFileName().toString();
+                                nextPath = toNext(range);
+                                return s;
+                            }
+                            throw new NoSuchElementException();
+                        }
+
+                        private Path toNext(final MavenArtifactVersionRange range) {
+                            while(i.hasNext()) {
+                                final Path path = i.next();
+                                final MavenArtifactVersion next = new MavenArtifactVersion(path.getFileName().toString());
+                                if(range.includesVersion(next)) {
+                                    return path;
+                                }
+                            }
+                            return null;
+                        }
+                    };
                 }
-                if(latest == null || latest.compareTo(next) <= 0) {
-                    latest = next;
-                    latestDir = versionDir;
-                }
+            };
+
+            final MavenArtifactVersion latest = MavenArtifactVersion.getLatest(versions, lowestQualifier);
+            if(latest == null) {
+                throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString());
             }
+            return artifactDir.resolve(latest.toString());
         } catch (Exception e) {
             throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString(), e);
         }
-        if(latestDir == null) {
-            throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString());
-        }
-        return latestDir;
     }
 
     private Path getArtifactPath(MavenArtifact artifact) throws MavenUniverseException {
