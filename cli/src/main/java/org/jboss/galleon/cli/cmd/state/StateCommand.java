@@ -27,12 +27,11 @@ import org.aesh.command.GroupCommandDefinition;
 import org.aesh.command.container.CommandContainer;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.parser.CommandLineParserException;
-import org.aesh.readline.AeshContext;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.plugin.DiffCommand;
 import org.jboss.galleon.cli.cmd.state.configuration.ConfigCommand;
-import org.jboss.galleon.cli.cmd.state.fp.FeaturePackCommand;
+import org.jboss.galleon.cli.cmd.state.fp.FPCommand;
 import org.jboss.galleon.cli.cmd.state.pkg.PackageCommand;
 
 /**
@@ -65,12 +64,8 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
 
     public static void addActionCommands(AeshCommandRegistryBuilder builder) throws CommandLineParserException {
         builder.command(ConfigCommand.class);
-        builder.command(FeaturePackCommand.class);
+        builder.command(FPCommand.class);
         builder.command(PackageCommand.class);
-    }
-
-    public void setAeshContext(AeshContext ctx) {
-        provisionCommand.setAeshContext(ctx);
     }
 
     @Override

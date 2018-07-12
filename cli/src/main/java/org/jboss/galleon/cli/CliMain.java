@@ -31,6 +31,7 @@ import org.jboss.galleon.cli.cmd.filesystem.LsCommand;
 import org.jboss.galleon.cli.cmd.filesystem.PmMkdir;
 import org.jboss.galleon.cli.cmd.filesystem.PmRm;
 import org.jboss.galleon.cli.cmd.filesystem.PwdCommand;
+import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
 import org.jboss.galleon.cli.cmd.plugin.InstallCommand;
 import org.jboss.galleon.cli.cmd.state.StateCommand;
 import org.jboss.galleon.cli.cmd.state.SearchCommand;
@@ -56,6 +57,7 @@ public class CliMain {
         StateCommand state = new StateCommand(pmSession);
         AeshCommandRegistryBuilder builder = new AeshCommandRegistryBuilder()
                 .command(Clear.class)
+                .command(FeaturePackCommand.class)
                 .command(MavenCommand.class)
                 .command(feature)
                 .command(state)
@@ -96,9 +98,7 @@ public class CliMain {
         pmSession.setErr(settings.stdErr());
         ReadlineConsole console = new ReadlineConsole(settings);
 
-        // These commands require the aeshContext to properly operate
-        state.setAeshContext(console.context());
-        pmSession.getUniverse().setAeshContext(console.context());
+        pmSession.setAeshContext(console.context());
         console.setPrompt(PmSession.buildPrompt(settings.aeshContext()));
         console.start();
     }

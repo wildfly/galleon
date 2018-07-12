@@ -26,6 +26,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -105,7 +106,7 @@ public class UniverseListCommand extends PmSessionCommand {
 
     private static void printUniverse(Pattern cPattern, UniverseSpec spec, org.jboss.galleon.universe.Universe<?> universe,
             PmCommandInvocation invoc) throws ProvisioningException {
-        Table table = new Table("Product", "Channel", "Qualifier", "Version");
+        Table table = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.QUALIFIER, Headers.VERSION);
         for (Producer<?> producer : universe.getProducers()) {
             if (cPattern == null || cPattern.matcher(producer.getName()).matches()) {
                 for (Channel channel : producer.getChannels()) {

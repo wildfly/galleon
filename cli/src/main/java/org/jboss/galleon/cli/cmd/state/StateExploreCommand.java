@@ -17,7 +17,7 @@
 package org.jboss.galleon.cli.cmd.state;
 
 import org.aesh.command.CommandDefinition;
-import org.jboss.galleon.cli.AbstractFeaturePackCommand;
+import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -25,8 +25,8 @@ import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathParser;
 
-@CommandDefinition(name = "explore", description = "Explore a feature-pack or an installation", activator = NoStateCommandActivator.class)
-public class StateExploreCommand extends AbstractFeaturePackCommand {
+@CommandDefinition(name = "explore", description = "Explore an installation", activator = NoStateCommandActivator.class)
+public class StateExploreCommand extends AbstractStateCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
@@ -36,7 +36,7 @@ public class StateExploreCommand extends AbstractFeaturePackCommand {
             if (pm.getContainer() != null) {
                 throw new CommandExecutionException("Already entered, use leave command");
             }
-            FeatureContainer container = getFeatureContainer(pm, session.getAeshContext());
+            FeatureContainer container = getFeatureContainer(pm);
             pm.setExploredContainer(container);
             prompt = getName() + PathParser.PATH_SEPARATOR;
             pm.setCurrentPath(FeatureContainerPathConsumer.ROOT);

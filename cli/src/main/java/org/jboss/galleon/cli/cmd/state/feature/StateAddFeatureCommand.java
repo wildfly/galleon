@@ -189,7 +189,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     @Override
-    protected void doValidateOptions() throws CommandExecutionException {
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         List<String> args = (List<String>) getValue(ARGUMENT_NAME);
         if (args != null) {
             if (args.size() == 2) {

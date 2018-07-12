@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.aesh.command.activator.OptionActivator;
 import org.aesh.command.impl.internal.OptionType;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
@@ -32,7 +33,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
-import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import org.jboss.galleon.cli.model.state.State;
@@ -75,8 +76,12 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     protected abstract void runCommand(PmCommandInvocation session, Map<String, String> options,
             FeaturePackLocation loc) throws CommandExecutionException;
 
+    protected OptionActivator getArgumentActivator() {
+        return null;
+    }
+
     @Override
-    protected void doValidateOptions() throws CommandExecutionException {
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         // side effect is to resolve artifact.
         String fpl = getId(pmSession);
         if (fpl == null) {
@@ -93,6 +98,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
                 type(String.class).
                 required(true).
                 optionType(OptionType.ARGUMENT).
+                activator(getArgumentActivator()).
                 completer(FPLocationCompleter.class).
                 build());
         options.add(ProcessedOptionBuilder.builder().name(VERBOSE_OPTION_NAME).

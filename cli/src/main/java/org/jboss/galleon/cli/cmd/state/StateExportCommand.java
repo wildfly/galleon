@@ -30,7 +30,7 @@ import org.aesh.io.Resource;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;

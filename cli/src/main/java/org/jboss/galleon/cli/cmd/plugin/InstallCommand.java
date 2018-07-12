@@ -16,26 +16,32 @@
  */
 package org.jboss.galleon.cli.cmd.plugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import org.aesh.command.activator.OptionActivator;
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.impl.internal.OptionType;
+import org.aesh.command.impl.internal.ParsedCommand;
+import org.aesh.command.impl.internal.ParsedOption;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
+import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
@@ -45,6 +51,27 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  */
 public class InstallCommand extends AbstractPluginsCommand {
 
+    private class ArgOptionActivator implements OptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand parsedCommand) {
+            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(FILE_OPTION_NAME);
+            return opt == null || opt.value() == null;
+        }
+
+    }
+
+    private class FileOptionActivator implements OptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand parsedCommand) {
+            ParsedOption opt = parsedCommand.argument();
+            return opt == null || opt.value() == null;
+        }
+
+    }
+    public static final String FILE_OPTION_NAME = "file";
+
     public InstallCommand(PmSession pmSession) {
         super(pmSession);
     }
@@ -52,8 +79,16 @@ public class InstallCommand extends AbstractPluginsCommand {
     @Override
     protected void runCommand(PmCommandInvocation session, Map<String, String> options, FeaturePackLocation loc) throws CommandExecutionException {
         try {
+            String filePath = (String) getValue(FILE_OPTION_NAME);
             final ProvisioningManager manager = getManager(session);
-            manager.install(loc, options);
+            if (filePath != null) {
+                Path workDir = PmSession.getWorkDir(session.getAeshContext());
+                Path p = workDir.resolve(filePath);
+                // always install for future use.
+                manager.install(p, true);
+            } else {
+                manager.install(loc, options);
+            }
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }
@@ -68,6 +103,9 @@ public class InstallCommand extends AbstractPluginsCommand {
         } catch (InterruptedException ex) {
             Thread.interrupted();
             throw new ProvisioningException(ex);
+        } catch (ExecutionException ex) {
+            throw new ProvisioningException(ex.getCause());
+
         }
     }
 
@@ -92,7 +130,57 @@ public class InstallCommand extends AbstractPluginsCommand {
                 completer(FileOptionCompleter.class).
                 build();
         options.add(dir);
+        ProcessedOption file = ProcessedOptionBuilder.builder().name(FILE_OPTION_NAME).
+                hasValue(true).
+                type(String.class).
+                optionType(OptionType.NORMAL).
+                activator(new FileOptionActivator()).
+                description("Path to a Feature-pack.").
+                completer(FileOptionCompleter.class).
+                build();
+        options.add(file);
         return options;
+    }
+
+    @Override
+    protected String getId(PmSession session) throws CommandExecutionException {
+        String filePath = (String) getValue(FILE_OPTION_NAME);
+        if (filePath == null) {
+            return super.getId(session);
+        }
+        Path workDir = PmSession.getWorkDir(session.getAeshContext());
+        Path path = workDir.resolve(filePath);
+        if (!Files.exists(path)) {
+            return null;
+        }
+        try {
+            return FeaturePackDescriber.readSpec(path).getFPID().toString();
+        } catch (ProvisioningException ex) {
+            throw new CommandExecutionException(ex);
+        }
+    }
+
+    @Override
+    protected OptionActivator getArgumentActivator() {
+        return new ArgOptionActivator();
+    }
+
+    @Override
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
+        String filePath = (String) getValue(FILE_OPTION_NAME);
+        if (filePath == null) {
+            super.doValidateOptions(invoc);
+            return;
+        }
+        String arg = (String) getValue(ARGUMENT_NAME);
+        if (arg != null) {
+            throw new CommandExecutionException("Only one of file or Feature-pack location is allowed.");
+        }
+        Path workDir = PmSession.getWorkDir(invoc.getAeshContext());
+        Path p = workDir.resolve(filePath);
+        if (!Files.exists(p)) {
+            throw new CommandExecutionException(p + " doesn't exist.");
+        }
     }
 
     @Override

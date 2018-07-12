@@ -1,9 +1,21 @@
 ## Galleon CLI tool
 A set of commands is offered to observe, explore, edit, diff, export, provision or create a new provisioning state.
 
-### Observing an installation or feature-pack.
+### Installing a feature-pack
 
-_[my-dir]$ state info <stream name | --dir=installation> --type=[configs|dependencies]_
+_install <[FPL] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--verbose] [list of discovered feature-pack options]_
+
+This creates a directory containing the installed feature-pack content (binaries, configs).
+
+### Observing an installation
+
+_[my-dir]$ state info [--dir=installation] --type=[configs|dependencies|patches]_
+
+Display the set of dependencies and/or configurations and/or applied patches. All is displayed by default.
+
+### Observing a feature-pack
+
+_[my-dir]$ feature-pack info <[FPL] | [--file=<path to fp zip file>]> --type=[configs|dependencies]_
 
 Display the set of dependencies and/or configurations. All is displayed by default.
 
@@ -17,15 +29,21 @@ _[my-dir]$ state provision <xml file> --dir=<target installation directory>_
 
 ### Exploring an installation or a feature-pack.
 
-_[my-dir]$ state explore <[stream name|--fp=coords] | --dir=installation> +
-[/]$ ls +
+To explore an installation: +
+_[my-dir]$ state explore --dir=installation_ +
+
+To explore a feature-pack: +
+_[my-dir]$ feature-pack explore <[FPL] | [--file=<path to fp zip file>]_ +
+
+Once exploring, prompt, ls, cd and pwd commands are bound to the feature-pack (or installation) exposed file-system. +
+
+_[/]$ ls +
 configs +
 feature-specs +
 packages +
 [/]$ state leave +
 [my-dir]$_ +
 
-Once exploring, prompt, ls, cd and pwd commands are bound to the feature-pack (or installation) exposed file-system. +
 The fs is composed of: +
 /configs/final/<model>/<name>/<features> +
 /feature-specs/<origin>/<feature-specs> +
@@ -79,10 +97,15 @@ _[/]$ universe add [--name=<universe name>] --factory=<universe factory> --locat
 Remove a named or default (without using the --name option) universe from the current provisioning state or installation. + 
 _[/]$ universe remove [--name=<universe name>]_
 
-### Searching for products in universes
-You can search for products that match a given pattern using _universe search <pattern>_. +
+### Listing products of universes
+
+_[/]$ universe list_ + 
+
+This command lists all the products and available builds present in all the installed universes.
+
+You can search for products that match a given pattern using _--product=<pattern>_. +
 For example: +
-_[/]$ universe search wildfly*_
+_[/]$ universe list --product=wildfly*_
 
 ### Exporting or provisioning the current state
 
@@ -98,7 +121,7 @@ TIP: The command state info can be used to get high level information.
 
 ### Adding a feature-pack
 
-_[/]$ feature-pack add <stream | --fp=coords> [--default-configs-inherit] [--packages-inherit]_ +
+_[/]$ fp add <stream | --fp=coords> [--default-configs-inherit] [--packages-inherit]_ +
 
 By default nothing is inherited. Once at least one feature-pack has been added, configurations or packages can be handled. 
 
@@ -106,7 +129,7 @@ NB: A runtime based on the added full feature-pack is built in order to retrieve
 
 ### Removing a feature-pack
 
-_[/]$ feature-pack remove <fpcoord for now>_
+_[/]$ fp remove <fpcoord for now>_
 
 ### Including a default configuration
 

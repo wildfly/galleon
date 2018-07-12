@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
-import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.PmSession.getWorkDir;
@@ -73,7 +72,6 @@ public class UniverseManager implements MavenChangeListener {
     private MavenUniverse builtinUniverse;
     private final UniverseSpec builtinUniverseSpec;
     private final UniverseResolver universeResolver;
-    private AeshContext aeshContext;
     private final PmSession pmSession;
     private final List<Future<?>> submited = new ArrayList<>();
     private volatile boolean closed;
@@ -165,10 +163,6 @@ public class UniverseManager implements MavenChangeListener {
 
     }
 
-    void setAeshContext(AeshContext aeshContext) {
-        this.aeshContext = aeshContext;
-    }
-
     public MavenUniverse getBuiltinUniverse() {
         synchronized (this) {
             return builtinUniverse;
@@ -186,7 +180,7 @@ public class UniverseManager implements MavenChangeListener {
     }
 
     private ProvisioningManager getProvisioningManager() throws ProvisioningException {
-        Path workDir = getWorkDir(aeshContext);
+        Path workDir = getWorkDir(pmSession.getAeshContext());
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException("Local directory is not an installation directory");
         }
@@ -201,7 +195,7 @@ public class UniverseManager implements MavenChangeListener {
             resolveUniverse(u);
             return;
         }
-        Path workDir = getWorkDir(aeshContext);
+        Path workDir = getWorkDir(pmSession.getAeshContext());
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException("Local directory is not an installation directory");
         }
@@ -229,7 +223,7 @@ public class UniverseManager implements MavenChangeListener {
             pmSession.getState().removeUniverse(pmSession, name);
             return;
         }
-        Path workDir = getWorkDir(aeshContext);
+        Path workDir = getWorkDir(pmSession.getAeshContext());
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException("Local directory is not an installation directory");
         }
@@ -255,7 +249,7 @@ public class UniverseManager implements MavenChangeListener {
         if (pmSession.getState() != null) {
             defaultUniverse = pmSession.getState().getConfig().getDefaultUniverse();
         } else {
-            Path workDir = getWorkDir(aeshContext);
+            Path workDir = getWorkDir(pmSession.getAeshContext());
             if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
                 return builtinUniverseSpec;
             }
