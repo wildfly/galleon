@@ -102,8 +102,12 @@ public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase
 
     protected abstract ProvisioningConfig provisioningConfig() throws ProvisioningException;
 
+    protected ProvisioningLayoutFactory getLayoutFactory() throws ProvisioningException {
+        return ProvisioningLayoutFactory.getInstance();
+    }
+
     protected ProvisioningLayout<FeaturePackLayout> buildLayout() throws ProvisioningException {
-        return ProvisioningLayoutFactory.getInstance().newConfigLayout(provisioningConfig());
+        return getLayoutFactory().newConfigLayout(provisioningConfig());
     }
 
     protected String[] errors() {

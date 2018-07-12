@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.layout;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -29,23 +30,43 @@ import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.xml.FeaturePackXmlParser;
 import org.jboss.galleon.xml.PackageXmlParser;
 import org.jboss.galleon.xml.XmlParsers;
 
 /**
- * @deprecated
  *
  * Builds a layout description by analyzing the feature-pack layout
  * structure and parsing included XML files.
  *
  * @author Alexey Loubyansky
  */
-public class FeaturePackLayoutDescriber {
+public class FeaturePackDescriber {
 
-    public static FeaturePackLayout describeFeaturePackZip(Path artifactZip) throws IOException, ProvisioningDescriptionException {
+    public static FeaturePackSpec readSpec(Path artifactZip) throws ProvisioningException {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifactZip)) {
+            for(Path zipRoot : zipfs.getRootDirectories()) {
+                final Path p = zipRoot.resolve(Constants.FEATURE_PACK_XML);
+                if(!Files.exists(p)) {
+                    throw new ProvisioningException("Feature-pack archive does not contain " + Constants.FEATURE_PACK_XML);
+                }
+                try(BufferedReader reader = Files.newBufferedReader(p)) {
+                    return FeaturePackXmlParser.getInstance().parse(reader);
+                } catch (XMLStreamException e) {
+                    throw new ProvisioningException(Errors.parseXml(p), e);
+                }
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.readFile(artifactZip), e);
+        }
+        return null;
+    }
+
+    public static FeaturePackDescription describeFeaturePackZip(Path artifactZip) throws IOException, ProvisioningDescriptionException {
         try (FileSystem zipfs = ZipUtils.newFileSystem(artifactZip)) {
             for(Path zipRoot : zipfs.getRootDirectories()) {
                 return describeFeaturePack(zipRoot, "UTF-8");
@@ -54,17 +75,17 @@ public class FeaturePackLayoutDescriber {
         return null;
     }
 
-    public static FeaturePackLayout describeFeaturePack(Path fpDir, String encoding) throws ProvisioningDescriptionException {
+    public static FeaturePackDescription describeFeaturePack(Path fpDir, String encoding) throws ProvisioningDescriptionException {
         assertDirectory(fpDir);
         final Path fpXml = fpDir.resolve(Constants.FEATURE_PACK_XML);
         if(!Files.exists(fpXml)) {
             throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpXml));
         }
-        final FeaturePackLayout.Builder layoutBuilder;
+        final FeaturePackDescription.Builder layoutBuilder;
         try (Reader is = Files.newBufferedReader(fpXml, Charset.forName(encoding))) {
             final FeaturePackSpec.Builder specBuilder = FeaturePackSpec.builder();
             XmlParsers.parse(is, specBuilder);
-            layoutBuilder = FeaturePackLayout.builder(specBuilder);
+            layoutBuilder = FeaturePackDescription.builder(specBuilder);
         } catch (IOException e) {
             throw new ProvisioningDescriptionException(Errors.openFile(fpXml));
         } catch (XMLStreamException e) {
@@ -78,7 +99,7 @@ public class FeaturePackLayoutDescriber {
         return layoutBuilder.build();
     }
 
-    private static void processPackages(FeaturePackLayout.Builder fpBuilder, Path packagesDir, String encoding) throws ProvisioningDescriptionException {
+    private static void processPackages(FeaturePackDescription.Builder fpBuilder, Path packagesDir, String encoding) throws ProvisioningDescriptionException {
         assertDirectory(packagesDir);
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(packagesDir)) {
             for(Path path : stream) {

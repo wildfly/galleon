@@ -17,22 +17,19 @@
 
 package org.jboss.galleon.universe.maven;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.creator.UniverseFeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Universe;
-import org.jboss.galleon.util.IoUtils;
-import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class MavenFeaturePackCreator implements UniverseFeaturePackCreator {
+public class MavenFeaturePackInstaller implements UniverseFeaturePackInstaller {
 
     public static final String ZIP = "zip";
 
@@ -42,7 +39,7 @@ public class MavenFeaturePackCreator implements UniverseFeaturePackCreator {
     }
 
     @Override
-    public void install(Universe<?> universe, FPID fpid, Path fpContentDir) throws ProvisioningException {
+    public void install(Universe<?> universe, FPID fpid, Path fpZip) throws ProvisioningException {
         final MavenUniverse mvnUni = (MavenUniverse) universe;
         final FeaturePackLocation fps = fpid.getLocation();
         final MavenProducer producer = mvnUni.getProducer(fps.getProducerName());
@@ -55,17 +52,6 @@ public class MavenFeaturePackCreator implements UniverseFeaturePackCreator {
         artifact.setVersion(fpid.getBuild());
         artifact.setExtension(ZIP);
 
-        Path tmpFile = null;
-        try {
-            tmpFile = fpContentDir.getParent().resolve(artifact.getArtifactFileName());
-            ZipUtils.zip(fpContentDir, tmpFile);
-            producer.getRepo().install(artifact, tmpFile);
-        } catch (IOException e) {
-            throw new MavenUniverseException("Failed to create a feature-pack archive", e);
-        } finally {
-            if(tmpFile != null) {
-                IoUtils.recursiveDelete(tmpFile);
-            }
-        }
+        producer.getRepo().install(artifact, fpZip);
     }
 }

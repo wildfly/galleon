@@ -34,6 +34,7 @@ import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.StringUtils;
@@ -404,6 +405,20 @@ public interface Errors {
 
     static String patchNotApplicable(FPID patchId, FPID targetFpid) {
         return "Patch " + patchId + " applies to " + targetFpid + " which is not a part of the installation";
+    }
+
+    static String featurePackInstallerNotFound(String universeFactory, Collection<String> installers) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Failed to locate an implementation of ")
+        .append(UniverseFeaturePackInstaller.class.getName())
+        .append(" for universe factory ")
+        .append(universeFactory)
+        .append(" on the classpath.");
+        if(!installers.isEmpty()) {
+            buf.append(" Available universe factory installers include ");
+            StringUtils.append(buf, installers);
+        }
+        return buf.toString();
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {

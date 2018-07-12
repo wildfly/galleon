@@ -16,8 +16,11 @@
  */
 package org.jboss.galleon.test;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -40,6 +43,7 @@ public class FeaturePackRepoTestBase {
     protected Path workDir;
     protected Path repoHome;
     protected Path installHome;
+    private Path tmpDir;
     protected RepositoryArtifactResolver repo;
     protected FeaturePackCreator creator;
 
@@ -90,5 +94,13 @@ public class FeaturePackRepoTestBase {
 
     protected void assertProvisionedState(ProvisioningManager pm, ProvisionedState config) throws ProvisioningException {
         Assert.assertEquals(config, pm.getProvisionedState());
+    }
+
+    protected Path getTmpDir() throws ProvisioningException {
+        try {
+            return tmpDir == null ? tmpDir = Files.createDirectory(workDir.resolve("tmp")) : tmpDir;
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.mkdirs(workDir.resolve("tmp")), e);
+        }
     }
 }

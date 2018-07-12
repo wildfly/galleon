@@ -22,7 +22,7 @@ import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackDescription;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.junit.Assert;
@@ -39,7 +39,7 @@ public class UnsatisfiedLocalPackageDependenciesTestCase {
     @Test
     public void testRequiredDependency() throws Exception {
 
-        final FeaturePackLayout.Builder builder = FeaturePackLayout
+        final FeaturePackDescription.Builder builder = FeaturePackDescription
                 .builder(FeaturePackSpec.builder(fpGav)
                         .addDefaultPackage("p1"))
                         .addPackage(PackageSpec.builder("p1")
@@ -63,7 +63,7 @@ public class UnsatisfiedLocalPackageDependenciesTestCase {
     @Test
     public void testOptionalDependency() throws Exception {
 
-        final FeaturePackLayout.Builder builder = FeaturePackLayout
+        final FeaturePackDescription.Builder builder = FeaturePackDescription
                 .builder(FeaturePackSpec.builder(fpGav)
                         .addDefaultPackage("p1"))
                         .addPackage(PackageSpec.builder("p1")

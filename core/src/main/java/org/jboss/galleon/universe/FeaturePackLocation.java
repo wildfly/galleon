@@ -70,6 +70,10 @@ public class FeaturePackLocation {
             this.hash = hash;
         }
 
+        public UniverseSpec getUniverse() {
+            return FeaturePackLocation.this.universeSpec;
+        }
+
         public ProducerSpec getProducer() {
             return FeaturePackLocation.this.getProducer();
         }

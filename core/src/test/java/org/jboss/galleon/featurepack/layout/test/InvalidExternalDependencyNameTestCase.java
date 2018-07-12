@@ -21,7 +21,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackDescription;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.junit.Assert;
@@ -39,7 +39,7 @@ public class InvalidExternalDependencyNameTestCase {
     @Test
     public void testRequiredDependency() throws Exception {
 
-        final FeaturePackLayout.Builder builder = FeaturePackLayout.builder(FeaturePackSpec.builder(fp1Gav)
+        final FeaturePackDescription.Builder builder = FeaturePackDescription.builder(FeaturePackSpec.builder(fp1Gav)
                         .addFeaturePackDep(FeaturePackConfig.forLocation(fp2Gav.getLocation()))
                         .addDefaultPackage("p1"))
                         .addPackage(PackageSpec.builder("p1")
@@ -57,7 +57,7 @@ public class InvalidExternalDependencyNameTestCase {
     @Test
     public void testOptionalDependency() throws Exception {
 
-        final FeaturePackLayout.Builder builder = FeaturePackLayout.builder(FeaturePackSpec.builder(fp1Gav)
+        final FeaturePackDescription.Builder builder = FeaturePackDescription.builder(FeaturePackSpec.builder(fp1Gav)
                 .addFeaturePackDep(FeaturePackConfig.forLocation(fp2Gav.getLocation()))
                 .addDefaultPackage("p1"))
                 .addPackage(PackageSpec.builder("p1")
