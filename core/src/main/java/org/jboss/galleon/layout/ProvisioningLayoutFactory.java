@@ -100,6 +100,19 @@ public class ProvisioningLayoutFactory implements Closeable {
         return fpid.getLocation();
     }
 
+    /**
+     * Builds a layout for the configuration including the feature-pack contained in the local archive.
+     * Optionally, installs the feature-pack archive to the universe repository.
+     *
+     * @param featurePack  feature-pack archive
+     * @param installInUniverse  whether to install the feature-pack into the universe repository
+     * @return layout
+     * @throws ProvisioningException  in case of a failure
+     */
+    public ProvisioningLayout<FeaturePackLayout> newConfigLayout(Path featurePack, boolean installInUniverse) throws ProvisioningException {
+        return newConfigLayout(ProvisioningConfig.builder().addFeaturePackDep(addLocal(featurePack, installInUniverse)).build());
+    }
+
     public ProvisioningLayout<FeaturePackLayout> newConfigLayout(ProvisioningConfig config) throws ProvisioningException {
         return newConfigLayout(config, new FeaturePackLayoutFactory<FeaturePackLayout>() {
             @Override
