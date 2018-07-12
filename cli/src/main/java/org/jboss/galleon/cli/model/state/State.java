@@ -42,6 +42,7 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
@@ -266,16 +267,12 @@ public class State {
         runtime.close();
         runtime = manager.getRuntime(tmp, Collections.emptyMap());
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
-        for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
-            dependencies.add(cf.getLocation().getFPID());
+        for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
+            dependencies.add(rt.getFPID());
         }
         FeatureContainer tmpContainer = FeatureContainers.fromProvisioningRuntime(pmSession, manager, runtime);
         // Need to have in sync the current with the full.
         // If fullConainer creation is a failure, the container will be not updated.
-        Set<FeaturePackLocation.FPID> newDeps = new HashSet<>();
-        for (FeaturePackConfig cf : tmp.getFeaturePackDeps()) {
-            newDeps.add(cf.getLocation().getFPID());
-        }
         Map<String, FeatureContainer> tmpDeps = new HashMap<>();
         tmpDeps.putAll(container.getFullDependencies());
         buildDependencies(pmSession, dependencies, tmpDeps);

@@ -19,8 +19,6 @@ package org.jboss.galleon.cli.cmd.state;
 import java.io.IOException;
 
 import org.aesh.command.option.Argument;
-import org.aesh.utils.Config;
-import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -40,14 +38,6 @@ public abstract class AbstractFPProvisioningCommand extends AbstractStateCommand
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
         FeaturePackLocation fpl = invoc.getPmSession().getResolvedLocation(streamName);
-        if (!invoc.getPmSession().existsInLocalRepository(fpl.getFPID())) {
-            try {
-                invoc.getPmSession().println(Config.getLineSeparator() + "retrieving feature-pack content from remote repository...");
-                invoc.getPmSession().downloadFp(fpl.getFPID());
-            } catch (ArtifactException ex) {
-                throw new CommandExecutionException(ex);
-            }
-        }
         runCommand(invoc, session, fpl);
     }
 
