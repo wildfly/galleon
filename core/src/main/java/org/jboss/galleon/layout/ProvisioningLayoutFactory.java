@@ -78,7 +78,7 @@ public class ProvisioningLayoutFactory implements Closeable {
      * @param installInUniverse  whether to install the feature-pack into the universe repository
      * @throws ProvisioningException  in case of a failure
      */
-    public synchronized void addLocal(Path featurePack, boolean installInUniverse) throws ProvisioningException {
+    public synchronized FeaturePackLocation addLocal(Path featurePack, boolean installInUniverse) throws ProvisioningException {
         final FPID fpid = FeaturePackDescriber.readSpec(featurePack).getFPID();
         final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpid, false);
         if(Files.exists(fpDir)) {
@@ -86,7 +86,7 @@ public class ProvisioningLayoutFactory implements Closeable {
         }
         unpack(fpDir, featurePack);
         if(!installInUniverse) {
-            return;
+            return fpid.getLocation();
         }
         if(universeInstallers == null) {
             universeInstallers = UniverseFeaturePackInstaller.load();
@@ -97,6 +97,7 @@ public class ProvisioningLayoutFactory implements Closeable {
             throw new ProvisioningException(Errors.featurePackInstallerNotFound(universe.getFactoryId(), universeInstallers.keySet()));
         }
         fpInstaller.install(universe, fpid, featurePack);
+        return fpid.getLocation();
     }
 
     public ProvisioningLayout<FeaturePackLayout> newConfigLayout(ProvisioningConfig config) throws ProvisioningException {

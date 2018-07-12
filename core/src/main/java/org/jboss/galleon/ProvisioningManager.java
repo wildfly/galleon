@@ -282,6 +282,27 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     /**
+     * Installs a feature-pack provided as a local archive.
+     * This method calls install(featurePack, true).
+     *
+     * @param featurePack  path to feature-pack archive
+     * @throws ProvisioningException  in case installation fails
+     */
+    public void install(Path featurePack) throws ProvisioningException {
+    }
+
+    /**
+     * Installs a feature-pack provided as a local archive.
+     *
+     * @param featurePack  path to feature-pack archive
+     * @param installInUniverse  whether to install the feature-pack artifact into the universe repository
+     * @throws ProvisioningException  in case installation fails
+     */
+    public void install(Path featurePack, boolean installInUniverse) throws ProvisioningException {
+        install(getLayoutFactory().addLocal(featurePack, installInUniverse));
+    }
+
+    /**
      * Installs the specified feature-pack.
      *
      * @param fpl  feature-pack location
