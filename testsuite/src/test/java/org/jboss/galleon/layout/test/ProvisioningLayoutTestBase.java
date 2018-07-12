@@ -100,14 +100,28 @@ public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase
         creator.install();
     }
 
-    protected abstract ProvisioningConfig provisioningConfig() throws ProvisioningException;
+    protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
+        return null;
+    }
+
+    protected Path featurePackZip() throws ProvisioningException {
+        return null;
+    }
 
     protected ProvisioningLayoutFactory getLayoutFactory() throws ProvisioningException {
         return ProvisioningLayoutFactory.getInstance();
     }
 
     protected ProvisioningLayout<FeaturePackLayout> buildLayout() throws ProvisioningException {
-        return getLayoutFactory().newConfigLayout(provisioningConfig());
+        final ProvisioningConfig config = provisioningConfig();
+        if(config == null) {
+            final Path p = featurePackZip();
+            if(p == null) {
+                throw new IllegalStateException("Either provisioningConfig() or featurePackZip() have to return a non-null value");
+            }
+            return getLayoutFactory().newConfigLayout(p, false);
+        }
+        return getLayoutFactory().newConfigLayout(config);
     }
 
     protected String[] errors() {
