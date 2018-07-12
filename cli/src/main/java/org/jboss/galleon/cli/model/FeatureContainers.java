@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.aesh.utils.Config;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -41,6 +40,7 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -52,13 +52,13 @@ public abstract class FeatureContainers {
 
     public static FeatureContainer fromFeaturePackId(PmSession session, ProvisioningManager manager, FPID fpid,
             String name) throws ProvisioningException, IOException {
+        if (fpid.getBuild() == null) {
+            FeaturePackLocation loc = session.getUniverse().getUniverseResolver().resolveLatestBuild(fpid.getLocation());
+            fpid = loc.getFPID();
+        }
         FeatureContainer fp = Caches.getFeaturePackInfo(fpid);
         if (fp != null) {
             return fp;
-        }
-        if (!session.existsInLocalRepository(fpid)) {
-            session.println(Config.getLineSeparator() + "retrieving feature-pack content from remote repository...");
-            session.downloadFp(fpid);
         }
         fp = new FeaturePackInfo(name, fpid);
         try (ProvisioningRuntime rt = buildFullRuntime(fpid, manager)) {

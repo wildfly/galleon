@@ -27,7 +27,6 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
-import org.aesh.utils.Config;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -39,7 +38,6 @@ import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  * An abstract command that discover plugin options based on the fp or stream
@@ -146,16 +144,5 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
             }
         }
         return null;
-    }
-
-    private void checkLocalArtifact(FPID fpid) throws CommandExecutionException, ProvisioningException {
-        if (!pmSession.existsInLocalRepository(fpid)) {
-            try {
-                pmSession.println(Config.getLineSeparator() + "retrieving feature-pack content from remote repository...");
-                pmSession.downloadFp(fpid);
-            } catch (ProvisioningException ex) {
-                throw new CommandExecutionException(ex);
-            }
-        }
     }
 }
