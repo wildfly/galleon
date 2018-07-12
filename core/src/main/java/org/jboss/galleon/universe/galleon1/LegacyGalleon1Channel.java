@@ -60,6 +60,6 @@ public class LegacyGalleon1Channel implements Channel {
 
     @Override
     public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

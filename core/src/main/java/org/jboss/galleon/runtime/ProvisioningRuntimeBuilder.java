@@ -68,8 +68,8 @@ public class ProvisioningRuntimeBuilder {
 
     public static final FeaturePackLayoutFactory<FeaturePackRuntimeBuilder> FP_RT_FACTORY = new FeaturePackLayoutFactory<FeaturePackRuntimeBuilder>() {
         @Override
-        public FeaturePackRuntimeBuilder newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path fpDir) {
-            return new FeaturePackRuntimeBuilder(fpl.getFPID(), spec, fpDir);
+        public FeaturePackRuntimeBuilder newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path fpDir, int type) {
+            return new FeaturePackRuntimeBuilder(fpl.getFPID(), spec, fpDir, type);
         }
     };
 

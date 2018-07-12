@@ -50,6 +50,7 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
     private final Path dir;
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
+    private final int type;
 
     private ArtifactCoords.Gav legacyGav;
 
@@ -59,6 +60,7 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
         this.spec = builder.spec;
         this.dir = builder.dir;
         this.featureSpecs = builder.featureSpecs;
+        this.type = builder.getType();
 
         Map<String, PackageRuntime> tmpPackages = new LinkedHashMap<>();
         for(String pkgName : builder.pkgOrder) {
@@ -81,6 +83,11 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
     @Override
     public Path getDir() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getType() {
+        return type;
     }
 
     /**

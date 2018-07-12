@@ -15,33 +15,24 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.layout.test;
+package org.jboss.galleon.layout;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.test.FeaturePackRepoTestBase;
-import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
-import org.jboss.galleon.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,7 +40,7 @@ import org.junit.Test;
  *
  * @author Alexey Loubyansky
  */
-public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase {
+public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
 
     protected String universeName = "test-universe";
     protected MavenArtifact universeArtifact;
@@ -128,13 +119,7 @@ public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase
         return null;
     }
 
-    protected FPID[] expectedOrder() {
-        return null;
-    }
-
-    protected void assertLayout(ProvisioningLayout<FeaturePackLayout> layout) throws Exception {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract void assertLayout(ProvisioningLayout<FeaturePackLayout> layout) throws Exception;
 
     @Test
     public void test() throws Exception {
@@ -143,25 +128,7 @@ public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase
             if(errors() != null) {
                 Assert.fail("Errors expected");
             }
-            final FPID[] expected = expectedOrder();
-            if (expected == null) {
-                assertLayout(layout);
-                return;
-            }
-            if (expected.length == 0) {
-                assertFalse("Layout not empty", layout.hasFeaturePacks());
-                return;
-            }
-            final List<FeaturePackLayout> featurePacks = layout.getOrderedFeaturePacks();
-            if (expected.length != featurePacks.size()) {
-                fail(expected, featurePacks);
-            }
-            for (int i = 0; i < expected.length; ++i) {
-                if (expected[i].equals(featurePacks.get(i).getFPID())) {
-                    continue;
-                }
-                fail(expected, featurePacks);
-            }
+            assertLayout(layout);
         } catch(ProvisioningException e) {
             final String[] errors = errors();
             if(errors == null) {
@@ -177,21 +144,5 @@ public abstract class ProvisioningLayoutTestBase extends FeaturePackRepoTestBase
                 t = e.getCause();
             }
         }
-    }
-
-    private void fail(final FPID[] expected, final List<FeaturePackLayout> featurePacks) {
-        final StringBuilder buf = new StringBuilder();
-        buf.append("Expected ");
-        StringUtils.append(buf, Arrays.asList(expected));
-        buf.append(" but was ");
-        if(featurePacks.isEmpty()) {
-            buf.append("empty");
-        } else {
-            buf.append(featurePacks.get(0).getFPID());
-            for (int j = 1; j < featurePacks.size(); ++j) {
-                buf.append(',').append(featurePacks.get(j).getFPID());
-            }
-        }
-        Assert.fail(buf.toString());
     }
 }

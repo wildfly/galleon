@@ -54,6 +54,7 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
 
     final ProducerSpec producer;
     final Path dir;
+    private final int type;
     final FeaturePackSpec spec;
     Map<String, ResolvedFeatureSpec> featureSpecs = null;
     private Map<String, FeatureGroup> fgSpecs = null;
@@ -63,10 +64,11 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
 
     private ParameterTypeProvider featureParamTypeProvider = BuiltInParameterTypeProvider.getInstance();
 
-    FeaturePackRuntimeBuilder(FPID fpid, FeaturePackSpec spec, Path dir) {
+    FeaturePackRuntimeBuilder(FPID fpid, FeaturePackSpec spec, Path dir, int type) {
         this.producer = fpid.getProducer();
         this.dir = dir;
         this.spec = spec;
+        this.type = type;
     }
 
     @Override
@@ -82,6 +84,11 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
     @Override
     public Path getDir() {
         return dir;
+    }
+
+    @Override
+    public int getType() {
+        return type;
     }
 
     boolean resolvePackage(String pkgName, ProvisioningRuntimeBuilder rt) throws ProvisioningException {

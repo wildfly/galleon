@@ -20,6 +20,7 @@ package org.jboss.galleon.universe;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.layout.update.FeaturePackUpdatePlan;
 
 /**
  * Feature-pack channel
@@ -35,4 +36,13 @@ public interface Channel {
     Path resolve(FeaturePackLocation fpl) throws ProvisioningException;
 
     boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException;
+
+    default FeaturePackUpdatePlan getUpdatePlan(FeaturePackUpdatePlan.Request updateRequest) throws ProvisioningException {
+        final FeaturePackLocation fpl = updateRequest.getInstalledLocation();
+        final String latestBuild = getLatestBuild(fpl);
+        if (latestBuild != null && !(latestBuild.equals(fpl.getBuild()))) {
+            updateRequest.setNewLocation(fpl.replaceBuild(latestBuild));
+        }
+        return updateRequest.buildPlan();
+    }
 }

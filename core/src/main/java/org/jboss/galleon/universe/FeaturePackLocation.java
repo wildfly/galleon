@@ -384,6 +384,10 @@ public class FeaturePackLocation {
         return frequency;
     }
 
+    public boolean hasBuild() {
+        return build != null;
+    }
+
     public String getBuild() {
         return build;
     }
@@ -402,6 +406,10 @@ public class FeaturePackLocation {
 
     public FeaturePackLocation replaceUniverse(UniverseSpec universe) {
         return new FeaturePackLocation(universe, producer, channel, frequency, build);
+    }
+
+    public FeaturePackLocation replaceBuild(String build) {
+        return new FeaturePackLocation(universeSpec, producer, channel, frequency, build);
     }
 
     @Override

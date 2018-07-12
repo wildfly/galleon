@@ -77,6 +77,24 @@ public class MvnUniverse {
         return this;
     }
 
+    public MvnUniverse createProducer(String producerName, int channelsTotal) throws ProvisioningException {
+        return createProducer(producerName, producerName + FP_SUFFIX, channelsTotal);
+    }
+
+    public MvnUniverse createProducer(String producerName, String fpArtifactId, int channels) throws ProvisioningException {
+        MavenProducerInstaller producer = new MavenProducerInstaller(producerName, repoManager,
+                new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
+                        .setVersion("1.0.0.Final"),
+                TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId);
+        while(channels > 0) {
+            producer.addFrequencies(frequencies).addChannel(Integer.toString(channels),
+                    new StringBuilder().append('[').append(channels).append(".0.0-alpha,").append(channels + 1).append(".0.0-alpha)").toString());
+            --channels;
+        }
+        producers = CollectionUtils.add(producers, producer.install());
+        return this;
+    }
+
     public MavenArtifact install() throws ProvisioningException {
         final MavenArtifact universeArtifact = new MavenArtifact().setGroupId(TestConstants.GROUP_ID).setArtifactId(name).setVersion("1.0.0.Final");
         final MavenUniverseInstaller installer = new MavenUniverseInstaller(repoManager, universeArtifact);

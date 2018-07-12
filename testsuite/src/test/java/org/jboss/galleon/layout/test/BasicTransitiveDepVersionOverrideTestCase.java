@@ -21,6 +21,7 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.layout.LayoutOrderingTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
@@ -29,7 +30,7 @@ import org.jboss.galleon.universe.MvnUniverse;
  *
  * @author Alexey Loubyansky
  */
-public class BasicTransitiveDepVersionOverrideTestCase extends ProvisioningLayoutTestBase {
+public class BasicTransitiveDepVersionOverrideTestCase extends LayoutOrderingTestBase {
 
     private FeaturePackLocation fpl1_100;
     private FeaturePackLocation fpl1_101;

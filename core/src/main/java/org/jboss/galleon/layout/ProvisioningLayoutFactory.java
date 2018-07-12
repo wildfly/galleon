@@ -17,6 +17,7 @@
 
 package org.jboss.galleon.layout;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +25,11 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.stream.XMLStreamException;
+
+import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
@@ -37,6 +42,7 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.xml.FeaturePackXmlParser;
 
 /**
  *
@@ -116,7 +122,7 @@ public class ProvisioningLayoutFactory implements Closeable {
     public ProvisioningLayout<FeaturePackLayout> newConfigLayout(ProvisioningConfig config) throws ProvisioningException {
         return newConfigLayout(config, new FeaturePackLayoutFactory<FeaturePackLayout>() {
             @Override
-            public FeaturePackLayout newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir) {
+            public FeaturePackLayout newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir, int type) {
                 return new FeaturePackLayout() {
                     @Override
                     public FPID getFPID() {
@@ -132,21 +138,49 @@ public class ProvisioningLayoutFactory implements Closeable {
                     public Path getDir() {
                         return dir;
                     }
+
+                    @Override
+                    public int getType() {
+                        return type;
+                    }
                 };
             }});
     }
 
     public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory) throws ProvisioningException {
-        return new ProvisioningLayout<>(this, config, factory);
+        return new ProvisioningLayout<>(this, config, factory, false);
     }
 
-    synchronized Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
+    public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory, boolean cleanupTransitive)
+            throws ProvisioningException {
+        return new ProvisioningLayout<>(this, config, factory, cleanupTransitive);
+    }
+
+    public <F extends FeaturePackLayout> F resolveFeaturePack(FeaturePackLocation location, int type, FeaturePackLayoutFactory<F> factory)
+            throws ProvisioningException {
+        final Path fpDir = resolveFeaturePackDir(location);
+        final Path fpXml = fpDir.resolve(Constants.FEATURE_PACK_XML);
+        if (!Files.exists(fpXml)) {
+            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpXml));
+        }
+        try (BufferedReader reader = Files.newBufferedReader(fpXml)) {
+            return factory.newFeaturePack(location, FeaturePackXmlParser.getInstance().parse(reader), fpDir, type);
+        } catch (IOException | XMLStreamException e) {
+            throw new ProvisioningException(Errors.parseXml(fpXml), e);
+        }
+    }
+
+    private synchronized Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
         final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpl.getFPID(), false);
         if(Files.exists(fpDir)) {
             return fpDir;
         }
         unpack(fpDir, universeResolver.resolve(fpl));
         return fpDir;
+    }
+
+    public synchronized void removeFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
+        IoUtils.recursiveDelete(LayoutUtils.getFeaturePackDir(home, fpl.getFPID(), false));
     }
 
     private void unpack(final Path fpDir, final Path artifactPath) throws ProvisioningException {
