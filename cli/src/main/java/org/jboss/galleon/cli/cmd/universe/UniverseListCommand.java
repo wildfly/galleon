@@ -18,44 +18,53 @@ package org.jboss.galleon.cli.cmd.universe;
 
 import java.util.Collection;
 import java.util.Set;
-import org.aesh.command.Command;
+import java.util.regex.Pattern;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
+import org.aesh.command.option.Option;
 import org.aesh.utils.Config;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.universe.Channel;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
-import org.jboss.galleon.universe.maven.MavenChannel;
 import org.jboss.galleon.universe.maven.MavenProducer;
-import org.jboss.galleon.universe.maven.MavenUniverse;
-import org.jboss.galleon.universe.maven.MavenUniverseException;
 
 /**
  *
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "list", description = "List universes and products")
-public class UniverseListCommand implements Command<PmCommandInvocation> {
+public class UniverseListCommand extends PmSessionCommand {
+
+    @Option(required = false, name = "product", description = "Select products that match the provided pattern.")
+    private String product;
 
     @Override
-    public CommandResult execute(PmCommandInvocation commandInvocation)
-            throws CommandException, InterruptedException {
+    public void runCommand(PmCommandInvocation commandInvocation)
+            throws CommandExecutionException {
         UniverseSpec defaultUniverse = commandInvocation.getPmSession().getUniverse().
                 getDefaultUniverseSpec();
+
+        Pattern cPattern = null;
+        if (product != null) {
+            product = product.replaceAll("\\*", ".*");
+            cPattern = Pattern.compile(product);
+        }
         try {
             UniverseSpec builtinUniverse = commandInvocation.getPmSession().
                     getUniverse().getBuiltinUniverseSpec();
             if (builtinUniverse.equals(defaultUniverse)) {
                 commandInvocation.println("Default universe (builtin maven universe)");
-                printUniverse(builtinUniverse, commandInvocation);
+                printUniverse(cPattern, builtinUniverse, commandInvocation);
             } else if (defaultUniverse != null) {
                 commandInvocation.println("Default universe");
-                printUniverse(defaultUniverse, commandInvocation);
+                printUniverse(cPattern, defaultUniverse, commandInvocation);
             }
 
         } catch (ProvisioningException ex) {
@@ -73,17 +82,15 @@ public class UniverseListCommand implements Command<PmCommandInvocation> {
                 if (universe.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
                     continue;
                 }
-                printUniverse(universe, commandInvocation);
+                printUniverse(cPattern, universe, commandInvocation);
             } catch (ProvisioningException ex) {
                 commandInvocation.println("Exception " + ex.getLocalizedMessage()
                         + " retrieving universe " + u);
             }
         }
-
-        return CommandResult.SUCCESS;
     }
 
-    private void printUniverse(UniverseSpec spec, PmCommandInvocation invoc) throws ProvisioningException {
+    private static void printUniverse(Pattern cPattern, UniverseSpec spec, PmCommandInvocation invoc) throws ProvisioningException {
         UniverseResolver resolver = invoc.getPmSession().getUniverse().getUniverseResolver();
         org.jboss.galleon.universe.Universe universe = resolver.getUniverse(spec);
         invoc.println(spec.toString() + (spec.getLocation().equals(universe.getLocation()) ? ""
@@ -91,39 +98,50 @@ public class UniverseListCommand implements Command<PmCommandInvocation> {
         Collection<MavenProducer> producers = universe.getProducers();
         if (producers.isEmpty()) {
             invoc.println(" No product available");
-        } else if (universe instanceof MavenUniverse) {
-            printMavenUniverse(spec, (MavenUniverse) universe, invoc);
         } else {
-            printGenericUniverse(spec, universe, invoc);
+            printUniverse(cPattern, spec, universe, invoc);
         }
     }
 
-    private void printMavenUniverse(UniverseSpec spec, MavenUniverse universe,
-            PmCommandInvocation invoc) throws MavenUniverseException {
-        for (MavenProducer producer : universe.getProducers()) {
-            invoc.println(" Product: " + producer.getName() + ", artifact "
-                    + producer.getFeaturePackGroupId() + ":"
-                    + producer.getFeaturePackArtifactId());
-            invoc.println("   Releases ");
-            for (MavenChannel channel : producer.getChannels()) {
-                for (String freq : channel.getFrequencies()) {
-                    invoc.println("    " + producer.getName() + ":"
-                            + channel.getName() + "/" + freq + ", version range "
-                            + channel.getVersionRange());
+    private static void printUniverse(Pattern cPattern, UniverseSpec spec, org.jboss.galleon.universe.Universe<?> universe,
+            PmCommandInvocation invoc) throws ProvisioningException {
+        Table table = new Table("Product", "Channel", "Qualifier", "Version");
+        for (Producer<?> producer : universe.getProducers()) {
+            if (cPattern == null || cPattern.matcher(producer.getName()).matches()) {
+                for (Channel channel : producer.getChannels()) {
+                    // The final release
+                    {
+                        String freq = "final";
+                        String build = getBuild(spec, producer, channel, freq);
+                        table.addLine(producer.getName(), channel.getName(), freq,
+                                (build == null ? "" : build));
+                    }
+                    for (String freq : producer.getFrequencies()) {
+                        String build = getBuild(spec, producer, channel, freq);
+                        table.addLine(producer.getName(), channel.getName(), freq,
+                                (build == null ? "" : build));
+                    }
                 }
             }
         }
-    }
-
-    private void printGenericUniverse(UniverseSpec spec, org.jboss.galleon.universe.Universe<?> universe,
-            PmCommandInvocation invoc) throws ProvisioningException {
-        for (Producer<?> producer : universe.getProducers()) {
-            invoc.println("  Product: " + producer.getName());
-            invoc.println("    Releases ");
-            for (Channel channel : producer.getChannels()) {
-                invoc.println("    " + producer.getName() + ":" + channel.getName());
-            }
+        if (table.isEmpty()) {
+            invoc.println(" No product found.");
+        } else {
+            table.sort(Table.SortType.ASCENDANT);
+            invoc.println(table.build());
         }
     }
+
+    private static String getBuild(UniverseSpec spec, Producer<?> producer, Channel channel, String freq) {
+        FeaturePackLocation loc = new FeaturePackLocation(spec, producer.getName(), channel.getName(), freq, null);
+        String build = null;
+        try {
+            build = channel.getLatestBuild(loc);
+        } catch (ProvisioningException ex) {
+            // OK, no build.
+        }
+        return build;
+    }
+
 
 }

@@ -27,7 +27,7 @@ import org.aesh.command.invocation.CommandInvocation;
  * @author jdenise@redhat.com
  */
 @GroupCommandDefinition(description = "", name = "universe", groupCommands = {UniverseAddCommand.class, UniverseRemoveCommand.class,
-    UniverseListCommand.class, UniverseSearchCommand.class})
+    UniverseListCommand.class})
 public class UniverseCommand implements Command<CommandInvocation> {
 
     @Override
