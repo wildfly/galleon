@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.layout.FeaturePackLayout;
-import org.jboss.galleon.layout.FeaturePackLayoutDescriber;
+import org.jboss.galleon.layout.FeaturePackDescription;
+import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -67,12 +67,13 @@ public abstract class UniverseResolverBuilder<T extends UniverseResolverBuilder<
         return ufl;
     }
 
+    @SuppressWarnings("unchecked")
     public T addLocalFeaturePack(Path path) throws ProvisioningException {
         if (path == null) {
             return (T) this;
         }
         try {
-            FeaturePackLayout featurePackLayout = FeaturePackLayoutDescriber.describeFeaturePackZip(path);
+            FeaturePackDescription featurePackLayout = FeaturePackDescriber.describeFeaturePackZip(path);
             getLocalFeaturePacks().put(featurePackLayout.getFPID(), path);
 
             return (T) this;

@@ -20,19 +20,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
-
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Universe;
+import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
-import org.jboss.galleon.util.StringUtils;
+import org.jboss.galleon.util.LayoutUtils;
+import org.jboss.galleon.util.ZipUtils;
 
 /**
  *
@@ -40,35 +40,17 @@ import org.jboss.galleon.util.StringUtils;
  */
 public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreator> {
 
+    private static final String BUILD = "build";
+    private static final String GLN_FP_INSTALLER = "gln-fp-installer";
+
     public static FeaturePackCreator getInstance() {
         return new FeaturePackCreator();
     }
 
-    private static Map<String, UniverseFeaturePackCreator> loadUniverseFpCreators() throws ProvisioningException {
-        final ServiceLoader<UniverseFeaturePackCreator> loader = ServiceLoader.load(UniverseFeaturePackCreator.class);
-        Map<String, UniverseFeaturePackCreator> universeCreators = Collections.emptyMap();
-        for(UniverseFeaturePackCreator uCreator : loader) {
-            if(universeCreators.isEmpty()) {
-                universeCreators = Collections.singletonMap(uCreator.getUniverseFactoryId(), uCreator);
-                continue;
-            }
-            if(universeCreators.containsKey(uCreator.getUniverseFactoryId())) {
-                throw new IllegalStateException("Only one universe feature-pack creator is allowed per repository type "
-                        + uCreator.getUniverseFactoryId() + " but found " + uCreator + " and " + universeCreators.get(uCreator.getUniverseFactoryId()));
-            }
-            if(universeCreators.size() == 1) {
-                final HashMap<String, UniverseFeaturePackCreator> tmp = new HashMap<>(2);
-                tmp.putAll(universeCreators);
-                universeCreators = tmp;
-            }
-            universeCreators.put(uCreator.getUniverseFactoryId(), uCreator);
-        }
-        return CollectionUtils.unmodifiable(universeCreators);
-    }
-
-    private Map<String, UniverseFeaturePackCreator> ufpCreators;
+    private Map<String, UniverseFeaturePackInstaller> ufpInstallers;
     private List<FeaturePackBuilder> fps = Collections.emptyList();
     private Path workDir;
+    private Path buildDir;
     private UniverseResolver universeResolver;
 
     public FeaturePackBuilder newFeaturePack() {
@@ -92,7 +74,7 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
     }
 
     public void install() throws ProvisioningException {
-        ufpCreators = loadUniverseFpCreators();
+        ufpInstallers = UniverseFeaturePackInstaller.load();
         universeResolver = buildUniverseResolver();
         try {
             for (FeaturePackBuilder fp : fps) {
@@ -107,28 +89,38 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
 
     void install(FeaturePackLocation.FPID fpid, Path fpContentDir) throws ProvisioningException {
         final Universe<?> universe = universeResolver.getUniverse(fpid.getLocation().getUniverse());
-        final UniverseFeaturePackCreator ufpCreator = ufpCreators.get(universe.getFactoryId());
-        if(ufpCreator == null) {
-            final StringBuilder buf = new StringBuilder();
-            buf.append("Failed to locate an implementation of ")
-            .append(UniverseFeaturePackCreator.class.getName())
-            .append(" for universe repository ")
-            .append(universe.getFactoryId())
-            .append(" on the classpath. Available universe repositories include ");
-            StringUtils.append(buf, ufpCreators.keySet());
-            throw new ProvisioningException(buf.toString());
+        final UniverseFeaturePackInstaller ufpInstaller = ufpInstallers.get(universe.getFactoryId());
+        if(ufpInstaller == null) {
+            throw new ProvisioningException(Errors.featurePackInstallerNotFound(universe.getFactoryId(), ufpInstallers.keySet()));
         }
-        ufpCreator.install(universe, fpid, fpContentDir);
+        final Path fpZip = getBuildDir().resolve(LayoutUtils.ensureValidFileName(fpid.toString()));
+        try {
+            ZipUtils.zip(fpContentDir, fpZip);
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to create feature-pack archive", e);
+        }
+        ufpInstaller.install(universe, fpid, fpZip);
     }
 
     Path getWorkDir() throws ProvisioningException {
         if(workDir == null) {
             try {
-                workDir = Files.createTempDirectory("gln-fp-installer");
+                workDir = Files.createTempDirectory(GLN_FP_INSTALLER);
             } catch (IOException e) {
                 throw new ProvisioningException("Failed to create a tmp dir");
             }
         }
         return workDir;
+    }
+
+    private Path getBuildDir() throws ProvisioningException {
+        if(buildDir != null) {
+            return buildDir;
+        }
+        try {
+            return Files.createDirectories(getWorkDir().resolve(BUILD));
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.mkdirs(getWorkDir().resolve(BUILD)));
+        }
     }
 }

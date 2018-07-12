@@ -22,7 +22,7 @@ import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackDescription;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.junit.Assert;
@@ -38,7 +38,7 @@ public class UnknownDefaultPackageTestCase  {
     public void testMain() throws Exception {
         final FPID fp1Gav = LegacyGalleon1Universe.newFPID("org.pm.test:fp-install", "1", "1.0.0.Beta1");
         try {
-            FeaturePackLayout
+            FeaturePackDescription
                     .builder(FeaturePackSpec.builder(fp1Gav)
                             .addDefaultPackage("default"))
                     .addPackage(PackageSpec.forName("a"))

@@ -33,14 +33,13 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
- * @deprecated
  *
  * This class combines the feature-pack and the package specs that belong
  * to the feature-pack.
  *
  * @author Alexey Loubyansky
  */
-public class FeaturePackLayout {
+public class FeaturePackDescription {
 
     public static class Builder {
 
@@ -66,8 +65,8 @@ public class FeaturePackLayout {
             return spec;
         }
 
-        public FeaturePackLayout build() throws ProvisioningDescriptionException {
-            return new FeaturePackLayout(this);
+        public FeaturePackDescription build() throws ProvisioningDescriptionException {
+            return new FeaturePackDescription(this);
         }
     }
 
@@ -81,7 +80,7 @@ public class FeaturePackLayout {
     final List<String> unresolvedLocalPkgs;
     final boolean externalPkgDeps;
 
-    private FeaturePackLayout(Builder builder) throws ProvisioningDescriptionException {
+    private FeaturePackDescription(Builder builder) throws ProvisioningDescriptionException {
         fpid = builder.fpid;
         spec = builder.spec.build();
         this.packages = CollectionUtils.unmodifiable(builder.packages);

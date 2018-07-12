@@ -68,8 +68,8 @@ public class FeaturePackBuilder {
     private Map<String, FeatureGroup> featureGroups = Collections.emptyMap();
     private FsTaskList tasks;
 
-    FeaturePackBuilder(FeaturePackCreator installer) {
-        this.creator = installer;
+    FeaturePackBuilder(FeaturePackCreator creator) {
+        this.creator = creator;
     }
 
     public FeaturePackCreator getCreator() {
@@ -234,7 +234,7 @@ public class FeaturePackBuilder {
     }
 
     void build() throws ProvisioningException {
-        final FeaturePackLocation fps = this.fpBuilder.getFPID().getLocation();
+        final FeaturePackLocation fps = fpBuilder.getFPID().getLocation();
         if(fps == null) {
             throw new ProvisioningDescriptionException("Feature-pack location has not been set");
         }

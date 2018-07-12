@@ -21,6 +21,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.galleon.Errors;
@@ -30,6 +31,8 @@ import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.Universe;
+import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -56,6 +59,7 @@ public class ProvisioningLayoutFactory implements Closeable {
     private final Path home;
     private final UniverseResolver universeResolver;
     private AtomicInteger openHandles = new AtomicInteger();
+    private Map<String, UniverseFeaturePackInstaller> universeInstallers;
 
     private ProvisioningLayoutFactory(Path home, UniverseResolver universeResolver) {
         this.home = home;
@@ -64,6 +68,35 @@ public class ProvisioningLayoutFactory implements Closeable {
 
     public UniverseResolver getUniverseResolver() {
         return universeResolver;
+    }
+
+    /**
+     * Adds feature-pack archive to the local provisioning feature-pack cache.
+     * Optionally, installs the feature-pack archive to the universe repository.
+     *
+     * @param featurePack  feature-pack archive
+     * @param installInUniverse  whether to install the feature-pack into the universe repository
+     * @throws ProvisioningException  in case of a failure
+     */
+    public synchronized void addLocal(Path featurePack, boolean installInUniverse) throws ProvisioningException {
+        final FPID fpid = FeaturePackDescriber.readSpec(featurePack).getFPID();
+        final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpid, false);
+        if(Files.exists(fpDir)) {
+            IoUtils.recursiveDelete(fpDir);
+        }
+        unpack(fpDir, featurePack);
+        if(!installInUniverse) {
+            return;
+        }
+        if(universeInstallers == null) {
+            universeInstallers = UniverseFeaturePackInstaller.load();
+        }
+        final Universe<?> universe = universeResolver.getUniverse(fpid.getUniverse());
+        final UniverseFeaturePackInstaller fpInstaller = universeInstallers.get(universe.getFactoryId());
+        if(fpInstaller == null) {
+            throw new ProvisioningException(Errors.featurePackInstallerNotFound(universe.getFactoryId(), universeInstallers.keySet()));
+        }
+        fpInstaller.install(universe, fpid, featurePack);
     }
 
     public ProvisioningLayout<FeaturePackLayout> newConfigLayout(ProvisioningConfig config) throws ProvisioningException {
@@ -98,7 +131,11 @@ public class ProvisioningLayoutFactory implements Closeable {
         if(Files.exists(fpDir)) {
             return fpDir;
         }
-        final Path artifactPath = universeResolver.resolve(fpl);
+        unpack(fpDir, universeResolver.resolve(fpl));
+        return fpDir;
+    }
+
+    private void unpack(final Path fpDir, final Path artifactPath) throws ProvisioningException {
         try {
             Files.createDirectories(fpDir);
         } catch (IOException e) {
@@ -109,7 +146,6 @@ public class ProvisioningLayoutFactory implements Closeable {
         } catch (IOException e) {
             throw new ProvisioningException("Failed to unzip " + artifactPath + " to " + fpDir, e);
         }
-        return fpDir;
     }
 
     ProvisioningLayout.Handle createHandle() {

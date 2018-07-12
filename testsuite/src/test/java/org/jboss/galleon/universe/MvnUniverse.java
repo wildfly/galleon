@@ -17,10 +17,12 @@
 
 package org.jboss.galleon.universe;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenProducerBase;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
@@ -48,6 +50,16 @@ public class MvnUniverse {
     private MvnUniverse(String name, MavenRepoManager repoManager) {
         this.name = name;
         this.repoManager = repoManager;
+    }
+
+    public Path resolve(FPID fpid) throws ProvisioningException {
+        final String producerName = fpid.getProducer().getName();
+        for(MavenProducerBase p : producers) {
+            if(p.getName().equals(producerName)) {
+                return p.getChannel(fpid.getChannel().getName()).resolve(fpid.getLocation());
+            }
+        }
+        throw new IllegalStateException("Failed to locate producer for " + fpid);
     }
 
     public MvnUniverse createProducer(String producerName) throws ProvisioningException {
