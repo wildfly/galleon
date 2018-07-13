@@ -17,6 +17,7 @@
 package org.jboss.galleon.cli.cmd.state;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,6 +25,11 @@ import org.aesh.utils.Config;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.Headers;
+import org.jboss.galleon.cli.cmd.Table;
+import org.jboss.galleon.cli.cmd.Table.Cell;
+import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureInfo;
 import org.jboss.galleon.cli.model.FeatureSpecInfo;
@@ -34,11 +40,14 @@ import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
+import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureAnnotation;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -254,5 +263,65 @@ public class StateInfoUtil {
             }
             session.println(contentBuilder.toString());
         }
+    }
+
+    public static String buildConfigs(Map<String, List<ConfigInfo>> configs) {
+        if (!configs.isEmpty()) {
+            Table table = new Table(Headers.CONFIGURATION, Headers.NAME);
+            for (Entry<String, List<ConfigInfo>> entry : configs.entrySet()) {
+                if (!entry.getValue().isEmpty()) {
+                    List<Table.Cell> cells = new ArrayList<>();
+                    cells.add(new Table.Cell(entry.getKey()));
+                    Table.Cell names = new Table.Cell();
+                    cells.add(names);
+                    for (ConfigInfo name : entry.getValue()) {
+                        names.addLine(name.getName());
+                    }
+                    table.addCellsLine(cells);
+                }
+            }
+            table.sort(Table.SortType.ASCENDANT);
+            return table.build();
+        }
+        return null;
+    }
+
+    public static String buildDependencies(List<FeaturePackLocation> dependencies) {
+        if (!dependencies.isEmpty()) {
+            Table table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD);
+            for (FeaturePackLocation d : dependencies) {
+                table.addLine(d.getProducerName(), d.getChannelName(), d.getBuild());
+            }
+            table.sort(Table.SortType.ASCENDANT);
+            return table.build();
+        }
+        return null;
+    }
+
+    public static void printFeaturePack(PmCommandInvocation commandInvocation, FeaturePackLocation loc) {
+        PmSession session = commandInvocation.getPmSession();
+        commandInvocation.println("");
+        commandInvocation.println("Feature-pack: " + session.getExposedLocation(loc).getFPID());
+        commandInvocation.println("");
+    }
+
+    static String buildPatches(Map<FPID, FeaturePackConfig> configs) {
+        if (configs.isEmpty()) {
+            return null;
+        }
+        Table table = new Table(Headers.PRODUCT, Headers.PATCHES);
+        for (Entry<FeaturePackLocation.FPID, FeaturePackConfig> entry : configs.entrySet()) {
+            FeaturePackConfig config = entry.getValue();
+            if (config.hasPatches()) {
+                Cell c = new Cell(entry.getKey().getProducer().toString());
+                Cell patches = new Cell();
+                for (FPID p : config.getPatches()) {
+                    patches.addLine(p.getBuild());
+                }
+                table.addCellsLine(c, patches);
+            }
+        }
+        table.sort(Table.SortType.ASCENDANT);
+        return table.build();
     }
 }

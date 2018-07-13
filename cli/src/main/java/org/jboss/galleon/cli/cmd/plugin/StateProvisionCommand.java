@@ -35,8 +35,8 @@ import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractFeaturePackCommand.DIR_OPTION_NAME;
-import static org.jboss.galleon.cli.AbstractFeaturePackCommand.VERBOSE_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -68,14 +68,8 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
         }
     }
 
-    private AeshContext ctx;
-
     public StateProvisionCommand(PmSession pmSession) {
         super(pmSession, true, false);
-    }
-
-    public void setAeshContext(AeshContext ctx) {
-        this.ctx = ctx;
     }
 
     @Override
@@ -110,7 +104,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
             if (file == null) {
                 return Collections.emptyList();
             }
-            ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, ctx));
+            ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, pmSession.getAeshContext()));
             opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config),
                     RESOLUTION_MESSAGE).getInstall();
         }
@@ -166,7 +160,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
     }
 
     @Override
-    protected void doValidateOptions() throws CommandExecutionException {
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         String filePath = getFile();
         if (filePath != null) {
             if (!Files.exists(Paths.get(filePath))) {

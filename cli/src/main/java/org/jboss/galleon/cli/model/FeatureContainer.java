@@ -19,10 +19,10 @@ package org.jboss.galleon.cli.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jboss.galleon.config.FeaturePackConfig;
 
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -38,7 +38,7 @@ public abstract class FeatureContainer {
     private final Map<String, List<ConfigInfo>> finalConfigs = new HashMap<>();
     private final Map<String, Group> packagesRoots = new HashMap<>();
     private final Map<String, Group> featuresSpecRoots = new HashMap<>();
-    private final Set<FPID> dependencies = new HashSet<>();
+    private final Map<FPID, FeaturePackConfig> dependencies = new HashMap<>();
     private Map<String, FeatureContainer> fullDependencies = new HashMap<>();
     private final String name;
     private final FPID fpid;
@@ -52,12 +52,16 @@ public abstract class FeatureContainer {
         this.fpid = fpid;
     }
 
-    void addDependency(FPID fpid) {
-        dependencies.add(fpid);
+    void addDependency(FPID fpid, FeaturePackConfig config) {
+        dependencies.put(fpid, config);
     }
 
     public Set<FPID> getDependencies() {
-        return Collections.unmodifiableSet(dependencies);
+        return dependencies.keySet();
+    }
+
+    public Map<FPID, FeaturePackConfig> getConfigs() {
+        return Collections.unmodifiableMap(dependencies);
     }
 
     public FPID getFPID() {

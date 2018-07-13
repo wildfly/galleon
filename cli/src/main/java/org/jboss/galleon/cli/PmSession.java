@@ -190,6 +190,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private UniverseManager universe;
     private final ResourceResolver resolver;
     private final ProvisioningLayoutFactory layoutFactory;
+    private AeshContext ctx;
     public PmSession(Configuration config) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
@@ -212,6 +213,14 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
                 }
             }
         }));
+    }
+
+    void setAeshContext(AeshContext ctx) {
+        this.ctx = ctx;
+    }
+
+    public AeshContext getAeshContext() {
+        return ctx;
     }
 
     public ProvisioningManager newProvisioningManager(Path installation, boolean verbose) throws ProvisioningException {

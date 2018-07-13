@@ -24,7 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
-import org.aesh.utils.Config;
 import org.jboss.galleon.cli.PmSession;
 
 /**
@@ -101,26 +100,19 @@ public class ResourceResolver {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T get(String key, Resolver<T> res, String msg) throws InterruptedException {
+    public <T> T get(String key, Resolver<T> res, String msg) throws InterruptedException, ExecutionException {
         CompletableFuture<T> comp;
         synchronized (this) {
             comp = (CompletableFuture<T>) content.get(key);
             if (comp == null) {
                 if (res != null) {
-                    pmSession.println(Config.getLineSeparator() + msg + "...");
                     comp = doResolve(key, res, false);
                 }
-            } else if (!comp.isDone()) {
-                pmSession.println(Config.getLineSeparator() + msg + "...");
             }
         }
         if (comp != null) {
-            try {
-                T ret = comp.get();
-                return ret;
-            } catch (ExecutionException ex) {
-                pmSession.println("Exception " + msg + ". " + ex.getCause());
-            }
+            T ret = comp.get();
+            return ret;
         }
         return null;
     }

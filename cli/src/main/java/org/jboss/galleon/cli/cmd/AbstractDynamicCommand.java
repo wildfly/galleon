@@ -207,7 +207,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     @Override
     public CommandResult execute(PmCommandInvocation session) throws CommandException {
         try {
-            validateOptions();
+            validateOptions(session);
             Map<String, String> options = getOptions();
             runCommand(session, options);
             return CommandResult.SUCCESS;
@@ -284,7 +284,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         return builder.create();
     }
 
-    private void validateOptions() throws CommandExecutionException {
+    private void validateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         // Check validity of provided options
         Set<String> providedOptions = getValues().keySet();
         List<ProcessedOption> sOptions = cmd.getOptions(false);
@@ -338,10 +338,10 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 }
             }
         }
-        doValidateOptions();
+        doValidateOptions(invoc);
     }
 
-    protected abstract void doValidateOptions() throws CommandExecutionException;
+    protected abstract void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException;
 
     private void println(PmCommandInvocation session, Throwable t) {
         if (t.getLocalizedMessage() == null) {

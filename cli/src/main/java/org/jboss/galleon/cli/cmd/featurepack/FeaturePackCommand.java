@@ -14,26 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli.cmd.state.fp;
+package org.jboss.galleon.cli.cmd.featurepack;
 
 import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
 import org.aesh.command.GroupCommandDefinition;
-import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
+import org.aesh.command.invocation.CommandInvocation;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@GroupCommandDefinition(description = "", name = "feature-pack", groupCommands = {
-    StateAddFeaturePackCommand.class, StateRemoveFeaturePackCommand.class}, activator = StateEditCommandActivator.class)
-public class FeaturePackCommand implements Command<PmCommandInvocation> {
+@GroupCommandDefinition(description = "", name = "feature-pack", groupCommands = {ImportCommand.class, InfoCommand.class, ExploreCommand.class})
+public class FeaturePackCommand implements Command<CommandInvocation> {
 
     @Override
-    public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
+    public CommandResult execute(CommandInvocation commandInvocation) throws CommandException, InterruptedException {
         commandInvocation.println("subcommand missing");
         return CommandResult.FAILURE;
     }
+
 }

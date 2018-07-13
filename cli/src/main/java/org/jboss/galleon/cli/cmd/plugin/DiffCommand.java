@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.impl.internal.OptionType;
 import org.aesh.command.impl.internal.ProcessedOption;
@@ -67,6 +68,8 @@ public class DiffCommand extends AbstractPluginsCommand {
         } catch (InterruptedException ex) {
             Thread.interrupted();
             throw new ProvisioningException(ex);
+        } catch (ExecutionException ex) {
+            throw new ProvisioningException(ex.getCause());
         }
     }
 

@@ -30,12 +30,49 @@ import org.aesh.utils.Config;
  * @author jdenise@redhat.com
  */
 public class Table {
+
+    public static class Cell {
+
+        private final List<String> items = new ArrayList<>();
+        int length = 0;
+
+        public Cell(String... content) {
+            for (String c : content) {
+                addLine(c);
+            }
+        }
+        public void addLine(String line) {
+            items.add(line);
+            if (line.length() > length) {
+                length = line.length();
+            }
+        }
+
+        int length() {
+            return length;
+        }
+
+        boolean isMultiLine() {
+            return items.size() > 1;
+        }
+
+        String getFirstLine() {
+            return items.get(0);
+        }
+
+        List<String> getMultiLines() {
+            if (items.size() < 2) {
+                return Collections.emptyList();
+            }
+            return items.subList(1, items.size());
+        }
+    }
     public enum SortType {
         ASCENDANT,
         DESCENDANT
     }
     private final List<String> headers = new ArrayList<>();
-    private final List<List<String>> content = new ArrayList<>();
+    private final List<List<Cell>> content = new ArrayList<>();
     private final Map<Integer, Integer> widths = new HashMap<>();
     public Table(String... header) {
         for (int i = 0; i < header.length; i++) {
@@ -55,10 +92,26 @@ public class Table {
     }
 
     public void addLine(String... line) {
-        addLine(Arrays.asList(line));
+        List<Cell> cells = new ArrayList<>();
+        for (String c : line) {
+            cells.add(new Cell(c));
+        }
+        addCellsLine(cells);
     }
 
     public void addLine(List<String> line) {
+        List<Cell> cells = new ArrayList<>();
+        for (String c : line) {
+            cells.add(new Cell(c));
+        }
+        addCellsLine(cells);
+    }
+
+    // Multi line cells
+    public void addCellsLine(Cell... cell) {
+        addCellsLine(Arrays.asList(cell));
+    }
+    public void addCellsLine(List<Cell> line) {
         for (int i = 0; i < line.size(); i++) {
             int length = line.get(i).length();
             Integer w = widths.get(i);
@@ -73,52 +126,94 @@ public class Table {
 
     public void sort(SortType type) {
         if (SortType.ASCENDANT.equals(type)) {
-            Collections.sort(content, new Comparator<List<String>>() {
+            Collections.sort(content, new Comparator<List<Cell>>() {
                 @Override
-                public int compare(List<String> o1, List<String> o2) {
-                    return o1.get(0).compareTo(o2.get(0));
+                public int compare(List<Cell> o1, List<Cell> o2) {
+                    return o1.get(0).getFirstLine().compareTo(o2.get(0).getFirstLine());
                 }
             });
         } else {
-            Collections.sort(content, new Comparator<List<String>>() {
+            Collections.sort(content, new Comparator<List<Cell>>() {
                 @Override
-                public int compare(List<String> o1, List<String> o2) {
-                    return o2.get(0).compareTo(o1.get(0));
+                public int compare(List<Cell> o1, List<Cell> o2) {
+                    return o2.get(0).getFirstLine().compareTo(o1.get(0).getFirstLine());
                 }
             });
         }
     }
 
     public String build() {
+        return build(true);
+    }
+
+    public String build(boolean linesVisible) {
         StringBuilder builder = new StringBuilder();
+        String line = null;
+        String separator = " ";
+        if (linesVisible) {
+            StringBuilder lineBuilder = new StringBuilder();
+            for (int i = 0; i < headers.size(); i++) {
+                Integer w = widths.get(i);
+                lineBuilder.append(line(w)).append(separator);
+            }
+            line = lineBuilder.toString();
+            builder.append(line).append(Config.getLineSeparator());
+        }
         for (int i = 0; i < headers.size(); i++) {
             String header = headers.get(i);
             Integer w = widths.get(i);
-            if (w != null) {
-                if (w > header.length()) {
-                    header = pad(header, w);
-                }
+            if (w > header.length()) {
+                header = pad(header, w);
             }
-            builder.append(" ").append(header);
+            builder.append(header).append(separator);
+        }
+        if (line != null) {
+            builder.append(Config.getLineSeparator()).append(line);
         }
         builder.append(Config.getLineSeparator());
-        for (List<String> c : content) {
+        String tab = "";
+        for (List<Cell> c : content) {
             for (int i = 0; i < c.size(); i++) {
-                String val = c.get(i);
+                Cell val = c.get(i);
                 Integer w = widths.get(i);
-                if (w != null) {
-                    if (w > val.length()) {
-                        val = pad(val, w);
-                    }
+                // Print first line.
+                String fl = val.getFirstLine();
+                if (w > val.length()) {
+                    fl = pad(fl, w);
                 }
-                builder.append(" ").append(val);
+                builder.append(fl).append(separator);
+                for (String l : val.getMultiLines()) {
+                    builder.append(Config.getLineSeparator());
+                    if (w > val.length()) {
+                        l = pad(l, w);
+                    }
+                    builder.append(tab).append(l).append(separator);
+                }
+                tab = tab(tab.length() + w + 1);
             }
+            tab = "";
             builder.append(Config.getLineSeparator());
         }
         return builder.toString();
     }
 
-    private String pad(String s, int length) {
+    private static String line(int width) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < width; i++) {
+            builder.append("=");
+        }
+        return builder.toString();
+    }
+
+    private static String tab(int width) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < width; i++) {
+            builder.append(" ");
+        }
+        return builder.toString();
+    }
+
+    private static String pad(String s, int length) {
         StringBuilder builder = new StringBuilder();
         builder.append(s);
         for (int i = 0; i < length - s.length(); i++) {

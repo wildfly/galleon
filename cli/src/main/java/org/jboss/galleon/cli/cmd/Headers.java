@@ -14,26 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli.cmd.state;
-
-import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
-import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.DEPENDENCIES;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.jboss.galleon.cli.AbstractCompleter;
-import org.jboss.galleon.cli.PmCompleterInvocation;
-import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.PATCHES;
+package org.jboss.galleon.cli.cmd;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-public class InfoTypeCompleter extends AbstractCompleter {
-    @Override
-    protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        return Arrays.asList(CONFIGS, DEPENDENCIES, PATCHES);
-    }
-
+public class Headers {
+    public static final String DEPENDENCY = "Dependency";
+    public static final String VERSION = "Version";
+    public static final String NAME = "Name";
+    public static final String CONFIGURATION = "Configuration";
+    public static final String CHANNEL = "Channel";
+    public static final String PRODUCT = "Product";
+    public static final String PATCHES = "Patches";
+    public static final String QUALIFIER = "Qualifier";
+    public static final String BUILD = "Build";
 }
