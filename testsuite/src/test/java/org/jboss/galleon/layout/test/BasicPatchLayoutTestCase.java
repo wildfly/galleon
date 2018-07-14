@@ -18,6 +18,8 @@
 package org.jboss.galleon.layout.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -26,6 +28,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.LayoutTestBase;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
@@ -34,7 +37,7 @@ import org.jboss.galleon.universe.MvnUniverse;
  *
  * @author Alexey Loubyansky
  */
-public class BasicPatchLayoutTestCase extends ProvisioningLayoutTestBase {
+public class BasicPatchLayoutTestCase extends LayoutTestBase {
 
     private FeaturePackLocation fp1;
     private FeaturePackLocation fp1Patch1;
@@ -96,17 +99,25 @@ public class BasicPatchLayoutTestCase extends ProvisioningLayoutTestBase {
         assertEquals(3, featurePacks.size());
         FeaturePackLayout fp = featurePacks.get(0);
         assertEquals(fp1.getFPID(), fp.getFPID());
+        assertTrue(fp.isTransitiveDep());
 
         fp = featurePacks.get(1);
         assertEquals(fp2.getFPID(), fp.getFPID());
+        assertTrue(fp.isDirectDep());
 
         fp = featurePacks.get(2);
         assertEquals(fp3.getFPID(), fp.getFPID());
+        assertTrue(fp.isDirectDep());
 
         List<FeaturePackLayout> patches = layout.getPatches(fp1.getFPID());
         assertEquals(2, patches.size());
-        assertEquals(fp1Patch1.getFPID(), patches.get(0).getFPID());
-        assertEquals(fp1Patch2.getFPID(), patches.get(1).getFPID());
+        fp = patches.get(0);
+        assertEquals(fp1Patch1.getFPID(), fp.getFPID());
+        assertTrue(fp.isPatch());
+
+        fp = patches.get(1);
+        assertEquals(fp1Patch2.getFPID(), fp.getFPID());
+        assertTrue(fp.isPatch());
 
         patches = layout.getPatches(fp2.getFPID());
         assertEquals(2, patches.size());

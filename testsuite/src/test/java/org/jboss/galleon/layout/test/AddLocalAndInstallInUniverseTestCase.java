@@ -29,6 +29,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
+import org.jboss.galleon.layout.LayoutOrderingTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
@@ -39,7 +40,7 @@ import org.junit.Assert;
  *
  * @author Alexey Loubyansky
  */
-public class AddLocalAndInstallInUniverseTestCase extends ProvisioningLayoutTestBase {
+public class AddLocalAndInstallInUniverseTestCase extends LayoutOrderingTestBase {
 
     private MvnUniverse mvnUniverse;
     private FeaturePackLocation fpl1;

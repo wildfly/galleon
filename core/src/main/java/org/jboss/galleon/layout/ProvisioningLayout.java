@@ -17,13 +17,13 @@
 
 package org.jboss.galleon.layout;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,11 +33,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
@@ -46,14 +45,16 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.update.FeaturePackUpdatePlan;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
+import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
-import org.jboss.galleon.xml.FeaturePackXmlParser;
 
 /**
  *
@@ -66,11 +67,29 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
 
     public interface FeaturePackLayout {
 
+        int DIRECT_DEP = 0;
+        int TRANSITIVE_DEP = 1;
+        int PATCH = 2;
+
         FPID getFPID();
 
         FeaturePackSpec getSpec();
 
         Path getDir();
+
+        int getType();
+
+        default boolean isDirectDep() {
+            return getType() == DIRECT_DEP;
+        }
+
+        default boolean isTransitiveDep() {
+            return getType() == TRANSITIVE_DEP;
+        }
+
+        default boolean isPatch() {
+            return getType() == PATCH;
+        }
     }
 
     public static class Handle implements Closeable {
@@ -257,19 +276,20 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
 
-    ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory) throws ProvisioningException {
+    ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean cleanupTransitive)
+            throws ProvisioningException {
         this.layoutFactory = layoutFactory;
         this.fpFactory = fpFactory;
         this.config = config;
         this.handle = layoutFactory.createHandle();
-        build(false);
+        build(cleanupTransitive);
     }
 
     <O extends FeaturePackLayout> ProvisioningLayout(ProvisioningLayout<O> other, FeaturePackLayoutFactory<F> fpFactory) throws ProvisioningException {
         this(other, fpFactory, new FeaturePackLayoutTransformer<F, O>() {
             @Override
             public F transform(O other) throws ProvisioningException {
-                return fpFactory.newFeaturePack(other.getFPID().getLocation(), other.getSpec(), other.getDir());
+                return fpFactory.newFeaturePack(other.getFPID().getLocation(), other.getSpec(), other.getDir(), other.getType());
             }
         });
     }
@@ -278,8 +298,8 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         this(other, new FeaturePackLayoutFactory<F>() {
             final FeaturePackLayoutFactory<O> fpFactory = other.fpFactory;
             @Override
-            public F newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir) throws ProvisioningException {
-                return transformer.transform(fpFactory.newFeaturePack(fpl, spec, dir));
+            public F newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir, int type) throws ProvisioningException {
+                return transformer.transform(fpFactory.newFeaturePack(fpl, spec, dir, type));
             }
         }, transformer);
     }
@@ -312,6 +332,10 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         return layoutFactory;
     }
 
+    public FeaturePackLayoutFactory<F> getFeaturePackFactory() {
+        return fpFactory;
+    }
+
     public <O extends FeaturePackLayout> ProvisioningLayout<O> transform(FeaturePackLayoutFactory<O> fpFactory) throws ProvisioningException {
         return new ProvisioningLayout<>(this, fpFactory);
     }
@@ -320,12 +344,25 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         return new ProvisioningLayout<>(this, transformer);
     }
 
+    /**
+     * Adds a feature-pack to the configuration and rebuilds the layout
+     *
+     * @param fpl  the feature-pack to add to the configuration
+     * @throws ProvisioningException  in case of a failure
+     */
     public void install(FeaturePackLocation fpl) throws ProvisioningException {
         install(FeaturePackConfig.forLocation(fpl));
     }
 
+    /**
+     * Adds a feature-pack to the configuration and rebuilds the layout
+     *
+     * @param fpConfig  the feature-pack to add to the configuration
+     * @throws ProvisioningException  in case of a failure
+     */
     public void install(FeaturePackConfig fpConfig) throws ProvisioningException {
-        final FPID fpid = fpConfig.getLocation().getFPID();
+        FeaturePackLocation fpl = fpConfig.getLocation();
+        final FPID fpid = fpl.getFPID();
         if(allPatches.containsKey(fpid)) {
             throw new ProvisioningException(Errors.patchAlreadyApplied(fpid));
         }
@@ -334,7 +371,10 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         if(installedFp != null && installedFp.getFPID().getBuild().equals(fpid.getBuild())) {
             throw new ProvisioningException(Errors.featurePackAlreadyConfigured(fpid.getProducer()));
         }
-        final FeaturePackSpec fpSpec = createFeaturePack(fpid.getLocation()).getSpec();
+        if(!fpl.hasBuild()) {
+            fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
+        }
+        final FeaturePackSpec fpSpec = layoutFactory.resolveFeaturePack(fpl, FeaturePackLayout.DIRECT_DEP, fpFactory).getSpec();
         if(fpSpec.isPatch()) {
             F patchTarget = featurePacks.get(fpSpec.getPatchFor().getProducer());
             if(patchTarget == null || !patchTarget.getFPID().equals(fpSpec.getPatchFor())) {
@@ -366,6 +406,12 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         rebuild(configBuilder.build(), false);
     }
 
+    /**
+     * Removes a feature-pack from the configuration and re-builds the layout
+     *
+     * @param fpid  the feature-pack to remove from the configuration
+     * @throws ProvisioningException  in case of a failure
+     */
     public void uninstall(FPID fpid) throws ProvisioningException {
         if(allPatches.containsKey(fpid)) {
             final F patchFp = allPatches.get(fpid);
@@ -377,7 +423,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                     throw new ProvisioningException("Target feature-pack for patch " + fpid + " could not be found");
                 }
             }
-            IoUtils.recursiveDelete(layoutFactory.resolveFeaturePackDir(patchTarget.getLocation())); // to clear patches
+            layoutFactory.removeFeaturePackDir(patchTarget.getLocation()); // to clear patches
             rebuild(ProvisioningConfig.builder(config).updateFeaturePackDep(FeaturePackConfig.builder(targetConfig).removePatch(fpid).build()).build(), false);
             return;
         }
@@ -397,6 +443,105 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
             configBuilder.clearFeaturePackDeps();
         }
         rebuild(configBuilder.build(), true);
+    }
+
+    /**
+     * Query for available updates and patches for feature-packs in this layout.
+     *
+     * @param includeTransitive  whether to include transitive dependencies into the result
+     * @return  available updates
+     * @throws ProvisioningException in case of a failure
+     */
+    public Map<ProducerSpec, FeaturePackUpdatePlan> getUpdatePlans(boolean includeTransitive) throws ProvisioningException {
+        return getUpdatePlansInternal(includeTransitive ? featurePacks.keySet() : new Iterable<ProducerSpec>() {
+            final Iterator<F> i = featurePacks.values().iterator();
+            private F next = toNext();
+            @Override
+            public Iterator<ProducerSpec> iterator() {
+                return new Iterator<ProducerSpec>() {
+                    @Override
+                    public boolean hasNext() {
+                        return next != null;
+                    }
+                    @Override
+                    public ProducerSpec next() {
+                        if(next == null) {
+                            throw new NoSuchElementException();
+                        }
+                        final ProducerSpec p = next.getFPID().getProducer();
+                        next = toNext();
+                        return p;
+                    }
+                };
+            }
+            private F toNext() {
+                while(i.hasNext()) {
+                    final F next = i.next();
+                    if(!next.isTransitiveDep()) {
+                        return next;
+                    }
+                }
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Query for available updates and patches for specific producers.
+     * If no producer is passed as an argument, the method will return
+     * the update plan for only the feature-packs installed directly by the user.
+     *
+     * @param producers  producers to include into the update plan
+     * @return  update plan
+     * @throws ProvisioningException in case of a failure
+     */
+    public Map<ProducerSpec, FeaturePackUpdatePlan> getUpdatePlans(ProducerSpec... producers) throws ProvisioningException {
+        if(producers.length == 0) {
+            return getUpdatePlans(false);
+        }
+        return getUpdatePlansInternal(Arrays.asList(producers));
+    }
+
+    private Map<ProducerSpec, FeaturePackUpdatePlan> getUpdatePlansInternal(Iterable<ProducerSpec> producers) throws ProvisioningException {
+        Map<ProducerSpec, FeaturePackUpdatePlan> plan = Collections.emptyMap();
+        for(ProducerSpec producer : producers) {
+            final FeaturePackUpdatePlan fpPlan = getUpdatePlan(producer);
+            if(!fpPlan.isEmpty()) {
+                plan = CollectionUtils.putLinked(plan, producer, fpPlan);
+            }
+        }
+        return CollectionUtils.unmodifiable(plan);
+    }
+
+    /**
+     * Query for available version update and patches for the specific producer.
+     *
+     * @param producer  the producer to check the updates for
+     * @return  available updates for the producer
+     * @throws ProvisioningException  in case of a failure
+     */
+    public FeaturePackUpdatePlan getUpdatePlan(ProducerSpec producer) throws ProvisioningException {
+        final F f = featurePacks.get(producer);
+        if(f == null) {
+            throw new ProvisioningException(Errors.unknownFeaturePack(producer.getLocation().getFPID()));
+        }
+        final FeaturePackLocation fpl = f.getFPID().getLocation();
+        final Universe<?> universe = layoutFactory.getUniverseResolver().getUniverse(fpl.getUniverse());
+        final Channel channel = universe.getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName());
+        final List<F> patches = fpPatches.get(fpl.getFPID());
+        final Set<FPID> patchIds;
+        if (patches == null || patches.isEmpty()) {
+            patchIds = Collections.emptySet();
+        } else if (patches.size() == 1) {
+            patchIds = Collections.singleton(patches.get(0).getFPID());
+        } else {
+            final Set<FPID> tmp = new HashSet<>(patches.size());
+            for (F p : patches) {
+                tmp.add(p.getFPID());
+            }
+            patchIds = CollectionUtils.unmodifiable(tmp);
+        }
+        return channel.getUpdatePlan(FeaturePackUpdatePlan.request(fpl, patchIds, f.isTransitiveDep()));
     }
 
     public ProvisioningConfig getConfig() {
@@ -515,7 +660,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     private void doBuild(boolean cleanupTransitive) throws ProvisioningException {
 
         final Map<ProducerSpec, FPID> depBranch = new HashMap<>();
-        layout(config, depBranch);
+        layout(config, depBranch, FeaturePackLayout.DIRECT_DEP);
         if (!conflicts.isEmpty()) {
             throw new ProvisioningDescriptionException(Errors.fpVersionCheckFailed(conflicts.values()));
         }
@@ -624,7 +769,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         }
     }
 
-    private void layout(FeaturePackDepsConfig config, Map<ProducerSpec, FPID> branch) throws ProvisioningException {
+    private void layout(FeaturePackDepsConfig config, Map<ProducerSpec, FPID> branch, int type) throws ProvisioningException {
         if(!config.hasFeaturePackDeps()) {
             return;
         }
@@ -688,7 +833,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                 continue;
             }
 
-            fp = createFeaturePack(fpl);
+            fp = layoutFactory.resolveFeaturePack(fpl, type, fpFactory);
             featurePacks.put(fpl.getProducer(), fp);
 
             queue.add(fp);
@@ -700,7 +845,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         }
         if(!queue.isEmpty()) {
             for(F p : queue) {
-                layout(p.getSpec(), branch);
+                layout(p.getSpec(), branch, FeaturePackLayout.TRANSITIVE_DEP);
                 handle.copyResources(p.getDir());
                 ordered.add(p);
             }
@@ -722,7 +867,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     }
 
     private void loadPatch(FPID patchId) throws ProvisioningException {
-        final F patchFp = createFeaturePack(patchId.getLocation());
+        final F patchFp = layoutFactory.resolveFeaturePack(patchId.getLocation(), FeaturePackLayout.PATCH, fpFactory);
         final FeaturePackSpec spec = patchFp.getSpec();
         if(!spec.isPatch()) {
             throw new ProvisioningDescriptionException(patchId + " is not a patch but listed as one");
@@ -748,20 +893,6 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
             fpPatches = CollectionUtils.put(fpPatches, patchFor, tmp);
         } else {
             patchList.add(patchFp);
-        }
-    }
-
-    private F createFeaturePack(FeaturePackLocation location)
-            throws ProvisioningException {
-        final Path fpDir = layoutFactory.resolveFeaturePackDir(location);
-        final Path fpXml = fpDir.resolve(Constants.FEATURE_PACK_XML);
-        if (!Files.exists(fpXml)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpXml));
-        }
-        try (BufferedReader reader = Files.newBufferedReader(fpXml)) {
-            return fpFactory.newFeaturePack(location, FeaturePackXmlParser.getInstance().parse(reader), fpDir);
-        } catch (IOException | XMLStreamException e) {
-            throw new ProvisioningException(Errors.parseXml(fpXml), e);
         }
     }
 

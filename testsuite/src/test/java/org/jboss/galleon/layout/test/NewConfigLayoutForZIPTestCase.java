@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.layout.LayoutOrderingTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
@@ -35,7 +36,7 @@ import org.junit.Assert;
  *
  * @author Alexey Loubyansky
  */
-public class NewConfigLayoutForZIPTestCase extends ProvisioningLayoutTestBase {
+public class NewConfigLayoutForZIPTestCase extends LayoutOrderingTestBase {
 
     private MvnUniverse mvnUniverse;
     private FeaturePackLocation fpl1;

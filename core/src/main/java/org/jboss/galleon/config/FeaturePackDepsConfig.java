@@ -18,7 +18,6 @@ package org.jboss.galleon.config;
 
 import java.util.Collection;
 import java.util.Map;
-
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;

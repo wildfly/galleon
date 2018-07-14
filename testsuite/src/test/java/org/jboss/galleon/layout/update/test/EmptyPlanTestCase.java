@@ -15,62 +15,45 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.layout.test;
+package org.jboss.galleon.layout.update.test;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.layout.LayoutOrderingTestBase;
+import org.jboss.galleon.layout.LayoutUpdatePlanTestBase;
+import org.jboss.galleon.layout.update.FeaturePackUpdatePlan;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class BasicLayoutTestCase extends LayoutOrderingTestBase {
+public class EmptyPlanTestCase extends LayoutUpdatePlanTestBase {
 
-    private FeaturePackLocation fpl1;
-    private FeaturePackLocation fpl2;
-    private FeaturePackLocation fpl3;
-    private FeaturePackLocation fpl4;
+    private FeaturePackLocation fp1;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-        universe.createProducer("prod1")
-        .createProducer("prod2")
-        .createProducer("prod3")
-        .createProducer("prod4");
+        universe.createProducer("prod1");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
-        fpl1 = newFpl("prod1", "1", "1.0.0.Final");
-        creator.newFeaturePack(fpl1.getFPID());
-
-        fpl2 = newFpl("prod2", "1", "1.0.0.Final");
-        creator.newFeaturePack(fpl2.getFPID());
-
-        fpl3 = newFpl("prod3", "1", "1.0.0.Final");
-        creator.newFeaturePack(fpl3.getFPID()).addDependency(fpl1);
-
-        fpl4 = newFpl("prod4", "1", "1.0.0.Final");
-        creator.newFeaturePack(fpl4.getFPID()).addDependency(fpl2);
+        fp1 = newFpl("prod1", "1", "1.0.0.Final");
+        creator.newFeaturePack(fp1.getFPID());
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(fpl3)
-                .addFeaturePackDep(fpl4)
-                .addFeaturePackDep(fpl2)
+                .addFeaturePackDep(fp1)
                 .build();
     }
 
     @Override
-    protected FPID[] expectedOrder() {
-        return new FPID[] {fpl1.getFPID(), fpl3.getFPID(), fpl4.getFPID(), fpl2.getFPID()};
+    protected FeaturePackUpdatePlan[] expectedUpdatePlans() {
+        return new FeaturePackUpdatePlan[0];
     }
 }

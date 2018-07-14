@@ -29,5 +29,5 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  */
 public interface FeaturePackLayoutFactory<F extends FeaturePackLayout> {
 
-    F newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir) throws ProvisioningException;
+    F newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir, int type) throws ProvisioningException;
 }
