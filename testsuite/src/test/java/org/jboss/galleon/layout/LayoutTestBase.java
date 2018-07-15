@@ -18,7 +18,12 @@
 package org.jboss.galleon.layout;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -29,10 +34,12 @@ import org.jboss.galleon.test.FeaturePackRepoTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
+import org.jboss.galleon.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -103,7 +110,7 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
         return ProvisioningLayoutFactory.getInstance();
     }
 
-    protected ProvisioningLayout<FeaturePackLayout> buildLayout() throws ProvisioningException {
+    protected ProvisioningLayout<FeaturePackLayout> buildLayout() throws Exception {
         final ProvisioningConfig config = provisioningConfig();
         if(config == null) {
             final Path p = featurePackZip();
@@ -119,6 +126,13 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
         return null;
     }
 
+    protected ProvisioningConfig expectedLayoutConfig() throws ProvisioningDescriptionException {
+        return null;
+    }
+
+    protected void assertLayoutConfig(ProvisioningConfig layoutConfig) throws Exception {
+    }
+
     protected abstract void assertLayout(ProvisioningLayout<FeaturePackLayout> layout) throws Exception;
 
     @Test
@@ -129,6 +143,12 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
                 Assert.fail("Errors expected");
             }
             assertLayout(layout);
+            final ProvisioningConfig expectedConfig = expectedLayoutConfig();
+            if(expectedConfig == null) {
+                assertLayoutConfig(layout.getConfig());
+            } else {
+                assertEquals(expectedConfig, layout.getConfig());
+            }
         } catch(ProvisioningException e) {
             final String[] errors = errors();
             if(errors == null) {
@@ -144,5 +164,38 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
                 t = e.getCause();
             }
         }
+    }
+
+    protected void assertOrdering(final FPID[] expected, ProvisioningLayout<FeaturePackLayout> layout) {
+        if (expected.length == 0) {
+            assertFalse("Layout not empty", layout.hasFeaturePacks());
+            return;
+        }
+        final List<FeaturePackLayout> featurePacks = layout.getOrderedFeaturePacks();
+        if (expected.length != featurePacks.size()) {
+            fail(expected, featurePacks);
+        }
+        for (int i = 0; i < expected.length; ++i) {
+            if (expected[i].equals(featurePacks.get(i).getFPID())) {
+                continue;
+            }
+            fail(expected, featurePacks);
+        }
+    }
+
+    private void fail(final FPID[] expected, final List<FeaturePackLayout> featurePacks) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Expected ");
+        StringUtils.append(buf, Arrays.asList(expected));
+        buf.append(" but was ");
+        if(featurePacks.isEmpty()) {
+            buf.append("empty");
+        } else {
+            buf.append(featurePacks.get(0).getFPID());
+            for (int j = 1; j < featurePacks.size(); ++j) {
+                buf.append(',').append(featurePacks.get(j).getFPID());
+            }
+        }
+        Assert.fail(buf.toString());
     }
 }

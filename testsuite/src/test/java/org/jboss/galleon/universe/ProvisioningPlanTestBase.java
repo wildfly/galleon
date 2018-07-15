@@ -15,21 +15,23 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.layout;
+package org.jboss.galleon.universe;
 
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.layout.ProvisioningPlan;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public abstract class LayoutOrderingTestBase extends LayoutTestBase {
+public abstract class ProvisioningPlanTestBase extends SingleUniverseTestBase {
 
-    protected abstract FPID[] expectedOrder();
+    protected abstract ProvisioningPlan getPlan() throws ProvisioningDescriptionException;
 
     @Override
-    protected void assertLayout(ProvisioningLayout<FeaturePackLayout> layout) throws Exception {
-        assertOrdering(expectedOrder(), layout);
+    protected void testPm(ProvisioningManager pm) throws ProvisioningException {
+        pm.apply(getPlan());
     }
 }

@@ -20,14 +20,13 @@ package org.jboss.galleon.layout;
 import static org.junit.Assert.assertArrayEquals;
 import java.util.Collection;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
-import org.jboss.galleon.layout.update.FeaturePackUpdatePlan;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public abstract class LayoutUpdatePlanTestBase extends LayoutTestBase {
+public abstract class FeaturePackUpdatePlanTestBase extends LayoutTestBase {
 
     protected boolean checkTransitive() {
         return false;
@@ -41,7 +40,8 @@ public abstract class LayoutUpdatePlanTestBase extends LayoutTestBase {
 
     @Override
     protected void assertLayout(ProvisioningLayout<FeaturePackLayout> layout) throws Exception {
-        final Collection<FeaturePackUpdatePlan> actual = (checkTransitive() ? layout.getUpdatePlans(true) : layout.getUpdatePlans(checkUpdates())).values();
-        assertArrayEquals(expectedUpdatePlans(), actual.toArray(new FeaturePackUpdatePlan[actual.size()]));
+        final ProvisioningPlan actual = checkTransitive() ? layout.getUpdates(true) : layout.getUpdates(checkUpdates());
+        final Collection<FeaturePackUpdatePlan> updates = actual.getUpdates();
+        assertArrayEquals(expectedUpdatePlans(), updates.toArray(new FeaturePackUpdatePlan[updates.size()]));
     }
 }
