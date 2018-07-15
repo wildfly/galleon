@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.layout.update;
+package org.jboss.galleon.layout;
 
 import java.util.Collections;
 import java.util.List;

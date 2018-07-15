@@ -16,10 +16,8 @@
  */
 package org.jboss.galleon.config;
 
-import java.util.Map;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -44,12 +42,7 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
                         addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
                     }
                 }
-                if (original.defaultUniverse != null) {
-                    setDefaultUniverse(original.defaultUniverse);
-                }
-                for (Map.Entry<String, UniverseSpec> universe : original.universeSpecs.entrySet()) {
-                    addUniverse(universe.getKey(), universe.getValue());
-                }
+                initUniverses(original);
                 initConfigs(original);
             }
         }

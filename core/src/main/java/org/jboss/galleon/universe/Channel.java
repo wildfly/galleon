@@ -20,7 +20,7 @@ package org.jboss.galleon.universe;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.layout.update.FeaturePackUpdatePlan;
+import org.jboss.galleon.layout.FeaturePackUpdatePlan;
 
 /**
  * Feature-pack channel

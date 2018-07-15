@@ -59,6 +59,17 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         return (B) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public B initUniverses(FeaturePackDepsConfig original) throws ProvisioningDescriptionException {
+        if (original.defaultUniverse != null) {
+            setDefaultUniverse(original.defaultUniverse);
+        }
+        for (Map.Entry<String, UniverseSpec> universe : original.universeSpecs.entrySet()) {
+            addUniverse(universe.getKey(), universe.getValue());
+        }
+        return (B) this;
+    }
+
     public B addFeaturePackDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
         return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), false);
     }

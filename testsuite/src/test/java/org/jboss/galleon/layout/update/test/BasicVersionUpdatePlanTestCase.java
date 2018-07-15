@@ -21,8 +21,8 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.layout.LayoutUpdatePlanTestBase;
-import org.jboss.galleon.layout.update.FeaturePackUpdatePlan;
+import org.jboss.galleon.layout.FeaturePackUpdatePlan;
+import org.jboss.galleon.layout.FeaturePackUpdatePlanTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 
@@ -30,7 +30,7 @@ import org.jboss.galleon.universe.MvnUniverse;
  *
  * @author Alexey Loubyansky
  */
-public class BasicVersionUpdatePlanTestCase extends LayoutUpdatePlanTestBase {
+public class BasicVersionUpdatePlanTestCase extends FeaturePackUpdatePlanTestBase {
 
     private FeaturePackLocation fp100;
     private FeaturePackLocation fp101;

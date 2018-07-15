@@ -32,12 +32,14 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
+import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
@@ -289,6 +291,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case installation fails
      */
     public void install(Path featurePack) throws ProvisioningException {
+        install(featurePack, true);
     }
 
     /**
@@ -435,6 +438,60 @@ public class ProvisioningManager implements AutoCloseable {
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), options)) {
             doProvision(runtime);
+        }
+    }
+
+    /**
+     * Query for available updates and patches for feature-packs in this layout.
+     *
+     * @param includeTransitive  whether to include transitive dependencies into the result
+     * @return  available updates
+     * @throws ProvisioningException in case of a failure
+     */
+    public ProvisioningPlan getUpdates(boolean includeTransitive) throws ProvisioningException {
+        final ProvisioningConfig config = getProvisioningConfig();
+        return config == null ? ProvisioningPlan.builder() : getLayoutFactory().newConfigLayout(config).getUpdates(includeTransitive);
+    }
+
+    /**
+     * Query for available updates and patches for specific producers.
+     * If no producer is passed as an argument, the method will return
+     * the update plan for only the feature-packs installed directly by the user.
+     *
+     * @param producers  producers to include into the update plan
+     * @return  update plan
+     * @throws ProvisioningException in case of a failure
+     */
+    public ProvisioningPlan getUpdates(ProducerSpec... producers) throws ProvisioningException {
+        final ProvisioningConfig config = getProvisioningConfig();
+        return config == null ? ProvisioningPlan.builder() : getLayoutFactory().newConfigLayout(config).getUpdates(producers);
+    }
+
+    /**
+     * Apply provisioning plan to the currently provisioned installation
+     *
+     * @param plan  provisioning plan
+     * @throws ProvisioningException  in case of a failure
+     */
+    public void apply(ProvisioningPlan plan) throws ProvisioningException {
+        apply(plan, Collections.emptyMap());
+    }
+
+    /**
+     * Apply provisioning plan to the currently provisioned installation
+     *
+     * @param plan  provisioning plan
+     * @param options  provisioning plugin options
+     * @throws ProvisioningException  in case of a failure
+     */
+    public void apply(ProvisioningPlan plan, Map<String, String> options) throws ProvisioningException {
+        final ProvisioningConfig config = getProvisioningConfig();
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(
+                config == null ? getInstallationBuilder().build() : config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
+            layout.apply(plan);
+            try (ProvisioningRuntime runtime = getRuntime(layout, options)) {
+                doProvision(runtime);
+            }
         }
     }
 
