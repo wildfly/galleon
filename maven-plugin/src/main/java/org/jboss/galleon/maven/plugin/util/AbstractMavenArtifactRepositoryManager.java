@@ -34,6 +34,7 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
+import org.eclipse.aether.version.Version;
 import org.jboss.galleon.maven.plugin.FpMavenErrors;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
@@ -104,7 +105,7 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         resolve(mavenArtifact);
     }
 
-    private String doGetHighestVersion(Artifact artifact, String lowestQualifier, String coords) throws MavenUniverseException {
+    private VersionRangeResult getVersionRange(Artifact artifact, String coords) throws MavenUniverseException {
         VersionRangeRequest rangeRequest = new VersionRangeRequest();
         rangeRequest.setArtifact(artifact);
         rangeRequest.setRepositories(getRepositories());
@@ -115,7 +116,21 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         } catch (VersionRangeResolutionException ex) {
             throw new MavenUniverseException(ex.getLocalizedMessage(), ex);
         }
+        return rangeResult;
+    }
+
+    private String doGetHighestVersion(Artifact artifact, String lowestQualifier, String coords) throws MavenUniverseException {
+        VersionRangeResult rangeResult = getVersionRange(artifact, coords);
         final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult, lowestQualifier);
+        if (latest == null) {
+            throw new MavenUniverseException("No version retrieved for " + coords);
+        }
+        return latest.toString();
+    }
+
+    private String doGetHighestVersion(Artifact artifact, String coords) throws MavenUniverseException {
+        VersionRangeResult rangeResult = getVersionRange(artifact, coords);
+        final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult);
         if (latest == null) {
             throw new MavenUniverseException("No version retrieved for " + coords);
         }
@@ -126,11 +141,29 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         return MavenArtifactVersion.getLatest(rangeResult.getVersions(), lowestQualifier);
     }
 
+    private static MavenArtifactVersion resolveLatest(VersionRangeResult rangeResult) throws MavenUniverseException {
+        MavenArtifactVersion latestRelease = null;
+        for (Version version : rangeResult.getVersions()) {
+            MavenArtifactVersion next = new MavenArtifactVersion(version.toString());
+            if (latestRelease == null || next.compareTo(latestRelease) > 0) {
+                latestRelease = next;
+            }
+        }
+        return latestRelease;
+    }
+
     @Override
     public String getLatestVersion(MavenArtifact mavenArtifact, String lowestQualifier) throws MavenUniverseException {
         Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
                 mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
         return doGetHighestVersion(artifact, lowestQualifier, mavenArtifact.getCoordsAsString());
+    }
+
+    @Override
+    public String getLatestVersion(MavenArtifact mavenArtifact) throws MavenUniverseException {
+        Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
+                mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
+        return doGetHighestVersion(artifact, mavenArtifact.getCoordsAsString());
     }
 
     @Override

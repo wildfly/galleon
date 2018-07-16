@@ -21,6 +21,7 @@ import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.layout.FeaturePackUpdatePlan;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  * Feature-pack channel
@@ -32,6 +33,8 @@ public interface Channel {
     String getName();
 
     String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException;
+
+    String getLatestBuild(FPID fpid) throws ProvisioningException;
 
     Path resolve(FeaturePackLocation fpl) throws ProvisioningException;
 

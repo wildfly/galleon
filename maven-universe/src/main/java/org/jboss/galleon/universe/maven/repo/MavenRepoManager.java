@@ -58,9 +58,11 @@ public interface MavenRepoManager extends RepositoryArtifactResolver {
 
     void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
 
-    default String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
+    default String getLatestFinalVersion(MavenArtifact artifact) throws MavenUniverseException {
         return getLatestVersion(artifact, null);
     }
+
+    String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException;
 
     String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
 
