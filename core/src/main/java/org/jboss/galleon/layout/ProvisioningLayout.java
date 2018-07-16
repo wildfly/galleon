@@ -448,9 +448,9 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
             throw new ProvisioningException(Errors.patchAlreadyApplied(fpid));
         }
         final F installedFp = featurePacks.get(fpid.getProducer());
-        if(installedFp != null && installedFp.getFPID().getBuild().equals(fpid.getBuild())) {
-            throw new ProvisioningException(Errors.featurePackAlreadyConfigured(fpid.getProducer()));
-        }
+//        if(installedFp != null && installedFp.isDirectDep() && installedFp.getFPID().getBuild().equals(fpid.getBuild())) {
+//            throw new ProvisioningException(Errors.featurePackAlreadyConfigured(fpid.getProducer()));
+//        }
         if(!fpl.hasBuild()) {
             fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
         }
