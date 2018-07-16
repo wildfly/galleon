@@ -106,7 +106,7 @@ public class UniverseListCommand extends PmSessionCommand {
 
     private static void printUniverse(Pattern cPattern, UniverseSpec spec, org.jboss.galleon.universe.Universe<?> universe,
             PmCommandInvocation invoc) throws ProvisioningException {
-        Table table = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.QUALIFIER, Headers.VERSION);
+        Table table = new Table(Headers.PRODUCT, Headers.VERSION, Headers.QUALIFIER, Headers.BUILD);
         for (Producer<?> producer : universe.getProducers()) {
             if (cPattern == null || cPattern.matcher(producer.getName()).matches()) {
                 for (Channel channel : producer.getChannels()) {

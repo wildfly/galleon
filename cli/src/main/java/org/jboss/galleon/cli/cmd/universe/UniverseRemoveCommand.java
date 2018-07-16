@@ -19,22 +19,22 @@ package org.jboss.galleon.cli.cmd.universe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.aesh.command.Command;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
+import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
+import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "remove", description = "remove a universe, without --name, removes the default universe")
-public class UniverseRemoveCommand implements Command<PmCommandInvocation> {
+public class UniverseRemoveCommand extends PmSessionCommand {
     public static class UniverseCompleter extends AbstractCompleter {
 
         @Override
@@ -48,13 +48,12 @@ public class UniverseRemoveCommand implements Command<PmCommandInvocation> {
     private String name;
 
     @Override
-    public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
+    protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {
         try {
             commandInvocation.getPmSession().getUniverse().removeUniverse(name);
         } catch (IOException | ProvisioningException ex) {
-            throw new CommandException(ex);
+            throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.removeUniverseFailed(), ex);
         }
-        return CommandResult.SUCCESS;
     }
 
 }

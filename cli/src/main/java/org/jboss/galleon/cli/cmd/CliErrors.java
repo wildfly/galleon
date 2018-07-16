@@ -23,11 +23,19 @@ package org.jboss.galleon.cli.cmd;
 public interface CliErrors {
 
     static String addFeatureFailed() {
-        return failed("Add Faiture");
+        return failed("Add feature");
     }
 
     static String addRepositoryFailed() {
-        return failed("Add Repository");
+        return failed("Add repository");
+    }
+
+    static String addUniverseFailed() {
+        return failed("Add universe");
+    }
+
+    static String checkForUpdatesFailed() {
+        return failed("Check for updates");
     }
 
     static String diffFailed() {
@@ -103,7 +111,11 @@ public interface CliErrors {
     }
 
     static String removeRepositoryFailed() {
-        return failed("Remove Repository");
+        return failed("Remove repository");
+    }
+
+    static String removeUniverseFailed() {
+        return failed("Remove universe");
     }
 
     static String resetConfigFailed() {
@@ -144,6 +156,10 @@ public interface CliErrors {
 
     static String undoFailed() {
         return failed("Undo");
+    }
+
+    static String upgradeFailed() {
+        return failed("Upgrade");
     }
 
 }

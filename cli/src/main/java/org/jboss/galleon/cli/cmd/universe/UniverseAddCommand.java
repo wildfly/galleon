@@ -19,15 +19,15 @@ package org.jboss.galleon.cli.cmd.universe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.aesh.command.Command;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
+import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
+import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 
 /**
@@ -35,7 +35,8 @@ import org.jboss.galleon.universe.UniverseFactoryLoader;
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "add", description = "Add a universe, without a name, set the default universe.")
-public class UniverseAddCommand implements Command<PmCommandInvocation> {
+public class UniverseAddCommand extends PmSessionCommand {
+
     public static class UniverseFactoryCompleter extends AbstractCompleter {
 
         @Override
@@ -55,13 +56,12 @@ public class UniverseAddCommand implements Command<PmCommandInvocation> {
     private String location;
 
     @Override
-    public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
+    protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {
         try {
             commandInvocation.getPmSession().getUniverse().addUniverse(name, factory, location);
         } catch (IOException | ProvisioningException ex) {
-            throw new CommandException(ex);
+            throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.addUniverseFailed(), ex);
         }
-        return CommandResult.SUCCESS;
     }
 
 }
