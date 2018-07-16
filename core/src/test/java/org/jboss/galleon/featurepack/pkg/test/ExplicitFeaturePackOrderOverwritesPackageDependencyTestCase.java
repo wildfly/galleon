@@ -70,11 +70,11 @@ public class ExplicitFeaturePackOrderOverwritesPackageDependencyTestCase extends
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP2)
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1)
                         .addPackage("a")
                         .addPackage("b")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1)
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP2)
                         .addPackage("a")
                         .addPackage("b")
                         .build())

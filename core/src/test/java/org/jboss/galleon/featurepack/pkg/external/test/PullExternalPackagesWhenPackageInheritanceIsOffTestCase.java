@@ -86,13 +86,13 @@ public class PullExternalPackagesWhenPackageInheritanceIsOffTestCase extends PmP
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP3_GAV)
                         .addPackage("p2")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV)
                         .addPackage("p2")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP3_GAV)
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .addPackage("p2")
                         .build())
                 .build();

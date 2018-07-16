@@ -42,7 +42,6 @@ public class ReplaceExplicitlyInstalledFpTestCase extends PmInstallFeaturePackTe
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        setReplaceInstalled(true);
     }
 
     @Override

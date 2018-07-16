@@ -101,7 +101,7 @@ public class ResourcesOverwritesTestCase extends PmInstallFeaturePackTestBase {
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "2", "2.0.0.Final"))
                         .addPackage("main")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final"))
@@ -110,7 +110,7 @@ public class ResourcesOverwritesTestCase extends PmInstallFeaturePackTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "2", "2.0.0.Final"))
                         .addPackage("main")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "2", "2.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final"))
                         .addPackage("main")
                         .build())
                 .build();

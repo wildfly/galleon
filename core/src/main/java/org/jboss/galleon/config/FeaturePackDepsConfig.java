@@ -17,6 +17,7 @@
 package org.jboss.galleon.config;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -170,8 +171,15 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         if (fpDeps == null) {
             if (other.fpDeps != null)
                 return false;
-        } else if (!fpDeps.equals(other.fpDeps))
+        } else if (fpDeps.size() != other.fpDeps.size())
             return false;
+        final Iterator<Map.Entry<ProducerSpec, FeaturePackConfig>> i = fpDeps.entrySet().iterator();
+        final Iterator<Map.Entry<ProducerSpec, FeaturePackConfig>> otherI = other.fpDeps.entrySet().iterator();
+        while(i.hasNext()) {
+            if(!i.next().equals(otherI.next())) {
+                return false;
+            }
+        }
         if (fpDepsByOrigin == null) {
             if (other.fpDepsByOrigin != null)
                 return false;

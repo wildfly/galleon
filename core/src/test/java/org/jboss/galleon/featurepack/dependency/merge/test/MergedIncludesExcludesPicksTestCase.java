@@ -111,8 +111,10 @@ public class MergedIncludesExcludesPicksTestCase extends PmProvisionConfigTestBa
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
-                        .addPackage("p1")
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp5", "2", "2.0.0.Final"))
+                        .addPackage("p2")
+                        .addPackage("p4")
+                        .addPackage("p5")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final"))
                         .addPackage("p1")
@@ -123,10 +125,8 @@ public class MergedIncludesExcludesPicksTestCase extends PmProvisionConfigTestBa
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "2", "2.0.0.Final"))
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp5", "2", "2.0.0.Final"))
-                        .addPackage("p2")
-                        .addPackage("p4")
-                        .addPackage("p5")
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
+                        .addPackage("p1")
                         .build())
                 .build();
     }

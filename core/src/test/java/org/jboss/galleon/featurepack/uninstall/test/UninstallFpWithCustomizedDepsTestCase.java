@@ -99,17 +99,17 @@ public class UninstallFpWithCustomizedDepsTestCase extends PmUninstallFeaturePac
     }
 
     @Override
-    protected ProvisioningConfig provisionedConfig() {
-        return null;
+    protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
+        return ProvisioningConfig.builder().build();
     }
 
     @Override
     protected ProvisionedState provisionedState() {
-        return null;
+        return ProvisionedState.builder().build();
     }
 
     @Override
     protected DirState provisionedHomeDir() {
-        return DirState.rootBuilder().build();
+        return newDirBuilder().build();
     }
 }

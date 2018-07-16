@@ -425,6 +425,10 @@ public interface Errors {
         return "No version is available for " + fpl;
     }
 
+    static String historyIsEmpty() {
+        return "Provisioning history is empty";
+    }
+
     static void appendConfig(final StringBuilder buf, String model, String name) {
         if (model != null) {
             buf.append(" model ").append(model);

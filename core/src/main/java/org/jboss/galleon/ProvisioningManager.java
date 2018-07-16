@@ -18,12 +18,10 @@ package org.jboss.galleon;
 
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
@@ -45,6 +43,7 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.util.StateHistoryUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.xml.ProvisionedStateXmlParser;
@@ -143,35 +142,9 @@ public class ProvisioningManager implements AutoCloseable {
         return new Builder();
     }
 
-    public static void checkInstallationDir(Path installationHome) throws ProvisioningException {
-        if (!Files.exists(installationHome)) {
-            return;
-        }
-        if (!Files.isDirectory(installationHome)) {
-            throw new ProvisioningException(Errors.notADir(installationHome));
-        }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(installationHome)) {
-            boolean usableDir = true;
-            final Iterator<Path> i = stream.iterator();
-            while (i.hasNext()) {
-                if (i.next().getFileName().toString().equals(Constants.PROVISIONED_STATE_DIR)) {
-                    usableDir = true;
-                    break;
-                } else {
-                    usableDir = false;
-                }
-            }
-            if (!usableDir) {
-                throw new ProvisioningException(Errors.homeDirNotUsable(installationHome));
-            }
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.readDirectory(installationHome));
-        }
-    }
-
     private final String encoding;
-    private final Path installationHome;
-    private final MessageWriter messageWriter;
+    private final Path home;
+    private final MessageWriter log;
 
     private final UniverseResolver universeResolver;
     private ProvisioningLayoutFactory layoutFactory;
@@ -179,9 +152,10 @@ public class ProvisioningManager implements AutoCloseable {
     private ProvisioningConfig provisioningConfig;
 
     private ProvisioningManager(Builder builder) throws ProvisioningException {
+        PathsUtils.assertInstallationDir(builder.installationHome);
+        this.home = builder.installationHome;
         this.encoding = builder.encoding;
-        this.installationHome = builder.installationHome;
-        this.messageWriter = builder.messageWriter == null ? DefaultMessageWriter.getDefaultInstance() : builder.messageWriter;
+        this.log = builder.messageWriter == null ? DefaultMessageWriter.getDefaultInstance() : builder.messageWriter;
         if(builder.layoutFactory != null) {
             layoutFactory = builder.layoutFactory;
             closeLayoutFactory = false;
@@ -210,7 +184,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @return  location of the installation
      */
     public Path getInstallationHome() {
-        return installationHome;
+        return home;
     }
 
     /**
@@ -223,9 +197,9 @@ public class ProvisioningManager implements AutoCloseable {
     public void addUniverse(String name, UniverseSpec universeSpec) throws ProvisioningException {
         final ProvisioningConfig config = getInstallationBuilder().addUniverse(name, universeSpec).build();
         try {
-            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(installationHome));
+            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(home));
         } catch (Exception e) {
-            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(installationHome)), e);
+            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(home)), e);
         }
         this.provisioningConfig = config;
     }
@@ -242,9 +216,9 @@ public class ProvisioningManager implements AutoCloseable {
         }
         config = ProvisioningConfig.builder(config).removeUniverse(name).build();
         try {
-            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(installationHome));
+            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(home));
         } catch (Exception e) {
-            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(installationHome)), e);
+            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(home)), e);
         }
         this.provisioningConfig = config;
     }
@@ -268,7 +242,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public ProvisioningConfig getProvisioningConfig() throws ProvisioningException {
         if (provisioningConfig == null) {
-            provisioningConfig = ProvisioningXmlParser.parse(PathsUtils.getProvisioningXml(installationHome));
+            provisioningConfig = ProvisioningXmlParser.parse(PathsUtils.getProvisioningXml(home));
         }
         return provisioningConfig;
     }
@@ -280,7 +254,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case there was an error reading the description from the disk
      */
     public ProvisionedState getProvisionedState() throws ProvisioningException {
-        return ProvisionedStateXmlParser.parse(PathsUtils.getProvisionedStateXml(installationHome));
+        return ProvisionedStateXmlParser.parse(PathsUtils.getProvisionedStateXml(home));
     }
 
     /**
@@ -333,19 +307,10 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case the installation fails
      */
     public void install(FeaturePackConfig fpConfig) throws ProvisioningException {
-        install(fpConfig, false);
+        install(fpConfig, Collections.emptyMap());
     }
 
     public void install(FeaturePackConfig fpConfig, Map<String, String> options) throws ProvisioningException {
-        install(fpConfig, false, options);
-    }
-
-    public void install(FeaturePackConfig fpConfig, boolean replaceInstalledVersion) throws ProvisioningException {
-        install(fpConfig, replaceInstalledVersion, Collections.emptyMap());
-    }
-
-    public void install(FeaturePackConfig fpConfig, boolean replaceInstalledVersion, Map<String, String> options)
-            throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
         final boolean empty = config == null || !config.hasFeaturePackDeps();
         if(empty) {
@@ -512,6 +477,55 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     /**
+     * Checks whether the provisioning state history is not empty and can be used to undo
+     * the last provisioning operation.
+     *
+     * @return  true if the provisioning state history is not empty, otherwise false
+     * @throws ProvisioningException  in case of an error checking the history state
+     */
+    public boolean isUndoAvailable() throws ProvisioningException {
+        return StateHistoryUtils.isUndoAvailable(home, log);
+    }
+
+    /**
+     * Returns the state history limit for the installation.
+     *
+     * @return  state history limit
+     * @throws ProvisioningException  in case of a failure to read the value
+     */
+    public int getStateHistoryLimit() throws ProvisioningException {
+        return StateHistoryUtils.readStateHistoryLimit(home, log);
+    }
+
+    /**
+     * Sets the new state history limit to the specified value.
+     * The value cannot be negative.
+     *
+     * @param limit  new state history limit
+     * @throws ProvisioningException  in case of a failure
+     */
+    public void setStateHistoryLimit(int limit) throws ProvisioningException {
+        StateHistoryUtils.writeStateHistoryLimit(home, limit, log);
+    }
+
+    /**
+     * Goes back to the previous provisioning state recorded in the provisioning state history.
+     * If the history is empty, the method throws an exception.
+     *
+     * @throws ProvisioningException  in case of a failure
+     */
+    public void undo() throws ProvisioningException {
+        try(ProvisioningRuntime runtime = getRuntime(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
+            try {
+                runtime.provision();
+                PathsUtils.replaceDist(runtime.getStagedDir(), home, true, log);
+            } finally {
+                this.provisioningConfig = null;
+            }
+        }
+    }
+
+    /**
      * Exports the current provisioning configuration of the installation to
      * the specified file.
      *
@@ -521,9 +535,9 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void exportProvisioningConfig(Path location) throws ProvisioningException, IOException {
         Path exportPath = location;
-        final Path userProvisionedXml = PathsUtils.getProvisioningXml(installationHome);
+        final Path userProvisionedXml = PathsUtils.getProvisioningXml(home);
         if(!Files.exists(userProvisionedXml)) {
-            throw new ProvisioningException("Provisioned state record is missing for " + installationHome);
+            throw new ProvisioningException("Provisioned state record is missing for " + home);
         }
         if(Files.isDirectory(exportPath)) {
             exportPath = exportPath.resolve(userProvisionedXml.getFileName());
@@ -534,9 +548,9 @@ public class ProvisioningManager implements AutoCloseable {
     public void exportConfigurationChanges(Path location,  FPID fpid, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();
         if (configuration == null) {
-            final Path userProvisionedXml = PathsUtils.getProvisioningXml(installationHome);
+            final Path userProvisionedXml = PathsUtils.getProvisioningXml(home);
             if (!Files.exists(userProvisionedXml)) {
-                throw new ProvisioningException("Provisioned state record is missing for " + installationHome);
+                throw new ProvisioningException("Provisioned state record is missing for " + home);
             }
             Path xmlTarget = location;
             if (Files.isDirectory(xmlTarget)) {
@@ -557,12 +571,12 @@ public class ProvisioningManager implements AutoCloseable {
 
                         @Override
                         public void print(Throwable cause, CharSequence message) {
-                            messageWriter.print(cause, message);
+                            log.print(cause, message);
                         }
 
                         @Override
                         public void error(Throwable cause, CharSequence message) {
-                            messageWriter.error(cause, message);
+                            log.error(cause, message);
                         }
 
                         @Override
@@ -576,21 +590,21 @@ public class ProvisioningManager implements AutoCloseable {
                         }
                     }))) {
             reference.provision(configuration);
-            try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(messageWriter)
+            try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
                     .initLayout(getLayoutFactory(), configuration)
                     .setEncoding(encoding)
-                    .setInstallDir(tempInstallationDir)
+                    //.setInstallDir(tempInstallationDir)
                     .addOptions(options)
                     .setOperation(fpid != null ? "diff-to-feature-pack" : "diff")
                     .build()) {
                 if(fpid != null) {
-                    ProvisioningRuntime.exportToFeaturePack(runtime, fpid, location, installationHome);
+                    ProvisioningRuntime.exportToFeaturePack(runtime, fpid, location, home);
                 } else {
-                    ProvisioningRuntime.diff(runtime, location, installationHome);
-                    runtime.getDiff().toXML(location, installationHome);
+                    ProvisioningRuntime.diff(runtime, location, home);
+                    runtime.getDiff().toXML(location, home);
                 }
             } catch (XMLStreamException | IOException e) {
-                messageWriter.error(e, e.getMessage());
+                log.error(e, e.getMessage());
             }
         } finally {
             IoUtils.recursiveDelete(tempInstallationDir);
@@ -621,12 +635,12 @@ public class ProvisioningManager implements AutoCloseable {
 
                         @Override
                         public void print(Throwable cause, CharSequence message) {
-                            messageWriter.print(cause, message);
+                            log.print(cause, message);
                         }
 
                         @Override
                         public void error(Throwable cause, CharSequence message) {
-                            messageWriter.error(cause, message);
+                            log.error(cause, message);
                         }
 
                         @Override
@@ -654,12 +668,12 @@ public class ProvisioningManager implements AutoCloseable {
 
                         @Override
                         public void print(Throwable cause, CharSequence message) {
-                            messageWriter.print(cause, message);
+                            log.print(cause, message);
                         }
 
                         @Override
                         public void error(Throwable cause, CharSequence message) {
-                            messageWriter.error(cause, message);
+                            log.error(cause, message);
                         }
 
                         @Override
@@ -674,18 +688,17 @@ public class ProvisioningManager implements AutoCloseable {
                     }))) {
             reference.provision(ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.toFpl(fpGav))).build());
         }
-        try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(messageWriter)
+        try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
                     .initLayout(getLayoutFactory(), configuration)
                     .setEncoding(encoding)
-                    .setInstallDir(tempInstallationDir)
+                    //.setInstallDir(tempInstallationDir)
                     .addOptions(options)
                     .setOperation("upgrade")
                     .build()) {
                 // install the software
                 Files.createDirectories(tempInstallationDir.resolve("model_diff"));
-                ProvisioningRuntime.diff(runtime, tempInstallationDir.resolve("model_diff"), installationHome);
-                runtime.setInstallDir(stagedDir);
-                ProvisioningRuntime.upgrade(runtime, installationHome);
+                ProvisioningRuntime.diff(runtime, tempInstallationDir.resolve("model_diff"), home);
+                ProvisioningRuntime.upgrade(runtime, stagedDir, home);
             }
         finally {
             IoUtils.recursiveDelete(tempInstallationDir);
@@ -695,26 +708,21 @@ public class ProvisioningManager implements AutoCloseable {
 
     public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, Map<String, String> options)
             throws ProvisioningException {
-        final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                .initLayout(getLayoutFactory(), provisioningConfig)
-                .setEncoding(encoding)
-                .setInstallDir(installationHome)
-                .addOptions(options);
-        return builder.build();
+        return getRuntimeInternal(getLayoutFactory().newConfigLayout(provisioningConfig, ProvisioningRuntimeBuilder.FP_RT_FACTORY), options);
     }
 
     public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout, Map<String, String> options)
             throws ProvisioningException {
-        return doGetRuntime(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY), options);
+        return getRuntimeInternal(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY), options);
     }
 
-    private ProvisioningRuntime doGetRuntime(ProvisioningLayout<FeaturePackRuntimeBuilder> rtLayout, Map<String, String> options) throws ProvisioningException {
-        final ProvisioningRuntimeBuilder builder = ProvisioningRuntimeBuilder.newInstance(messageWriter)
-                .initRtLayout(rtLayout)
+    private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, Map<String, String> options)
+            throws ProvisioningException {
+        return ProvisioningRuntimeBuilder.newInstance(log)
+                .initRtLayout(layout)
                 .setEncoding(encoding)
-                .setInstallDir(installationHome)
-                .addOptions(options);
-        return builder.build();
+                .addOptions(options)
+                .build();
     }
 
     private ProvisioningConfig.Builder getInstallationBuilder() throws ProvisioningException {
@@ -722,31 +730,11 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     private void doProvision(ProvisioningRuntime runtime) throws ProvisioningException {
-        checkInstallationDir(installationHome);
-
-        if(runtime == null || !runtime.getProvisioningConfig().hasFeaturePackDeps()) {
-            emptyHomeDir();
-            this.provisioningConfig = null;
-            return;
-        }
-        // install the software
         try {
-        ProvisioningRuntime.install(runtime);
+            runtime.provision();
+            PathsUtils.replaceDist(runtime.getStagedDir(), home, false, log);
         } finally {
             this.provisioningConfig = null;
-        }
-    }
-
-    private void emptyHomeDir() throws ProvisioningException {
-        if(!Files.exists(installationHome)) {
-            return;
-        }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(installationHome)) {
-            for (Path p : stream) {
-                IoUtils.recursiveDelete(p);
-            }
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.readDirectory(installationHome));
         }
     }
 

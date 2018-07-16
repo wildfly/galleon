@@ -97,13 +97,13 @@ public class RedefinedDefaultUniverseForFeaturePackDepsTestCase extends Provisio
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp1Fpid)
-                        .addPackage("p1")
-                        .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp2Fpid)
                         .addPackage("p1")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp3Fpid)
+                        .addPackage("p1")
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp1Fpid)
                         .addPackage("p1")
                         .build())
                 .build();

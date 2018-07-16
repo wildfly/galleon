@@ -18,6 +18,7 @@ package org.jboss.galleon.state;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -122,8 +123,15 @@ public class ProvisionedState implements FeaturePackSet<ProvisionedFeaturePack> 
         if (featurePacks == null) {
             if (other.featurePacks != null)
                 return false;
-        } else if (!featurePacks.equals(other.featurePacks))
+        } else if (featurePacks.size() != other.featurePacks.size())
             return false;
+        final Iterator<Map.Entry<ProducerSpec, ProvisionedFeaturePack>> i = featurePacks.entrySet().iterator();
+        final Iterator<Map.Entry<ProducerSpec, ProvisionedFeaturePack>> otherI = other.featurePacks.entrySet().iterator();
+        while(i.hasNext()) {
+            if(!i.next().equals(otherI.next())) {
+                return false;
+            }
+        }
         return true;
     }
 

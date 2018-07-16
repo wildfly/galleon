@@ -41,7 +41,6 @@ public class InstallNewFeaturePackVersionTestCase extends PmInstallFeaturePackTe
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        setReplaceInstalled(false);
     }
 
     @Override

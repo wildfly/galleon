@@ -100,18 +100,18 @@ public class ExternalDependencyChainTestCase extends PmProvisionConfigTestBase {
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0.Final"))
-                        .addPackage("p1")
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp3", "1", "1.0.0.Final"))
                         .addPackage("p2")
-                        .addPackage("p3")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final"))
                         .addPackage("p2")
                         .addPackage("p3")
                         .addPackage("p4")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp3", "1", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.pm.test:fp1", "1", "1.0.0.Final"))
+                        .addPackage("p1")
                         .addPackage("p2")
+                        .addPackage("p3")
                         .build())
                 .build();
     }

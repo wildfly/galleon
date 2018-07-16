@@ -89,8 +89,9 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
     public void main() throws Throwable {
         final String[] errors = pmErrors();
         boolean failed = false;
-        ProvisioningManager pm = getPm();
+        ProvisioningManager pm = null;
         try {
+            pm = getPm();
             testPm(pm);
             pmSuccess();
             if(errors != null) {
@@ -107,10 +108,14 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
             } else {
                 assertErrors(t, errors);
             }
-            assertProvisioningConfig(pm, initialProvisioningConfig);
-            assertProvisionedState(pm, initialProvisionedState);
+            if(pm != null) {
+                assertProvisioningConfig(pm, initialProvisioningConfig);
+                assertProvisionedState(pm, initialProvisionedState);
+            }
         } finally {
-            pm.close();
+            if(pm != null) {
+                pm.close();
+            }
         }
 
         DirState expectedHomeDir = provisionedHomeDir();

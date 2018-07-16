@@ -89,10 +89,10 @@ public class IncludeDefaultPackagesOfFpDepAndItsDepsTestCase extends PmProvision
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .addPackage("p2")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV)
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP3_GAV)
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP3_GAV)
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV)
                         .addPackage("p1")
                         .build())
                 .build();

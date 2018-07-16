@@ -92,8 +92,10 @@ public class MergedSimplePicksTestCase extends PmProvisionConfigTestBase {
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
-                        .addPackage("p1")
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "2", "2.0.0.Final"))
+                        .addPackage("p2")
+                        .addPackage("p3")
+                        .addPackage("p4")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final"))
                         .addPackage("p1")
@@ -101,10 +103,8 @@ public class MergedSimplePicksTestCase extends PmProvisionConfigTestBase {
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "2", "2.0.0.Final"))
                         .addPackage("p1")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp4", "2", "2.0.0.Final"))
-                        .addPackage("p2")
-                        .addPackage("p3")
-                        .addPackage("p4")
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
+                        .addPackage("p1")
                         .build())
                 .build();
     }
