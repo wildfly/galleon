@@ -25,6 +25,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 /**
@@ -82,7 +83,7 @@ public class ChangesCommand extends FromInstallationCommand {
         try {
             getManager(session).exportConfigurationChanges(targetFile, null, options);
         } catch (ProvisioningException | IOException e) {
-            throw new CommandExecutionException("Failed to export provisioned state", e);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
     }
 }

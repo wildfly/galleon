@@ -24,6 +24,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
@@ -45,7 +46,7 @@ public class ImportCommand extends PmSessionCommand {
             FeaturePackLocation fpl = commandInvocation.getPmSession().getLayoutFactory().addLocal(path.toPath(), install == null ? true : install);
             commandInvocation.println(fpl + " imported.");
         } catch (ProvisioningException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.importFeaturePackFailed(), ex);
         }
     }
 }

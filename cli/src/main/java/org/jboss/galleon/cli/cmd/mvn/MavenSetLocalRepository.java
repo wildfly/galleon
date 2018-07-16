@@ -26,6 +26,7 @@ import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
@@ -48,7 +49,7 @@ public class MavenSetLocalRepository extends PmSessionCommand {
             }
             session.getPmSession().getPmConfiguration().getMavenConfig().setLocalRepository(p);
         } catch (XMLStreamException | IOException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.setLocalRepositoryFailed(), ex);
         }
     }
 

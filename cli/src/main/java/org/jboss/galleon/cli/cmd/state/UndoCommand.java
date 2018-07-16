@@ -22,6 +22,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
 
 @CommandDefinition(name = "undo", description = "Undo the last action", activator = UndoCommandActivator.class)
@@ -36,7 +37,7 @@ public class UndoCommand extends PmSessionCommand {
         try {
             session.pop(invoc.getPmSession());
         } catch (ProvisioningException | IOException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.undoFailed(), ex);
         }
     }
 }

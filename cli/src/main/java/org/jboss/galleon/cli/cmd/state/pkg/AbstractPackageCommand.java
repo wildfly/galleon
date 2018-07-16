@@ -27,6 +27,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.AbstractFPProvisionedCommand;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.Group;
@@ -121,7 +122,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
             }
             return info.getFPID().getProducer();
         } catch (PathParserException | PathConsumerException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session, CliErrors.retrieveProducerFailed(), ex);
         }
     }
 

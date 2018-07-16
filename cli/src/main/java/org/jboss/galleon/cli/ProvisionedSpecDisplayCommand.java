@@ -18,6 +18,7 @@ package org.jboss.galleon.cli;
 
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
@@ -37,7 +38,7 @@ public class ProvisionedSpecDisplayCommand extends ProvisioningCommand {
             try {
                 provisionedState = getManager(session).getProvisionedState();
             } catch (ProvisioningException e) {
-                throw new CommandExecutionException("Failed to read provisioned state", e);
+                throw new CommandExecutionException(session.getPmSession(), CliErrors.readProvisionedStateFailed(), e);
             }
             if (provisionedState == null || !provisionedState.hasFeaturePacks()) {
                 return;
@@ -50,7 +51,7 @@ public class ProvisionedSpecDisplayCommand extends ProvisioningCommand {
             try {
                 provisionedState = getManager(session).getProvisioningConfig();
             } catch (ProvisioningException e) {
-                throw new CommandExecutionException("Failed to read provisioned state", e);
+                throw new CommandExecutionException(session.getPmSession(), CliErrors.readProvisionedStateFailed(), e);
             }
             if (provisionedState == null || !provisionedState.hasFeaturePackDeps()) {
                 return;

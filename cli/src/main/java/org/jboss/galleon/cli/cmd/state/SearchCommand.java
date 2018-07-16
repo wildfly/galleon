@@ -30,6 +30,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.pkg.AbstractPackageCommand;
 import org.jboss.galleon.cli.cmd.state.pkg.AbstractPackageCommand.PackageCompleter;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -98,7 +99,7 @@ public class SearchCommand extends PmSessionCommand {
                 }
             }
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.searchFailed(), ex);
         }
     }
 

@@ -20,6 +20,7 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
@@ -67,7 +68,7 @@ public class ExploreCommand extends AbstractFeaturePackCommand {
             if (ex instanceof CommandExecutionException) {
                 throw (CommandExecutionException) ex;
             }
-            throw new CommandExecutionException("Stream resolution failed", ex);
+            throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.exploreFailed(), ex);
         }
         commandInvocation.setPrompt(PmSession.buildPrompt(prompt));
         commandInvocation.println("Exploring " + name + ". Use 'state leave' to leave exploration.");

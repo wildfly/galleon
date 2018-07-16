@@ -29,6 +29,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.AbstractFPProvisionedCommand;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -142,7 +143,7 @@ public abstract class AbstractDefaultConfigCommand extends AbstractFPProvisioned
         try {
             return session.getResolvedLocation(origin).getProducer();
         } catch (ProvisioningException ex) {
-            throw new CommandExecutionException(ex.getLocalizedMessage(), ex);
+            throw new CommandExecutionException(session, CliErrors.retrieveProducerFailed(), ex);
         }
     }
 

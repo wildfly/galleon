@@ -22,6 +22,7 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
 
@@ -37,7 +38,7 @@ public class StateRemoveExcludedPackageCommand extends AbstractProvisionedPackag
         try {
             session.removeExcludedPackage(invoc.getPmSession(), PackagesUtil.getExcludedPackages(invoc.getPmSession(), config, getPackage()));
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.removeFailed(), ex);
         }
     }
 

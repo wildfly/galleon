@@ -25,6 +25,7 @@ import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.path.PathParser;
@@ -53,7 +54,7 @@ public class LsCommand extends PmSessionCommand {
             try {
                 StateInfoUtil.printContentPath(session, container, path);
             } catch (Exception ex) {
-                throw new CommandExecutionException(ex);
+                throw new CommandExecutionException(session.getPmSession(), CliErrors.displayContentFailed(), ex);
             }
         } else {
             Path res = Paths.get(path);
@@ -61,7 +62,7 @@ public class LsCommand extends PmSessionCommand {
                 try {
                     displayDirectory(res, session);
                 } catch (IOException ex) {
-                    throw new CommandExecutionException(ex.getLocalizedMessage(), ex);
+                    throw new CommandExecutionException(session.getPmSession(), CliErrors.displayContentFailed(), ex);
                 }
             } else if (Files.isRegularFile(res)) {
                 displayFile(res, session);

@@ -21,6 +21,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
 
 /**
@@ -39,7 +40,7 @@ public class StateNewCommand extends PmSessionCommand {
         try {
             session = new State(invoc.getPmSession());
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.newStateFailed(), ex);
         }
         invoc.getPmSession().setState(session);
         invoc.setPrompt(PmSession.buildPrompt(invoc.getPmSession().getState().getPath()));

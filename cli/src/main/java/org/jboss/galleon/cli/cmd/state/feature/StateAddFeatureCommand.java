@@ -36,6 +36,7 @@ import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
 import org.jboss.galleon.cli.cmd.state.configuration.ProvisionedConfigurationCompleter;
 import org.jboss.galleon.cli.model.ConfigInfo;
@@ -129,7 +130,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
                     getSpec(session.getPmSession().getState(),
                             getId(session.getPmSession())), getConfiguration(session.getPmSession().getState()), options);
         } catch (IOException | PathParserException | PathConsumerException | ProvisioningException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.addFeatureFailed(), ex);
         }
     }
 

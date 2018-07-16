@@ -38,6 +38,7 @@ import org.eclipse.aether.version.Version;
 import org.jboss.galleon.maven.plugin.FpMavenErrors;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
+import org.jboss.galleon.universe.maven.MavenLatestVersionNotAvailableException;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenArtifactVersion;
 import org.jboss.galleon.universe.maven.repo.MavenArtifactVersionRange;
@@ -123,7 +124,7 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         VersionRangeResult rangeResult = getVersionRange(artifact, coords);
         final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult, lowestQualifier);
         if (latest == null) {
-            throw new MavenUniverseException("No version retrieved for " + coords);
+            throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(coords));
         }
         return latest.toString();
     }
@@ -132,7 +133,7 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         VersionRangeResult rangeResult = getVersionRange(artifact, coords);
         final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult);
         if (latest == null) {
-            throw new MavenUniverseException("No version retrieved for " + coords);
+            throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(coords));
         }
         return latest.toString();
     }

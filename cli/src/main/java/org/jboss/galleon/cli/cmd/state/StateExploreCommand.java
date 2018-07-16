@@ -21,6 +21,7 @@ import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathParser;
@@ -44,7 +45,7 @@ public class StateExploreCommand extends AbstractStateCommand {
             if (ex instanceof CommandExecutionException) {
                 throw (CommandExecutionException) ex;
             }
-            throw new CommandExecutionException("Stream resolution failed", ex);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.exploreFailed(), ex);
         }
         session.setPrompt(PmSession.buildPrompt(prompt));
         session.println("Exploring " + getName() + ". Use 'state leave' to leave exploration.");

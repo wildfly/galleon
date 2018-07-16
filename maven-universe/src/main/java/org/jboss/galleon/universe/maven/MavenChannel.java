@@ -245,6 +245,12 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
         artifact.setExtension("zip");
         artifact.setVersionRange(versionRange);
-        return producer.getRepo().getLatestVersion(artifact);
+        try {
+            return producer.getRepo().getLatestVersion(artifact);
+        } catch (MavenLatestVersionNotAvailableException e) {
+            throw new LatestVersionNotAvailableException(fpid.getLocation());
+        } catch (MavenUniverseException e) {
+            throw e;
+        }
     }
 }

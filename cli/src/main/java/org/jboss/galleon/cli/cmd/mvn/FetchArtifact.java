@@ -23,6 +23,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 
 /**
@@ -52,7 +53,7 @@ public class FetchArtifact extends PmSessionCommand {
                 session.getPmSession().enableMavenTrace(false);
             }
         } catch (ProvisioningException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.fetchFeaturePackFailed(), ex);
         }
     }
 

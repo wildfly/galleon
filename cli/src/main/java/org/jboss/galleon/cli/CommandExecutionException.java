@@ -23,16 +23,19 @@ package org.jboss.galleon.cli;
 public class CommandExecutionException extends Exception {
 
     private static final long serialVersionUID = 1L;
+    private final PmSession session;
 
-    public CommandExecutionException(String message, Throwable cause) {
+    public CommandExecutionException(PmSession session, String message, Throwable cause) {
         super(message, cause);
+        this.session = session;
     }
 
     public CommandExecutionException(String message) {
         super(message);
+        this.session = null;
     }
 
-    public CommandExecutionException(Throwable cause) {
-        super(cause);
+    public PmSession getPmSession() {
+        return session;
     }
 }
