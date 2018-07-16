@@ -37,7 +37,7 @@ import org.jboss.galleon.util.CollectionUtils;
 public class MvnUniverse {
 
     private static final String FP_SUFFIX = "-feature-pack";
-    public static String[] frequencies = new String[] {"alpha", "beta", "snapshot"};
+    public static String[] frequencies = new String[] {"alpha", "beta", "snapshot", "final"};
 
     public static MvnUniverse getInstance(String name, MavenRepoManager repoManager) {
         return new MvnUniverse(name, repoManager);

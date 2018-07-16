@@ -63,9 +63,10 @@ public class MavenProducerInstallTestCase extends UniverseRepoTestBase {
         Assert.assertEquals(fpGroupId, producer.getFeaturePackGroupId());
         Assert.assertEquals(fpArtifactId, producer.getFeaturePackArtifactId());
         Collection<String> frequencies = producer.getFrequencies();
-        Assert.assertEquals(2, frequencies.size());
+        Assert.assertEquals(3, frequencies.size());
         Assert.assertTrue(frequencies.contains("alpha"));
         Assert.assertTrue(frequencies.contains("beta"));
+        Assert.assertTrue(frequencies.contains("final"));
 
         Assert.assertTrue(producer.hasChannel("1.0"));
         MavenChannel channel = producer.getChannel("1.0");
@@ -73,18 +74,20 @@ public class MavenProducerInstallTestCase extends UniverseRepoTestBase {
         Assert.assertEquals(fpArtifactId, channel.getFeaturePackArtifactId());
         Assert.assertEquals("[1.0.0,2.0.0)", channel.getVersionRange());
         frequencies = channel.getFrequencies();
-        Assert.assertEquals(2, frequencies.size());
+        Assert.assertEquals(3, frequencies.size());
         Assert.assertTrue(frequencies.contains("alpha"));
         Assert.assertTrue(frequencies.contains("beta"));
+        Assert.assertTrue(frequencies.contains("final"));
 
         channel = producer.getChannel("2.0");
         Assert.assertEquals(fpGroupId, channel.getFeaturePackGroupId());
         Assert.assertEquals(fpArtifactId, channel.getFeaturePackArtifactId());
         Assert.assertEquals("[2.0.0,3.0.0)", channel.getVersionRange());
         frequencies = channel.getFrequencies();
-        Assert.assertEquals(2, frequencies.size());
+        Assert.assertEquals(3, frequencies.size());
         Assert.assertTrue(frequencies.contains("alpha"));
         Assert.assertTrue(frequencies.contains("beta"));
+        Assert.assertTrue(frequencies.contains("final"));
         Assert.assertTrue(producer.hasChannel("2.0"));
 
         Assert.assertFalse(producer.hasChannel("3.0"));
