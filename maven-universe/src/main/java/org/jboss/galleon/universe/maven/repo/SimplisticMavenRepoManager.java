@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
+import org.jboss.galleon.universe.maven.MavenLatestVersionNotAvailableException;
 import org.jboss.galleon.util.IoUtils;
 
 /**
@@ -253,11 +254,13 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
 
             final MavenArtifactVersion latest = MavenArtifactVersion.getLatest(versions, lowestQualifier);
             if(latest == null) {
-                throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString());
+                throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()));
             }
             return artifactDir.resolve(latest.toString());
+        } catch(MavenUniverseException e) {
+            throw e;
         } catch (Exception e) {
-            throw new MavenUniverseException("Failed to determine the latest version of " + artifact.getCoordsAsString(), e);
+            throw new MavenUniverseException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()), e);
         }
     }
 

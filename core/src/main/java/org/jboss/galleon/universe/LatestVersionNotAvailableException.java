@@ -17,30 +17,40 @@
 
 package org.jboss.galleon.universe;
 
-import java.util.Collection;
-
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 
 /**
- * Feature-pack producer
  *
  * @author Alexey Loubyansky
  */
-public interface Producer<C extends Channel> {
+public class LatestVersionNotAvailableException extends ProvisioningException {
 
-    String getName();
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-    boolean hasFrequencies();
+    private final FeaturePackLocation fpl;
 
-    Collection<String> getFrequencies();
+    /**
+     * @param message
+     * @param cause
+     */
+    public LatestVersionNotAvailableException(FeaturePackLocation fpl, Throwable cause) {
+        super(Errors.noVersionAvailable(fpl), cause);
+        this.fpl = fpl;
+    }
 
-    boolean hasDefaultFrequency();
+    /**
+     * @param message
+     */
+    public LatestVersionNotAvailableException(FeaturePackLocation fpl) {
+        super(Errors.noVersionAvailable(fpl));
+        this.fpl = fpl;
+    }
 
-    String getDefaultFrequency();
-
-    boolean hasChannel(String name) throws ProvisioningException;
-
-    C getChannel(String name) throws ProvisioningException;
-
-    Collection<C> getChannels() throws ProvisioningException;
+    public FeaturePackLocation getLocation() {
+        return fpl;
+    }
 }

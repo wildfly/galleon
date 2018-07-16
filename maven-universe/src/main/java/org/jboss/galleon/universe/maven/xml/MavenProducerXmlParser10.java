@@ -102,6 +102,7 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
 
     enum Attribute implements XmlNameProvider {
 
+        DEFAULT("default"),
         NAME("name"),
 
         // default unknown attribute
@@ -110,7 +111,8 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
         private static final Map<QName, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(2);
+            attributes = new HashMap<>(3);
+            attributes.put(new QName(DEFAULT.name), DEFAULT);
             attributes.put(new QName(NAME.name), NAME);
             attributes.put(null, UNKNOWN);
         }
@@ -208,7 +210,7 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
                     final Element element = Element.of(reader.getName());
                     switch (element) {
                         case FREQUENCY:
-                            builder.parsedFrequency(reader.getElementText());
+                            readFrequency(reader, builder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -221,5 +223,20 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
             }
         }
         throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private void readFrequency(XMLExtendedStreamReader reader, MavenParsedProducerCallbackHandler builder) throws XMLStreamException {
+        boolean defaultFrequency = false;
+        for (int i = 0; i < reader.getAttributeCount(); i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
+            switch (attribute) {
+                case DEFAULT:
+                    defaultFrequency = Boolean.parseBoolean(reader.getAttributeValue(i));
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedAttribute(reader, i);
+            }
+        }
+        builder.parsedFrequency(reader.getElementText(), defaultFrequency);
     }
 }

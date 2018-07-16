@@ -56,6 +56,16 @@ class LegacyGalleon1Producer implements Producer<LegacyGalleon1Channel> {
     }
 
     @Override
+    public boolean hasDefaultFrequency() {
+        return false;
+    }
+
+    @Override
+    public String getDefaultFrequency() {
+        return null;
+    }
+
+    @Override
     public boolean hasChannel(String name) throws ProvisioningException {
         return true;
     }

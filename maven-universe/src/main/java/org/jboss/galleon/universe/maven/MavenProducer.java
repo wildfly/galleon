@@ -57,6 +57,7 @@ public class MavenProducer extends MavenProducerBase {
     };
 
     private Set<String> frequencies = Collections.emptySet();
+    private String defaultFrequency;
     private Map<String, MavenChannel> channels = Collections.emptyMap();
     private boolean fullyLoaded;
 
@@ -80,8 +81,14 @@ public class MavenProducer extends MavenProducerBase {
                     }
 
                     @Override
-                    public void parsedFrequency(String frequency) throws XMLStreamException {
+                    public void parsedFrequency(String frequency, boolean isDefault) throws XMLStreamException {
                         frequencies = CollectionUtils.add(frequencies, frequency);
+                        if(isDefault) {
+                            if(defaultFrequency != null) {
+                                throw new XMLStreamException("Failed to set frequency " + frequency + " as the default one, the default frequency has already been set to " + defaultFrequency);
+                            }
+                            defaultFrequency = frequency;
+                        }
                     }
 
                     @Override
@@ -100,6 +107,9 @@ public class MavenProducer extends MavenProducerBase {
         } catch (IOException e) {
             throw new MavenUniverseException("Failed to read " + artifact.getPath(), e);
         }
+        if(defaultFrequency == null) {
+            defaultFrequency = DEFAULT_FREQUENCY;
+        }
     }
 
     @Override
@@ -110,6 +120,16 @@ public class MavenProducer extends MavenProducerBase {
     @Override
     public Collection<String> getFrequencies() {
         return frequencies;
+    }
+
+    @Override
+    public boolean hasDefaultFrequency() {
+        return defaultFrequency != null;
+    }
+
+    @Override
+    public String getDefaultFrequency() {
+        return defaultFrequency;
     }
 
     /**

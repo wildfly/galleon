@@ -56,4 +56,8 @@ public class MavenErrors {
     public static MavenUniverseException artifactNotFound(MavenArtifact artifact, Path repoHome) {
         return new MavenUniverseException("Artifact " + artifact.getCoordsAsString() + " not found in " + repoHome);
     }
+
+    public static String failedToResolveLatestVersion(String str) {
+        return "Failed to determine the latest version of " + str;
+    }
 }

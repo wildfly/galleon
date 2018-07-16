@@ -26,7 +26,7 @@ import javax.xml.stream.XMLStreamException;
 public interface MavenParsedProducerCallbackHandler {
 
     void parsedName(String name) throws XMLStreamException;
-    void parsedFrequency(String frequency) throws XMLStreamException;
+    void parsedFrequency(String frequency, boolean isDefault) throws XMLStreamException;
     void parsedFpGroupId(String groupId) throws XMLStreamException;
     void parsedFpArtifactId(String artifactId) throws XMLStreamException;
 }
