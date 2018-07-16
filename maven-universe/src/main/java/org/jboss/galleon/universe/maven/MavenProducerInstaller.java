@@ -44,6 +44,7 @@ import org.jboss.galleon.util.ZipUtils;
 public class MavenProducerInstaller extends MavenProducerBase {
 
     private Set<String> frequencies = Collections.emptySet();
+    private String defaultFrequency;
     private Map<String, MavenChannel> channels = new HashMap<>();
     private boolean installed;
 
@@ -75,6 +76,9 @@ public class MavenProducerInstaller extends MavenProducerBase {
         } else {
             frequencies.addAll(otherProducer.getFrequencies());
         }
+        if(defaultFrequency == null) {
+            defaultFrequency = otherProducer.getDefaultFrequency();
+        }
         for(MavenChannel channel : otherProducer.getChannels()) {
             addChannel(channel);
         }
@@ -82,10 +86,17 @@ public class MavenProducerInstaller extends MavenProducerBase {
     }
 
     public MavenProducerInstaller addFrequency(String name) throws MavenUniverseException {
+        return addFrequency(name, false);
+    }
+
+    public MavenProducerInstaller addFrequency(String name, boolean isDefault) throws MavenUniverseException {
         if(frequencies.isEmpty()) {
             frequencies = new HashSet<>();
         }
         frequencies.add(name);
+        if(isDefault) {
+            defaultFrequency = name;
+        }
         return this;
     }
 
@@ -107,6 +118,16 @@ public class MavenProducerInstaller extends MavenProducerBase {
     @Override
     public Collection<String> getFrequencies() {
         return frequencies;
+    }
+
+    @Override
+    public boolean hasDefaultFrequency() {
+        return defaultFrequency != null;
+    }
+
+    @Override
+    public String getDefaultFrequency() {
+        return defaultFrequency;
     }
 
     public MavenProducerInstaller removeFrequency(String frequency) {
@@ -155,7 +176,7 @@ public class MavenProducerInstaller extends MavenProducerBase {
         }
         Path tmpDir = null;
         try {
-            tmpDir = Files.createTempDirectory("gln-mvn-channel");
+            tmpDir = Files.createTempDirectory("gln-mvn-producer");
             final Path zipRoot = tmpDir.resolve("root");
             addProducerDescription(this, zipRoot);
             final Path artifactFile = tmpDir.resolve(artifact.getArtifactFileName());

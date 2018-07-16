@@ -14,25 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.universe.maven;
 
-import java.util.Collection;
+package org.jboss.galleon.universe.maven;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public interface MavenProducerDescription<C extends MavenChannelDescription> {
+public class MavenLatestVersionNotAvailableException extends MavenUniverseException {
 
-    String getName();
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-    String getFeaturePackGroupId();
-
-    String getFeaturePackArtifactId();
-
-    Collection<String> getFrequencies();
-
-    String getDefaultFrequency();
-
-    Collection<C> getChannels() throws MavenUniverseException;
+    /**
+     *
+     */
+    public MavenLatestVersionNotAvailableException(String message) {
+        super(message);
+    }
 }

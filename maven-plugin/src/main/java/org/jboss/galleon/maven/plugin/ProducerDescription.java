@@ -74,6 +74,12 @@ public class ProducerDescription implements MavenProducerDescription<ChannelDesc
     List<String> frequencies = Collections.emptyList();
 
     /**
+     * Default frequency
+     */
+    @Parameter(required = false)
+    String defaultFrequency;
+
+    /**
      * Channels
      */
     @Parameter(required = true)
@@ -97,6 +103,11 @@ public class ProducerDescription implements MavenProducerDescription<ChannelDesc
     @Override
     public Collection<String> getFrequencies() {
         return frequencies;
+    }
+
+    @Override
+    public String getDefaultFrequency() {
+        return defaultFrequency;
     }
 
     @Override

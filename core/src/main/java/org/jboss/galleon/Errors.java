@@ -421,6 +421,10 @@ public interface Errors {
         return buf.toString();
     }
 
+    static String noVersionAvailable(FeaturePackLocation fpl) {
+        return "No version is available for " + fpl;
+    }
+
     static void appendConfig(final StringBuilder buf, String model, String name) {
         if (model != null) {
             buf.append(" model ").append(model);

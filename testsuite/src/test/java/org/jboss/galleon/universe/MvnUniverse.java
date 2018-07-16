@@ -67,13 +67,20 @@ public class MvnUniverse {
     }
 
     public MvnUniverse createProducer(String producerName, String fpArtifactId) throws ProvisioningException {
-        producers = CollectionUtils.add(producers,
-                new MavenProducerInstaller(producerName, repoManager,
-                        new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
-                                .setVersion("1.0.0.Final"),
-                        TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId)
-                                .addFrequencies(frequencies).addChannel("1", "[1.0.0-alpha,2.0.0-alpha)")
-                                .install());
+        return createProducer(producerName, fpArtifactId, null);
+    }
+
+    public MvnUniverse createProducer(String producerName, String fpArtifactId, String defaultFrequency) throws ProvisioningException {
+        final MavenProducerInstaller producer = new MavenProducerInstaller(producerName, repoManager,
+                new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
+                        .setVersion("1.0.0.Final"),
+                TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId)
+                        .addFrequencies(frequencies)
+                        .addChannel("1", "[1.0.0-alpha,2.0.0-alpha)");
+        if(defaultFrequency != null) {
+            producer.addFrequency(defaultFrequency, true);
+        }
+        producers = CollectionUtils.add(producers, producer.install());
         return this;
     }
 

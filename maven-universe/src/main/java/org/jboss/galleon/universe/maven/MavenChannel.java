@@ -58,7 +58,16 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
         artifact.setExtension("zip");
         artifact.setVersionRange(versionRange);
-        return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl));
+        try {
+            return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl));
+        } catch(MavenLatestVersionNotAvailableException e) {
+            if(fpl.getFrequency() == null && producer.hasDefaultFrequency()) {
+                fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), producer.getDefaultFrequency(), null);
+            }
+            throw new ProvisioningException(Errors.noVersionAvailable(fpl));
+        } catch(MavenUniverseException e) {
+            throw e;
+        }
     }
 
     @Override
@@ -150,7 +159,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
     private String getFrequency(FeaturePackLocation fpl) throws MavenUniverseException {
         final String frequency = fpl.getFrequency();
         if(frequency == null) {
-            return null;
+            return producer.getDefaultFrequency();
         }
         if (!producer.getFrequencies().contains(frequency)) {
             throw new MavenUniverseException(Errors.frequencyNotSupported(((Producer<?>) producer).getFrequencies(), fpl));

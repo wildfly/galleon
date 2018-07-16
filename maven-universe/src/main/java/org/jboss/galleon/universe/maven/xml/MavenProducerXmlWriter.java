@@ -52,8 +52,13 @@ public class MavenProducerXmlWriter extends BaseXmlWriter<MavenProducerDescripti
         }
         final ElementNode frequenciesEl = addElement(producerEl, Element.FREQUENCIES);
         final Collection<String> frequencies = producer.getFrequencies();
+        final String defaultFrequency = producer.getDefaultFrequency();
         for(String frequency : frequencies) {
-            addElement(frequenciesEl, Element.FREQUENCY).addChild(new TextNode(frequency));
+            final ElementNode frequencyE = addElement(frequenciesEl, Element.FREQUENCY);
+            if(defaultFrequency != null && frequency.equals(defaultFrequency)) {
+                addAttribute(frequencyE, Attribute.DEFAULT, "true");
+            }
+            frequencyE.addChild(new TextNode(frequency));
         }
         return producerEl;
     }
