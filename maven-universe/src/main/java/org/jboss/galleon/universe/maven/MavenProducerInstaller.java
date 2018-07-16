@@ -174,6 +174,9 @@ public class MavenProducerInstaller extends MavenProducerBase {
         if(installed) {
             throw new MavenUniverseException("The universe has already been installed");
         }
+        if(defaultFrequency == null) {
+            defaultFrequency = DEFAULT_FREQUENCY;
+        }
         Path tmpDir = null;
         try {
             tmpDir = Files.createTempDirectory("gln-mvn-producer");

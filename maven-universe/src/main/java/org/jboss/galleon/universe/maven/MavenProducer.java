@@ -107,6 +107,9 @@ public class MavenProducer extends MavenProducerBase {
         } catch (IOException e) {
             throw new MavenUniverseException("Failed to read " + artifact.getPath(), e);
         }
+        if(defaultFrequency == null) {
+            defaultFrequency = DEFAULT_FREQUENCY;
+        }
     }
 
     @Override

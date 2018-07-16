@@ -24,6 +24,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.util.StringUtils;
 
@@ -64,7 +65,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
             if(fpl.getFrequency() == null && producer.hasDefaultFrequency()) {
                 fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), producer.getDefaultFrequency(), null);
             }
-            throw new ProvisioningException(Errors.noVersionAvailable(fpl));
+            throw new LatestVersionNotAvailableException(fpl);
         } catch(MavenUniverseException e) {
             throw e;
         }

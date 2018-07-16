@@ -30,6 +30,8 @@ import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
  */
 public abstract class MavenProducerBase implements Producer<MavenChannel>, MavenProducerDescription<MavenChannel> {
 
+    protected static final String DEFAULT_FREQUENCY = "final"; // for maven artifact versions that's the default one
+
     protected final String name;
     protected final MavenRepoManager repo;
     protected final MavenArtifact artifact;
