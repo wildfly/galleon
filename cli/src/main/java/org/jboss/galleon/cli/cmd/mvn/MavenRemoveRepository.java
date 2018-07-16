@@ -28,6 +28,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
@@ -55,7 +56,7 @@ public class MavenRemoveRepository extends PmSessionCommand {
         try {
             session.getPmSession().getPmConfiguration().getMavenConfig().removeRemoteRepository(name);
         } catch (ProvisioningException | XMLStreamException | IOException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.removeRepositoryFailed(), ex);
         }
     }
 

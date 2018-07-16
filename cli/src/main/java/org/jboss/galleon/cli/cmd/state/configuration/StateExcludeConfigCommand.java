@@ -21,6 +21,7 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.FPDependentCommandActivator;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -37,7 +38,7 @@ public class StateExcludeConfigCommand extends AbstractDefaultConfigCommand {
         try {
             session.excludeConfiguration(invoc.getPmSession(), ConfigurationUtil.getConfigurations(invoc.getPmSession(), config, getConfiguration()));
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.excludeFailed(), ex);
         }
     }
 }

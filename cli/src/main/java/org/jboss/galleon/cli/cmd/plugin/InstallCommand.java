@@ -40,6 +40,7 @@ import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.plugin.PluginOption;
@@ -89,8 +90,8 @@ public class InstallCommand extends AbstractPluginsCommand {
             } else {
                 manager.install(loc, options);
             }
-        } catch (Throwable ex) {
-            throw new CommandExecutionException(ex);
+        } catch (ProvisioningException ex) {
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.installFailed(), ex);
         }
     }
 
@@ -156,7 +157,7 @@ public class InstallCommand extends AbstractPluginsCommand {
         try {
             return FeaturePackDescriber.readSpec(path).getFPID().toString();
         } catch (ProvisioningException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session, CliErrors.retrieveFeaturePackID(), ex);
         }
     }
 

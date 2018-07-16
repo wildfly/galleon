@@ -26,6 +26,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeaturePackInfo;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.PATCHES;
@@ -67,7 +68,7 @@ public class StateInfoCommand extends AbstractStateCommand {
                 }
             }
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
         }
     }
 

@@ -26,6 +26,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.Group;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathConsumerException;
@@ -54,7 +55,7 @@ public class CdCommand extends PmSessionCommand {
             try {
                 cdFp(session);
             } catch (PathParserException | PathConsumerException ex) {
-                throw new CommandExecutionException(ex.getLocalizedMessage(), ex);
+                throw new CommandExecutionException(session.getPmSession(), CliErrors.enterFPFailed(), ex);
             }
         }
     }

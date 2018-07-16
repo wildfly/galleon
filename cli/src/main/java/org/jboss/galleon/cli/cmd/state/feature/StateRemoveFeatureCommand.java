@@ -23,6 +23,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.StateFullPathCompleter;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
 import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
@@ -73,7 +74,7 @@ public class StateRemoveFeatureCommand extends AbstractStateCommand {
 
             session.removeFeature(invoc.getPmSession(), ci, fi);
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.removeFeatureFailed(), ex);
         }
     }
 }

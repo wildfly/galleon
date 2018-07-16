@@ -36,6 +36,7 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
@@ -74,13 +75,13 @@ public class StateExportCommand extends PmSessionCommand {
                 try {
                     session.export(targetFile);
                 } catch (Exception ex) {
-                    throw new CommandExecutionException(ex);
+                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), ex);
                 }
             } else {
                 try {
                     getManager(invoc).exportProvisioningConfig(targetFile);
                 } catch (ProvisioningException | IOException e) {
-                    throw new CommandExecutionException("Failed to export provisioned state", e);
+                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), e);
                 }
             }
 
@@ -94,7 +95,7 @@ public class StateExportCommand extends PmSessionCommand {
                 PrintWriter writer = new PrintWriter(output);
                 ProvisioningXmlWriter.getInstance().write(config, writer);
             } catch (Exception e) {
-                throw new CommandExecutionException("Failed to export provisioned state", e);
+                throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), e);
             }
             invoc.println(output.toString());
         }

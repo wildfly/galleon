@@ -23,6 +23,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.aesh.io.Resource;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
@@ -46,7 +47,7 @@ public class ProvisionedSpecExportCommand extends ProvisioningCommand {
         try {
             getManager(session).exportProvisioningConfig(targetFile);
         } catch (ProvisioningException | IOException e) {
-            throw new CommandExecutionException("Failed to export provisioned state", e);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
     }
 }

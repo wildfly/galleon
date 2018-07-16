@@ -23,6 +23,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 /**
@@ -77,7 +78,7 @@ public class UpgradeCommand extends FromInstallationCommand {
         try {
             getManager(session).upgrade(ArtifactCoords.newGav(coord), parameters);
         } catch (ProvisioningException | IOException e) {
-            throw new CommandExecutionException("Failed to export provisioned state", e);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
     }
 }

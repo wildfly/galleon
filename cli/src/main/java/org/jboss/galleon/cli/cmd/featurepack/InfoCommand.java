@@ -29,6 +29,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
@@ -81,7 +82,7 @@ public class InfoCommand extends AbstractFeaturePackCommand {
                     layout = session.getLayoutFactory().newConfigLayout(file.toPath(), true);
                 }
             } catch (ProvisioningException ex) {
-                throw new CommandExecutionException(ex);
+                throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.infoFailed(), ex);
             }
 
             for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {

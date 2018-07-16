@@ -43,6 +43,7 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand.RESOLUTION_MESSAGE;
 import org.jboss.galleon.cli.cmd.state.StateNoExplorationActivator;
 import org.jboss.galleon.cli.model.state.State;
@@ -197,7 +198,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
                 try {
                     getManager(invoc).provision(state.getConfig(), options);
                 } catch (ProvisioningException ex) {
-                    throw new CommandExecutionException(ex);
+                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), ex);
                 }
             } else {
                 String file = getFile();
@@ -211,7 +212,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
                 try {
                     getManager(invoc).provision(provisioningFile, options);
                 } catch (ProvisioningException e) {
-                    throw new CommandExecutionException("Provisioning failed", e);
+                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), e);
                 }
             }
         } finally {
@@ -223,7 +224,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
             try {
                 invoc.println("Installation done in " + home.toFile().getCanonicalPath());
             } catch (IOException ex) {
-                throw new CommandExecutionException(ex);
+                throw new CommandExecutionException(invoc.getPmSession(), CliErrors.retrievePath(), ex);
             }
         } else if (invoc.getPmSession().getState() != null) {
             invoc.println("Nothing to install");

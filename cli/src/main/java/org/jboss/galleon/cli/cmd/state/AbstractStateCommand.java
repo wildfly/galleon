@@ -22,6 +22,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
 
 /**
@@ -39,7 +40,7 @@ public abstract class AbstractStateCommand extends PmSessionCommand {
         try {
             runCommand(invoc, session);
         } catch (IOException | ProvisioningException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.setLocalRepositoryFailed(), ex);
         }
     }
 

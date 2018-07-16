@@ -19,6 +19,8 @@ package org.jboss.galleon.cli;
 import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 
 /**
  *
@@ -33,32 +35,51 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
             runCommand(session);
             return CommandResult.SUCCESS;
         } catch (Throwable t) {
-            // t.printStackTrace();
-            if(t instanceof RuntimeException) {
-                t.printStackTrace(session.getErr());
-            }
-
-            session.print("Error: ");
-            println(session, t);
-
-            t = t.getCause();
-            int offset = 1;
-            while(t != null) {
-                for(int i = 0; i < offset; ++i) {
-                    session.print(" ");
-                }
-                session.print("* ");
-                println(session, t);
-                t = t.getCause();
-                ++offset;
-            }
+            handleException(session, t);
             return CommandResult.FAILURE;
         } finally {
             session.getPmSession().commandEnd();
         }
     }
 
-    private void println(PmCommandInvocation session, Throwable t) {
+    public static void handleException(PmCommandInvocation session, Throwable t) {
+        // t.printStackTrace();
+        if (t instanceof RuntimeException) {
+            t.printStackTrace(session.getErr());
+        }
+        t = handleCommandExecutionException(t);
+        session.print("Error: ");
+        println(session, t);
+
+        t = t.getCause();
+        int offset = 1;
+        while (t != null) {
+            for (int i = 0; i < offset; ++i) {
+                session.print(" ");
+            }
+            session.print("* ");
+            println(session, t);
+            t = t.getCause();
+            ++offset;
+        }
+    }
+
+    private static Throwable handleCommandExecutionException(Throwable t) {
+        if (t instanceof CommandExecutionException) {
+            CommandExecutionException cex = (CommandExecutionException) t;
+            if (cex.getPmSession() != null) {
+                // Handle default and named universes
+                if (cex.getCause() instanceof LatestVersionNotAvailableException) {
+                    LatestVersionNotAvailableException cause = (LatestVersionNotAvailableException) cex.getCause();
+                    FeaturePackLocation fpl = cex.getPmSession().getExposedLocation(cause.getLocation());
+                    t = new LatestVersionNotAvailableException(fpl);
+                }
+            }
+        }
+        return t;
+    }
+
+    private static void println(PmCommandInvocation session, Throwable t) {
         if(t.getLocalizedMessage() == null) {
             session.println(t.getClass().getName());
         } else {

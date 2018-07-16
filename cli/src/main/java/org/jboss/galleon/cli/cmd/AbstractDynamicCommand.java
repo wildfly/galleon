@@ -44,6 +44,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.model.state.State;
 
 /**
@@ -212,25 +213,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
             runCommand(session, options);
             return CommandResult.SUCCESS;
         } catch (Throwable t) {
-            // t.printStackTrace();
-            if (t instanceof RuntimeException) {
-                t.printStackTrace(session.getErr());
-            }
-
-            session.print("Error: ");
-            println(session, t);
-
-            t = t.getCause();
-            int offset = 1;
-            while (t != null) {
-                for (int i = 0; i < offset; ++i) {
-                    session.print(" ");
-                }
-                session.print("* ");
-                println(session, t);
-                t = t.getCause();
-                ++offset;
-            }
+            PmSessionCommand.handleException(session, t);
             return CommandResult.FAILURE;
         }
     }

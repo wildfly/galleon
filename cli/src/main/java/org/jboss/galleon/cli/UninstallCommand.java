@@ -19,6 +19,7 @@ package org.jboss.galleon.cli;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -37,7 +38,7 @@ public class UninstallCommand extends ProvisioningCommand {
         try {
             getManager(session).uninstall(getFPID(session.getPmSession()));
         } catch (ProvisioningException e) {
-            throw new CommandExecutionException("Provisioning failed", e);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.provisioningFailed(), e);
         }
     }
 
@@ -48,7 +49,7 @@ public class UninstallCommand extends ProvisioningCommand {
         try {
             return session.getResolvedLocation(streamName).getFPID();
         } catch (Exception e) {
-            throw new CommandExecutionException("Failed to parse " + streamName, e);
+            throw new CommandExecutionException(session, CliErrors.resolveLocationFailed(), e);
         }
     }
 }

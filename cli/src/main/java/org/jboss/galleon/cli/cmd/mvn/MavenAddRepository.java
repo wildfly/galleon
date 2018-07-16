@@ -25,6 +25,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import static org.jboss.galleon.cli.CliMavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.config.mvn.MavenRemoteRepository;
 
 /**
@@ -51,7 +52,7 @@ public class MavenAddRepository extends PmSessionCommand {
             session.getPmSession().getPmConfiguration().getMavenConfig().
                     addRemoteRepository(new MavenRemoteRepository(name, type, url));
         } catch (ProvisioningException | XMLStreamException | IOException ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.addRepositoryFailed(), ex);
         }
     }
 

@@ -23,6 +23,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.aesh.io.Resource;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 
@@ -51,7 +52,7 @@ public class ProvisionSpecCommand extends ProvisioningCommand {
         try {
             getManager(session).provision(provisioningFile);
         } catch (ProvisioningException e) {
-            throw new CommandExecutionException("Provisioning failed", e);
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.provisioningFailed(), e);
         }
     }
 }

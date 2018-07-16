@@ -22,6 +22,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.state.State;
@@ -44,7 +45,7 @@ public class StateResetConfigCommand extends AbstractStateCommand {
         try {
             state.resetConfiguration(invoc.getPmSession(), getConfiguration(state));
         } catch (Exception ex) {
-            throw new CommandExecutionException(ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.resetConfigFailed(), ex);
         }
     }
 
