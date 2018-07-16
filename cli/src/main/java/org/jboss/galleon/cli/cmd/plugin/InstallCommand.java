@@ -90,7 +90,6 @@ public class InstallCommand extends AbstractPluginsCommand {
                 manager.install(loc, options);
             }
         } catch (Throwable ex) {
-            ex.printStackTrace();
             throw new CommandExecutionException(ex);
         }
     }

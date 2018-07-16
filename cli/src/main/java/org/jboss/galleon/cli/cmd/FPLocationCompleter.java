@@ -137,11 +137,9 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                         }
                         for (Channel c : p.getChannels()) {
                             if (c.getName().equals(channel)) {
-                                if (p.hasFrequencies()) {
-                                    candidates.add(channel + FeaturePackLocation.FREQUENCY_START);
-                                } else {
-                                    candidates.add(channel);
-                                }
+                                // Do nothing, do not inline separators. Separators are to be added explicitly
+                                // this could be revisited.
+                                candidates.add(channel);
                             } else if (c.getName().startsWith(channel)) {
                                 candidates.add(c.getName());
                             }
@@ -156,7 +154,9 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                         }
                         for (String freq : p.getFrequencies()) {
                             if (freq.equals(frequency)) {
-                                candidates.add(freq + FeaturePackLocation.BUILD_START);
+                                // Do not inline the build separator, separator is to be added explicitly
+                                // this could be revisited.
+                                candidates.add(freq);
                             } else if (freq.startsWith(frequency)) {
                                 candidates.add(freq);
                             }
@@ -179,10 +179,19 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                             spec = new UniverseSpec(parsedLocation.getUniverseFactory(), parsedLocation.getUniverseLocation());
                         }
                         if (spec != null) {
-                            FeaturePackLocation loc = new FeaturePackLocation(spec, parsedLocation.getProducer(),
-                                    parsedLocation.getChannel(), parsedLocation.getFrequency(), null);
-                            String latestBuild = pmSession.getUniverse().getUniverseResolver().getUniverse(spec).
-                                    getProducer(parsedLocation.getProducer()).getChannel(parsedLocation.getChannel()).getLatestBuild(loc);
+                            String latestBuild = null;
+                            // FPID
+                            if (parsedLocation.getFrequency() == null) {
+                                FeaturePackLocation.FPID id = new FeaturePackLocation(spec, parsedLocation.getProducer(),
+                                        parsedLocation.getChannel(), null, null).getFPID();
+                                latestBuild = pmSession.getUniverse().getUniverseResolver().getUniverse(spec).
+                                        getProducer(parsedLocation.getProducer()).getChannel(parsedLocation.getChannel()).getLatestBuild(id);
+                            } else {
+                                FeaturePackLocation loc = new FeaturePackLocation(spec, parsedLocation.getProducer(),
+                                        parsedLocation.getChannel(), parsedLocation.getFrequency(), null);
+                                latestBuild = pmSession.getUniverse().getUniverseResolver().getUniverse(spec).
+                                        getProducer(parsedLocation.getProducer()).getChannel(parsedLocation.getChannel()).getLatestBuild(loc);
+                            }
                             if (latestBuild != null) {
                                 if (latestBuild.startsWith(build)) {
                                     candidates.add(latestBuild);
@@ -241,8 +250,10 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
 
     private void getAllProducers(String name, UniverseSpec spec, Universe<?> universe, List<String> candidates) throws ProvisioningException {
         for (Producer<?> p : universe.getProducers()) {
-            if (!candidates.contains(p.getName())) {
-                candidates.add(p.getName());
+            for (Channel c : p.getChannels()) {
+                if (!candidates.contains(p.getName())) {
+                    candidates.add(p.getName() + FeaturePackLocation.CHANNEL_START + c.getName());
+                }
             }
         }
     }
@@ -250,14 +261,18 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
     private void getProducers(String producerName, String universeName, Universe<?> universe, List<String> candidates) throws ProvisioningException {
         for (Producer<?> p : universe.getProducers()) {
             if (!candidates.contains(p.getName())) {
-                if (p.getName().equals(producerName)) {
+                // Display producer:channel as a whole, makes it clear that we require both.
+                if (p.getName().startsWith(producerName)) {
                     if (universeName == null) {
-                        candidates.add(producerName + FeaturePackLocation.CHANNEL_START);
+                        for (Channel c : p.getChannels()) {
+                            candidates.add(p.getName() + FeaturePackLocation.CHANNEL_START + c.getName());
+                        }
                     } else {
-                        candidates.add(producerName + FeaturePackLocation.UNIVERSE_START + universeName);
+                        for (Channel c : p.getChannels()) {
+                            candidates.add(p.getName() + FeaturePackLocation.UNIVERSE_START
+                                    + universeName + FeaturePackLocation.CHANNEL_START + c.getName());
+                        }
                     }
-                } else if (p.getName().startsWith(producerName)) {
-                    candidates.add(p.getName());
                 }
             }
         }
