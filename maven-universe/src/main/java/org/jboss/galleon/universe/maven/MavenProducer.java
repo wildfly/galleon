@@ -109,6 +109,9 @@ public class MavenProducer extends MavenProducerBase {
         }
         if(defaultFrequency == null) {
             defaultFrequency = DEFAULT_FREQUENCY;
+            if(!frequencies.contains(defaultFrequency)) {
+                frequencies = CollectionUtils.add(frequencies, defaultFrequency);
+            }
         }
     }
 

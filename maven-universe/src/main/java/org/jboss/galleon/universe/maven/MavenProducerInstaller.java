@@ -34,6 +34,7 @@ import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlWriter;
 import org.jboss.galleon.universe.maven.xml.MavenProducerXmlWriter;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 
@@ -176,6 +177,9 @@ public class MavenProducerInstaller extends MavenProducerBase {
         }
         if(defaultFrequency == null) {
             defaultFrequency = DEFAULT_FREQUENCY;
+            if(!frequencies.contains(defaultFrequency)) {
+                frequencies = CollectionUtils.add(frequencies, defaultFrequency);
+            }
         }
         Path tmpDir = null;
         try {
