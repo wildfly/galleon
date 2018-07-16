@@ -187,7 +187,14 @@ public class FPLocationParser {
                         builder = new StringBuilder();
                         state = State.FREQUENCY;
                     } else {
-                        builder.append(c);
+                        if (c == FeaturePackLocation.BUILD_START) {
+                            parsedLocation.marker = offset - 1;
+                            parsedLocation.channel = builder.toString();
+                            builder = new StringBuilder();
+                            state = State.BUILD;
+                        } else {
+                            builder.append(c);
+                        }
                     }
                     break;
                 }

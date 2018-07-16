@@ -104,7 +104,7 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
     @Override
     public String getHighestVersion(ArtifactCoords coords, String range) throws ArtifactException {
         try {
-            return getLatestVersion(toMavenArtifact(coords).setVersionRange(range));
+            return getLatestFinalVersion(toMavenArtifact(coords).setVersionRange(range));
         } catch (MavenUniverseException e) {
             throw new ArtifactException("Failed to resolve the latest version for " + coords, e);
         }
@@ -281,6 +281,11 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
 
     @Override
     public boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

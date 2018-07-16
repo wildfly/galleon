@@ -227,4 +227,14 @@ public class MavenChannel implements Channel, MavenChannelDescription {
             return producer.getRepo().isResolved(artifact);
         }
     }
+
+    @Override
+    public String getLatestBuild(FeaturePackLocation.FPID fpid) throws ProvisioningException {
+        final MavenArtifact artifact = new MavenArtifact();
+        artifact.setGroupId(producer.getFeaturePackGroupId());
+        artifact.setArtifactId(producer.getFeaturePackArtifactId());
+        artifact.setExtension("zip");
+        artifact.setVersionRange(versionRange);
+        return producer.getRepo().getLatestVersion(artifact);
+    }
 }
