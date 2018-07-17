@@ -450,7 +450,15 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public ProvisioningPlan getUpdates(boolean includeTransitive) throws ProvisioningException {
         final ProvisioningConfig config = getProvisioningConfig();
-        return config == null ? ProvisioningPlan.builder() : getLayoutFactory().newConfigLayout(config).getUpdates(includeTransitive);
+        ProvisioningPlan plan;
+        if (config == null) {
+            plan = ProvisioningPlan.builder();
+        } else {
+            try (ProvisioningLayout layout = getLayoutFactory().newConfigLayout(config)) {
+                plan = layout.getUpdates(includeTransitive);
+            }
+        }
+        return plan;
     }
 
     /**
@@ -464,7 +472,15 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public ProvisioningPlan getUpdates(ProducerSpec... producers) throws ProvisioningException {
         final ProvisioningConfig config = getProvisioningConfig();
-        return config == null ? ProvisioningPlan.builder() : getLayoutFactory().newConfigLayout(config).getUpdates(producers);
+        ProvisioningPlan plan;
+        if (config == null) {
+            plan = ProvisioningPlan.builder();
+        } else {
+            try (ProvisioningLayout layout = getLayoutFactory().newConfigLayout(config)) {
+                plan = layout.getUpdates(producers);
+            }
+        }
+        return plan;
     }
 
     /**
