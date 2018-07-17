@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,21 +37,26 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.artifact.ArtifactCoordinate;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
+import org.jboss.galleon.maven.plugin.util.ResolveLocalItem;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
+import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.universe.maven.MavenUniverseException;
+import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
 /**
@@ -115,6 +121,13 @@ public class ProvisionStateMojo extends AbstractMojo {
     @Parameter(alias = "offline", defaultValue = "true")
     private boolean offline;
 
+    /**
+     * A list of artifacts and paths pointing to feature-pack archives that should be resolved locally without
+     * involving the universe-based feature-pack resolver at provisioning time.
+     */
+    @Parameter(alias = "resolve-locals")
+    private List<ResolveLocalItem> resolveLocals = Collections.EMPTY_LIST;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if(featurePacks.isEmpty()) {
@@ -138,16 +151,40 @@ public class ProvisionStateMojo extends AbstractMojo {
 
     private void doProvision() throws MojoExecutionException, ProvisioningException {
         final ProvisioningConfig.Builder state = ProvisioningConfig.builder();
-        for(FeaturePack fp : featurePacks) {
+
+        final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
+                : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
+
+        final ProvisioningManager pm = ProvisioningManager.builder()
+                .addArtifactResolver(artifactResolver)
+                .setInstallationHome(installDir.toPath())
+                .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
+                .build();
+
+        for (FeaturePack fp : featurePacks) {
+
+            if (fp.getLocation() == null && (fp.getGroupId() == null || fp.getArtifactId() == null) && fp.getNormalizedPath() == null) {
+                throw new MojoExecutionException("Feature-pack location, Maven GAV or feature pack path is missing");
+            }
+
             final FeaturePackLocation fpl;
-            if(fp.getLocation() == null) {
-                if(fp.getGroupId() == null || fp.getArtifactId() == null) {
-                    throw new MojoExecutionException("Feature-pack location or Maven GAV is missing");
-                }
-                fpl = LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(fp.getGroupId(), fp.getArtifactId(), fp.getVersion()));
+            if (fp.getNormalizedPath() != null) {
+
+                FeaturePackSpec featurePackSpec = FeaturePackDescriber.readSpec(fp.getNormalizedPath());
+                fpl = featurePackSpec.getFPID().getLocation();
+                pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+
+            } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
+
+                Path path = resolveMaven(fp, (MavenRepoManager) artifactResolver);
+                FeaturePackSpec featurePackSpec = FeaturePackDescriber.readSpec(path);
+                fpl = featurePackSpec.getFPID().getLocation();
+                pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
+
             final FeaturePackConfig.Builder fpConfig = fp.isTransitive() ? FeaturePackConfig.transitiveBuilder(fpl) : FeaturePackConfig.builder(fpl);
             fpConfig.setInheritConfigs(fp.isInheritConfigs());
             fpConfig.setInheritPackages(fp.isInheritPackages());
@@ -193,15 +230,36 @@ public class ProvisionStateMojo extends AbstractMojo {
             }
         }
 
-        final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
-                :  new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
+        for (ResolveLocalItem localResolverItem : resolveLocals) {
+            if (localResolverItem.getError() != null) {
+                throw new MojoExecutionException(localResolverItem.getError());
+            }
+        }
 
-        final ProvisioningManager pm = ProvisioningManager.builder()
-                .addArtifactResolver(artifactResolver)
-                .setInstallationHome(installDir.toPath())
-                .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
-                .build();
+        for (ResolveLocalItem localResolverItem : resolveLocals) {
+            if (localResolverItem.getNormalizedPath() != null) {
+                pm.getLayoutFactory().addLocal(localResolverItem.getNormalizedPath(), localResolverItem.getInstallInUniverse());
+            }
+
+            if (localResolverItem.getArtifact() != null) {
+                Path path = resolveMaven(localResolverItem.getArtifact(), (MavenRepoManager) artifactResolver);
+                pm.getLayoutFactory().addLocal(path, false);
+            }
+        }
 
         pm.provision(state.build(), pluginOptions);
+    }
+
+    private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MavenUniverseException {
+        final MavenArtifact artifact = new MavenArtifact();
+        artifact.setGroupId(coordinate.getGroupId());
+        artifact.setArtifactId(coordinate.getArtifactId());
+        artifact.setVersion(coordinate.getVersion());
+        artifact.setExtension(coordinate.getExtension());
+        artifact.setClassifier(coordinate.getClassifier());
+
+        resolver.resolve(artifact);
+
+        return artifact.getPath();
     }
 }
