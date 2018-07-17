@@ -27,6 +27,7 @@ public class MavenArtifact {
 
     public static final String EXT_JAR = "jar";
     public static final String EXT_ZIP = "zip";
+    private static final String DEFAULT_CLASSIFIER = "";
 
     public static MavenArtifact fromString(String str) throws MavenUniverseException {
         final MavenArtifact artifact = new MavenArtifact();
@@ -89,7 +90,7 @@ public class MavenArtifact {
     private String groupId;
     private String artifactId;
     private String version;
-    private String classifier = "";
+    private String classifier = DEFAULT_CLASSIFIER;
     private String extension = EXT_JAR;
     private String versionRange;
     private Path path;
@@ -133,7 +134,7 @@ public class MavenArtifact {
     }
 
     public MavenArtifact setClassifier(String classifier) {
-        this.classifier = classifier;
+        this.classifier = classifier == null ? DEFAULT_CLASSIFIER : classifier;
         return this;
     }
 

@@ -19,13 +19,22 @@ package org.jboss.galleon.maven.plugin.util;
 import java.io.File;
 import java.nio.file.Path;
 
+import org.apache.maven.shared.artifact.ArtifactCoordinate;
+import org.jboss.galleon.universe.maven.MavenArtifact;
+
 /**
  * Represents the information of each item inside of resolve-locals configuration param for
  * provisioning plugin.
  */
-public class ResolveLocalItem {
+public class ResolveLocalItem implements ArtifactCoordinate {
     private Path path;
-    private ResolveLocalArtifactItem artifact;
+
+    private String groupId;
+    private String artifactId;
+    private String version;
+    private String extension = MavenArtifact.EXT_ZIP;
+    private String classifier = "";
+
     private Boolean installInUniverse;
     /**
      * Even throwing an exception if there is a wrong configuration for this element,
@@ -53,21 +62,71 @@ public class ResolveLocalItem {
     }
 
     /**
-     * Artifact string using groupId:artifactId:version format
-     *
      * @parameter
-     * @param artifact
-     *
-     * @throws IllegalStateException if Path or install-in-universe have been already initialized
      */
-    public void setArtifact(ResolveLocalArtifactItem artifact) {
-        assertArtifact();
-        this.artifact = artifact;
-        this.installInUniverse = Boolean.FALSE;
+    @Override
+    public String getGroupId() {
+        return groupId;
     }
 
-    public ResolveLocalArtifactItem getArtifact() {
-        return artifact;
+    /**
+     * @parameter
+     */
+    public void setGroupId(String groupId) {
+        assertNotPath();
+        this.groupId = groupId;
+    }
+
+    @Override
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    /**
+     * @parameter
+     */
+    public void setArtifactId(String artifactId) {
+        assertNotPath();
+        this.artifactId = artifactId;
+    }
+
+    @Override
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * @parameter
+     */
+    public void setVersion(String version) {
+        assertNotPath();
+        this.version = version;
+    }
+
+    @Override
+    public String getExtension() {
+        return extension;
+    }
+
+    /**
+     * @parameter
+     */
+    public void setExtension(String extension) {
+        assertNotPath();
+        this.extension = extension;
+    }
+
+    @Override
+    public String getClassifier() {
+        return classifier;
+    }
+
+    /**
+     * @parameter
+     */
+    public void setClassifier(String classifier) {
+        assertNotPath();
+        this.classifier = classifier;
     }
 
     /**
@@ -85,22 +144,26 @@ public class ResolveLocalItem {
         return installInUniverse;
     }
 
-    private void assertArtifact() {
+    private void assertNotPath() {
         if (this.path != null || installInUniverse != null) {
             error = "feature-pack artifact cannot be used: feature-pack Path or install-in-universe have already been initialized";
             throw new IllegalStateException(error);
         }
     }
 
+    public boolean hasArtifactCoords() {
+        return groupId != null || artifactId != null || version != null;
+    }
+
     private void assertPath() {
-        if (this.artifact != null) {
+        if (hasArtifactCoords()) {
             error = "feature-pack Path cannot be used: feature-pack artifact has already been initialized";
             throw new IllegalStateException(error);
         }
     }
 
     private void assertInstallInUniverse() {
-        if (this.artifact != null) {
+        if (hasArtifactCoords()) {
             error = "feature-pack install-in-universe cannot be used: feature-pack artifact has already been initialized";
             throw new IllegalStateException(error);
         }

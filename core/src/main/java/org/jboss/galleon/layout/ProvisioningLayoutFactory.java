@@ -36,9 +36,11 @@ import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.ZipUtils;
@@ -85,11 +87,19 @@ public class ProvisioningLayoutFactory implements Closeable {
      * @throws ProvisioningException  in case of a failure
      */
     public synchronized FeaturePackLocation addLocal(Path featurePack, boolean installInUniverse) throws ProvisioningException {
-        final FPID fpid = FeaturePackDescriber.readSpec(featurePack).getFPID();
+        FPID fpid = FeaturePackDescriber.readSpec(featurePack).getFPID();
+        // temporary conversion of galleon1 core to the universe it should belong to
+        if(fpid.getUniverse().getFactory().equals(LegacyGalleon1UniverseFactory.ID) &&
+                "org.wildfly.core:wildfly-core-galleon-pack".equals(fpid.getProducer().getName())) {
+            fpid = new FeaturePackLocation(new UniverseSpec("maven", "org.jboss.universe:community-universe"), "wildfly-core",
+                    "current", null, fpid.getBuild()).getFPID();
+        }
+
         final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpid, false);
         if(Files.exists(fpDir)) {
             IoUtils.recursiveDelete(fpDir);
         }
+
         unpack(fpDir, featurePack);
         if(!installInUniverse) {
             return fpid.getLocation();

@@ -46,13 +46,11 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.maven.plugin.util.ResolveLocalItem;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
-import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
@@ -169,18 +167,10 @@ public class ProvisionStateMojo extends AbstractMojo {
 
             final FeaturePackLocation fpl;
             if (fp.getNormalizedPath() != null) {
-
-                FeaturePackSpec featurePackSpec = FeaturePackDescriber.readSpec(fp.getNormalizedPath());
-                fpl = featurePackSpec.getFPID().getLocation();
-                pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
-
+                fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
             } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
-
                 Path path = resolveMaven(fp, (MavenRepoManager) artifactResolver);
-                FeaturePackSpec featurePackSpec = FeaturePackDescriber.readSpec(path);
-                fpl = featurePackSpec.getFPID().getLocation();
-                pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
-
+                fpl = pm.getLayoutFactory().addLocal(path, false);
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
@@ -239,11 +229,11 @@ public class ProvisionStateMojo extends AbstractMojo {
         for (ResolveLocalItem localResolverItem : resolveLocals) {
             if (localResolverItem.getNormalizedPath() != null) {
                 pm.getLayoutFactory().addLocal(localResolverItem.getNormalizedPath(), localResolverItem.getInstallInUniverse());
-            }
-
-            if (localResolverItem.getArtifact() != null) {
-                Path path = resolveMaven(localResolverItem.getArtifact(), (MavenRepoManager) artifactResolver);
+            } else if (localResolverItem.hasArtifactCoords()) {
+                Path path = resolveMaven(localResolverItem, (MavenRepoManager) artifactResolver);
                 pm.getLayoutFactory().addLocal(path, false);
+            } else {
+                throw new MojoExecutionException("resolve-local element appears to be neither path not maven artifact");
             }
         }
 
