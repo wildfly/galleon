@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,7 +88,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         }
 
         // execute the plug-ins
-        runtime.executePlugins();
+        runtime.executeInstallPlugins();
 
         // save the config
         try {
@@ -403,7 +402,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return configs;
     }
 
-    private void executePlugins() throws ProvisioningException {
+    private void executeInstallPlugins() throws ProvisioningException {
         FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
             @Override
             public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
@@ -415,12 +414,8 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     private <T extends ProvisioningPlugin> void visitCheckOptionsPlugins(FeaturePackPluginVisitor<T> visitor,
             Class<T> clazz) throws ProvisioningException {
-        List<T> plugins = new ArrayList<>();
-        Set<String> options = new HashSet<>();
-        Thread thread = Thread.currentThread();
-        ClassLoader ocl = thread.getContextClassLoader();
-        List<ClassLoader> pluginLoaderHolder = new ArrayList<>(1);
-        FeaturePackPluginVisitor<T> v = new FeaturePackPluginVisitor<T>() {
+        final Set<String> options = new HashSet<>();
+        final FeaturePackPluginVisitor<T> v = new FeaturePackPluginVisitor<T>() {
             @Override
             public void visitPlugin(T plugin) throws ProvisioningException {
                 //check for missing required options.
@@ -431,32 +426,18 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                                     + " is required for this plugin.");
                         }
                     }
+                    options.add(opt.getName());
                 }
-                if (pluginLoaderHolder.isEmpty()) {
-                    pluginLoaderHolder.add(Thread.currentThread().getContextClassLoader());
-                }
-                options.addAll(plugin.getOptions().keySet());
-                plugins.add(plugin);
             }
         };
-        visitPlugins(v, clazz);
+        layout.visitPlugins(v, clazz);
         // check if provided options exist
         for (String userOption : pluginOptions.keySet()) {
             if (!options.contains(userOption)) {
                 throw new ProvisioningException("Option " + userOption + " is not supported");
             }
         }
-        if (!plugins.isEmpty()) {
-            ClassLoader pluginsLoader = pluginLoaderHolder.get(0);
-            try {
-                thread.setContextClassLoader(pluginsLoader);
-                for (T p : plugins) {
-                    visitor.visitPlugin(p);
-                }
-            } finally {
-                thread.setContextClassLoader(ocl);
-            }
-        }
+        layout.visitPlugins(visitor, clazz);
     }
 
     public <T extends ProvisioningPlugin> void visitPlugins(FeaturePackPluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {

@@ -163,7 +163,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         if(fpDep == null) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpl.getFPID()));
         }
-        if(!fpDep.getLocation().equals(fpl)) {
+        if(!fpDep.getLocation().getFPID().equals(fpl.getFPID())) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpl.getFPID()));
         }
         if(fpDeps.size() == 1) {

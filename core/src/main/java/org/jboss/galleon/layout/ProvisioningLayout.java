@@ -96,6 +96,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         private Path workDir;
         private ClassLoader pluginsCl;
         private boolean closePluginsCl;
+        private Map<String, List<ProvisioningPlugin>> loadedPlugins = Collections.emptyMap();
         private Path pluginsDir;
         private Path resourcesDir;
         private Path tmpDir;
@@ -231,6 +232,53 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
             return pluginsCl;
         }
 
+        @SuppressWarnings("unchecked")
+        protected <T extends ProvisioningPlugin> void visitPlugins(FeaturePackPluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
+            List<ProvisioningPlugin> plugins = loadedPlugins.get(clazz.getName());
+            if (plugins == null) {
+                final ClassLoader pluginsCl = getPluginsClassLoader();
+                final Thread thread = Thread.currentThread();
+                final Iterator<T> pluginIterator = ServiceLoader.load(clazz, pluginsCl).iterator();
+                plugins = Collections.emptyList();
+                if (pluginIterator.hasNext()) {
+                    final ClassLoader ocl = thread.getContextClassLoader();
+                    try {
+                        thread.setContextClassLoader(pluginsCl);
+                        T plugin = pluginIterator.next();
+                        plugins = CollectionUtils.add(plugins, plugin);
+                        visitor.visitPlugin(plugin);
+                        while (pluginIterator.hasNext()) {
+                            plugin = pluginIterator.next();
+                            plugins = CollectionUtils.add(plugins, plugin);
+                            visitor.visitPlugin(plugin);
+                        }
+                    } finally {
+                        thread.setContextClassLoader(ocl);
+                    }
+                }
+                loadedPlugins = CollectionUtils.put(loadedPlugins, clazz.getName(), plugins);
+                return;
+            }
+
+            if(plugins.isEmpty()) {
+                return;
+            }
+
+            final Thread thread = Thread.currentThread();
+            final ClassLoader ocl = thread.getContextClassLoader();
+            thread.setContextClassLoader(getPluginsClassLoader());
+            try {
+                for (ProvisioningPlugin plugin : plugins) {
+                    if (!clazz.isAssignableFrom(plugin.getClass())) {
+                        continue;
+                    }
+                    visitor.visitPlugin((T) plugin);
+                }
+            } finally {
+                thread.setContextClassLoader(ocl);
+            }
+        }
+
         private Path getTmpDir() {
             return tmpDir == null ? tmpDir = getWorkDir().resolve(TMP) : tmpDir;
         }
@@ -248,6 +296,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
             if(refs == 0 || --refs > 0) {
                 return;
             }
+            loadedPlugins = Collections.emptyMap();
             if(closePluginsCl) {
                 try {
                     ((java.net.URLClassLoader)pluginsCl).close();
@@ -699,23 +748,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     }
 
     public <T extends ProvisioningPlugin> void visitPlugins(FeaturePackPluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
-        final ClassLoader pluginsCl = getPluginsClassLoader();
-        final Thread thread = Thread.currentThread();
-        final ServiceLoader<T> pluginLoader = ServiceLoader.load(clazz, pluginsCl);
-        final Iterator<T> pluginIterator = pluginLoader.iterator();
-        if (pluginIterator.hasNext()) {
-            final ClassLoader ocl = thread.getContextClassLoader();
-            try {
-                thread.setContextClassLoader(pluginsCl);
-                final T plugin = pluginIterator.next();
-                visitor.visitPlugin(plugin);
-                while (pluginIterator.hasNext()) {
-                    visitor.visitPlugin(pluginIterator.next());
-                }
-            } finally {
-                thread.setContextClassLoader(ocl);
-            }
-        }
+        handle.visitPlugins(visitor, clazz);
     }
 
     public Path newStagedDir() throws ProvisioningException {
