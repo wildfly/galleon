@@ -38,7 +38,11 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     }
 
     public static ArtifactCoords fromString(String str) {
-        return new ArtifactCoords(str);
+        return new ArtifactCoords(str, "jar");
+    }
+
+    public static ArtifactCoords fromString(String str, String defaultExtension) {
+        return new ArtifactCoords(str, defaultExtension);
     }
 
     public static Gav newGav(String groupId, String artifactId, String version) {
@@ -261,7 +265,7 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     private final Gav gavPart;
     private final Ga gaPart;
 
-    private ArtifactCoords(String str) {
+    private ArtifactCoords(String str, String defaultExtension) {
         final Matcher m = COORDS_PATTERN.matcher(str);
         if (!m.matches()) {
             throw new IllegalArgumentException("Bad artifact coordinates " + str
@@ -269,7 +273,7 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         }
         groupId = m.group(1);
         artifactId = m.group(2);
-        extension = get(m.group(4), "jar");
+        extension = get(m.group(4), defaultExtension);
         classifier = get(m.group(6), "");
         version = m.group(7);
 

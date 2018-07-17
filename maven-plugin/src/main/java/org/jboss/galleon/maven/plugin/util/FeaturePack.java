@@ -17,6 +17,8 @@
 
 package org.jboss.galleon.maven.plugin.util;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +49,8 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     private boolean inheritPackages = true;
     private List<String> excludedPackages = Collections.emptyList();
     private List<String> includedPackages = Collections.emptyList();
+
+    private Path path;
 
     @Override
     public String getGroupId() {
@@ -173,6 +177,15 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.includedPackages = includedPackages;
     }
 
+    public void setPath(File path) {
+        assertPathLocation();
+        this.path = path.toPath().normalize();
+    }
+
+    public Path getNormalizedPath() {
+        return path;
+    }
+
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
@@ -206,15 +219,30 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         return buf.append('}').toString();
     }
 
+    private void assertPathLocation() {
+        if (groupId != null || artifactId != null || version != null) {
+            throw new IllegalStateException("feature-pack Path cannot be used: Galleon 1.x feature-pack Maven coordinates have already been initialized");
+        }
+        if (location != null) {
+            throw new IllegalStateException("feature-pack Path cannot be used: Galleon 2.x location has already been initialized");
+        }
+    }
+
     private void assertGalleon2Location() {
         if(groupId != null || artifactId != null || version != null) {
             throw new IllegalStateException("Galleon 2.x location cannot be used: feature-pack Maven coordinates have already been initialized");
+        }
+        if (path != null) {
+            throw new IllegalStateException("Galleon 2.x location cannot be used: feature-pack Path has already been initialized");
         }
     }
 
     private void assertGalleon1Location() {
         if(location != null) {
             throw new IllegalStateException("Galleon 1.x feature-pack Maven coordinates cannot be used: Galleon 2.x feature-pack location has already been initialized");
+        }
+        if (path != null) {
+            throw new IllegalStateException("Galleon 1.x feature-pack Maven coordinates cannot be used: feature-pack Path has already been initialized");
         }
     }
 }
