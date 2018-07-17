@@ -17,7 +17,6 @@
 package org.jboss.galleon.plugin.test;
 
 import java.io.IOException;
-
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;

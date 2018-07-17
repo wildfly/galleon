@@ -454,7 +454,7 @@ public class ProvisioningManager implements AutoCloseable {
         if (config == null) {
             plan = ProvisioningPlan.builder();
         } else {
-            try (ProvisioningLayout layout = getLayoutFactory().newConfigLayout(config)) {
+            try (ProvisioningLayout<?> layout = getLayoutFactory().newConfigLayout(config)) {
                 plan = layout.getUpdates(includeTransitive);
             }
         }
@@ -476,7 +476,7 @@ public class ProvisioningManager implements AutoCloseable {
         if (config == null) {
             plan = ProvisioningPlan.builder();
         } else {
-            try (ProvisioningLayout layout = getLayoutFactory().newConfigLayout(config)) {
+            try (ProvisioningLayout<?> layout = getLayoutFactory().newConfigLayout(config)) {
                 plan = layout.getUpdates(producers);
             }
         }
