@@ -30,4 +30,7 @@ public class Headers {
     public static final String PATCHES = "Patches";
     public static final String QUALIFIER = "Qualifier";
     public static final String BUILD = "Build";
+    public static final String CURRENT_BUILD = "Current Build";
+    public static final String UNIVERSE = "Universe";
+    public static final String UPDATE = "Update";
 }

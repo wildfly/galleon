@@ -71,12 +71,14 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
     @Override
     public List<Command> getCommands() {
         List<Command> commands = new ArrayList<>();
+        commands.add(new StateCheckUpdatesCommand());
         commands.add(new StateEditCommand());
         commands.add(new StateInfoCommand());
         commands.add(new StateNewCommand());
         commands.add(new StateExploreCommand());
         commands.add(new StateExportCommand());
         commands.add(new StateLeaveCommand());
+        commands.add(new StateUpgradeCommand());
         return commands;
     }
 
