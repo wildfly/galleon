@@ -84,6 +84,7 @@ public class ProvisioningLayoutFactory implements Closeable {
      *
      * @param featurePack  feature-pack archive
      * @param installInUniverse  whether to install the feature-pack into the universe repository
+     * @return  feature-pack location which was added to the local cache
      * @throws ProvisioningException  in case of a failure
      */
     public synchronized FeaturePackLocation addLocal(Path featurePack, boolean installInUniverse) throws ProvisioningException {

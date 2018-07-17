@@ -34,8 +34,8 @@ public class LatestVersionNotAvailableException extends ProvisioningException {
     private final FeaturePackLocation fpl;
 
     /**
-     * @param message
-     * @param cause
+     * @param fpl  feature-pack location
+     * @param cause  the actual cause
      */
     public LatestVersionNotAvailableException(FeaturePackLocation fpl, Throwable cause) {
         super(Errors.noVersionAvailable(fpl), cause);
@@ -43,7 +43,7 @@ public class LatestVersionNotAvailableException extends ProvisioningException {
     }
 
     /**
-     * @param message
+     * @param fpl  feature-pack location
      */
     public LatestVersionNotAvailableException(FeaturePackLocation fpl) {
         super(Errors.noVersionAvailable(fpl));

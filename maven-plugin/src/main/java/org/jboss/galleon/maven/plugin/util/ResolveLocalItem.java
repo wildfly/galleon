@@ -46,8 +46,7 @@ public class ResolveLocalItem implements ArtifactCoordinate {
     /**
      * File pointing to a feature-pack
      *
-     * @parameter
-     * @param file
+     * @param file  feature-pack file
      *
      * @throws IllegalStateException if artifact has been already initialized
      */
@@ -61,17 +60,11 @@ public class ResolveLocalItem implements ArtifactCoordinate {
         return path;
     }
 
-    /**
-     * @parameter
-     */
     @Override
     public String getGroupId() {
         return groupId;
     }
 
-    /**
-     * @parameter
-     */
     public void setGroupId(String groupId) {
         assertNotPath();
         this.groupId = groupId;
@@ -82,9 +75,6 @@ public class ResolveLocalItem implements ArtifactCoordinate {
         return artifactId;
     }
 
-    /**
-     * @parameter
-     */
     public void setArtifactId(String artifactId) {
         assertNotPath();
         this.artifactId = artifactId;
@@ -95,9 +85,6 @@ public class ResolveLocalItem implements ArtifactCoordinate {
         return version;
     }
 
-    /**
-     * @parameter
-     */
     public void setVersion(String version) {
         assertNotPath();
         this.version = version;
@@ -108,9 +95,6 @@ public class ResolveLocalItem implements ArtifactCoordinate {
         return extension;
     }
 
-    /**
-     * @parameter
-     */
     public void setExtension(String extension) {
         assertNotPath();
         this.extension = extension;
@@ -121,9 +105,6 @@ public class ResolveLocalItem implements ArtifactCoordinate {
         return classifier;
     }
 
-    /**
-     * @parameter
-     */
     public void setClassifier(String classifier) {
         assertNotPath();
         this.classifier = classifier;
@@ -132,8 +113,7 @@ public class ResolveLocalItem implements ArtifactCoordinate {
     /**
      * Boolean value for install-in-universe parameter configuration
      *
-     * @parameter
-     * @param installInUniverse
+     * @param installInUniverse  whether to install the feature-pack in universe repository
      */
     public void setInstallInUniverse(Boolean installInUniverse) {
         assertInstallInUniverse();

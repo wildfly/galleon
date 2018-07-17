@@ -316,7 +316,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      *
      * @param path  path to the resource relative to the global resources directory
      * @return  file-system path for the resource
-     * @throws ProvisioningException
+     * @throws ProvisioningException  in case of a failure
      */
     public Path getResource(String... path) throws ProvisioningException {
         return layout.getResource(path);

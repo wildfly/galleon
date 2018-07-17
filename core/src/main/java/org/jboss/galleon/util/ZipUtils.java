@@ -133,7 +133,7 @@ public class ZipUtils {
      * @param uri The uri to the zip file.
      * @param env Env map.
      * @return A new FileSystem.
-     * @throws IOException
+     * @throws IOException  in case of a failure
      */
     public static FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         // If Multi threading required, logic should be added to wrap this fs
@@ -146,7 +146,7 @@ public class ZipUtils {
      * This call is thread safe, a new FS is created for each invocation.
      * @param path The zip file.
      * @return A new FileSystem instance
-     * @throws IOException
+     * @throws IOException  in case of a failure
      */
      public static FileSystem newFileSystem(Path path) throws IOException {
          return FileSystems.newFileSystem(path, null);
