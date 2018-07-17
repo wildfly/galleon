@@ -42,6 +42,9 @@ import org.jboss.galleon.universe.UniverseSpec;
 @CommandDefinition(name = "check-updates", description = "Get available updates for an installation")
 public class StateCheckUpdatesCommand extends AbstractStateCommand {
 
+    public static final String UP_TO_DATE = "Installation is up to date. No available updates nor patches.";
+    public static final String UPDATES_AVAILABLE = "Some updates and/or patches are available.";
+
     static class Updates {
 
         Table t;
@@ -60,9 +63,9 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
             ProvisioningManager mgr = getManager(session.getPmSession());
             Updates updates = getUpdatesTable(mgr, session, includeAll);
             if (updates.plan.isEmpty()) {
-                session.println("Installation is up to date. No available updates nor patches.");
+                session.println(UP_TO_DATE);
             } else {
-                session.println("Some updates and/or patches are available.");
+                session.println(UPDATES_AVAILABLE);
                 session.println(updates.t.build());
             }
         } catch (ProvisioningException ex) {

@@ -75,12 +75,19 @@ public class UniverseManager implements MavenChangeListener {
     private final PmSession pmSession;
     private final List<Future<?>> submited = new ArrayList<>();
     private volatile boolean closed;
+
+    private boolean bckResolution = true;
+
     UniverseManager(PmSession pmSession, Configuration config, CliMavenArtifactRepositoryManager maven) throws ProvisioningException {
         this.pmSession = pmSession;
         config.getMavenConfig().addListener(this);
         UniverseFactoryLoader.getInstance().addArtifactResolver(maven);
         universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
         builtinUniverseSpec = new UniverseSpec(MavenUniverseFactory.ID, JBOSS_UNIVERSE_GROUP_ID + ":" + JBOSS_UNIVERSE_ARTIFACT_ID);
+    }
+
+    public void disableBackgroundResolution() {
+        bckResolution = false;
     }
 
     /**
@@ -298,6 +305,8 @@ public class UniverseManager implements MavenChangeListener {
 
     @Override
     public void configurationChanged(MavenConfig config) throws XMLStreamException, IOException {
-        resolveBuiltinUniverse();
+        if (bckResolution) {
+            resolveBuiltinUniverse();
+        }
     }
 }

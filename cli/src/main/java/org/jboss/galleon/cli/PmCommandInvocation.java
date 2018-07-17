@@ -96,12 +96,12 @@ public class PmCommandInvocation implements CommandInvocation {
 
     @Override
     public void print(String msg) {
-        delegate.print(msg);
+        out.print(msg);
     }
 
     @Override
     public void println(String msg) {
-        delegate.println(msg);
+        out.println(msg);
     }
 
     @Override
