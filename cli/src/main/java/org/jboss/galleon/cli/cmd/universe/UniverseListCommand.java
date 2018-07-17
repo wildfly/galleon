@@ -26,6 +26,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.universe.Channel;
@@ -46,6 +47,9 @@ public class UniverseListCommand extends PmSessionCommand {
     @Option(required = false, name = "product", description = "Select products that match the provided pattern.")
     private String product;
 
+    @Option(required = false, name = "universe", description = "References a not installed universe")
+    private String universe;
+
     @Override
     public void runCommand(PmCommandInvocation commandInvocation)
             throws CommandExecutionException {
@@ -57,36 +61,58 @@ public class UniverseListCommand extends PmSessionCommand {
             product = product.replaceAll("\\*", ".*");
             cPattern = Pattern.compile(product);
         }
-        try {
-            UniverseSpec builtinUniverse = commandInvocation.getPmSession().
-                    getUniverse().getBuiltinUniverseSpec();
-            if (builtinUniverse.equals(defaultUniverse)) {
-                commandInvocation.println("Default universe (builtin maven universe)");
-                printUniverse(cPattern, builtinUniverse, commandInvocation);
-            } else if (defaultUniverse != null) {
-                commandInvocation.println("Default universe");
-                printUniverse(cPattern, defaultUniverse, commandInvocation);
+        if (universe != null) {
+            int locIndex = universe.indexOf("(");
+            if (locIndex < 0) {
+                throw new CommandExecutionException(CliErrors.invalidUniverse());
+            }
+            int locIndexEnd = universe.indexOf(")");
+            if (locIndexEnd < 0) {
+                throw new CommandExecutionException(CliErrors.invalidUniverse());
             }
 
-        } catch (ProvisioningException ex) {
-            commandInvocation.println("Exception retrieving default universe " + ex);
-        }
-
-        Set<String> universes = commandInvocation.getPmSession().getUniverse().getUniverseNames();
-        if (!universes.isEmpty()) {
-            commandInvocation.println(Config.getLineSeparator() + "Universes local to this provisioning state");
-        }
-        for (String u : universes) {
-            UniverseSpec universe = null;
+            String factory = universe.substring(0, locIndex);
+            String location = universe.substring(locIndex + 1, locIndexEnd);
             try {
-                universe = commandInvocation.getPmSession().getUniverse().getUniverseSpec(u);
-                if (universe.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
-                    continue;
-                }
-                printUniverse(cPattern, universe, commandInvocation);
+                UniverseSpec spec = new UniverseSpec(factory, location);
+                System.out.println("SPEC " + spec);
+                printUniverse(cPattern, spec, commandInvocation);
             } catch (ProvisioningException ex) {
-                commandInvocation.println("Exception " + ex.getLocalizedMessage()
-                        + " retrieving universe " + u);
+                throw new CommandExecutionException(commandInvocation.getPmSession(),
+                        CliErrors.resolvedUniverseFailed(), ex);
+            }
+        } else {
+            try {
+                UniverseSpec builtinUniverse = commandInvocation.getPmSession().
+                        getUniverse().getBuiltinUniverseSpec();
+                if (builtinUniverse.equals(defaultUniverse)) {
+                    commandInvocation.println("Default universe (builtin maven universe)");
+                    printUniverse(cPattern, builtinUniverse, commandInvocation);
+                } else if (defaultUniverse != null) {
+                    commandInvocation.println("Default universe");
+                    printUniverse(cPattern, defaultUniverse, commandInvocation);
+                }
+            } catch (ProvisioningException ex) {
+                throw new CommandExecutionException(commandInvocation.getPmSession(),
+                        CliErrors.resolvedUniverseFailed(), ex);
+            }
+
+            Set<String> universes = commandInvocation.getPmSession().getUniverse().getUniverseNames();
+            if (!universes.isEmpty()) {
+                commandInvocation.println(Config.getLineSeparator() + "Universes local to this provisioning state");
+            }
+            for (String u : universes) {
+                UniverseSpec universe = null;
+                try {
+                    universe = commandInvocation.getPmSession().getUniverse().getUniverseSpec(u);
+                    if (universe.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
+                        continue;
+                    }
+                    printUniverse(cPattern, universe, commandInvocation);
+                } catch (ProvisioningException ex) {
+                    throw new CommandExecutionException(commandInvocation.getPmSession(),
+                            CliErrors.resolvedUniverseFailed(), ex);
+                }
             }
         }
     }
@@ -110,13 +136,6 @@ public class UniverseListCommand extends PmSessionCommand {
         for (Producer<?> producer : universe.getProducers()) {
             if (cPattern == null || cPattern.matcher(producer.getName()).matches()) {
                 for (Channel channel : producer.getChannels()) {
-                    // The final release
-                    {
-                        String freq = "final";
-                        String build = getBuild(spec, producer, channel, freq);
-                        table.addLine(producer.getName(), channel.getName(), freq,
-                                (build == null ? "" : build));
-                    }
                     for (String freq : producer.getFrequencies()) {
                         String build = getBuild(spec, producer, channel, freq);
                         table.addLine(producer.getName(), channel.getName(), freq,

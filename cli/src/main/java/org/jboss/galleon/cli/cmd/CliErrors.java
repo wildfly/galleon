@@ -70,6 +70,10 @@ public interface CliErrors {
         return failed("Fetch feature-pack");
     }
 
+    static String invalidUniverse() {
+        return "Invalid universe";
+    }
+
     static String importFeaturePackFailed() {
         return failed("Import feature-pack");
     }
@@ -124,6 +128,10 @@ public interface CliErrors {
 
     static String resolveLocationFailed() {
         return failed("Resolve location");
+    }
+
+    static String resolvedUniverseFailed() {
+        return failed("Resolve universe");
     }
 
     static String retrievePath() {
