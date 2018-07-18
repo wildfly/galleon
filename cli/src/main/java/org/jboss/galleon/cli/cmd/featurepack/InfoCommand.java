@@ -34,6 +34,8 @@ import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.DEPENDENCIES;
+import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.OPTIONS;
+import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -53,7 +55,7 @@ public class InfoCommand extends AbstractFeaturePackCommand {
         @Override
         protected List<String> getItems(PmCompleterInvocation completerInvocation) {
             // No patch for un-customized FP.
-            return Arrays.asList(CONFIGS, DEPENDENCIES);
+            return Arrays.asList(CONFIGS, DEPENDENCIES, OPTIONS);
         }
 
     }
@@ -110,20 +112,29 @@ public class InfoCommand extends AbstractFeaturePackCommand {
             if (patchFor != null) {
                 commandInvocation.println("Patch for " + patchFor);
             }
-            if (type == null) {
-                displayDependencies(commandInvocation, dependencies);
-                displayConfigs(commandInvocation, product);
-            } else {
-                switch (type) {
-                    case CONFIGS: {
-                        displayConfigs(commandInvocation, product);
-                        break;
-                    }
-                    case DEPENDENCIES: {
-                        displayDependencies(commandInvocation, dependencies);
-                        break;
+            try {
+                if (type == null) {
+                    displayDependencies(commandInvocation, dependencies);
+                    displayConfigs(commandInvocation, product);
+                    displayOptions(commandInvocation, layout);
+                } else {
+                    switch (type) {
+                        case CONFIGS: {
+                            displayConfigs(commandInvocation, product);
+                            break;
+                        }
+                        case DEPENDENCIES: {
+                            displayDependencies(commandInvocation, dependencies);
+                            break;
+                        }
+                        case OPTIONS: {
+                            displayOptions(commandInvocation, layout);
+                            break;
+                        }
                     }
                 }
+            } catch (ProvisioningException ex) {
+                throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.infoFailed(), ex);
             }
         } finally {
             if (layout != null) {
@@ -154,6 +165,14 @@ public class InfoCommand extends AbstractFeaturePackCommand {
             }
         }
         String str = StateInfoUtil.buildConfigs(configs);
+        if (str != null) {
+            commandInvocation.println(str);
+        }
+    }
+
+    private void displayOptions(PmCommandInvocation commandInvocation,
+            ProvisioningLayout layout) throws ProvisioningException {
+        String str = StateInfoUtil.buildOptions(PluginResolver.resolvePlugins(layout));
         if (str != null) {
             commandInvocation.println(str);
         }

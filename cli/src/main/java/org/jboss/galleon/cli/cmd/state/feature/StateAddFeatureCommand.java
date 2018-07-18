@@ -120,7 +120,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     public StateAddFeatureCommand(PmSession pmSession) {
-        super(pmSession, false, true);
+        super(pmSession, false, true, true);
     }
 
     @Override

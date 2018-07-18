@@ -44,6 +44,12 @@ import org.jboss.galleon.cli.cmd.state.feature.FeatureCommand;
  */
 public class CliMain {
 
+    private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.jboss.galleon.cli.enable.experimental.features";
+
+    public static boolean experimentalFeaturesEnabled() {
+        return Boolean.getBoolean(CliMain.ENABLE_EXPERIMENTAL_FEATURES);
+    }
+
     public static void main(String[] args) throws Exception {
         Configuration config = Configuration.parse();
         final PmSession pmSession = new PmSession(config);

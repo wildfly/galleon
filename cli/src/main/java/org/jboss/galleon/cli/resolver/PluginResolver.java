@@ -56,31 +56,40 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
 
     @Override
     public ResolvedPlugins resolve() throws ResolutionException {
-        ResolvedPlugins plugins = null;
+        ProvisioningLayout layout = null;
         try {
-            try (ProvisioningLayout layout = session.getLayoutFactory().newConfigLayout(config)) {
-                if (layout.hasPlugins()) {
-                    Set<PluginOption> installOptions = new HashSet<>();
-                    FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
-                        @Override
-                        public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
-                            installOptions.addAll(plugin.getOptions().values());
-                        }
-                    };
-                    layout.visitPlugins(visitor, InstallPlugin.class);
-                    Set<PluginOption> diffOptions = new HashSet<>();
-                    FeaturePackPluginVisitor<DiffPlugin> diffVisitor = new FeaturePackPluginVisitor<DiffPlugin>() {
-                        @Override
-                        public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
-                            diffOptions.addAll(plugin.getOptions().values());
-                        }
-                    };
-                    layout.visitPlugins(diffVisitor, DiffPlugin.class);
-                    plugins = new ResolvedPlugins(installOptions, diffOptions);
-                }
-            }
+            layout = session.getLayoutFactory().newConfigLayout(config);
+            return resolvePlugins(layout);
+
         } catch (Exception ex) {
             throw new ResolutionException(ex.getLocalizedMessage(), ex);
+        } finally {
+            if (layout != null) {
+                layout.close();
+            }
+        }
+    }
+
+    public static ResolvedPlugins resolvePlugins(ProvisioningLayout layout) throws ProvisioningException {
+        ResolvedPlugins plugins = null;
+        if (layout.hasPlugins()) {
+            Set<PluginOption> installOptions = new HashSet<>();
+            FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
+                @Override
+                public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
+                    installOptions.addAll(plugin.getOptions().values());
+                }
+            };
+            layout.visitPlugins(visitor, InstallPlugin.class);
+            Set<PluginOption> diffOptions = new HashSet<>();
+            FeaturePackPluginVisitor<DiffPlugin> diffVisitor = new FeaturePackPluginVisitor<DiffPlugin>() {
+                @Override
+                public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
+                    diffOptions.addAll(plugin.getOptions().values());
+                }
+            };
+            layout.visitPlugins(diffVisitor, DiffPlugin.class);
+            plugins = new ResolvedPlugins(installOptions, diffOptions);
         }
         return plugins == null ? new ResolvedPlugins(Collections.emptySet(), Collections.emptySet()) : plugins;
     }

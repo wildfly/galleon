@@ -100,6 +100,17 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     private final Map<String, List<ProcessedOption>> dynamicOptions = new HashMap<>();
     private final Map<String, String> renamedOptions = new HashMap<>();
+
+    private static class DisabledDynamicOptionsProvider implements MapProcessedCommandBuilder.ProcessedOptionProvider {
+
+        private static final List<ProcessedOption> options = Collections.emptyList();
+
+        @Override
+        public List<ProcessedOption> getOptions(List<ProcessedOption> currentOptions) {
+            return options;
+        }
+    }
+
     private class DynamicOptionsProvider implements MapProcessedCommandBuilder.ProcessedOptionProvider {
 
         @Override
@@ -170,17 +181,21 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     private final boolean checkForRequired;
     private final boolean optimizeRetrieval;
     private final boolean requireId;
+    private boolean enableCompletion;
     /**
      *
      * @param pmSession The session
      * @param optimizeRetrieval True, optimize retrieval.
+     * @param requireId
+     * @param enableCompletion
      */
-    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId) {
+    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId, boolean enableCompletion) {
         this.pmSession = pmSession;
         this.onlyAtCompletion = optimizeRetrieval;
         this.checkForRequired = !optimizeRetrieval;
         this.optimizeRetrieval = optimizeRetrieval;
         this.requireId = requireId;
+        this.enableCompletion = enableCompletion;
     }
 
     protected abstract String getId(PmSession session) throws CommandExecutionException;
@@ -263,7 +278,8 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         }
 
         builder.description(getDescription());
-        builder.optionProvider(new DynamicOptionsProvider());
+        builder.optionProvider(enableCompletion ? new DynamicOptionsProvider()
+                : new DisabledDynamicOptionsProvider());
         return builder.create();
     }
 
