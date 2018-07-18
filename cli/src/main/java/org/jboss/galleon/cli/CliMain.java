@@ -16,10 +16,14 @@
  */
 package org.jboss.galleon.cli;
 
+import java.io.PrintStream;
 import org.jboss.galleon.cli.cmd.universe.UniverseCommand;
 import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
+import org.aesh.command.AeshCommandRuntimeBuilder;
+import org.aesh.command.CommandRuntime;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
+import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.registry.CommandRegistry;
 import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
@@ -49,6 +53,48 @@ public class CliMain {
         final PmSession pmSession = new PmSession(config);
         // Side effect is to resolve plugins.
         pmSession.getUniverse().resolveBuiltinUniverse();
+
+        Settings settings = buildSettings(pmSession, null);
+
+        ReadlineConsole console = new ReadlineConsole(settings);
+
+        pmSession.setAeshContext(console.context());
+        console.setPrompt(PmSession.buildPrompt(settings.aeshContext()));
+        console.start();
+    }
+
+    private static boolean overrideLogging() {
+        // If the current log manager is not java.util.logging.LogManager the user has specifically overridden this
+        // and we should not override logging
+        return LogManager.getLogManager().getClass() == LogManager.class &&
+                // The user has specified a class to configure logging, we shouldn't override it
+                System.getProperty("java.util.logging.config.class") == null &&
+                // The user has specified a specific logging configuration and again we shouldn't override it
+                System.getProperty("java.util.logging.config.file") == null;
+    }
+
+    private static Settings buildSettings(PmSession pmSession, PrintStream out) throws CommandLineParserException {
+        Settings settings = SettingsBuilder.builder().
+                logging(overrideLogging()).
+                commandRegistry(buildRegistry(pmSession)).
+                enableOperatorParser(true).
+                persistHistory(true).
+                commandActivatorProvider(pmSession).
+                historyFile(pmSession.getPmConfiguration().getHistoryFile()).
+                echoCtrl(false).
+                enableExport(false).
+                enableAlias(false).
+                completerInvocationProvider(pmSession).
+                optionActivatorProvider(pmSession).
+                commandInvocationProvider(pmSession).
+                outputStream(out).
+                build();
+        pmSession.setOut(settings.stdOut());
+        pmSession.setErr(settings.stdErr());
+        return settings;
+    }
+
+    private static CommandRegistry buildRegistry(PmSession pmSession) throws CommandLineParserException {
         // Create commands that are dynamic (or contain dynamic sub commands).
         // Options are discovered at execution time
         InstallCommand install = new InstallCommand(pmSession);
@@ -78,38 +124,14 @@ public class CliMain {
 
         StateCommand.addActionCommands(builder);
 
-        CommandRegistry registry = builder.create();
-        final Settings settings = SettingsBuilder.builder().
-                logging(overrideLogging()).
-                commandRegistry(registry).
-                enableOperatorParser(true).
-                persistHistory(true).
-                commandActivatorProvider(pmSession).
-                historyFile(config.getHistoryFile()).
-                echoCtrl(false).
-                enableExport(false).
-                enableAlias(false).
-                completerInvocationProvider(pmSession).
-                optionActivatorProvider(pmSession).
-                commandInvocationProvider(pmSession).
-                build();
-
-        pmSession.setOut(settings.stdOut());
-        pmSession.setErr(settings.stdErr());
-        ReadlineConsole console = new ReadlineConsole(settings);
-
-        pmSession.setAeshContext(console.context());
-        console.setPrompt(PmSession.buildPrompt(settings.aeshContext()));
-        console.start();
+        return builder.create();
     }
 
-    private static boolean overrideLogging() {
-        // If the current log manager is not java.util.logging.LogManager the user has specifically overridden this
-        // and we should not override logging
-        return LogManager.getLogManager().getClass() == LogManager.class &&
-                // The user has specified a class to configure logging, we shouldn't override it
-                System.getProperty("java.util.logging.config.class") == null &&
-                // The user has specified a specific logging configuration and again we shouldn't override it
-                System.getProperty("java.util.logging.config.file") == null;
+    public static CommandRuntime newRuntime(PmSession session, PrintStream out) throws CommandLineParserException {
+        AeshCommandRuntimeBuilder builder = AeshCommandRuntimeBuilder.builder();
+        builder.settings(buildSettings(session, out));
+        CommandRuntime runtime = builder.build();
+        session.setAeshContext(runtime.getAeshContext());
+        return runtime;
     }
 }

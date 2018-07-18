@@ -45,6 +45,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 
 /**
  *
@@ -191,6 +192,8 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private final ResourceResolver resolver;
     private final ProvisioningLayoutFactory layoutFactory;
     private AeshContext ctx;
+    private boolean rethrow = false;
+
     public PmSession(Configuration config) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
@@ -201,18 +204,34 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         resolver = new ResourceResolver(this);
         // Abort running universe resolution if any.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                if (state != null) {
-                    state.close();
-                }
-            } finally {
-                try {
-                    universe.close();
-                } finally {
-                    layoutFactory.close();
-                }
-            }
+            close();
         }));
+    }
+
+    public void throwException() {
+        rethrow = true;
+    }
+
+    public boolean isExceptionRethrown() {
+        return rethrow;
+    }
+
+    public void close() {
+        try {
+            if (state != null) {
+                state.close();
+            }
+        } finally {
+            try {
+                universe.close();
+            } finally {
+                layoutFactory.close();
+            }
+        }
+    }
+
+    MavenRepoManager getMavenRepoManager() {
+        return maven;
     }
 
     void setAeshContext(AeshContext ctx) {
