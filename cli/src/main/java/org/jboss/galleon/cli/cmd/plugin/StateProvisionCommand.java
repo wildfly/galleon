@@ -37,6 +37,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
+import org.jboss.galleon.cli.CliMain;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -70,7 +71,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
     }
 
     public StateProvisionCommand(PmSession pmSession) {
-        super(pmSession, true, false);
+        super(pmSession, true, false, CliMain.experimentalFeaturesEnabled());
     }
 
     @Override

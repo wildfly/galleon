@@ -33,4 +33,7 @@ public class Headers {
     public static final String CURRENT_BUILD = "Current Build";
     public static final String UNIVERSE = "Universe";
     public static final String UPDATE = "Update";
+    public static final String REQUIRED = "Required";
+    public static final String DEFAULT_VALUE = "Default Value";
+    public static final String OPTION = "Option";
 }

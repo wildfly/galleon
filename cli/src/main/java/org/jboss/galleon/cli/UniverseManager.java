@@ -122,20 +122,22 @@ public class UniverseManager implements MavenChangeListener {
                             deps.add(ploc);
                         }
                     }
-                    // Then resolve plugins
-                    Future<?> f2 = executorService.submit(() -> {
-                        try {
-                            for (FeaturePackLocation loc : deps) {
-                                if (closed) {
-                                    return;
+                    if (CliMain.experimentalFeaturesEnabled()) {
+                        // Then resolve plugins
+                        Future<?> f2 = executorService.submit(() -> {
+                            try {
+                                for (FeaturePackLocation loc : deps) {
+                                    if (closed) {
+                                        return;
+                                    }
+                                    pmSession.getResolver().resolveSync(loc.toString(), PluginResolver.newResolver(pmSession, loc));
                                 }
-                                pmSession.getResolver().resolveSync(loc.toString(), PluginResolver.newResolver(pmSession, loc));
+                            } catch (Exception ex) {
+                                LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
                             }
-                        } catch (Exception ex) {
-                            LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
-                        }
-                    });
-                    submited.add(f2);
+                        });
+                        submited.add(f2);
+                    }
                     LOGGER.log(Level.FINE, "Successfully resolved builtin universe.");
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);

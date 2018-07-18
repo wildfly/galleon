@@ -34,6 +34,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
+import org.jboss.galleon.cli.CliMain;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
@@ -52,7 +53,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     static final String RESOLUTION_MESSAGE = "Resolving options";
 
     public AbstractPluginsCommand(PmSession pmSession) {
-        super(pmSession, true, true);
+        super(pmSession, true, true, CliMain.experimentalFeaturesEnabled());
     }
 
     protected boolean isVerbose() {

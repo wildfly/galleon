@@ -56,6 +56,7 @@ public class FeatureContainerPathConsumer implements PathConsumer {
     public static final String CONFIGS = "configs";
     public static final String PATCHES = "patches";
     public static final String FINAL = "final";
+    public static final String OPTIONS = "options";
     public static final String ROOT = "" + PathParser.PATH_SEPARATOR;
 
     public static final Group EDIT_ROOT_GRP = Group.fromString("", "" + PathParser.PATH_SEPARATOR);

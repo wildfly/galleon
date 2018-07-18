@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.aesh.utils.Config;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
@@ -40,7 +41,9 @@ import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
+import org.jboss.galleon.cli.resolver.ResolvedPlugins;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureAnnotation;
 import org.jboss.galleon.spec.FeatureDependencySpec;
@@ -323,5 +326,36 @@ public class StateInfoUtil {
         }
         table.sort(Table.SortType.ASCENDANT);
         return table.build();
+    }
+
+    public static String buildOptions(ResolvedPlugins plugins) {
+        StringBuilder builder = new StringBuilder();
+        boolean found = false;
+        if (!plugins.getInstall().isEmpty()) {
+            found = true;
+            builder.append("Install and provision commands options").append(Config.getLineSeparator());
+            builder.append(buildOptionsTable(plugins.getInstall())).append(Config.getLineSeparator());
+        }
+        if (!plugins.getInstall().isEmpty()) {
+            found = true;
+            builder.append("Diff command options").append(Config.getLineSeparator());
+            builder.append(buildOptionsTable(plugins.getDiff()));
+        }
+        if (found) {
+            return builder.toString();
+        } else {
+            return null;
+        }
+    }
+
+    private static String buildOptionsTable(Set<PluginOption> options) {
+        Table t = new Table(Headers.OPTION, Headers.REQUIRED, Headers.DEFAULT_VALUE);
+        for (PluginOption opt : options) {
+            t.addLine("--" + opt.getName() + (opt.isAcceptsValue() ? "=" : ""),
+                    opt.isRequired() ? "Y" : "N",
+                    opt.getDefaultValue() == null ? "" : opt.getDefaultValue());
+        }
+        t.sort(Table.SortType.ASCENDANT);
+        return t.build();
     }
 }
