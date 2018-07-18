@@ -44,6 +44,8 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  *
  * @author jdenise@redhat.com
  */
+// Can be removed/refactored when we know what to do with it.
+@Deprecated
 public class DiffCommand extends AbstractPluginsCommand {
 
     private static final String SRC_NAME = "src";

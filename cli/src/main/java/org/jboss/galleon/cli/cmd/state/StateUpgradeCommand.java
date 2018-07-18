@@ -16,45 +16,101 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
-import org.aesh.command.CommandDefinition;
-import org.aesh.command.option.Option;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.aesh.command.impl.completer.FileOptionCompleter;
+import org.aesh.command.impl.internal.OptionType;
+import org.aesh.command.impl.internal.ProcessedOption;
+import org.aesh.command.impl.internal.ProcessedOptionBuilder;
+import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.action.KeyAction;
 import org.aesh.readline.terminal.Key;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins;
 import org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.Updates;
 import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.ALL_DEPENDENCIES_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.UPDATES_AVAILABLE;
+import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.UP_TO_DATE;
+import org.jboss.galleon.cli.model.state.State;
+import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.PRODUCTS_OPTION_NAME;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "upgrade", description = "Upgrade the installation to latest available updates and patches")
-public class StateUpgradeCommand extends org.jboss.galleon.cli.AbstractStateCommand {
+public class StateUpgradeCommand extends AbstractProvisionWithPlugins {
 
-    @Option(name = ALL_DEPENDENCIES_OPTION_NAME, hasValue = false, required = false)
-    boolean includeAll;
+    static final String YES_OPTION_NAME = "yes";
 
-    @Option(name = VERBOSE_OPTION_NAME, hasValue = false, required = false)
-    boolean verbose;
 
-    @Option(name = "yes", shortName = 'y', hasValue = false, required = false)
-    boolean noConfirm;
+    public StateUpgradeCommand(PmSession pmSession) {
+        super(pmSession);
+    }
 
     @Override
-    protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
+    protected List<ProcessedOption> getOtherOptions() throws OptionParserException {
+        List<ProcessedOption> options = new ArrayList<>();
+        ProcessedOption includeAll = ProcessedOptionBuilder.builder().name(ALL_DEPENDENCIES_OPTION_NAME).
+                hasValue(false).
+                type(Boolean.class).
+                optionType(OptionType.BOOLEAN).
+                description("Include all dependencies.").
+                completer(FileOptionCompleter.class).
+                required(false).
+                build();
+        options.add(includeAll);
+        ProcessedOption yes = ProcessedOptionBuilder.builder().name(YES_OPTION_NAME).
+                hasValue(false).
+                type(Boolean.class).
+                optionType(OptionType.BOOLEAN).
+                description("No confirmation required.").
+                completer(FileOptionCompleter.class).
+                required(false).
+                shortName('y').
+                build();
+        options.add(yes);
+        ProcessedOption fp = ProcessedOptionBuilder.builder().name(PRODUCTS_OPTION_NAME).
+                hasValue(true).
+                type(String.class).
+                optionType(OptionType.NORMAL).
+                description("The fp to update").
+                required(false).
+                completer(InstalledProducerCompleter.class).
+                build();
+        options.add(fp);
+        return options;
+    }
+
+    @Override
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
+        // No option to validate.
+    }
+
+    @Override
+    protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
+        return Collections.emptyList();
+    }
+
+    @Override
+    protected void doRunCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
         try {
-            ProvisioningManager mgr = getManager(session.getPmSession());
-            Updates updates = StateCheckUpdatesCommand.getUpdatesTable(mgr, session, includeAll);
+            ProvisioningManager mgr = getManager(session);
+            String fp = getFP();
+            Updates updates = StateCheckUpdatesCommand.getUpdatesTable(mgr, session, allDependencies(), getFP());
             if (updates.plan.isEmpty()) {
-                session.println("Installation is up to date. No updates nor patches to apply.");
+                session.println(UP_TO_DATE);
             } else {
-                session.println("Some updates and/or patches have been found.");
+                session.println(UPDATES_AVAILABLE);
                 session.println(updates.t.build());
-                if (!noConfirm) {
+                if (!noConfirm()) {
                     try {
                         Key k = null;
                         while (k == null || (!Key.y.equals(k) && !Key.n.equals(k))) {
@@ -69,7 +125,7 @@ public class StateUpgradeCommand extends org.jboss.galleon.cli.AbstractStateComm
                         session.println("");
                     }
                 }
-                mgr.apply(updates.plan);
+                mgr.apply(updates.plan, options);
             }
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(session.getPmSession(),
@@ -77,5 +133,27 @@ public class StateUpgradeCommand extends org.jboss.galleon.cli.AbstractStateComm
         } catch (InterruptedException ignored) {
             // Just exit the command smoothly
         }
+    }
+
+    private boolean noConfirm() {
+        return contains(YES_OPTION_NAME);
+    }
+
+    private String getFP() {
+        return (String) getValue(PRODUCTS_OPTION_NAME);
+    }
+
+    private boolean allDependencies() {
+        return contains(ALL_DEPENDENCIES_OPTION_NAME);
+    }
+
+    @Override
+    protected String getName() {
+        return "upgrade";
+    }
+
+    @Override
+    protected String getDescription() {
+        return "Upgrade the installation to latest available updates and patches";
     }
 }

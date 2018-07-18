@@ -24,12 +24,13 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
+import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public abstract class ProvisioningCommand extends PmSessionCommand {
+public abstract class ProvisioningCommand extends PmSessionCommand implements CommandWithInstallationDirectory {
 
     @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
             description="Target installation directory.")
@@ -39,12 +40,13 @@ public abstract class ProvisioningCommand extends PmSessionCommand {
             description = "Whether or not the output should be verbose")
     boolean verbose;
 
-    protected Path getTargetDir(AeshContext context) {
+    @Override
+    public Path getInstallationDirectory(AeshContext context) {
         Path workDir = PmSession.getWorkDir(context);
         return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
     }
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getTargetDir(session.getAeshContext()), verbose);
+        return session.getPmSession().newProvisioningManager(getInstallationDirectory(session.getAeshContext()), verbose);
     }
 }

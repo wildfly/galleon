@@ -270,6 +270,10 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
                 || location.endsWith("" + FeaturePackLocation.BUILD_START)) {
             location = location.substring(0, location.length() - 1);
         }
+        // A producer spec without any universe nor channel.
+        if (!location.contains("" + FeaturePackLocation.UNIVERSE_START) && !location.contains("" + FeaturePackLocation.CHANNEL_START)) {
+            location = new FeaturePackLocation(universe.getDefaultUniverseSpec(), location, null, null, null).toString();
+        }
         FeaturePackLocation loc = FeaturePackLocation.fromString(location);
         return getResolvedLocation(loc);
     }

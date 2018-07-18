@@ -16,14 +16,17 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
@@ -33,18 +36,20 @@ import org.jboss.galleon.layout.FeaturePackUpdatePlan;
 import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.util.PathsUtils;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "check-updates", description = "Get available updates for an installation")
+@CommandDefinition(name = "check-updates", description = "Get available updates for an installation or an identified feature-pack")
 public class StateCheckUpdatesCommand extends AbstractStateCommand {
 
-    public static final String UP_TO_DATE = "Installation is up to date. No available updates nor patches.";
+    public static final String UP_TO_DATE = "Up to date. No available updates nor patches.";
     public static final String UPDATES_AVAILABLE = "Some updates and/or patches are available.";
-
+    public static final String PRODUCTS_OPTION_NAME = "products";
     static class Updates {
 
         Table t;
@@ -57,11 +62,15 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
     @Option(name = ALL_DEPENDENCIES_OPTION_NAME, hasValue = false, required = false)
     boolean includeAll;
 
+    @Option(name = PRODUCTS_OPTION_NAME, hasValue = true, required = false, completer = InstalledProducerCompleter.class)
+    String fp;
+
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         try {
             ProvisioningManager mgr = getManager(session.getPmSession());
-            Updates updates = getUpdatesTable(mgr, session, includeAll);
+
+            Updates updates = getUpdatesTable(mgr, session, includeAll, fp);
             if (updates.plan.isEmpty()) {
                 session.println(UP_TO_DATE);
             } else {
@@ -75,7 +84,11 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
 
     }
 
-    static Updates getUpdatesTable(ProvisioningManager mgr, PmCommandInvocation session, boolean includeAll) throws ProvisioningException {
+    static Updates getUpdatesTable(ProvisioningManager mgr, PmCommandInvocation session, boolean includeAll, String fp) throws ProvisioningException, CommandExecutionException {
+        if (!Files.exists(PathsUtils.getProvisioningXml(mgr.getInstallationHome()))) {
+            throw new CommandExecutionException(Errors.homeDirNotUsable(mgr.getInstallationHome()));
+        }
+
         Table t;
         if (includeAll) {
             t = new Table(Headers.PRODUCT, Headers.VERSION, Headers.CURRENT_BUILD,
@@ -84,7 +97,17 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
             t = new Table(Headers.PRODUCT, Headers.VERSION, Headers.CURRENT_BUILD,
                     Headers.UPDATE, Headers.PATCHES, Headers.UNIVERSE);
         }
-        ProvisioningPlan plan = mgr.getUpdates(includeAll);
+        ProvisioningPlan plan;
+        if (fp == null) {
+            plan = mgr.getUpdates(includeAll);
+        } else {
+            String[] split = fp.split(",+");
+            ProducerSpec[] resolved = new ProducerSpec[split.length];
+            for (int i = 0; i < split.length; i++) {
+                resolved[i] = session.getPmSession().getResolvedLocation(split[i]).getProducer();
+            }
+            plan = mgr.getUpdates(resolved);
+        }
         Updates updates = new Updates();
         updates.plan = plan;
         updates.t = t;

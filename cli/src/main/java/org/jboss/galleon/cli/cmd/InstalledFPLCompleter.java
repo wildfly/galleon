@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli;
+package org.jboss.galleon.cli.cmd;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,32 +23,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.cli.AbstractCompleter;
+import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.config.FeaturePackConfig;
 
 /**
- * Installed streams completer. XXX TODO, for now complete FP GAV.
+ * Installed FPL completer. XXX jfdenise, we shouldn't require it when uninstall
+ * accepts producer.
  *
  * @author jdenise@redhat.com
  */
-public class InstalledStreamCompleter extends AbstractCompleter {
+public class InstalledFPLCompleter extends AbstractCompleter {
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        ProvisioningCommand cmd = (ProvisioningCommand) completerInvocation.getCommand();
-        Path currentDir = cmd.getTargetDir(completerInvocation.getAeshContext());
+        CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
+        Path currentDir = cmd.getInstallationDirectory(completerInvocation.getAeshContext());
         List<String> items = new ArrayList<>();
         try {
             ProvisioningManager.checkInstallationDir(currentDir);
             ProvisioningManager mgr = completerInvocation.getPmSession().
                     newProvisioningManager(currentDir, false);
             for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {
-                if(fp.getLocation().getBuild() == null) {
-                    continue;
-                }
-                items.add(fp.getLocation().toString());
+                items.add(completerInvocation.getPmSession().getExposedLocation(fp.getLocation()).toString());
             }
         } catch (Exception ex) {
-            Logger.getLogger(InstalledStreamCompleter.class.getName()).log(Level.FINEST,
+            Logger.getLogger(InstalledProducerCompleter.class.getName()).log(Level.FINEST,
                     "Exception while completing: {0}", ex.getLocalizedMessage());
         }
         return items;
