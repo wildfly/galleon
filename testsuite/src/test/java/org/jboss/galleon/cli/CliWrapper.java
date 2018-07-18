@@ -46,6 +46,7 @@ public class CliWrapper {
     public CliWrapper() throws Exception {
         userHome = System.getProperty("user.home");
         testUserHome = Files.createTempDir();
+        System.setProperty("user.home", testUserHome.getAbsolutePath());
         mvnRepo = new File(testUserHome, "mvn");
         mvnRepo.mkdir();
         session = new PmSession(Configuration.parse());
