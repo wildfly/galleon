@@ -42,7 +42,12 @@ public interface Channel {
 
     default FeaturePackUpdatePlan getUpdatePlan(FeaturePackUpdatePlan.Request updateRequest) throws ProvisioningException {
         final FeaturePackLocation fpl = updateRequest.getInstalledLocation();
-        final String latestBuild = getLatestBuild(fpl);
+        String latestBuild = null;
+        try {
+            latestBuild = getLatestBuild(fpl);
+        } catch(LatestVersionNotAvailableException e) {
+            // that also means no update
+        }
         if (latestBuild != null && !(latestBuild.equals(fpl.getBuild()))) {
             updateRequest.setNewLocation(fpl.replaceBuild(latestBuild));
         }

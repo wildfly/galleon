@@ -21,11 +21,22 @@ package org.jboss.galleon.progresstracking;
  *
  * @author Alexey Loubyansky
  */
-public interface ProvisioningProgressCallback {
+public class NoOpProgressCallback<T> implements ProgressCallback<T> {
 
-    void starting(ProvisioningProgressTracker tracker);
+    @Override
+    public long getProgressPulsePct() {
+        return -1;
+    }
 
-    void progressed(ProvisioningProgressTracker tracker);
+    public void starting(ProgressTracker<T> tracker) {
+    }
 
-    void complete(ProvisioningProgressTracker tracker);
+    public void processing(ProgressTracker<T> tracker) {
+    }
+
+    public void pulse(ProgressTracker<T> tracker) {
+    }
+
+    public void complete(ProgressTracker<T> tracker) {
+    }
 }

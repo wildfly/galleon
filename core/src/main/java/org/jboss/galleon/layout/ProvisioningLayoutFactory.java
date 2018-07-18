@@ -22,6 +22,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +34,8 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.progresstracking.NoOpProgressCallback;
+import org.jboss.galleon.progresstracking.ProgressCallback;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -41,6 +44,7 @@ import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.ZipUtils;
@@ -51,6 +55,11 @@ import org.jboss.galleon.xml.FeaturePackXmlParser;
  * @author Alexey Loubyansky
  */
 public class ProvisioningLayoutFactory implements Closeable {
+
+    public static final String TRACK_LAYOUT_BUILD = "LAYOUT_BUILD";
+    public static final String TRACK_UPDATES = "UPDATES";
+    public static final String TRACK_PACKAGES = "PACKAGES";
+    public static final String TRACK_CONFIGS = "CONFIGS";
 
     public static ProvisioningLayoutFactory getInstance() throws ProvisioningException {
         return getInstance(UniverseResolver.builder().build());
@@ -68,10 +77,25 @@ public class ProvisioningLayoutFactory implements Closeable {
     private final UniverseResolver universeResolver;
     private AtomicInteger openHandles = new AtomicInteger();
     private Map<String, UniverseFeaturePackInstaller> universeInstallers;
+    private Map<String, ProgressCallback<?>> progressCallbacks = Collections.emptyMap();
 
     private ProvisioningLayoutFactory(Path home, UniverseResolver universeResolver) {
         this.home = home;
         this.universeResolver = universeResolver;
+    }
+
+    public void setProgressCallback(String id, ProgressCallback<?> callback) {
+        progressCallbacks = CollectionUtils.put(progressCallbacks, id, callback);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> ProgressCallback<T> getProgressCallback(String id) {
+        final ProgressCallback<?> callback = progressCallbacks.get(id);
+        return callback == null ? new NoOpProgressCallback<>() : (ProgressCallback<T>) callback;
+    }
+
+    public boolean hasProgressCallback(String id) {
+        return progressCallbacks.containsKey(id);
     }
 
     public UniverseResolver getUniverseResolver() {
