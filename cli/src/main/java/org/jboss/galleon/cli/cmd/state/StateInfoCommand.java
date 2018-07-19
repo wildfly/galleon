@@ -48,8 +48,7 @@ public class StateInfoCommand extends AbstractStateCommand {
         try {
             FeatureContainer container = getFeatureContainer(invoc.getPmSession());
             if (type == null) {
-                displayDependencies(invoc, container);
-                displayPatches(invoc, container);
+                displayDependencies(invoc, container, true);
                 displayConfigs(invoc, container);
             } else {
                 switch (type) {
@@ -58,16 +57,17 @@ public class StateInfoCommand extends AbstractStateCommand {
                         break;
                     }
                     case DEPENDENCIES: {
-                        displayDependencies(invoc, container);
+                        displayDependencies(invoc, container, false);
                         break;
                     }
                     case PATCHES: {
-                        displayPatches(invoc, container);
+                        displayDependencies(invoc, container, true);
                         break;
                     }
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
         }
     }
@@ -79,7 +79,7 @@ public class StateInfoCommand extends AbstractStateCommand {
         }
     }
 
-    private void displayDependencies(PmCommandInvocation invoc, FeatureContainer container) {
+    private void displayDependencies(PmCommandInvocation invoc, FeatureContainer container, boolean includePatches) {
         List<FeaturePackLocation> locs = new ArrayList<>();
         if (container instanceof FeaturePackInfo) {
             StateInfoUtil.printFeaturePack(invoc, container.getFPID().getLocation());
@@ -100,14 +100,7 @@ public class StateInfoCommand extends AbstractStateCommand {
                         getExposedLocation(c.getFPID().getLocation()));
             }
         }
-        String str = StateInfoUtil.buildDependencies(locs);
-        if (str != null) {
-            invoc.println(str);
-        }
-    }
-
-    private void displayPatches(PmCommandInvocation invoc, FeatureContainer container) {
-        String str = StateInfoUtil.buildPatches(container.getConfigs());
+        String str = StateInfoUtil.buildDependencies(locs, includePatches ? container.getConfigs() : null);
         if (str != null) {
             invoc.println(str);
         }

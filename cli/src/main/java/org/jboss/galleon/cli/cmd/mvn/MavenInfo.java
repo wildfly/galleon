@@ -20,6 +20,10 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.Headers;
+import org.jboss.galleon.cli.cmd.Table;
+import org.jboss.galleon.cli.cmd.Table.Cell;
+import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.cli.config.mvn.MavenRemoteRepository;
 
 /**
@@ -31,24 +35,26 @@ public class MavenInfo extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
-        session.println("Maven xml settings");
-        if (session.getPmSession().getPmConfiguration().getMavenConfig().getSettings() == null) {
-            session.println("No settings set");
+        Table t = new Table(Headers.CONFIGURATION_ITEM, Headers.VALUE);
+        MavenConfig config = session.getPmSession().getPmConfiguration().getMavenConfig();
+        t.addLine("Maven xml settings", (config.getSettings() == null ? "No settings file set"
+                : config.getSettings().normalize().toString()));
+        t.addLine("Local repository", config.getLocalRepository().normalize().toString());
+        Cell repositories = new Cell();
+        Cell title = new Cell("Remote repositories");
+        if (config.getRemoteRepositories().isEmpty()) {
+            repositories.addLine("None");
         } else {
-            session.println(session.getPmSession().getPmConfiguration().getMavenConfig().getSettings().normalize().toString());
-        }
-        session.println("Local repository");
-        session.println(session.getPmSession().getPmConfiguration().getMavenConfig().getLocalRepository().normalize().toString());
-        session.println("Remote repositories");
-        if (session.getPmSession().getPmConfiguration().getMavenConfig().getRemoteRepositories().isEmpty()) {
-            session.println("No remote repository configured");
-        } else {
-            for (MavenRemoteRepository rep : session.getPmSession().getPmConfiguration().getMavenConfig().getRemoteRepositories()) {
-                session.println("repository " + rep.getName());
-                session.println(" url=  " + rep.getUrl());
-                session.println(" type= " + rep.getType());
+            for (MavenRemoteRepository rep : session.getPmSession().
+                    getPmConfiguration().getMavenConfig().getRemoteRepositories()) {
+                repositories.addLine(rep.getName());
+                repositories.addLine(" url=" + rep.getUrl());
+                repositories.addLine(" type=" + rep.getType());
             }
         }
+        t.addCellsLine(title, repositories);
+        t.sort(Table.SortType.ASCENDANT);
+        session.println(t.build());
     }
 
 }

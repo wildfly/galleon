@@ -289,11 +289,31 @@ public class StateInfoUtil {
         return null;
     }
 
-    public static String buildDependencies(List<FeaturePackLocation> dependencies) {
+    public static String buildDependencies(List<FeaturePackLocation> dependencies, Map<FPID, FeaturePackConfig> configs) {
         if (!dependencies.isEmpty()) {
-            Table table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD);
+
+            Table table;
+            if (configs != null) {
+                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD, Headers.PATCHES);
+            } else {
+                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD);
+            }
             for (FeaturePackLocation d : dependencies) {
-                table.addLine(d.getProducerName(), d.getChannelName(), d.getBuild());
+                List<Cell> line = new ArrayList<>();
+                line.add(new Cell(d.getProducerName()));
+                line.add(new Cell(d.getChannelName()));
+                line.add(new Cell(d.getBuild()));
+                if (configs != null) {
+                    FeaturePackConfig config = configs.get(d.getFPID());
+                    if (config != null && config.hasPatches()) {
+                        Cell patches = new Cell();
+                        for (FPID p : config.getPatches()) {
+                            patches.addLine(p.getBuild());
+                        }
+                        line.add(patches);
+                    }
+                }
+                table.addCellsLine(line);
             }
             table.sort(Table.SortType.ASCENDANT);
             return table.build();
@@ -306,26 +326,6 @@ public class StateInfoUtil {
         commandInvocation.println("");
         commandInvocation.println("Feature-pack: " + session.getExposedLocation(loc).getFPID());
         commandInvocation.println("");
-    }
-
-    static String buildPatches(Map<FPID, FeaturePackConfig> configs) {
-        if (configs.isEmpty()) {
-            return null;
-        }
-        Table table = new Table(Headers.PRODUCT, Headers.PATCHES);
-        for (Entry<FeaturePackLocation.FPID, FeaturePackConfig> entry : configs.entrySet()) {
-            FeaturePackConfig config = entry.getValue();
-            if (config.hasPatches()) {
-                Cell c = new Cell(entry.getKey().getProducer().toString());
-                Cell patches = new Cell();
-                for (FPID p : config.getPatches()) {
-                    patches.addLine(p.getBuild());
-                }
-                table.addCellsLine(c, patches);
-            }
-        }
-        table.sort(Table.SortType.ASCENDANT);
-        return table.build();
     }
 
     public static String buildOptions(ResolvedPlugins plugins) {
