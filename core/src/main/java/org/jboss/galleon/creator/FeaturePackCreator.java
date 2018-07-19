@@ -52,7 +52,7 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
     private Path workDir;
     private Path buildDir;
     private UniverseResolver universeResolver;
-
+    private boolean universeResolution = true;
     public FeaturePackBuilder newFeaturePack() {
         final FeaturePackBuilder fp = new FeaturePackBuilder(this);
         addFeaturePack(fp);
@@ -87,11 +87,31 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
         }
     }
 
+    public void install(Path dir) throws ProvisioningException {
+        try {
+            universeResolution = false;
+            buildDir = dir;
+            for (FeaturePackBuilder fp : fps) {
+                fp.build();
+            }
+        } finally {
+            buildDir = null;
+            universeResolution = true;
+            if (workDir != null) {
+                IoUtils.recursiveDelete(workDir);
+            }
+        }
+    }
+
     void install(FeaturePackLocation.FPID fpid, Path fpContentDir) throws ProvisioningException {
-        final Universe<?> universe = universeResolver.getUniverse(fpid.getLocation().getUniverse());
-        final UniverseFeaturePackInstaller ufpInstaller = ufpInstallers.get(universe.getFactoryId());
-        if(ufpInstaller == null) {
-            throw new ProvisioningException(Errors.featurePackInstallerNotFound(universe.getFactoryId(), ufpInstallers.keySet()));
+        Universe<?> universe = null;
+        UniverseFeaturePackInstaller ufpInstaller = null;
+        if (universeResolution) {
+            universe = universeResolver.getUniverse(fpid.getLocation().getUniverse());
+            ufpInstaller = ufpInstallers.get(universe.getFactoryId());
+            if (ufpInstaller == null) {
+                throw new ProvisioningException(Errors.featurePackInstallerNotFound(universe.getFactoryId(), ufpInstallers.keySet()));
+            }
         }
         final Path fpZip = getBuildDir().resolve(LayoutUtils.ensureValidFileName(fpid.toString()));
         try {
@@ -99,7 +119,9 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
         } catch (IOException e) {
             throw new ProvisioningException("Failed to create feature-pack archive", e);
         }
-        ufpInstaller.install(universe, fpid, fpZip);
+        if (ufpInstaller != null) {
+            ufpInstaller.install(universe, fpid, fpZip);
+        }
     }
 
     Path getWorkDir() throws ProvisioningException {
