@@ -1,11 +1,103 @@
 ## Galleon CLI tool
-A set of commands is offered to observe, explore, edit, diff, export, provision or create a new provisioning state.
+This command line tool (_bin/galleon.[sh|bat]_) allows you to provision/manage any products/installations that comply with galleon feature-packs.
+Although being a generic tool, a builtin support is offered for products available from maven jboss community universe (eg: wildfly). +
+Possible actions that you can operate from the tool: install, uninstall, check for updates, patch, upgrade.
+
+### Feature-pack
+A key concept in galleon system is the notion of feature-pack. A feature-pack is a content container. It can be a full product (eg: wildfly) 
+or part of a product (eg: a wildfly subsystem packaged as a feature-pack). With the tool you are going to install/uninstall/upgrade/... feature-packs. +
+NB: A galleon installation can be composed of 1 or more feature-packs.
+
+A feature-pack can be a file on your local file system or located inside a universe (a product catalog).
+
+The tool helps you identify the feature-pack that you can use for the task you want to achieve. In order to take benefit of the full capabilities
+offered by the tool, one needs to understand how products are identified inside a universe.
+
+### Universe feature-pack location (FPL)
+A feature-pack location (FPL) is the way to identify a product inside a universe without actually expressing any build numbers. 
+A lot to commands require that you provide FPL. 
+
+The main (non exhaustive) FPL syntax is: _<product>[@universe]:[version]/[qualifier]_ +
+Some examples of FPL to identify wildfly products:
+
+* _wildfly:current_ ==> Final (released) wildfly product current version
+* _wildfly:current/alpha_ ==> The latest release of wildfly product current version that is at least of alpha quality.
+
+The things to notice:
+
+* Universe (from where the product comes from) is optional for products located in jboss maven community universe.
+* No actual version nor build (eg: 1.0.0-Alpha1-SNAPHOT) is provided. The syntax of FPL is abstract it allows you to express a level of expected quality without
+hard-coding any version number.
+* Pointed by an FPL is an actual feature-pack artifact (a zipped file) that the tool will download/install,...
+* A completer helps you compose FPL when the command you are calling expect one (eg: install).
+ 
+For example, if one installs wildfly product using the following command:
+
+_install wildfly:current/alpha --dir=myInstallation_ 
+
+Then, later, when checking for updates or upgrading _myInstallation_ directory, 
+the latest build that is at least of quality alpha will be used to update. 
+If a final release is available then it will be installed when upgrading.
+
+NB: Products being unique inside an installation, some commands (eg: _state upgrade_) 
+only require the product part (_<product>[@universe]_) of an FPL. For example:
+
+_state upgrade --products=wildfly_
+
+### Universe feature-pack id (FPID)
+A feature-pack id (FPID) is the way to identify a product inside a universe by expressing a build number. 
+This is the syntax to use when you want to deal with specific builds of a product.
+
+The FPID syntax is: _<product>[@universe]:[version]#[buildID]_ +
+Some examples of FPID to identify wildfly products:
+
+* _wildfly:current#1.0.0-Final_
+* _wildfly:current#1.0.0-Alpha1_
+
+The things to notice:
+
+* Universe (from where the poduct comes from) is optional for products located in jboss maven community universe.
+* Pointed by an FPID is an actual feature-pack artifact (a zipped file)
+* A completer helps you compose your FPID when the command you are calling expect one (eg: install).
+ 
+For example, to retrieve the informations of alpha1 build:
+
+_feature-pack info wildfly:current#1.0.0-Alpha1_ 
+
 
 ### Installing a feature-pack
 
-_install <[FPL] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--verbose] [list of discovered feature-pack options]_
+_install <[FPL|FPID] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
 
-This creates a directory containing the installed feature-pack content (binaries, configs).
+This creates a directory containing the installed feature-pack content (binaries, configs). +
+NB: To retrieve the set of feature-pack specific options call: +
+_feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=options_ +
+You can then use the listed options (if any) to customize your installation.
+
+### Un-installing a feature-pack
+
+_uninstall [FPID] [--dir=<installation dir>]_
+
+This will remove the content installed by the feature-pack identified by the FPID.
+
+### Patching an installation
+
+Use the _install_ command to patch an existing installation.
+
+_install [--file=<path to patch fp zip file>]> [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
+
+### Checking for updates
+
+_state check-updates [--dir=<installation dir>] [--include-all-dependencies] [--products=<list of products>]_
+
+If no directory is provided, the current directory is used. If no products are provided, all installed products are checked for updates.
+
+### Upgrading an installation
+
+_state upgrade [--dir=<installation dir> [--include-all-dependencies] [--yes] [--products=<list of products>] [list of discovered feature-pack options]_
+
+Display the ist of available updates/patches then upgrade. If no directory is provided, the current directory is used. 
+If _--yes_ is provided, the command will proceed without asking for confirmation.
 
 ### Observing an installation
 
@@ -15,9 +107,9 @@ Display the set of dependencies and/or configurations and/or applied patches. Al
 
 ### Observing a feature-pack
 
-_[my-dir]$ feature-pack info <[FPL] | [--file=<path to fp zip file>]> --type=[configs|dependencies]_
+_[my-dir]$ feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[configs|dependencies|options]_
 
-Display the set of dependencies and/or configurations. All is displayed by default.
+Display the set of dependencies and/or configurations and/or options usable when installing/provisioning/upgrading. All is displayed by default.
 
 ### Exporting an installation to xml
 
@@ -33,7 +125,7 @@ To explore an installation: +
 _[my-dir]$ state explore --dir=installation_ +
 
 To explore a feature-pack: +
-_[my-dir]$ feature-pack explore <[FPL] | [--file=<path to fp zip file>]_ +
+_[my-dir]$ feature-pack explore <[FPL|FPID] | [--file=<path to fp zip file>]_ +
 
 Once exploring, prompt, ls, cd and pwd commands are bound to the feature-pack (or installation) exposed file-system. +
 
@@ -121,7 +213,7 @@ TIP: The command state info can be used to get high level information.
 
 ### Adding a feature-pack
 
-_[/]$ fp add <stream | --fp=coords> [--default-configs-inherit] [--packages-inherit]_ +
+_[/]$ fp add <FPL|FPID> [--default-configs-inherit] [--packages-inherit]_ +
 
 By default nothing is inherited. Once at least one feature-pack has been added, configurations or packages can be handled. 
 
@@ -129,17 +221,17 @@ NB: A runtime based on the added full feature-pack is built in order to retrieve
 
 ### Removing a feature-pack
 
-_[/]$ fp remove <fpcoord for now>_
+_[/]$ fp remove <FPL|FPID>_
 
 ### Including a default configuration
 
-_[/]$ config include <model>/<name> [--origin=<fp coords>]_
+_[/]$ config include <model>/<name> [--origin=<fp origin>]_
 
 Origin is optional, by default will be included from all fp that expose it.
 
 ### Removing an included default configuration
 
-_[/]$ config remove-included <model>/<name> [--origin=<fp coords>]_
+_[/]$ config remove-included <model>/<name> [--origin=<fp origin>]_
 
 The completer only proposes the set of configurations that have been previously included. Same for fp.
 Origin is optional, by default will be remove from all fp that include it.
@@ -147,13 +239,13 @@ Origin is optional, by default will be remove from all fp that include it.
 
 ### Excluding a default configuration
 
-_[/]$ config exclude <model>/<name> [--origin=<fp coords>]_
+_[/]$ config exclude <model>/<name> [--origin=<fp origin>]_
 
 Origin is optional, by default will be excluded from all fp that expose it.
 
 ### Removing an excluded default configuration
 
-_[/]$ config remove-excluded <model>/<name> [--origin=<fp coords>]_
+_[/]$ config remove-excluded <model>/<name> [--origin=<fp origin>]_
 
 The completer only proposes the set of configurations that have been previously excluded. Same for fp.
 Origin is optional, by default will be remove from all fp that exclude it.
@@ -169,22 +261,22 @@ NB: This has no effect on included/excluded configurations.
 
 ### Including a default package
 
-_[/]$ packages include <fpcoord for now>/<package name>_
+_[/]$ packages include <fp origin>/<package name>_
 
 ### Removing an included default package
 
-_[/]$ packages remove-included <package name> [--origin=<fp coords>]_
+_[/]$ packages remove-included <package name> [--origin=<fp origin>]_
 
 The completer only proposes the set of packages that have been previously included.
 The origin is optional, the package will be removed from all fp that exclude it.
 
 ### Excluding a default package
 
-_[/]$ packages exclude <fpcoord for now>/<package name>_
+_[/]$ packages exclude <fp origin>/<package name>_
 
 ### Removing an excluded default package
 
-_[/]$ packages remove-excluded <package name> [--origin=<fp coords>]_
+_[/]$ packages remove-excluded <package name> [--origin=<fp origin>]_
 
 The completer only proposes the set of packages that have been previously excluded.
 The origin is optional, the package will be removed from all fp that exclude it.
@@ -194,7 +286,7 @@ The origin is optional, the package will be removed from all fp that exclude it.
 _[/]$ feature add <config model/name> <path to feature-spec>  <dynamic set of feature param=<value>>_
 
 For example: +
-_feature add standalone/standalone.xml org.wildfly.core:wildfly-core-feature-pack-new/interface --interface=toto --inet-address=127.0.0.1_
+_feature add standalone/standalone.xml org.wildfly.core:wildfly-core-galleon-pack/interface --interface=toto --inet-address=127.0.0.1_
 
 NB: All parameters are exposed as command option.
  
