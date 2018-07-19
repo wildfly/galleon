@@ -32,18 +32,12 @@ import org.aesh.command.impl.internal.ParsedCommand;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
-import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
-import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
-import org.jboss.galleon.cli.CliMain;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
-import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand.RESOLUTION_MESSAGE;
 import org.jboss.galleon.cli.cmd.state.StateNoExplorationActivator;
@@ -60,7 +54,7 @@ import org.jboss.galleon.xml.ProvisioningXmlParser;
  *
  * @author jdenise@redhat.com
  */
-public class StateProvisionCommand extends AbstractDynamicCommand {
+public class StateProvisionCommand extends AbstractProvisionWithPlugins {
 
     public static class FileActivator extends PmOptionActivator {
 
@@ -71,16 +65,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
     }
 
     public StateProvisionCommand(PmSession pmSession) {
-        super(pmSession, true, false, CliMain.experimentalFeaturesEnabled());
-    }
-
-    @Override
-    protected String getId(PmSession session) throws CommandExecutionException {
-        // We can't cache anything. If the state is in memory
-        // then we already have a runtime, so fast.
-        // If a file is provided, then we rebuild the runtime
-        // to retrieve the plugins.
-        return null;
+        super(pmSession);
     }
 
     @Override
@@ -130,7 +115,7 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
     }
 
     @Override
-    protected List<ProcessedOption> getStaticOptions() throws OptionParserException {
+    protected List<ProcessedOption> getOtherOptions() throws OptionParserException {
         List<ProcessedOption> options = new ArrayList<>();
         options.add(ProcessedOptionBuilder.builder().name(ARGUMENT_NAME).
                 hasValue(true).
@@ -139,19 +124,6 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
                 optionType(OptionType.ARGUMENT).
                 completer(FileOptionCompleter.class).
                 activator(FileActivator.class).
-                build());
-        options.add(ProcessedOptionBuilder.builder().name(DIR_OPTION_NAME).
-                hasValue(true).
-                type(String.class).
-                optionType(OptionType.NORMAL).
-                description("Target installation directory.").
-                completer(FileOptionCompleter.class).
-                build());
-        options.add(ProcessedOptionBuilder.builder().name(VERBOSE_OPTION_NAME).
-                hasValue(false).
-                type(Boolean.class).
-                description("Whether or not the output should be verbose").
-                optionType(OptionType.BOOLEAN).
                 build());
         return options;
     }
@@ -171,10 +143,6 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
         }
     }
 
-    private boolean isVerbose() {
-        return contains(VERBOSE_OPTION_NAME);
-    }
-
     private String getFile() {
         String file = (String) getValue(ARGUMENT_NAME);
         if (file == null) {
@@ -184,43 +152,32 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
         return file;
     }
 
-    private String getDir() {
-        return (String) getValue(DIR_OPTION_NAME);
-    }
-
     @Override
-    protected void runCommand(PmCommandInvocation invoc, Map<String, String> options) throws CommandExecutionException {
-        if (isVerbose()) {
-            invoc.getPmSession().enableMavenTrace(true);
-        }
-        try {
-            if (invoc.getPmSession().getState() != null) {
-                State state = invoc.getPmSession().getState();
-                try {
-                    getManager(invoc).provision(state.getConfig(), options);
-                } catch (ProvisioningException ex) {
-                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), ex);
-                }
-            } else {
-                String file = getFile();
-                if (file == null) {
-                    throw new CommandExecutionException("No provisioning file provided.");
-                }
-                final Path provisioningFile = getAbsolutePath(file, invoc.getAeshContext());
-                if (!Files.exists(provisioningFile)) {
-                    throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
-                }
-                try {
-                    getManager(invoc).provision(provisioningFile, options);
-                } catch (ProvisioningException e) {
-                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), e);
-                }
+    protected void doRunCommand(PmCommandInvocation invoc, Map<String, String> options) throws CommandExecutionException {
+        if (invoc.getPmSession().getState() != null) {
+            State state = invoc.getPmSession().getState();
+            try {
+                getManager(invoc).provision(state.getConfig(), options);
+            } catch (ProvisioningException ex) {
+                throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), ex);
             }
-        } finally {
-            invoc.getPmSession().enableMavenTrace(false);
+        } else {
+            String file = getFile();
+            if (file == null) {
+                throw new CommandExecutionException("No provisioning file provided.");
+            }
+            final Path provisioningFile = getAbsolutePath(file, invoc.getAeshContext());
+            if (!Files.exists(provisioningFile)) {
+                throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
+            }
+            try {
+                getManager(invoc).provision(provisioningFile, options);
+            } catch (ProvisioningException e) {
+                throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), e);
+            }
         }
 
-        Path home = getInstallationHome(invoc.getAeshContext());
+        Path home = getInstallationDirectory(invoc.getAeshContext());
         if (Files.exists(home) && invoc.getPmSession().getState() != null) {
             try {
                 invoc.println("Installation done in " + home.toFile().getCanonicalPath());
@@ -230,18 +187,5 @@ public class StateProvisionCommand extends AbstractDynamicCommand {
         } else if (invoc.getPmSession().getState() != null) {
             invoc.println("Nothing to install");
         }
-    }
-
-    private ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getInstallationHome(session.getAeshContext()), isVerbose());
-    }
-
-    private Path getInstallationHome(AeshContext context) {
-        return getDir() == null ? PmSession.getWorkDir(context) : getAbsolutePath(getDir(), context);
-    }
-
-    private Path getAbsolutePath(String path, AeshContext context) {
-        Path workDir = PmSession.getWorkDir(context);
-        return path == null ? PmSession.getWorkDir(context) : workDir.resolve(path);
     }
 }

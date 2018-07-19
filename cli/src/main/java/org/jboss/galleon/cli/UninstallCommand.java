@@ -20,6 +20,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.InstalledFPLCompleter;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -30,7 +31,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 @CommandDefinition(name = "uninstall", description = "Uninstalls specified feature-pack", activator = NoStateCommandActivator.class)
 public class UninstallCommand extends ProvisioningCommand {
 
-    @Argument(completer = InstalledStreamCompleter.class)
+    @Argument(completer = InstalledFPLCompleter.class)
     protected String streamName;
 
     @Override

@@ -43,6 +43,7 @@ import org.junit.Test;
 public class InstallUpdateTestCase {
 
     private static final String PRODUCER1 = "producer1";
+    private static final String PRODUCER2 = "producer2";
     private static final String UNIVERSE_NAME = "cli-test-universe";
 
     private static UniverseSpec universeSpec;
@@ -67,6 +68,7 @@ public class InstallUpdateTestCase {
 
         // Add an alpha1 snapshot release.
         install(PRODUCER1, "1.0.0.Alpha1-SNAPSHOT");
+        install(PRODUCER2, "1.0.0.Alpha1-SNAPSHOT");
         FeaturePackLocation finalLoc = buildFPL(PRODUCER1, "1", "final", null);
 
         checkNoVersionAvailable(buildFPL(PRODUCER1, "1", null, null), finalLoc);
@@ -94,18 +96,52 @@ public class InstallUpdateTestCase {
         cli.execute("state check-updates --dir=" + install2);
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
 
-        // update available for the first installation
+        //Install an alpha-SNAPSHOT for producer2 in same directory
+        checkversionInstalled("install1", buildFPL(PRODUCER2, "1", "snapshot", null),
+                buildFPL(PRODUCER2, "1", "snapshot", "1.0.0.Alpha1-SNAPSHOT"));
+
+        // update available for the first installation, only producer1 has update.
         cli.execute("state check-updates --dir=" + install1);
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
-        // upgrade to Alpha1
+        cli.execute("state check-updates --dir=" + install1 + " --products=" + buildFPL(PRODUCER1, null, null, null));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
+
+        cli.execute("state check-updates --dir=" + install1 + " --products=" + buildFPL(PRODUCER2, null, null, null));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+
+        // upgrade to Alpha1, only producer1 upgraded.
         cli.execute("state upgrade --yes --dir=" + install1);
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
         ProvisioningConfig config = getConfig(install1);
-        FeaturePackConfig cf = config.getFeaturePackDeps().iterator().next();
-        Assert.assertEquals(cf.getLocation().toString(), cf.getLocation(), buildFPL(PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
+        FeaturePackConfig cf1 = config.getFeaturePackDep(buildFPL(PRODUCER1, "1", null, null).getProducer());
+        FeaturePackConfig cf2 = config.getFeaturePackDep(buildFPL(PRODUCER2, "1", null, null).getProducer());
+        Assert.assertEquals(cf1.getLocation().toString(), cf1.getLocation(), buildFPL(PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
+        Assert.assertEquals(cf2.getLocation().toString(), cf2.getLocation(), buildFPL(PRODUCER2, "1", "snapshot", "1.0.0.Alpha1-SNAPSHOT"));
+
+        // Add an alpha1 release.
+        install(PRODUCER2, "1.0.0.Alpha1");
+
+        // Then upgrade producer2
+        cli.execute("state upgrade --yes --dir=" + install1 + " --products=" + buildFPL(PRODUCER2, null, null, null));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
+
+        config = getConfig(install1);
+        cf1 = config.getFeaturePackDep(buildFPL(PRODUCER1, "1", null, null).getProducer());
+        cf2 = config.getFeaturePackDep(buildFPL(PRODUCER2, "1", null, null).getProducer());
+        Assert.assertEquals(cf1.getLocation().toString(), cf1.getLocation(), buildFPL(PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
+        Assert.assertEquals(cf2.getLocation().toString(), cf2.getLocation(), buildFPL(PRODUCER2, "1", "snapshot", "1.0.0.Alpha1"));
 
     }
 
@@ -137,8 +173,7 @@ public class InstallUpdateTestCase {
         cli.execute("install " + toInstall + " --dir=" + dir.toString());
         Assert.assertTrue(dir.toFile().exists());
         ProvisioningConfig config = getConfig(dir);
-        Assert.assertEquals(1, config.getFeaturePackDeps().size());
-        FeaturePackConfig cf = config.getFeaturePackDeps().iterator().next();
+        FeaturePackConfig cf = config.getFeaturePackDep(toInstall.getProducer());
         Assert.assertEquals(cf.getLocation().toString(), cf.getLocation(), expected);
         return dir;
     }
@@ -155,6 +190,7 @@ public class InstallUpdateTestCase {
         MavenRepoManager mgr = cli.getSession().getMavenRepoManager();
         MvnUniverse universe = MvnUniverse.getInstance(UNIVERSE_NAME, mgr);
         universe.createProducer(PRODUCER1);
+        universe.createProducer(PRODUCER2);
         universe.install();
         universeSpec = new UniverseSpec(MavenUniverseFactory.ID, TestConstants.GROUP_ID + ":" + UNIVERSE_NAME);
     }

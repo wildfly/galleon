@@ -25,6 +25,7 @@ import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -34,7 +35,7 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
  *
  * @author jdenise@redhat.com
  */
-public abstract class AbstractStateCommand extends PmSessionCommand {
+public abstract class AbstractStateCommand extends PmSessionCommand implements CommandWithInstallationDirectory {
 
     public static class DirActivator extends PmOptionActivator {
 
@@ -55,10 +56,11 @@ public abstract class AbstractStateCommand extends PmSessionCommand {
     }
 
     protected ProvisioningManager getManager(PmSession session) throws ProvisioningException {
-        return session.newProvisioningManager(getTargetDir(session.getAeshContext()), false);
+        return session.newProvisioningManager(getInstallationDirectory(session.getAeshContext()), false);
     }
 
-    protected Path getTargetDir(AeshContext context) {
+    @Override
+    public Path getInstallationDirectory(AeshContext context) {
         Path workDir = PmSession.getWorkDir(context);
         return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
     }
