@@ -26,10 +26,10 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
- * Installed FPL completer. XXX jfdenise, we shouldn't require it when uninstall
- * accepts producer.
+ * Installed FPID completer.
  *
  * @author jdenise@redhat.com
  */
@@ -45,7 +45,14 @@ public class InstalledFPLCompleter extends AbstractCompleter {
             ProvisioningManager mgr = completerInvocation.getPmSession().
                     newProvisioningManager(currentDir, false);
             for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {
-                items.add(completerInvocation.getPmSession().getExposedLocation(fp.getLocation()).toString());
+                items.add(completerInvocation.getPmSession().
+                        getExposedLocation(fp.getLocation()).getFPID().toString());
+                if (fp.hasPatches()) {
+                    for (FeaturePackLocation.FPID p : fp.getPatches()) {
+                        items.add(completerInvocation.getPmSession().
+                                getExposedLocation(p.getLocation()).getFPID().toString());
+                    }
+                }
             }
         } catch (Exception ex) {
             Logger.getLogger(InstalledProducerCompleter.class.getName()).log(Level.FINEST,
