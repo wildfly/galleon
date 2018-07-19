@@ -50,6 +50,9 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
  */
 @CommandDefinition(name = "info", description = "info on a feature-pack")
 public class InfoCommand extends AbstractFeaturePackCommand {
+
+    public static final String PATCH_FOR = "Patch for ";
+
     public class InfoTypeCompleter extends AbstractCompleter {
 
         @Override
@@ -110,7 +113,7 @@ public class InfoCommand extends AbstractFeaturePackCommand {
 
             FPID patchFor = product.getSpec().getPatchFor();
             if (patchFor != null) {
-                commandInvocation.println("Patch for " + patchFor);
+                commandInvocation.println(PATCH_FOR + patchFor);
             }
             try {
                 if (type == null) {
