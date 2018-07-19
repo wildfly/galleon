@@ -144,7 +144,7 @@ public class InfoCommand extends AbstractFeaturePackCommand {
     }
 
     private void displayDependencies(PmCommandInvocation commandInvocation, List<FeaturePackLocation> dependencies) throws CommandExecutionException {
-        String str = StateInfoUtil.buildDependencies(dependencies);
+        String str = StateInfoUtil.buildDependencies(dependencies, null);
         if (str != null) {
             commandInvocation.println(str);
         }
