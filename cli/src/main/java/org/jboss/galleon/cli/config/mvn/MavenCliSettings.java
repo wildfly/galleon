@@ -23,6 +23,9 @@ import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
+import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_WARN;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_NEVER;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.cli.Util;
 
@@ -55,11 +58,15 @@ class MavenCliSettings implements MavenSettings {
     private List<RemoteRepository> buildRepositories(MavenConfig config) throws ArtifactException {
         List<RemoteRepository> repos = new ArrayList<>();
         for (MavenRemoteRepository repo : config.getRemoteRepositories()) {
-            // This relies on default policy for both snapshots and releases.
-            // daily update of local artifacts and warn if checksum differs.
+            // The default policy for both snapshots and releases is to update daily.
+            // This shows very bad performance. Artifact are downloaded in an unpredictable way.
+            // We are never updating by default.
             // XXX jfdenise, could be made configurable.
-            repos.add(new RemoteRepository.Builder(repo.getName(),
-                    repo.getType(), repo.getUrl()).build());
+            RemoteRepository.Builder builder = new RemoteRepository.Builder(repo.getName(),
+                    repo.getType(), repo.getUrl());
+            builder.setSnapshotPolicy(new RepositoryPolicy(true, UPDATE_POLICY_NEVER, CHECKSUM_POLICY_WARN));
+            builder.setReleasePolicy(new RepositoryPolicy(true, UPDATE_POLICY_NEVER, CHECKSUM_POLICY_WARN));
+            repos.add(builder.build());
         }
         return repos;
     }
