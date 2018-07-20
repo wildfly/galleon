@@ -73,8 +73,7 @@ public class FeatureSpecsBuilder {
         if (specs == null) {
             specs = new HashSet<>();
             final Set<FeatureSpecInfo> fSpecs = specs;
-            try (FileSystem fs = ZipUtils.newFileSystem(session.getUniverse().
-                    getUniverseResolver().resolve(fpid.getLocation()))) {
+            try (FileSystem fs = ZipUtils.newFileSystem(session.getUniverse().resolve(fpid.getLocation()))) {
                 final Path path = fs.getPath("features/");
                 Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 

@@ -53,7 +53,7 @@ public abstract class FeatureContainers {
     public static FeatureContainer fromFeaturePackId(PmSession session, ProvisioningManager manager, FPID fpid,
             String name) throws ProvisioningException, IOException {
         if (fpid.getBuild() == null) {
-            FeaturePackLocation loc = session.getUniverse().getUniverseResolver().resolveLatestBuild(fpid.getLocation());
+            FeaturePackLocation loc = session.getUniverse().resolveLatestBuild(fpid.getLocation());
             fpid = loc.getFPID();
         }
         FeatureContainer fp = Caches.getFeaturePackInfo(fpid);

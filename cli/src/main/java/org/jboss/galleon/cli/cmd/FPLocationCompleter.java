@@ -25,11 +25,11 @@ import org.aesh.command.completer.OptionCompleter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.UniverseManager;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.Universe;
-import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 
@@ -53,7 +53,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
     private void doComplete(PmCompleterInvocation completerInvocation) throws ProvisioningException {
         // Legacy completer first
         PmSession pmSession = completerInvocation.getPmSession();
-        UniverseResolver resolver = pmSession.getUniverse().getUniverseResolver();
+        UniverseManager resolver = pmSession.getUniverse();
         UniverseSpec defaultUniverse = pmSession.getUniverse().getDefaultUniverseSpec();
         Set<String> aliases = pmSession.getUniverse().getUniverseNames();
         //producer[@universe]:channel/frequency#build
@@ -184,12 +184,12 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                             if (parsedLocation.getFrequency() == null) {
                                 FeaturePackLocation.FPID id = new FeaturePackLocation(spec, parsedLocation.getProducer(),
                                         parsedLocation.getChannel(), null, null).getFPID();
-                                latestBuild = pmSession.getUniverse().getUniverseResolver().getUniverse(spec).
+                                latestBuild = pmSession.getUniverse().getUniverse(spec).
                                         getProducer(parsedLocation.getProducer()).getChannel(parsedLocation.getChannel()).getLatestBuild(id);
                             } else {
                                 FeaturePackLocation loc = new FeaturePackLocation(spec, parsedLocation.getProducer(),
                                         parsedLocation.getChannel(), parsedLocation.getFrequency(), null);
-                                latestBuild = pmSession.getUniverse().getUniverseResolver().getUniverse(spec).
+                                latestBuild = pmSession.getUniverse().getUniverse(spec).
                                         getProducer(parsedLocation.getProducer()).getChannel(parsedLocation.getChannel()).getLatestBuild(loc);
                             }
                             if (latestBuild != null) {
@@ -232,7 +232,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
             if (spec == null) {
                 return null;
             }
-            Universe<?> universe = pmSession.getUniverse().getUniverseResolver().getUniverse(spec);
+            Universe<?> universe = pmSession.getUniverse().getUniverse(spec);
             if (universe == null) {
                 return null;
             }
