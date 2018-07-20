@@ -78,11 +78,12 @@ public class UniverseManager implements MavenChangeListener {
 
     private boolean bckResolution = true;
 
-    UniverseManager(PmSession pmSession, Configuration config, CliMavenArtifactRepositoryManager maven) throws ProvisioningException {
+    UniverseManager(PmSession pmSession, Configuration config, CliMavenArtifactRepositoryManager maven,
+            UniverseResolver universeResolver) throws ProvisioningException {
         this.pmSession = pmSession;
         config.getMavenConfig().addListener(this);
         UniverseFactoryLoader.getInstance().addArtifactResolver(maven);
-        universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
+        this.universeResolver = universeResolver;
         builtinUniverseSpec = new UniverseSpec(MavenUniverseFactory.ID, JBOSS_UNIVERSE_GROUP_ID + ":" + JBOSS_UNIVERSE_ARTIFACT_ID);
     }
 
@@ -99,7 +100,7 @@ public class UniverseManager implements MavenChangeListener {
             return;
         }
         Future<?> f = executorService.submit(() -> {
-            synchronized (this) {
+            synchronized (UniverseManager.this) {
                 if (closed) {
                     return;
                 }
@@ -182,10 +183,20 @@ public class UniverseManager implements MavenChangeListener {
         return builtinUniverseSpec;
     }
 
-    public UniverseResolver getUniverseResolver() {
-        synchronized (this) {
-            return universeResolver;
-        }
+    public synchronized Universe getUniverse(UniverseSpec spec) throws ProvisioningException {
+        return universeResolver.getUniverse(spec);
+    }
+
+    public synchronized Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
+        return universeResolver.resolve(fpl);
+    }
+
+    public synchronized boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
+        return universeResolver.isResolved(fpl);
+    }
+
+    public synchronized FeaturePackLocation resolveLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
+        return universeResolver.resolveLatestBuild(fpl);
     }
 
     private ProvisioningManager getProvisioningManager() throws ProvisioningException {

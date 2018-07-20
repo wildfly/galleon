@@ -44,6 +44,7 @@ import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Producer;
+import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 
@@ -199,8 +200,9 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         this.mavenListener = new MavenListener();
         this.maven = new CliMavenArtifactRepositoryManager(config.getMavenConfig(),
                 mavenListener);
-        universe = new UniverseManager(this, config, maven);
-        layoutFactory = ProvisioningLayoutFactory.getInstance(universe.getUniverseResolver());
+        UniverseResolver universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
+        universe = new UniverseManager(this, config, maven, universeResolver);
+        layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver);
         resolver = new ResourceResolver(this);
         // Abort running universe resolution if any.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -394,7 +396,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
 
     public boolean existsInLocalRepository(FPID fpid) throws ProvisioningException {
         FeaturePackLocation loc = getResolvedLocation(fpid.getLocation());
-        Producer<?> producer = universe.getUniverseResolver().getUniverse(loc.
+        Producer<?> producer = universe.getUniverse(loc.
                 getUniverse()).getProducer(loc.getProducerName());
         boolean hasFrequency = false;
         if (producer != null) {
@@ -403,11 +405,11 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         String freq = loc.getFrequency() == null && hasFrequency ? "alpha" : loc.getFrequency();
         loc = new FeaturePackLocation(loc.getUniverse(),
                 loc.getProducerName(), loc.getChannelName(), freq, loc.getBuild());
-        return universe.getUniverseResolver().isResolved(loc);
+        return universe.isResolved(loc);
     }
 
     public void downloadFp(FPID fpid) throws ProvisioningException {
-        universe.getUniverseResolver().resolve(getResolvedLocation(fpid.getLocation()));
+        universe.resolve(getResolvedLocation(fpid.getLocation()));
     }
 
     private FeaturePackLocation getResolvedLocation(FeaturePackLocation fplocation) throws ProvisioningException {

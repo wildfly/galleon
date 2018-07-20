@@ -26,13 +26,13 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.UniverseManager;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
-import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 import org.jboss.galleon.universe.maven.MavenProducer;
@@ -118,7 +118,7 @@ public class UniverseListCommand extends PmSessionCommand {
     }
 
     private static void printUniverse(Pattern cPattern, UniverseSpec spec, PmCommandInvocation invoc) throws ProvisioningException {
-        UniverseResolver resolver = invoc.getPmSession().getUniverse().getUniverseResolver();
+        UniverseManager resolver = invoc.getPmSession().getUniverse();
         org.jboss.galleon.universe.Universe universe = resolver.getUniverse(spec);
         invoc.println(spec.toString() + (spec.getLocation().equals(universe.getLocation()) ? ""
                 : ", actual location " + universe.getLocation()));
