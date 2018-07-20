@@ -67,7 +67,6 @@ public class StateInfoCommand extends AbstractStateCommand {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
         }
     }
