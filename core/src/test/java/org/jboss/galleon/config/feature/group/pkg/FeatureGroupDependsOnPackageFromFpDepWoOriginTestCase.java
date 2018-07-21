@@ -80,11 +80,11 @@ public class FeatureGroupDependsOnPackageFromFpDepWoOriginTestCase extends PmIns
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
-                        .addPackage("p1")
-                        .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV)
                         .addPackage("p2")
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
+                        .addPackage("p1")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "name", "a1")).build())

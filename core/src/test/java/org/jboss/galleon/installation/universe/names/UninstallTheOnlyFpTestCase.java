@@ -57,17 +57,19 @@ public class UninstallTheOnlyFpTestCase extends PmUninstallFeaturePackTestBase {
     }
 
     @Override
-    protected ProvisioningConfig provisionedConfig() {
-        return null;
+    protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
+        return ProvisioningConfig.builder()
+                .addUniverse("custom", "galleon1", null)
+                .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() {
-        return null;
+        return ProvisionedState.builder().build();
     }
 
     @Override
     protected DirState provisionedHomeDir() {
-        return DirState.rootBuilder().build();
+        return this.newDirBuilder().build();
     }
 }

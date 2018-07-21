@@ -41,7 +41,6 @@ public class InstallFpWhichIsExistingTransitiveDependencyTestCase extends PmInst
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        setReplaceInstalled(false);
     }
 
     @Override
@@ -81,8 +80,8 @@ public class InstallFpWhichIsExistingTransitiveDependencyTestCase extends PmInst
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forLocation(FP2_100_GAV.getLocation()))
                 .addFeaturePackDep(FeaturePackConfig.forLocation(FP1_200_GAV.getLocation()))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(FP2_100_GAV.getLocation()))
                 .build();
     }
 

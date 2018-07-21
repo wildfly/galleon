@@ -496,10 +496,6 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         if(allPatches.containsKey(fpid)) {
             throw new ProvisioningException(Errors.patchAlreadyApplied(fpid));
         }
-        final F installedFp = featurePacks.get(fpid.getProducer());
-//        if(installedFp != null && installedFp.isDirectDep() && installedFp.getFPID().getBuild().equals(fpid.getBuild())) {
-//            throw new ProvisioningException(Errors.featurePackAlreadyConfigured(fpid.getProducer()));
-//        }
         if(!fpl.hasBuild()) {
             fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
         }
@@ -521,19 +517,55 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                     FeaturePackConfig.builder(installedFpConfig.getLocation()).init(installedFpConfig).addPatch(fpid).build());
         }
 
+        final F installedFp = featurePacks.get(fpid.getProducer());
         if(installedFp != null) {
-            FeaturePackConfig installedFpConfig = config.getFeaturePackDep(fpid.getProducer());
-            if(installedFpConfig != null) {
+            if(installedFp.isTransitiveDep() == fpConfig.isTransitive()) {
                 return configBuilder.updateFeaturePackDep(fpConfig);
             }
-            installedFpConfig = config.getTransitiveDep(fpid.getProducer());
-            if (installedFpConfig != null) {
-                configBuilder.removeTransitiveDep(fpid.getLocation().getFPID());
+            if(installedFp.isTransitiveDep()) {
+                // transitive becomes direct
+                if (config.hasTransitiveDep(fpid.getProducer())) {
+                    configBuilder.removeTransitiveDep(fpid);
+                }
+                return configBuilder.addFeaturePackDep(getIndexForDepToInstall(configBuilder, fpid.getProducer()), fpConfig);
             }
-            return configBuilder.addFeaturePackDep(fpConfig);
+            // direct becomes transitive
+            configBuilder.removeFeaturePackDep(fpid.getLocation());
         }
-
         return configBuilder.addFeaturePackDep(fpConfig);
+    }
+
+    private int getIndexForDepToInstall(ProvisioningConfig.Builder configBuilder, ProducerSpec producer) throws ProvisioningException {
+        int index = Integer.MAX_VALUE;
+        final Set<ProducerSpec> visitedFps = new HashSet<>(featurePacks.size());
+        visitedFps.add(producer);
+        for(F f : featurePacks.values()) {
+            if(!f.isTransitiveDep() && dependsOn(f, producer, visitedFps)) {
+                index = Math.min(index, configBuilder.getFeaturePackDepIndex(f.getFPID().getLocation()));
+            }
+        }
+        return index;
+    }
+
+    private boolean dependsOn(F f, ProducerSpec dep, Set<ProducerSpec> visitedFps) {
+        final FeaturePackSpec spec = f.getSpec();
+        if(!spec.hasFeaturePackDeps()) {
+            return false;
+        }
+        if(spec.hasFeaturePackDep(dep) || spec.hasTransitiveDep(dep)) {
+            return true;
+        }
+        for(FeaturePackConfig fpConfig : spec.getFeaturePackDeps()) {
+            final ProducerSpec producer = fpConfig.getLocation().getProducer();
+            if(!visitedFps.add(producer)) {
+                continue;
+            }
+            if(dependsOn(featurePacks.get(producer), dep, visitedFps)) {
+                return true;
+            }
+            visitedFps.remove(producer);
+        }
+        return false;
     }
 
     /**

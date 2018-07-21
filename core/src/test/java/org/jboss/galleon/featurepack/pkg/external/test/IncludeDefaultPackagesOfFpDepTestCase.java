@@ -86,10 +86,10 @@ public class IncludeDefaultPackagesOfFpDepTestCase extends PmProvisionConfigTest
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
+                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .addPackage("p2")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP3_GAV)
                         .addPackage("p1")
                         .build())

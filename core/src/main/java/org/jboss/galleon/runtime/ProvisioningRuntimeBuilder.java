@@ -86,7 +86,6 @@ public class ProvisioningRuntimeBuilder {
     String operation;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
-    Path installDir;
     Map<String, String> pluginOptions = Collections.emptyMap();
     private final MessageWriter messageWriter;
 
@@ -132,11 +131,6 @@ public class ProvisioningRuntimeBuilder {
 
     public ProvisioningRuntimeBuilder initLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config) throws ProvisioningException {
         layout = layoutFactory.newConfigLayout(config, FP_RT_FACTORY);
-        return this;
-    }
-
-    public ProvisioningRuntimeBuilder setInstallDir(Path installDir) {
-        this.installDir = installDir;
         return this;
     }
 

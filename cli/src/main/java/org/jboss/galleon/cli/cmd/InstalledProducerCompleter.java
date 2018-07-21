@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.util.PathsUtils;
 
 /**
  * Installed producer completer.
@@ -38,7 +39,7 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
         Path currentDir = cmd.getInstallationDirectory(completerInvocation.getAeshContext());
         List<String> items = new ArrayList<>();
         try {
-            ProvisioningManager.checkInstallationDir(currentDir);
+            PathsUtils.assertInstallationDir(currentDir);
             ProvisioningManager mgr = completerInvocation.getPmSession().
                     newProvisioningManager(currentDir, false);
             for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {

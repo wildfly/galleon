@@ -43,7 +43,6 @@ public class ReplaceImplicitlyInstalledFpDependencyTestCase extends PmInstallFea
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        setReplaceInstalled(true);
     }
 
     @Override

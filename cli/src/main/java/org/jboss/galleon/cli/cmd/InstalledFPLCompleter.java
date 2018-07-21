@@ -27,6 +27,7 @@ import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.util.PathsUtils;
 
 /**
  * Installed FPID completer.
@@ -41,7 +42,7 @@ public class InstalledFPLCompleter extends AbstractCompleter {
         Path currentDir = cmd.getInstallationDirectory(completerInvocation.getAeshContext());
         List<String> items = new ArrayList<>();
         try {
-            ProvisioningManager.checkInstallationDir(currentDir);
+            PathsUtils.assertInstallationDir(currentDir);
             ProvisioningManager mgr = completerInvocation.getPmSession().
                     newProvisioningManager(currentDir, false);
             for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {

@@ -27,6 +27,8 @@ public interface Constants {
     String FEATURE_GROUPS = "feature_groups";
     String FEATURES = "features";
     String FEATURE_PACK_XML = "feature-pack.xml";
+    String HISTORY = "history";
+    String HISTORY_LIST = "list";
     String MODULES_XML = "module.xml";
     String PACKAGE_XML = "package.xml";
     String PACKAGES = "packages";

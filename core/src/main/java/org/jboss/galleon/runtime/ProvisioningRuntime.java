@@ -71,50 +71,6 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  */
 public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable {
 
-    public static void install(ProvisioningRuntime runtime) throws ProvisioningException {
-        // copy package content
-        for(FeaturePackRuntime fp : runtime.layout.getOrderedFeaturePacks()) {
-            runtime.messageWriter.verbose("Installing %s", fp.getFPID());
-            for(PackageRuntime pkg : fp.getPackages()) {
-                final Path pkgSrcDir = pkg.getContentDir();
-                if (Files.exists(pkgSrcDir)) {
-                    try {
-                        IoUtils.copy(pkgSrcDir, runtime.stagedDir);
-                    } catch (IOException e) {
-                        throw new FeaturePackInstallException(Errors.packageContentCopyFailed(pkg.getName()), e);
-                    }
-                }
-            }
-        }
-
-        // execute the plug-ins
-        runtime.executeInstallPlugins();
-
-        // save the config
-        try {
-            ProvisioningXmlWriter.getInstance().write(runtime.config, PathsUtils.getProvisioningXml(runtime.stagedDir));
-        } catch (XMLStreamException | IOException e) {
-            throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisioningXml(runtime.stagedDir)), e);
-        }
-
-        // save the provisioned state
-        try {
-            ProvisionedStateXmlWriter.getInstance().write(runtime, PathsUtils.getProvisionedStateXml(runtime.stagedDir));
-        } catch (XMLStreamException | IOException e) {
-            throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(runtime.stagedDir)), e);
-        }
-        runtime.messageWriter.verbose("Moving the provisioned installation from the staged directory to %s", runtime.installDir);
-        // copy from the staged to the target installation directory
-        if (Files.exists(runtime.installDir)) {
-            IoUtils.recursiveDelete(runtime.installDir);
-        }
-        try {
-            IoUtils.copy(runtime.stagedDir, runtime.installDir);
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(runtime.stagedDir, runtime.installDir));
-        }
-    }
-
     public static void exportToFeaturePack(ProvisioningRuntime runtime, FPID fpid, Path location, Path installationHome) throws ProvisioningDescriptionException, ProvisioningException, IOException {
         diff(runtime, location, installationHome);
 
@@ -161,22 +117,21 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         runtime.executeDiffPlugins(target, customizedInstallation);
     }
 
-    public static void upgrade(ProvisioningRuntime runtime, Path customizedInstallation) throws ProvisioningException {
+    public static void upgrade(ProvisioningRuntime runtime, Path home, Path customizedInstallation) throws ProvisioningException {
         // execute the plug-ins
         runtime.executeUpgradePlugins(customizedInstallation);
          if (Files.exists(customizedInstallation)) {
             IoUtils.recursiveDelete(customizedInstallation);
         }
         try {
-            IoUtils.copy(runtime.installDir, customizedInstallation);
+            IoUtils.copy(home, customizedInstallation);
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(runtime.installDir, customizedInstallation));
+            throw new ProvisioningException(Errors.copyFile(home, customizedInstallation));
         }
     }
 
     private final long startTime;
     private ProvisioningConfig config;
-    private Path installDir;
     private final Path stagedDir;
     private final ProvisioningLayout<FeaturePackRuntime> layout;
     private final Map<String, String> pluginOptions;
@@ -197,16 +152,15 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         });
 
         try {
-        this.configs = builder.getResolvedConfigs();
-        this.stagedDir = layout.newStagedDir();
-        } catch(ProvisioningException | RuntimeException | Error e) {
+            this.configs = builder.getResolvedConfigs();
+            this.stagedDir = layout.newStagedDir();
+        } catch (ProvisioningException | RuntimeException | Error e) {
             layout.close();
             throw e;
         }
 
         pluginOptions = CollectionUtils.unmodifiable(builder.pluginOptions);
         this.operation = builder.operation;
-        this.installDir = builder.installDir;
 
         this.messageWriter = messageWriter;
     }
@@ -218,19 +172,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      */
     public Path getStagedDir() {
         return stagedDir;
-    }
-
-    /**
-     * The target installation location
-     *
-     * @return the installation location
-     */
-    public Path getInstallDir() {
-        return installDir;
-    }
-
-    public void setInstallDir(Path installDir) {
-        this.installDir = installDir;
     }
 
     /**
@@ -400,6 +341,40 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     @Override
     public List<ProvisionedConfig> getConfigs() {
         return configs;
+    }
+
+    public void provision() throws ProvisioningException {
+        // copy package content
+        for(FeaturePackRuntime fp : layout.getOrderedFeaturePacks()) {
+            messageWriter.verbose("Installing %s", fp.getFPID());
+            for(PackageRuntime pkg : fp.getPackages()) {
+                final Path pkgSrcDir = pkg.getContentDir();
+                if (Files.exists(pkgSrcDir)) {
+                    try {
+                        IoUtils.copy(pkgSrcDir, stagedDir);
+                    } catch (IOException e) {
+                        throw new FeaturePackInstallException(Errors.packageContentCopyFailed(pkg.getName()), e);
+                    }
+                }
+            }
+        }
+
+        // execute the plug-ins
+        executeInstallPlugins();
+
+        // save the config
+        try {
+            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(stagedDir));
+        } catch (XMLStreamException | IOException e) {
+            throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisioningXml(stagedDir)), e);
+        }
+
+        // save the provisioned state
+        try {
+            ProvisionedStateXmlWriter.getInstance().write(this, PathsUtils.getProvisionedStateXml(stagedDir));
+        } catch (XMLStreamException | IOException e) {
+            throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
+        }
     }
 
     private void executeInstallPlugins() throws ProvisioningException {

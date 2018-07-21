@@ -90,7 +90,7 @@ public class FeaturePackCircularDependenciesTestCase extends PmProvisionConfigTe
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final"))
                         .addPackage("p1")
                         .addPackage("p2")
                         .build())
@@ -98,7 +98,7 @@ public class FeaturePackCircularDependenciesTestCase extends PmProvisionConfigTe
                         .addPackage("p1")
                         .addPackage("p2")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final"))
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final"))
                         .addPackage("p1")
                         .addPackage("p2")
                         .build())

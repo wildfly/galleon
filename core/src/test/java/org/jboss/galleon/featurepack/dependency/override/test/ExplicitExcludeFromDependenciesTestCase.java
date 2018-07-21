@@ -112,10 +112,6 @@ public class ExplicitExcludeFromDependenciesTestCase extends PmProvisionConfigTe
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Alpha"))
-                        .addPackage("d")
-                        .addPackage("e")
-                        .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "2", "2.0.0.Final"))
                         .addPackage("a")
                         .addPackage("c")
@@ -125,6 +121,10 @@ public class ExplicitExcludeFromDependenciesTestCase extends PmProvisionConfigTe
                         .addPackage("a")
                         .addPackage("b")
                         .addPackage("b1")
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Alpha"))
+                        .addPackage("d")
+                        .addPackage("e")
                         .build())
                 .build();
     }

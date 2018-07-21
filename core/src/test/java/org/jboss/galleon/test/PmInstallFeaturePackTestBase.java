@@ -28,12 +28,6 @@ import org.jboss.galleon.config.ProvisioningConfig;
  */
 public abstract class PmInstallFeaturePackTestBase extends PmTestBase {
 
-    protected boolean replaceInstalled;
-
-    protected void setReplaceInstalled(boolean replaceInstalled) {
-        this.replaceInstalled = replaceInstalled;
-    }
-
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder().addFeaturePackDep(featurePackConfig()).build();
@@ -43,6 +37,6 @@ public abstract class PmInstallFeaturePackTestBase extends PmTestBase {
 
     @Override
     protected void testPm(ProvisioningManager pm) throws ProvisioningException {
-        pm.install(featurePackConfig(), replaceInstalled);
+        pm.install(featurePackConfig());
     }
 }

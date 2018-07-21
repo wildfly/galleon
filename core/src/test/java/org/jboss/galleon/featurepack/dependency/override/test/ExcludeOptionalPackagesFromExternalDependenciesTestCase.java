@@ -106,14 +106,14 @@ public class ExcludeOptionalPackagesFromExternalDependenciesTestCase extends PmP
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
-                        .addPackage("p1")
-                        .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final"))
                         .addPackage("p1")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "1", "1.0.0.Final"))
                         .addPackage("p3")
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_ID)
+                        .addPackage("p1")
                         .build())
                 .build();
     }
