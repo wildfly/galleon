@@ -29,6 +29,7 @@ import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 
@@ -62,7 +63,7 @@ public abstract class AbstractStateCommand extends PmSessionCommand implements C
         return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
     }
 
-    public FeatureContainer getFeatureContainer(PmSession session, ProvisioningLayout<ProvisioningLayout.FeaturePackLayout> layout) throws ProvisioningException,
+    public FeatureContainer getFeatureContainer(PmSession session, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException,
             CommandExecutionException, IOException {
         if (session.getContainer() != null) {
             return session.getContainer();

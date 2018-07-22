@@ -33,7 +33,7 @@ public class TheirsStrategy extends FileSystemMerge {
     }
 
     @Override
-    public void executeUpdate(FileSystemDiffResult result) throws IOException {
+    public void executeUpdate(ProvisioningDiffResult result) throws IOException {
         for (Path addedPath : result.getAddedFiles()) {
             Path target = resolveStagePath(addedPath);
             Path src = resolveOriginPath(addedPath);

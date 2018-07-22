@@ -19,6 +19,7 @@ package org.jboss.galleon.plugin;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 
 /**
@@ -31,5 +32,5 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
  */
 public interface DiffPlugin extends ProvisioningPlugin {
 
-    void computeDiff(ProvisioningRuntime runtime, Path customizedInstallation, Path target) throws ProvisioningException;
+    ProvisioningDiffResult computeDiff(ProvisioningRuntime runtime, Path customizedInstallation, Path target) throws ProvisioningException;
 }

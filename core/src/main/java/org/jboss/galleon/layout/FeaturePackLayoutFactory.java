@@ -19,7 +19,6 @@ package org.jboss.galleon.layout;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 

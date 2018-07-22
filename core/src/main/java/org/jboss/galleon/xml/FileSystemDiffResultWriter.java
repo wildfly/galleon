@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.diff.FileSystemDiffResult;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
 import org.jboss.galleon.xml.FileSystemDiffResultParser.Element;
 import org.jboss.galleon.xml.util.AttributeValue;
 import org.jboss.galleon.xml.util.CDataNode;
@@ -35,7 +35,7 @@ import org.jboss.galleon.xml.util.TextNode;
  *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-public class FileSystemDiffResultWriter extends BaseXmlWriter<FileSystemDiffResult> {
+public class FileSystemDiffResultWriter extends BaseXmlWriter<ProvisioningDiffResult> {
 
     private static final FileSystemDiffResultWriter INSTANCE = new FileSystemDiffResultWriter();
 
@@ -44,7 +44,7 @@ public class FileSystemDiffResultWriter extends BaseXmlWriter<FileSystemDiffResu
     }
 
     @Override
-    protected ElementNode toElement(FileSystemDiffResult result) throws XMLStreamException {
+    protected ElementNode toElement(ProvisioningDiffResult result) throws XMLStreamException {
         ElementNode root = addElement(null, Element.DIFF_RESULT);
         if(result.getAddedFiles() != null && !result.getAddedFiles().isEmpty()) {
             ElementNode addedFilesNode = addElement(root, Element.ADDED);

@@ -63,7 +63,8 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
             session.getPmSession().enableMavenTrace(true);
         }
         try {
-            FeaturePackLocation loc = pmSession.getResolvedLocation(getId(pmSession));
+            final String id = getId(pmSession);
+            final FeaturePackLocation loc = id == null ? null : pmSession.getResolvedLocation(id);
             runCommand(session, options, loc);
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.resolveLocationFailed(), ex);

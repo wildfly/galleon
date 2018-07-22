@@ -56,7 +56,7 @@ public abstract class FileSystemMerge {
         return customizedInstallation.resolve(path);
     }
 
-    public abstract void executeUpdate(FileSystemDiffResult result) throws IOException;
+    public abstract void executeUpdate(ProvisioningDiffResult result) throws IOException;
 
     public abstract void patchFailure(Path path);
 

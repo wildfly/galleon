@@ -59,37 +59,10 @@ import org.jboss.galleon.util.IoUtils;
  *
  * @author Alexey Loubyansky
  */
-public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> implements AutoCloseable {
+public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoCloseable {
 
     public static final String STAGED = "staged";
     public static final String TMP = "tmp";
-
-    public interface FeaturePackLayout {
-
-        int DIRECT_DEP = 0;
-        int TRANSITIVE_DEP = 1;
-        int PATCH = 2;
-
-        FPID getFPID();
-
-        FeaturePackSpec getSpec();
-
-        Path getDir();
-
-        int getType();
-
-        default boolean isDirectDep() {
-            return getType() == DIRECT_DEP;
-        }
-
-        default boolean isTransitiveDep() {
-            return getType() == TRANSITIVE_DEP;
-        }
-
-        default boolean isPatch() {
-            return getType() == PATCH;
-        }
-    }
 
     public static class Handle implements Closeable {
         private final ProvisioningLayoutFactory layoutFactory;

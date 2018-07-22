@@ -53,16 +53,16 @@ public class FileSystemDiff {
         this.messageWriter = messageWriter;
     }
 
-    public FileSystemDiffResult diff() throws ProviderException {
-        return this.diff(PathFilter.DEFAULT);
+    public ProvisioningDiffResult diff() throws ProviderException {
+        return diff(PathFilter.DEFAULT);
     }
 
-    public FileSystemDiffResult diff(final PathFilter filter) throws ProviderException {
+    public ProvisioningDiffResult diff(final PathFilter filter) throws ProviderException {
         try {
             final Map<Path, String> stagged = listContents(stagedInstallation, filter);
             final Map<Path, String> custom = listContents(customizedInstallation, filter);
             Changes changes = listChanges(stagged, custom);
-            return new FileSystemDiffResult(
+            return new ProvisioningDiffResult(
                     listDeletedFiles(stagged, custom),
                     listAddedFiles(stagged, custom),
                     changes.modifiedBinaryFiles,

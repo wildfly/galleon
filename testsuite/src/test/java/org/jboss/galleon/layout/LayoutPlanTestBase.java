@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**

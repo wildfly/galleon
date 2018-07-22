@@ -33,7 +33,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeatureGroup;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.type.ParameterTypeProvider;
@@ -176,7 +176,7 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
         }
     }
 
-    FeaturePackRuntime build(ProvisioningRuntime runtime) throws ProvisioningException {
-        return new FeaturePackRuntime(this, runtime);
+    FeaturePackRuntime build() throws ProvisioningException {
+        return new FeaturePackRuntime(this);
     }
 }

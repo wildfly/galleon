@@ -28,7 +28,6 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.test.FeaturePackRepoTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation;

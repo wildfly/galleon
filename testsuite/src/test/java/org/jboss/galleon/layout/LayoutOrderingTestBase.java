@@ -17,7 +17,6 @@
 
 package org.jboss.galleon.layout;
 
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**

@@ -16,8 +16,6 @@
  */
 package org.jboss.galleon.runtime;
 
-import java.io.BufferedReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,17 +24,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.Constants;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
-import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
  *
@@ -45,7 +40,6 @@ import org.jboss.galleon.xml.FeatureSpecXmlParser;
 public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeaturePackLayout {
 
     private final FPID fpid;
-    private final ProvisioningRuntime runtime;
     private final FeaturePackSpec spec;
     private final Path dir;
     private final Map<String, PackageRuntime> packages;
@@ -54,8 +48,7 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
 
     private ArtifactCoords.Gav legacyGav;
 
-    FeaturePackRuntime(FeaturePackRuntimeBuilder builder, ProvisioningRuntime runtime) throws ProvisioningException {
-        this.runtime = runtime;
+    FeaturePackRuntime(FeaturePackRuntimeBuilder builder) throws ProvisioningException {
         this.fpid = builder.producer.getLocation().getFPID();
         this.spec = builder.spec;
         this.dir = builder.dir;
@@ -71,23 +64,19 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
         packages = Collections.unmodifiableMap(tmpPackages);
     }
 
-    public ProvisioningRuntime getProvisioningRuntime() {
-        return runtime;
-    }
-
     @Override
     public FeaturePackSpec getSpec() {
         return spec;
     }
 
     @Override
-    public Path getDir() {
-        throw new UnsupportedOperationException();
+    public int getType() {
+        return type;
     }
 
     @Override
-    public int getType() {
-        return type;
+    public Path getDir() {
+        return dir;
     }
 
     /**
@@ -144,43 +133,14 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
         return featureSpecs.values();
     }
 
-    public FeatureSpec getFeatureSpec(String name) throws ProvisioningDescriptionException {
+    public FeatureSpec getFeatureSpec(String name) throws ProvisioningException {
         if (featureSpecs.containsKey(name)) {
             return featureSpecs.get(name).xmlSpec;
         }
-        final Path specXml = dir.resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML);
-        if (Files.exists(specXml)) {
-            try (BufferedReader reader = Files.newBufferedReader(specXml)) {
-                return FeatureSpecXmlParser.getInstance().parse(reader);
-            } catch (Exception e) {
-                throw new ProvisioningDescriptionException(Errors.parseXml(specXml), e);
-            }
-        }
-        return null;
+        return loadFeatureSpec(name);
     }
 
     public ResolvedFeatureSpec getResolvedFeatureSpec(String name) throws ProvisioningDescriptionException {
         return featureSpecs.get(name);
-    }
-
-    /**
-     * Returns a resource path for a feature-pack.
-     *
-     * @param path  path to the resource relative to the feature-pack resources directory
-     * @return  file-system path for the resource
-     * @throws ProvisioningDescriptionException  in case the feature-pack was not found in the layout
-     */
-    public Path getResource(String... path) throws ProvisioningDescriptionException {
-        if(path.length == 0) {
-            throw new IllegalArgumentException("Resource path is null");
-        }
-        if(path.length == 1) {
-            return dir.resolve(Constants.RESOURCES).resolve(path[0]);
-        }
-        Path p = dir.resolve(Constants.RESOURCES);
-        for(String name : path) {
-            p = p.resolve(name);
-        }
-        return p;
     }
 }

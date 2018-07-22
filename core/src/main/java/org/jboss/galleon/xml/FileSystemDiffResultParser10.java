@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.diff.FileSystemDiffResult;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.galleon.xml.FileSystemDiffResultParser.Element;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
@@ -34,7 +34,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-public class FileSystemDiffResultParser10 implements PlugableXmlParser<FileSystemDiffResult> {
+public class FileSystemDiffResultParser10 implements PlugableXmlParser<ProvisioningDiffResult> {
 
     @Override
     public QName getRoot() {
@@ -42,7 +42,7 @@ public class FileSystemDiffResultParser10 implements PlugableXmlParser<FileSyste
     }
 
     @Override
-    public void readElement(XMLExtendedStreamReader reader, FileSystemDiffResult fileSystemDiffResult) throws XMLStreamException {
+    public void readElement(XMLExtendedStreamReader reader, ProvisioningDiffResult fileSystemDiffResult) throws XMLStreamException {
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
@@ -76,7 +76,7 @@ public class FileSystemDiffResultParser10 implements PlugableXmlParser<FileSyste
         throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 
-    private void readAddedFiles(XMLExtendedStreamReader reader, FileSystemDiffResult fileSystemDiffResult) throws XMLStreamException {
+    private void readAddedFiles(XMLExtendedStreamReader reader, ProvisioningDiffResult fileSystemDiffResult) throws XMLStreamException {
          ParsingUtils.parseNoAttributes(reader);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
@@ -101,7 +101,7 @@ public class FileSystemDiffResultParser10 implements PlugableXmlParser<FileSyste
         throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 
-    private void readDeletedFiles(XMLExtendedStreamReader reader, FileSystemDiffResult fileSystemDiffResult) throws XMLStreamException {
+    private void readDeletedFiles(XMLExtendedStreamReader reader, ProvisioningDiffResult fileSystemDiffResult) throws XMLStreamException {
          ParsingUtils.parseNoAttributes(reader);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
@@ -126,7 +126,7 @@ public class FileSystemDiffResultParser10 implements PlugableXmlParser<FileSyste
         throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 
-    private void readModifiedBinaryedFiles(XMLExtendedStreamReader reader, FileSystemDiffResult fileSystemDiffResult) throws XMLStreamException {
+    private void readModifiedBinaryedFiles(XMLExtendedStreamReader reader, ProvisioningDiffResult fileSystemDiffResult) throws XMLStreamException {
          ParsingUtils.parseNoAttributes(reader);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
@@ -151,7 +151,7 @@ public class FileSystemDiffResultParser10 implements PlugableXmlParser<FileSyste
         throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 
-    private void readChanges(XMLExtendedStreamReader reader, FileSystemDiffResult fileSystemDiffResult) throws XMLStreamException {
+    private void readChanges(XMLExtendedStreamReader reader, ProvisioningDiffResult fileSystemDiffResult) throws XMLStreamException {
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT:

@@ -104,9 +104,7 @@ public class ProvisionedFeatureBuilder implements ProvisionedFeature {
             }
             idBuilder = null;
         }
-        if(configParams.size() > 1) {
-            configParams = Collections.unmodifiableMap(configParams);
-        }
+        configParams = Collections.unmodifiableMap(configParams);
         return this;
     }
 
@@ -143,6 +141,10 @@ public class ProvisionedFeatureBuilder implements ProvisionedFeature {
     @Override
     public String getConfigParam(String name) throws ProvisioningException {
         return configParams.get(name);
+    }
+
+    public Map<String, String> getConfigParams() {
+        return configParams;
     }
 
     @Override
