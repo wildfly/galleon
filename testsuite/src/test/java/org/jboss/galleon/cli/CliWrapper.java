@@ -53,6 +53,7 @@ public class CliWrapper {
         runtime = CliMain.newRuntime(session, new PrintStream(out));
         session.getUniverse().disableBackgroundResolution();
         session.throwException();
+        session.enableTrackers(false);
         session.getPmConfiguration().getMavenConfig().setLocalRepository(mvnRepo.toPath());
     }
 

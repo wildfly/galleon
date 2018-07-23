@@ -31,14 +31,14 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
     @Override
     public CommandResult execute(PmCommandInvocation session) throws CommandException {
         try {
-            session.getPmSession().commandStart();
+            session.getPmSession().commandStart(session);
             runCommand(session);
             return CommandResult.SUCCESS;
         } catch (Throwable t) {
             handleException(session, t);
             return CommandResult.FAILURE;
         } finally {
-            session.getPmSession().commandEnd();
+            session.getPmSession().commandEnd(session);
         }
     }
 
