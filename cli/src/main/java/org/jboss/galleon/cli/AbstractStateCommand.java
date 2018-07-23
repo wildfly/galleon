@@ -77,7 +77,7 @@ public abstract class AbstractStateCommand extends PmSessionCommand implements C
         }
         ProvisioningConfig config = manager.getProvisioningConfig();
         try (ProvisioningRuntime runtime = manager.getRuntime(config, Collections.emptyMap())) {
-            container = FeatureContainers.fromProvisioningRuntime(session, manager, runtime);
+            container = FeatureContainers.fromProvisioningRuntime(session, runtime);
         }
         return container;
     }

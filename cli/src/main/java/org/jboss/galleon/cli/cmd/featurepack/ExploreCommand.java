@@ -58,8 +58,7 @@ public class ExploreCommand extends AbstractFeaturePackCommand {
                 name = loc.getProducerName() + FeaturePackLocation.CHANNEL_START
                         + loc.getChannelName() + FeaturePackLocation.BUILD_START + loc.getBuild();
             }
-            container = FeatureContainers.fromFeaturePackId(session,
-                    session.newProvisioningManager(null, false), loc.getFPID(), name);
+            container = FeatureContainers.fromFeaturePackId(session, loc.getFPID(), name);
 
             session.setExploredContainer(container);
             prompt = name + PathParser.PATH_SEPARATOR;
