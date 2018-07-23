@@ -46,6 +46,7 @@ import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.progresstracking.DefaultProgressTracker;
+import org.jboss.galleon.progresstracking.NoOpProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.Channel;
@@ -61,6 +62,8 @@ import org.jboss.galleon.util.IoUtils;
  * @author Alexey Loubyansky
  */
 public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> implements AutoCloseable {
+
+    private static ProgressTracker<FPID> NO_OP_TRACKER;
 
     public static final String STAGED = "staged";
     public static final String TMP = "tmp";
@@ -1038,10 +1041,10 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     }
 
     private ProgressTracker<FPID> getBuildTracker(boolean trackProgress) {
-        if(buildTracker == null) {
-            buildTracker = new DefaultProgressTracker<>(layoutFactory.getProgressCallback(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD));
+        if(!trackProgress) {
+            return NO_OP_TRACKER == null ? NO_OP_TRACKER = new DefaultProgressTracker<>(new NoOpProgressCallback<>()) : NO_OP_TRACKER;
         }
-        return buildTracker;
+        return buildTracker == null ? buildTracker = new DefaultProgressTracker<>(layoutFactory.getProgressCallback(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD)) : buildTracker;
     }
 /*
     private DefaultProgressTracker<ProducerSpec> getDefaultUpdatesTracker() {
