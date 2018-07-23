@@ -85,7 +85,11 @@ public class ProvisioningLayoutFactory implements Closeable {
     }
 
     public void setProgressCallback(String id, ProgressCallback<?> callback) {
-        progressCallbacks = CollectionUtils.put(progressCallbacks, id, callback);
+        if (callback == null) {
+            progressCallbacks = CollectionUtils.remove(progressCallbacks, id);
+        } else {
+            progressCallbacks = CollectionUtils.put(progressCallbacks, id, callback);
+        }
     }
 
     @SuppressWarnings("unchecked")

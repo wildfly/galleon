@@ -40,6 +40,7 @@ import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.ResourceResolver;
+import org.jboss.galleon.cli.tracking.ProgressTrackers;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -194,6 +195,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private final ProvisioningLayoutFactory layoutFactory;
     private AeshContext ctx;
     private boolean rethrow = false;
+    private boolean enableTrackers = true;
 
     public PmSession(Configuration config) throws Exception {
         this.config = config;
@@ -208,6 +210,18 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             close();
         }));
+    }
+
+    public void enableTrackers(boolean enable) {
+        enableTrackers = enable;
+    }
+
+    private void registerTrackers() {
+        ProgressTrackers.registerTrackers(this);
+    }
+
+    private void unregisterTrackers() {
+        ProgressTrackers.unregisterTrackers(this);
     }
 
     public void throwException() {
@@ -244,6 +258,9 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return ctx;
     }
 
+    // That is the method to call in order to build a ProvisioningManager.
+    // It has a side effect on progress tracking.
+    // Progress tracking is disabled when verbose is enabled.
     public ProvisioningManager newProvisioningManager(Path installation, boolean verbose) throws ProvisioningException {
         ProvisioningManager.Builder builder = ProvisioningManager.builder();
         builder.setLayoutFactory(getLayoutFactory());
@@ -252,6 +269,16 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         }
         builder.setMessageWriter(new DefaultMessageWriter(out,
                 err, verbose));
+
+        if (enableTrackers) {
+            // In verbose mode, do not mix verbose content with the output from progress tracker.
+            if (verbose) {
+                unregisterTrackers();
+            } else {
+                registerTrackers();
+            }
+        }
+
         return builder.build();
     }
 
@@ -281,12 +308,14 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     }
 
 
-    public void commandStart() {
+    public void commandStart(PmCommandInvocation session) {
         maven.commandStart();
+        ProgressTrackers.commandStart(session);
     }
 
-    public void commandEnd() {
+    public void commandEnd(PmCommandInvocation session) {
         maven.commandEnd();
+        ProgressTrackers.commandEnd(session);
     }
 
     public void setState(State session) {

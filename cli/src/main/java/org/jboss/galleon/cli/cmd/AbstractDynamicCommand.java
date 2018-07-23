@@ -223,6 +223,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     @Override
     public CommandResult execute(PmCommandInvocation session) throws CommandException {
         try {
+            session.getPmSession().commandStart(session);
             validateOptions(session);
             Map<String, String> options = getOptions();
             runCommand(session, options);
@@ -230,6 +231,8 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         } catch (Throwable t) {
             PmSessionCommand.handleException(session, t);
             return CommandResult.FAILURE;
+        } finally {
+            session.getPmSession().commandEnd(session);
         }
     }
 

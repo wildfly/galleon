@@ -44,7 +44,7 @@ public class StateNewCommand extends PmSessionCommand {
         }
         invoc.getPmSession().setState(session);
         invoc.setPrompt(PmSession.buildPrompt(invoc.getPmSession().getState().getPath()));
-        invoc.println("Entering provisioning composition mode. Use 'feature-pack add' command to add content. Call 'leave' to leave this mode.");
+        invoc.println("Entering provisioning composition mode. Use 'fp add' command to add content. Call 'leave' to leave this mode.");
     }
 
 }
