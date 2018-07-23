@@ -33,7 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -46,6 +45,8 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
+import org.jboss.galleon.progresstracking.DefaultProgressTracker;
+import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -324,13 +325,16 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
 
+    private DefaultProgressTracker<ProducerSpec> updatesTracker;
+    private ProgressTracker<FPID> buildTracker;
+
     ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean cleanupTransitive)
             throws ProvisioningException {
         this.layoutFactory = layoutFactory;
         this.fpFactory = fpFactory;
         this.config = config;
         this.handle = layoutFactory.createHandle();
-        build(cleanupTransitive);
+        build(cleanupTransitive, true);
     }
 
     <O extends FeaturePackLayout> ProvisioningLayout(ProvisioningLayout<O> other, FeaturePackLayoutFactory<F> fpFactory) throws ProvisioningException {
@@ -618,37 +622,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
      * @throws ProvisioningException in case of a failure
      */
     public ProvisioningPlan getUpdates(boolean includeTransitive) throws ProvisioningException {
-        return getUpdatesInternal(includeTransitive ? featurePacks.keySet() : new Iterable<ProducerSpec>() {
-            final Iterator<F> i = featurePacks.values().iterator();
-            private F next = toNext();
-            @Override
-            public Iterator<ProducerSpec> iterator() {
-                return new Iterator<ProducerSpec>() {
-                    @Override
-                    public boolean hasNext() {
-                        return next != null;
-                    }
-                    @Override
-                    public ProducerSpec next() {
-                        if(next == null) {
-                            throw new NoSuchElementException();
-                        }
-                        final ProducerSpec p = next.getFPID().getProducer();
-                        next = toNext();
-                        return p;
-                    }
-                };
-            }
-            private F toNext() {
-                while(i.hasNext()) {
-                    final F next = i.next();
-                    if(!next.isTransitiveDep()) {
-                        return next;
-                    }
-                }
-                return null;
-            }
-        });
+        return getUpdatesInternal(includeTransitive ? featurePacks.keySet() : config.getProducers());
     }
 
     /**
@@ -667,14 +641,19 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         return getUpdatesInternal(Arrays.asList(producers));
     }
 
-    private ProvisioningPlan getUpdatesInternal(Iterable<ProducerSpec> producers) throws ProvisioningException {
+    private ProvisioningPlan getUpdatesInternal(Collection<ProducerSpec> producers) throws ProvisioningException {
         final ProvisioningPlan plan = ProvisioningPlan.builder();
+        updatesTracker = getUpdatesTracker();
+        updatesTracker.starting(producers.size());
         for(ProducerSpec producer : producers) {
+            updatesTracker.processing(producer);
             final FeaturePackUpdatePlan fpPlan = getFeaturePackUpdate(producer);
             if(!fpPlan.isEmpty()) {
                 plan.update(fpPlan);
             }
+            updatesTracker.processed(producer);
         }
+        updatesTracker.complete();
         return plan;
     }
 
@@ -788,26 +767,29 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     }
 
     private void rebuild(ProvisioningConfig config, boolean cleanupTransitive) throws ProvisioningException {
+        final boolean trackProgress = featurePacks.isEmpty();
         featurePacks.clear();
         ordered.clear();
         allPatches = Collections.emptyMap();
         fpPatches = Collections.emptyMap();
         this.config = config;
         handle.cleanup();
-        build(cleanupTransitive);
+        build(cleanupTransitive, trackProgress);
     }
 
-    private void build(boolean cleanupTransitive) throws ProvisioningException {
+    private void build(boolean cleanupTransitive, boolean trackProgress) throws ProvisioningException {
         try {
-            doBuild(cleanupTransitive);
+            doBuild(cleanupTransitive, trackProgress);
         } catch (ProvisioningException | RuntimeException | Error e) {
             handle.close();
             throw e;
         }
     }
 
-    private void doBuild(boolean cleanupTransitive) throws ProvisioningException {
+    private void doBuild(boolean cleanupTransitive, boolean trackProgress) throws ProvisioningException {
 
+        buildTracker = getBuildTracker(trackProgress);
+        buildTracker.starting(-1);
         final Map<ProducerSpec, FPID> depBranch = new HashMap<>();
         layout(config, depBranch, FeaturePackLayout.DIRECT_DEP);
         if (!conflicts.isEmpty()) {
@@ -908,6 +890,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                 }
             }
         }
+        buildTracker.complete();
     }
 
     private void patchDir(final Path fpDir, final Path patchDir) throws ProvisioningException {
@@ -963,7 +946,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                     resolvedVersions.put(fpl.getProducer(), fpl);
                 }
             } else if(!branchId.getBuild().equals(fpl.getBuild())) {
-                fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), fpl.getFrequency(), branchId.getBuild());
+                fpl = fpl.replaceBuild(branchId.getBuild());
             }
 
             F fp = featurePacks.get(fpl.getProducer());
@@ -982,7 +965,9 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
                 continue;
             }
 
+            buildTracker.processing(fpl.getFPID());
             fp = layoutFactory.resolveFeaturePack(fpl, type, fpFactory);
+            buildTracker.processed(fpl.getFPID());
             featurePacks.put(fpl.getProducer(), fp);
 
             queue.add(fp);
@@ -1045,6 +1030,80 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         }
     }
 
+    private DefaultProgressTracker<ProducerSpec> getUpdatesTracker() {
+        if(updatesTracker == null) {
+            updatesTracker = new DefaultProgressTracker<>(layoutFactory.getProgressCallback(ProvisioningLayoutFactory.TRACK_UPDATES));
+        }
+        return updatesTracker;
+    }
+
+    private ProgressTracker<FPID> getBuildTracker(boolean trackProgress) {
+        if(buildTracker == null) {
+            buildTracker = new DefaultProgressTracker<>(layoutFactory.getProgressCallback(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD));
+        }
+        return buildTracker;
+    }
+/*
+    private DefaultProgressTracker<ProducerSpec> getDefaultUpdatesTracker() {
+        return new DefaultProgressTracker<>(new RecapOnPulseProgressCallback<ProducerSpec>() {
+
+            @Override
+            public long getProgressPulsePct() {
+                return 0;
+            }
+
+            @Override
+            public long getMinPulseIntervalMs() {
+                return 0;
+            }
+
+            @Override
+            protected void doStart(ProgressTracker<ProducerSpec> tracker) {
+                System.out.println("Looking for updates");
+            }
+
+            @Override
+            protected void recap(ProgressTracker<ProducerSpec> tracker, int index, ProducerSpec producer) {
+                System.out.println("  (" + index + "/" + tracker.getTotalVolume() + ") " + producer);
+            }
+
+            @Override
+            protected void doComplete(ProgressTracker<ProducerSpec> tracker) {
+                System.out.println("  Complete!");
+            }
+        });
+    }
+
+    private DefaultProgressTracker<FPID> getDefaultBuildTracker() {
+        return new DefaultProgressTracker<>(new RecapOnPulseProgressCallback<FPID>() {
+
+            @Override
+            public long getProgressPulsePct() {
+                return 0;
+            }
+
+            @Override
+            public long getMinPulseIntervalMs() {
+                return 1000;
+            }
+
+            @Override
+            protected void doStart(ProgressTracker<FPID> tracker) {
+                System.out.println("Resolving feature-packs");
+            }
+
+            @Override
+            protected void recap(ProgressTracker<FPID> tracker, int index, FPID item) {
+                System.out.println("  " + index + ") " + item);
+            }
+
+            @Override
+            protected void doComplete(ProgressTracker<FPID> tracker) {
+                System.out.println("  Complete!");
+            }
+        });
+    }
+*/
     @Override
     public void close() {
         handle.close();

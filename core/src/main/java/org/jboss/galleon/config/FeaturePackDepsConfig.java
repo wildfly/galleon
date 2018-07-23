@@ -19,6 +19,8 @@ package org.jboss.galleon.config;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -98,6 +100,10 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
 
     public boolean hasFeaturePackDep(ProducerSpec producer) {
         return fpDeps.containsKey(producer);
+    }
+
+    public Set<ProducerSpec> getProducers() {
+        return fpDeps.keySet();
     }
 
     public FeaturePackConfig getFeaturePackDep(ProducerSpec producer) {

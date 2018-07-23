@@ -217,4 +217,9 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
         }
         return buf.append(']').toString();
     }
+
+    @Override
+    public int size() {
+        return features.size();
+    }
 }

@@ -138,4 +138,9 @@ public class ResolvedConfig implements ProvisionedConfig {
         }
         handler.done();
     }
+
+    @Override
+    public int size() {
+        return features.size();
+    }
 }
