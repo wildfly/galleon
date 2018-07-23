@@ -22,7 +22,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,8 +34,10 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.progresstracking.DefaultProgressTracker;
 import org.jboss.galleon.progresstracking.NoOpProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressCallback;
+import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -44,7 +46,6 @@ import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.ZipUtils;
@@ -55,6 +56,8 @@ import org.jboss.galleon.xml.FeaturePackXmlParser;
  * @author Alexey Loubyansky
  */
 public class ProvisioningLayoutFactory implements Closeable {
+
+    private static ProgressTracker<?> NO_OP_PROGRESS_TRACKER;
 
     public static final String TRACK_LAYOUT_BUILD = "LAYOUT_BUILD";
     public static final String TRACK_UPDATES = "UPDATES";
@@ -73,11 +76,18 @@ public class ProvisioningLayoutFactory implements Closeable {
         return new ProvisioningLayoutFactory(home, universeResolver);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> ProgressTracker<T> getNoOpProgressTracker() {
+        return (ProgressTracker<T>) (NO_OP_PROGRESS_TRACKER == null ?
+                NO_OP_PROGRESS_TRACKER = new DefaultProgressTracker<>(new NoOpProgressCallback<>()) :
+                    NO_OP_PROGRESS_TRACKER);
+    }
+
     private final Path home;
     private final UniverseResolver universeResolver;
     private AtomicInteger openHandles = new AtomicInteger();
     private Map<String, UniverseFeaturePackInstaller> universeInstallers;
-    private Map<String, ProgressCallback<?>> progressCallbacks = Collections.emptyMap();
+    private Map<String, ProgressTracker<?>> progressTrackers = new HashMap<>();
 
     private ProvisioningLayoutFactory(Path home, UniverseResolver universeResolver) {
         this.home = home;
@@ -86,20 +96,28 @@ public class ProvisioningLayoutFactory implements Closeable {
 
     public void setProgressCallback(String id, ProgressCallback<?> callback) {
         if (callback == null) {
-            progressCallbacks = CollectionUtils.remove(progressCallbacks, id);
+            progressTrackers.remove(id);
         } else {
-            progressCallbacks = CollectionUtils.put(progressCallbacks, id, callback);
+            progressTrackers.put(id, new DefaultProgressTracker<>(callback));
+        }
+    }
+
+    public void setProgressTracker(String id, ProgressTracker<?> tracker) {
+        if (tracker == null) {
+            progressTrackers.remove(id);
+        } else {
+            progressTrackers.put(id, tracker);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <T> ProgressCallback<T> getProgressCallback(String id) {
-        final ProgressCallback<?> callback = progressCallbacks.get(id);
-        return callback == null ? new NoOpProgressCallback<>() : (ProgressCallback<T>) callback;
+    public <T> ProgressTracker<T> getProgressTracker(String id) {
+        final ProgressTracker<?> callback = progressTrackers.get(id);
+        return callback == null ? getNoOpProgressTracker() : (ProgressTracker<T>) callback;
     }
 
     public boolean hasProgressCallback(String id) {
-        return progressCallbacks.containsKey(id);
+        return progressTrackers.containsKey(id);
     }
 
     public UniverseResolver getUniverseResolver() {

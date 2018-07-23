@@ -45,8 +45,6 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
-import org.jboss.galleon.progresstracking.DefaultProgressTracker;
-import org.jboss.galleon.progresstracking.NoOpProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.Channel;
@@ -62,8 +60,6 @@ import org.jboss.galleon.util.IoUtils;
  * @author Alexey Loubyansky
  */
 public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> implements AutoCloseable {
-
-    private static ProgressTracker<FPID> NO_OP_TRACKER;
 
     public static final String STAGED = "staged";
     public static final String TMP = "tmp";
@@ -328,7 +324,7 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
 
-    private DefaultProgressTracker<ProducerSpec> updatesTracker;
+    private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
 
     ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean cleanupTransitive)
@@ -1033,80 +1029,21 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         }
     }
 
-    private DefaultProgressTracker<ProducerSpec> getUpdatesTracker() {
-        if(updatesTracker == null) {
-            updatesTracker = new DefaultProgressTracker<>(layoutFactory.getProgressCallback(ProvisioningLayoutFactory.TRACK_UPDATES));
-        }
-        return updatesTracker;
+    private ProgressTracker<ProducerSpec> getUpdatesTracker() {
+        return updatesTracker == null
+                ? updatesTracker = layoutFactory.getProgressTracker(ProvisioningLayoutFactory.TRACK_UPDATES)
+                : updatesTracker;
     }
 
     private ProgressTracker<FPID> getBuildTracker(boolean trackProgress) {
         if(!trackProgress) {
-            return NO_OP_TRACKER == null ? NO_OP_TRACKER = new DefaultProgressTracker<>(new NoOpProgressCallback<>()) : NO_OP_TRACKER;
+            return ProvisioningLayoutFactory.getNoOpProgressTracker();
         }
-        return buildTracker == null ? buildTracker = new DefaultProgressTracker<>(layoutFactory.getProgressCallback(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD)) : buildTracker;
-    }
-/*
-    private DefaultProgressTracker<ProducerSpec> getDefaultUpdatesTracker() {
-        return new DefaultProgressTracker<>(new RecapOnPulseProgressCallback<ProducerSpec>() {
-
-            @Override
-            public long getProgressPulsePct() {
-                return 0;
-            }
-
-            @Override
-            public long getMinPulseIntervalMs() {
-                return 0;
-            }
-
-            @Override
-            protected void doStart(ProgressTracker<ProducerSpec> tracker) {
-                System.out.println("Looking for updates");
-            }
-
-            @Override
-            protected void recap(ProgressTracker<ProducerSpec> tracker, int index, ProducerSpec producer) {
-                System.out.println("  (" + index + "/" + tracker.getTotalVolume() + ") " + producer);
-            }
-
-            @Override
-            protected void doComplete(ProgressTracker<ProducerSpec> tracker) {
-                System.out.println("  Complete!");
-            }
-        });
+        return buildTracker == null
+                ? buildTracker = layoutFactory.getProgressTracker(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD)
+                : buildTracker;
     }
 
-    private DefaultProgressTracker<FPID> getDefaultBuildTracker() {
-        return new DefaultProgressTracker<>(new RecapOnPulseProgressCallback<FPID>() {
-
-            @Override
-            public long getProgressPulsePct() {
-                return 0;
-            }
-
-            @Override
-            public long getMinPulseIntervalMs() {
-                return 1000;
-            }
-
-            @Override
-            protected void doStart(ProgressTracker<FPID> tracker) {
-                System.out.println("Resolving feature-packs");
-            }
-
-            @Override
-            protected void recap(ProgressTracker<FPID> tracker, int index, FPID item) {
-                System.out.println("  " + index + ") " + item);
-            }
-
-            @Override
-            protected void doComplete(ProgressTracker<FPID> tracker) {
-                System.out.println("  Complete!");
-            }
-        });
-    }
-*/
     @Override
     public void close() {
         handle.close();
