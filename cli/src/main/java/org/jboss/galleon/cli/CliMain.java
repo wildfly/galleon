@@ -39,7 +39,6 @@ import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
 import org.jboss.galleon.cli.cmd.plugin.InstallCommand;
 import org.jboss.galleon.cli.cmd.state.StateCommand;
 import org.jboss.galleon.cli.cmd.state.SearchCommand;
-import org.jboss.galleon.cli.cmd.state.UndoCommand;
 import org.jboss.galleon.cli.cmd.state.feature.FeatureCommand;
 
 /**
@@ -125,7 +124,6 @@ public class CliMain {
                 .command(PmRm.class)
                 .command(PwdCommand.class)
                 .command(SearchCommand.class)
-                .command(UndoCommand.class)
                 .command(UniverseCommand.class);
 
         StateCommand.addActionCommands(builder);

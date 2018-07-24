@@ -38,6 +38,10 @@ public interface CliErrors {
         return failed("Check for updates");
     }
 
+    static String clearHistoryFailed() {
+        return failed("Clear history");
+    }
+
     static String diffFailed() {
         return failed("Diff");
     }
@@ -68,6 +72,14 @@ public interface CliErrors {
 
     static String fetchFeaturePackFailed() {
         return failed("Fetch feature-pack");
+    }
+
+    static String getHistoryLimitFailed() {
+        return failed("Get history limit");
+    }
+
+    static String invalidHistoryLimit(String limit) {
+        return "Invalid history limit " + limit;
     }
 
     static String invalidUniverse() {
@@ -148,6 +160,10 @@ public interface CliErrors {
 
     static String searchFailed() {
         return failed("Search");
+    }
+
+    static String setHistoryLimitFailed() {
+        return failed("Set history limit");
     }
 
     static String setLocalRepositoryFailed() {

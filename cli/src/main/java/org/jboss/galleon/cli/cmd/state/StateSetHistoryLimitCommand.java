@@ -16,28 +16,39 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
-import java.io.IOException;
 import org.aesh.command.CommandDefinition;
+import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
-import org.jboss.galleon.cli.model.state.State;
 
-@CommandDefinition(name = "undo", description = "Undo the last action", activator = UndoCommandActivator.class)
-public class UndoCommand extends PmSessionCommand {
+/**
+ *
+ * @author jdenise@redhat.com
+ */
+@CommandDefinition(name = "set-history-limit", description = "Set the history limit.", activator = NoStateCommandActivator.class)
+public class StateSetHistoryLimitCommand extends org.jboss.galleon.cli.AbstractStateCommand {
+    // We can't rely on Integer injection due to AESH-479.
+    @Argument(required = true)
+    private String size;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        if (invoc.getPmSession().getState() == null) {
-            throw new CommandExecutionException("No Provisioning session");
-        }
-        State session = invoc.getPmSession().getState();
         try {
-            session.pop(invoc.getPmSession());
-        } catch (ProvisioningException | IOException ex) {
-            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.undoFailed(), ex);
+            int s;
+            try {
+                s = Integer.parseInt(size);
+            } catch (NumberFormatException ex) {
+                throw new CommandExecutionException(CliErrors.invalidHistoryLimit(size));
+            }
+            ProvisioningManager mgr = invoc.getPmSession().
+                    newProvisioningManager(getInstallationDirectory(invoc.getAeshContext()), false);
+            mgr.setStateHistoryLimit(s);
+        } catch (ProvisioningException ex) {
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.setHistoryLimitFailed(), ex);
         }
     }
+
 }

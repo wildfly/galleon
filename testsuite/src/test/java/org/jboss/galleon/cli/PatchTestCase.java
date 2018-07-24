@@ -50,7 +50,7 @@ public class PatchTestCase {
 
     @AfterClass
     public static void tearDown() {
-        //cli.close();
+        cli.close();
     }
 
     @Test

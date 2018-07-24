@@ -1,7 +1,7 @@
 ## Galleon CLI tool
 This command line tool (_bin/galleon.[sh|bat]_) allows you to provision/manage any products/installations that comply with galleon feature-packs.
 Although being a generic tool, a builtin support is offered for products available from maven jboss community universe (eg: wildfly). +
-Possible actions that you can operate from the tool: install, uninstall, check for updates, patch, upgrade.
+Possible actions that you can operate from the tool: install, uninstall, check for updates, patch, upgrade, undo last provisioning command.
 
 ### Feature-pack
 A key concept in galleon system is the notion of feature-pack. A feature-pack is a content container. It can be a full product (eg: wildfly) 
@@ -80,6 +80,12 @@ _uninstall [FPID] [--dir=<installation dir>]_
 
 This will remove the content installed by the feature-pack identified by the FPID.
 
+### Un-doing the last provisioning command
+
+_state undo [--dir=<installation dir>] [--verbose]_
+
+This will revert the installation to the previous installed state.
+
 ### Patching an installation
 
 Use the _install_ command to patch an existing installation.
@@ -118,6 +124,18 @@ _[my-dir]$ state export <new generated xml file> --dir=<installation>_
 ###  Provisioning an installation from xml
 
 _[my-dir]$ state provision <xml file> --dir=<target installation directory>_
+
+### Managing the history of an installation
+
+By default the history keeps the state of the last 100 provisioning operations. This should be enough to cover 
+simple undo of provisioned state. Nevertheless you can increase/decrease this
+value by using the following command:
+_state set-history-limit <history size limit> [--dir=<installation dir>]_
+
+To retrieve the history size limit do:
+
+_state get-history-limit [--dir=<installation dir>]_ +
+
 
 ### Exploring an installation or a feature-pack.
 
@@ -175,7 +193,7 @@ The filesystem is similar to explore, with the addition of dependencies that con
 
 NB: Each action as the effect to build a runtime with the current state. The filesystem reflects the current state.
 
-NB: Each action applied to a state in edition can be undone: _undo_. Use _state leave_ to exit the composition mode.
+NB: Each action applied to a state in edition can be undone: _state undo_. Use _state leave_ to exit the composition mode.
 
 NB: The set of exposed commands by completer is dynamic and is adjusted according to the current state.
 
