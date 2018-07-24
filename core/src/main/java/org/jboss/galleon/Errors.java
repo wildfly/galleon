@@ -99,6 +99,10 @@ public interface Errors {
         return "Failed to write to " + p.toAbsolutePath();
     }
 
+    static String deleteFile(Path p) {
+        return "Failed to delete " + p.toAbsolutePath();
+    }
+
     static String hashCalculation(Path path) {
         return "Hash calculation failed for " + path;
     }

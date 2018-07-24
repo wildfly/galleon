@@ -20,6 +20,7 @@ package org.jboss.galleon.util;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -275,5 +276,38 @@ public class StateHistoryUtils {
             throw new ProvisioningException(Errors.readFile(installedHistoryList), e);
         }
         return STATE_HISTORY_LIMIT;
+    }
+
+    public static void clearStateHistory(Path installDir, MessageWriter log) throws ProvisioningException {
+        final Path installedHistoryDir = PathsUtils.getStateHistoryDir(installDir);
+        if (!Files.exists(installedHistoryDir)) {
+            return;
+        }
+        int limit = readStateHistoryLimit(installDir, log);
+        final Path installedHistoryList = installedHistoryDir.resolve(Constants.HISTORY_LIST);
+        try (BufferedWriter writer = Files.newBufferedWriter(installedHistoryList)) {
+            writer.write(String.valueOf(limit));
+            writer.newLine();
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.writeFile(installedHistoryList), e);
+        }
+        deleteHistoryFiles(installedHistoryDir);
+    }
+
+    private static void deleteHistoryFiles(Path installedHistoryDir) throws ProvisioningException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(installedHistoryDir)) {
+            for (Path entry : stream) {
+                if (!Files.isDirectory(entry) && !entry.getFileName().toString().
+                        equals(Constants.HISTORY_LIST)) {
+                    try {
+                        Files.delete(entry);
+                    } catch (IOException ex) {
+                        throw new ProvisioningException(Errors.deleteFile(entry), ex);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            throw new ProvisioningException(Errors.readDirectory(installedHistoryDir), ex);
+        }
     }
 }

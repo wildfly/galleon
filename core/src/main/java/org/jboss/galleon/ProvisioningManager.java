@@ -509,6 +509,15 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     /**
+     * Clears the state history.
+     *
+     * @throws ProvisioningException in case of a failure
+     */
+    public void clearStateHistory() throws ProvisioningException {
+        StateHistoryUtils.clearStateHistory(home, log);
+    }
+
+    /**
      * Goes back to the previous provisioning state recorded in the provisioning state history.
      * If the history is empty, the method throws an exception.
      *
