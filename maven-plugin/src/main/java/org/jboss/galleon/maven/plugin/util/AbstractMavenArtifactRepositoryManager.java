@@ -85,7 +85,7 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         final ArtifactResult result;
         try {
             result = repoSystem.resolveArtifact(getSession(), request);
-        } catch (org.eclipse.aether.resolution.ArtifactResolutionException e) {
+        } catch (Exception e) {
             throw new MavenUniverseException(FpMavenErrors.artifactResolution(coords), e);
         }
         if (!result.isResolved()) {
