@@ -70,6 +70,9 @@ public class InfoCommand extends AbstractFeaturePackCommand {
         if (fpl != null && file != null) {
             throw new CommandExecutionException("File and location can't be both set");
         }
+        if (fpl == null && file == null) {
+            throw new CommandExecutionException("File or location must be set");
+        }
         PmSession session = commandInvocation.getPmSession();
         FeaturePackLayout product = null;
         List<FeaturePackLocation> dependencies = new ArrayList<>();
