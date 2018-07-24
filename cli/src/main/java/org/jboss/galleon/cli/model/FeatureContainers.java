@@ -18,7 +18,6 @@ package org.jboss.galleon.cli.model;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +26,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -37,6 +35,7 @@ import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.PackageRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
@@ -50,7 +49,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
  */
 public abstract class FeatureContainers {
 
-    public static FeatureContainer fromFeaturePackId(PmSession session, ProvisioningManager manager, FPID fpid,
+    public static FeatureContainer fromFeaturePackId(PmSession session, FPID fpid,
             String name) throws ProvisioningException, IOException {
         if (fpid.getBuild() == null) {
             FeaturePackLocation loc = session.getUniverse().resolveLatestBuild(fpid.getLocation());
@@ -61,7 +60,7 @@ public abstract class FeatureContainers {
             return fp;
         }
         fp = new FeaturePackInfo(name, fpid);
-        try (ProvisioningRuntime rt = buildFullRuntime(fpid, manager)) {
+        try (ProvisioningRuntime rt = buildFullRuntime(fpid, session)) {
             populateFeatureContainer(fp, session, rt, true);
             Caches.addFeaturePackInfo(fpid, fp);
         }
@@ -69,7 +68,7 @@ public abstract class FeatureContainers {
     }
 
     public static FeatureContainer fromProvisioningRuntime(PmSession session,
-            ProvisioningManager manager, ProvisioningRuntime runtime) throws ProvisioningException, IOException {
+            ProvisioningRuntime runtime) throws ProvisioningException, IOException {
         ProvisioningInfo info = new ProvisioningInfo();
         populateFeatureContainer(info, session, runtime, false);
         return info;
@@ -222,10 +221,12 @@ public abstract class FeatureContainers {
         fp.setAllFeatures(features);
     }
 
-    private static ProvisioningRuntime buildFullRuntime(FPID fpid, ProvisioningManager manager) throws ProvisioningException {
+    private static ProvisioningRuntime buildFullRuntime(FPID fpid, PmSession pmSession) throws ProvisioningException {
         FeaturePackConfig config = FeaturePackConfig.forLocation(fpid.getLocation());
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
-        ProvisioningRuntime runtime = manager.getRuntime(provisioning, Collections.emptyMap());
+        ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
+                .initLayout(pmSession.getLayoutFactory(), provisioning)
+                .build();
         return runtime;
     }
 }

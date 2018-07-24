@@ -34,6 +34,7 @@ import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
 import org.jboss.galleon.DefaultMessageWriter;
+import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.config.Configuration;
@@ -267,9 +268,11 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         if (installation != null) {
             builder.setInstallationHome(installation);
         }
-        builder.setMessageWriter(new DefaultMessageWriter(out,
-                err, verbose));
+        builder.setMessageWriter(getMessageWriter(verbose));
+        return builder.build();
+    }
 
+    public MessageWriter getMessageWriter(boolean verbose) {
         if (enableTrackers) {
             // In verbose mode, do not mix verbose content with the output from progress tracker.
             if (verbose) {
@@ -278,8 +281,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
                 registerTrackers();
             }
         }
-
-        return builder.build();
+        return new DefaultMessageWriter(out, err, verbose);
     }
 
     public ProvisioningLayoutFactory getLayoutFactory() {

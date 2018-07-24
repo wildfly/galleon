@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,8 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -44,6 +43,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
@@ -72,9 +72,7 @@ public class State {
     private ProvisioningRuntime runtime;
 
     public State(PmSession pmSession) throws ProvisioningException, IOException {
-        builder = ProvisioningConfig.builder();
-        ProvisioningManager manager = pmSession.newProvisioningManager(null, false);
-        init(pmSession, manager);
+        init(pmSession);
     }
 
     public void close() {
@@ -82,26 +80,19 @@ public class State {
     }
 
     public State(PmSession pmSession, Path installation) throws ProvisioningException, IOException {
-        ProvisioningManager manager;
         ProvisioningConfig conf;
         if (Files.isRegularFile(installation)) {
-            manager = pmSession.newProvisioningManager(null, false);
             conf = ProvisioningXmlParser.parse(installation);
-            builder = conf.getBuilder();
         } else {
-            manager = pmSession.newProvisioningManager(installation, false);
-            if (manager.getProvisionedState() == null) {
-                throw new ProvisioningException(installation + " is not an installation dir");
-            }
-            conf = manager.getProvisioningConfig();
-            builder = conf.getBuilder();
+            PathsUtils.assertInstallationDir(installation);
+            conf = ProvisioningXmlParser.parse(PathsUtils.getProvisioningXml(installation));
         }
 
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackConfig cf : conf.getFeaturePackDeps()) {
             dependencies.add(cf.getLocation().getFPID());
         }
-        init(pmSession, manager);
+        init(pmSession);
         Map<String, FeatureContainer> fullDependencies = new HashMap<>();
         buildDependencies(pmSession, dependencies, fullDependencies);
         container.setFullDependencies(fullDependencies);
@@ -111,10 +102,13 @@ public class State {
         return runtime;
     }
 
-    private void init(PmSession pmSession, ProvisioningManager manager) throws ProvisioningException, IOException {
+    private void init(PmSession pmSession) throws ProvisioningException, IOException {
+        builder = ProvisioningConfig.builder();
         config = builder.build();
-        runtime = manager.getRuntime(config, Collections.emptyMap());
-        container = FeatureContainers.fromProvisioningRuntime(pmSession, manager, runtime);
+        runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
+                .initLayout(pmSession.getLayoutFactory(), config)
+                .build();
+        container = FeatureContainers.fromProvisioningRuntime(pmSession, runtime);
         container.setEdit(true);
         path = "" + PathParser.PATH_SEPARATOR;
     }
@@ -263,14 +257,15 @@ public class State {
 
     private ProvisioningConfig buildNewConfig(PmSession pmSession) throws ProvisioningException, IOException {
         ProvisioningConfig tmp = builder.build();
-        ProvisioningManager manager = pmSession.newProvisioningManager(null, false);
         runtime.close();
-        runtime = manager.getRuntime(tmp, Collections.emptyMap());
+        runtime = ProvisioningRuntimeBuilder.newInstance(runtime.getMessageWriter())
+                .initLayout(pmSession.getLayoutFactory(), tmp)
+                .build();
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
             dependencies.add(rt.getFPID());
         }
-        FeatureContainer tmpContainer = FeatureContainers.fromProvisioningRuntime(pmSession, manager, runtime);
+        FeatureContainer tmpContainer = FeatureContainers.fromProvisioningRuntime(pmSession, runtime);
         // Need to have in sync the current with the full.
         // If fullConainer creation is a failure, the container will be not updated.
         Map<String, FeatureContainer> tmpDeps = new HashMap<>();
@@ -283,12 +278,11 @@ public class State {
     }
 
     private void buildDependencies(PmSession session, Set<FeaturePackLocation.FPID> dependencies, Map<String, FeatureContainer> deps) throws ProvisioningException, IOException {
-        ProvisioningManager manager = session.newProvisioningManager(null, false);
         for (FeaturePackLocation.FPID fpid : dependencies) {
             String orig = Identity.buildOrigin(fpid.getProducer());
             if (!deps.containsKey(orig)) {
                 // Need to add individual featurepack.
-                deps.put(orig, FeatureContainers.fromFeaturePackId(session, manager, fpid, null));
+                deps.put(orig, FeatureContainers.fromFeaturePackId(session, fpid, null));
             }
         }
         // Remove feature-packs that would have been removed.

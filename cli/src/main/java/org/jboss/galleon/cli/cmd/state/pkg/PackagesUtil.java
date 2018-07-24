@@ -41,7 +41,7 @@ public class PackagesUtil {
     public static String getPackage(PmSession session, FeaturePackLocation.FPID fpid, String pkg) throws PathParserException, PathConsumerException, ProvisioningException, Exception {
         String path = FeatureContainerPathConsumer.PACKAGES_PATH
                 + pkg + (pkg.endsWith("" + PathParser.PATH_SEPARATOR) ? "" : PathParser.PATH_SEPARATOR);
-        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, session.newProvisioningManager(null, false), fpid, null);
+        FeatureContainer full = FeatureContainers.fromFeaturePackId(session, fpid, null);
 
         FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(full, false);
         PathParser.parse(path, consumer);
