@@ -40,7 +40,7 @@ import org.jboss.galleon.xml.ProvisioningXmlParser;
  */
 public class StateHistoryUtils {
 
-    public static final int STATE_HISTORY_LIMIT = 5;
+    public static final int STATE_HISTORY_LIMIT = 100;
 
     public static void addNewUndoConfig(Path installDir, Path stagedDir, MessageWriter log) throws ProvisioningException {
         final Path installedConfig = PathsUtils.getProvisioningXml(installDir);
