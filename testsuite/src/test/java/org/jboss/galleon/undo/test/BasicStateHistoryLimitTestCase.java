@@ -110,17 +110,21 @@ public class BasicStateHistoryLimitTestCase extends SingleUniverseTestBase {
                 .addFeaturePackDep(fp202)
                 .build());
         assertEquals(StateHistoryUtils.STATE_HISTORY_LIMIT, pm.getStateHistoryLimit());
-        for (int i = 0; i < StateHistoryUtils.STATE_HISTORY_LIMIT; i++) {
-            pm.install(fp101);
-        }
-        assertEquals(StateHistoryUtils.STATE_HISTORY_LIMIT, pm.getStateHistoryLimit());
-        for (int i = 0; i < StateHistoryUtils.STATE_HISTORY_LIMIT - 1; i++) {
-            pm.undo();
-        }
-        assertEquals(StateHistoryUtils.STATE_HISTORY_LIMIT, pm.getStateHistoryLimit());
+        pm.setStateHistoryLimit(5);
+        pm.install(fp101);
+        pm.install(fp201);
+        pm.install(fp202);
+        pm.install(fp102);
+        pm.install(fp100);
+        assertEquals(5, pm.getStateHistoryLimit());
+        pm.undo();
+        pm.undo();
+        pm.undo();
+        pm.undo();
+        assertEquals(5, pm.getStateHistoryLimit());
         pm.undo();
 
-        assertEquals(StateHistoryUtils.STATE_HISTORY_LIMIT, pm.getStateHistoryLimit());
+        assertEquals(5, pm.getStateHistoryLimit());
         assertFalse(pm.isUndoAvailable());
     }
 
