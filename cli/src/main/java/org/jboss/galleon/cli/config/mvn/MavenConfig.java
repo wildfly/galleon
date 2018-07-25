@@ -32,6 +32,7 @@ import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ProvisioningException;
+import static org.jboss.galleon.cli.CliMavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
 import org.jboss.galleon.util.PropertyUtils;
 import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
 
@@ -44,8 +45,8 @@ public class MavenConfig {
     private static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
     static {
         DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("jboss-public-repository-group",
-                "default", "http://repository.jboss.org/nexus/content/groups/public/"));
-        DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("maven-central", "default",
+                DEFAULT_REPOSITORY_TYPE, "http://repository.jboss.org/nexus/content/groups/public/"));
+        DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("maven-central", DEFAULT_REPOSITORY_TYPE,
                 "http://repo1.maven.org/maven2/"));
     }
     public interface MavenChangeListener {

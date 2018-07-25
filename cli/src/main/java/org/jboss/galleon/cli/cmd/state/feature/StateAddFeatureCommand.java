@@ -61,7 +61,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
         private final FeatureContainer container;
 
         AllFeaturesContainer(FeatureContainer container) {
-            super(null, null);
+            super(null, null, container.getProvisioningConfig());
             this.container = container;
         }
 

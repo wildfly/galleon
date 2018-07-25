@@ -49,7 +49,7 @@ public abstract class AbstractDefaultConfigCommand extends AbstractFPProvisioned
         private final FeatureContainer container;
 
         AllConfigsContainer(FeatureContainer container) {
-            super(null, null);
+            super(null, null, container.getProvisioningConfig());
             this.container = container;
         }
 

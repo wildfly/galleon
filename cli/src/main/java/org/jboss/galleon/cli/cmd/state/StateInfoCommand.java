@@ -27,9 +27,10 @@ import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
 import org.jboss.galleon.cli.model.FeatureContainer;
-import org.jboss.galleon.cli.model.FeaturePackInfo;
-import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.PATCHES;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -46,23 +47,32 @@ public class StateInfoCommand extends AbstractStateCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
-            FeatureContainer container = getFeatureContainer(invoc.getPmSession());
+            ProvisioningConfig config = getProvisioningConfig(invoc.getPmSession());
             if (type == null) {
-                displayDependencies(invoc, container, true);
-                displayConfigs(invoc, container);
+                displayFeaturePacks(invoc, config);
             } else {
                 switch (type) {
+                    case ALL: {
+                        FeatureContainer container = getFeatureContainer(invoc.getPmSession());
+                        displayFeaturePacks(invoc, config);
+                        displayDependencies(invoc, container);
+                        displayConfigs(invoc, container);
+                        break;
+                    }
                     case CONFIGS: {
+                        FeatureContainer container = getFeatureContainer(invoc.getPmSession());
+                        displayFeaturePacks(invoc, config);
                         displayConfigs(invoc, container);
                         break;
                     }
                     case DEPENDENCIES: {
-                        displayDependencies(invoc, container, false);
+                        FeatureContainer container = getFeatureContainer(invoc.getPmSession());
+                        displayFeaturePacks(invoc, config);
+                        displayDependencies(invoc, container);
                         break;
                     }
-                    case PATCHES: {
-                        displayDependencies(invoc, container, true);
-                        break;
+                    default: {
+                        throw new CommandExecutionException(CliErrors.invalidInfoType());
                     }
                 }
             }
@@ -78,30 +88,42 @@ public class StateInfoCommand extends AbstractStateCommand {
         }
     }
 
-    private void displayDependencies(PmCommandInvocation invoc, FeatureContainer container, boolean includePatches) {
+    private void displayDependencies(PmCommandInvocation invoc, FeatureContainer container) {
         List<FeaturePackLocation> locs = new ArrayList<>();
-        if (container instanceof FeaturePackInfo) {
-            StateInfoUtil.printFeaturePack(invoc, container.getFPID().getLocation());
-        }
+        ProvisioningConfig config = container.getProvisioningConfig();
         if (container.getFullDependencies().isEmpty()) {
-            for (FPID g : container.getDependencies()) {
-                if (container instanceof FeaturePackInfo) {
-                    if (((FeaturePackInfo) container).getFPID().equals(g)) {
-                        continue;
-                    }
+            for (FPID id : container.getDependencies()) {
+                if (containsDeps(config, id)) {
+                    continue;
                 }
                 locs.add(invoc.getPmSession().
-                        getExposedLocation(g.getLocation()));
+                        getExposedLocation(id.getLocation()));
             }
-        } else {
+        } else { // A State in memory.
             for (FeatureContainer c : container.getFullDependencies().values()) {
+                if (containsDeps(config, c.getFPID())) {
+                    continue;
+                }
                 locs.add(invoc.getPmSession().
                         getExposedLocation(c.getFPID().getLocation()));
             }
         }
-        String str = StateInfoUtil.buildDependencies(locs, includePatches ? container.getConfigs() : null);
+        String str = StateInfoUtil.buildDependencies(locs, container.getConfigs());
         if (str != null) {
             invoc.println(str);
         }
+    }
+
+    private static boolean containsDeps(ProvisioningConfig config, FPID id) {
+        for (FeaturePackConfig c : config.getFeaturePackDeps()) {
+            if (c.getLocation().getFPID().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void displayFeaturePacks(PmCommandInvocation invoc, ProvisioningConfig config) {
+        StateInfoUtil.printFeaturePacks(invoc, config.getFeaturePackDeps());
     }
 }

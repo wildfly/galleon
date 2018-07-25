@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.model;
 
+import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
@@ -26,8 +27,8 @@ public class FeaturePackInfo extends FeatureContainer {
 
     private final String description;
 
-    FeaturePackInfo(String name, FPID fpid) {
-        super(name, fpid);
+    FeaturePackInfo(String name, FPID fpid, ProvisioningConfig config) {
+        super(name, fpid, config);
         this.description = "No Description available yet";
     }
     /**

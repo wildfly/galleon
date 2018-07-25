@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
 
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -46,10 +47,16 @@ public abstract class FeatureContainer {
     private Map<ResolvedSpecId, FeatureSpecInfo> allSpecs;
     private Map<Identity, Group> allPackages;
     private Map<ResolvedSpecId, List<FeatureInfo>> allFeatures;
+    private final ProvisioningConfig config;
 
-    protected FeatureContainer(String name, FPID fpid) {
+    protected FeatureContainer(String name, FPID fpid, ProvisioningConfig config) {
         this.name = name;
         this.fpid = fpid;
+        this.config = config;
+    }
+
+    public ProvisioningConfig getProvisioningConfig() {
+        return config;
     }
 
     void addDependency(FPID fpid, FeaturePackConfig config) {

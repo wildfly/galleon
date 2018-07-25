@@ -16,13 +16,15 @@
  */
 package org.jboss.galleon.cli.model;
 
+import org.jboss.galleon.config.ProvisioningConfig;
+
 /**
  *
  * @author jdenise@redhat.com
  */
 public class ProvisioningInfo extends FeatureContainer {
 
-    ProvisioningInfo() {
-        super(null, null);
+    ProvisioningInfo(ProvisioningConfig config) {
+        super(null, null, config);
     }
 }

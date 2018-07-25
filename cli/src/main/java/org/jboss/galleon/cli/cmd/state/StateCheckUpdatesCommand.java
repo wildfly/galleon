@@ -32,6 +32,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
+import static org.jboss.galleon.cli.cmd.state.StateInfoUtil.DEFAULT_UNIVERSE;
 import org.jboss.galleon.layout.FeaturePackUpdatePlan;
 import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -137,7 +138,7 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
             if (includeAll) {
                 line.add(new Cell(p.isTransitive() ? "Y" : "N"));
             }
-            line.add(new Cell((u == null ? "default" : u.toString())));
+            line.add(new Cell((u == null ? DEFAULT_UNIVERSE : u.toString())));
             t.addCellsLine(line);
         }
         t.sort(Table.SortType.ASCENDANT);

@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.cmd.state;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +27,6 @@ import org.aesh.utils.Config;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
@@ -57,6 +57,8 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
  * @author jdenise@redhat.com
  */
 public class StateInfoUtil {
+
+    public static final String DEFAULT_UNIVERSE = "default";
 
     public static void printContentPath(PmCommandInvocation session, FeatureContainer fp, String path)
             throws ProvisioningException, PathParserException, PathConsumerException, IOException {
@@ -291,19 +293,19 @@ public class StateInfoUtil {
 
     public static String buildDependencies(List<FeaturePackLocation> dependencies, Map<FPID, FeaturePackConfig> configs) {
         if (!dependencies.isEmpty()) {
-
+            boolean showPatches = configs == null ? false : showPatches(configs.values());
             Table table;
-            if (configs != null) {
-                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD, Headers.PATCHES);
+            if (showPatches) {
+                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD, Headers.PATCHES, Headers.UNIVERSE);
             } else {
-                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD);
+                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD, Headers.UNIVERSE);
             }
             for (FeaturePackLocation d : dependencies) {
                 List<Cell> line = new ArrayList<>();
                 line.add(new Cell(d.getProducerName()));
                 line.add(new Cell(d.getChannelName()));
                 line.add(new Cell(d.getBuild()));
-                if (configs != null) {
+                if (showPatches) {
                     FeaturePackConfig config = configs.get(d.getFPID());
                     if (config != null && config.hasPatches()) {
                         Cell patches = new Cell();
@@ -313,6 +315,7 @@ public class StateInfoUtil {
                         line.add(patches);
                     }
                 }
+                line.add(new Cell(d.getUniverse() == null ? DEFAULT_UNIVERSE : d.getUniverse().toString()));
                 table.addCellsLine(line);
             }
             table.sort(Table.SortType.ASCENDANT);
@@ -322,10 +325,54 @@ public class StateInfoUtil {
     }
 
     public static void printFeaturePack(PmCommandInvocation commandInvocation, FeaturePackLocation loc) {
-        PmSession session = commandInvocation.getPmSession();
+        Table t = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.BUILD, Headers.UNIVERSE);
+        FPID id = commandInvocation.getPmSession().getExposedLocation(loc).getFPID();
+        t.addLine(id.getProducer().getName(), id.getChannel().getName(), id.getBuild(),
+                id.getUniverse() == null ? DEFAULT_UNIVERSE : id.getUniverse().toString());
         commandInvocation.println("");
-        commandInvocation.println("Feature-pack: " + session.getExposedLocation(loc).getFPID());
+        commandInvocation.println(t.build());
+    }
+
+    public static void printFeaturePacks(PmCommandInvocation commandInvocation, Collection<FeaturePackConfig> fps) {
+        boolean showPatches = showPatches(fps);
+        Table t;
+        if (showPatches) {
+            t = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.BUILD, Headers.PATCHES, Headers.UNIVERSE);
+        } else {
+            t = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.BUILD, Headers.UNIVERSE);
+        }
+        for (FeaturePackConfig c : fps) {
+            FPID id = commandInvocation.getPmSession().getExposedLocation(c.getLocation()).getFPID();
+            List<Cell> line = new ArrayList<>();
+            line.add(new Cell(id.getProducer().getName()));
+            line.add(new Cell(id.getChannel().getName()));
+            line.add(new Cell(id.getBuild()));
+            if (showPatches) {
+                if (c.hasPatches()) {
+                    Cell patches = new Cell();
+                    for (FPID p : c.getPatches()) {
+                        patches.addLine(p.getBuild());
+                    }
+                    line.add(patches);
+                }
+            }
+            line.add(new Cell(id.getUniverse() == null ? DEFAULT_UNIVERSE : id.getUniverse().toString()));
+            t.addCellsLine(line);
+        }
         commandInvocation.println("");
+        t.sort(Table.SortType.ASCENDANT);
+        commandInvocation.println(t.build());
+    }
+
+    private static boolean showPatches(Collection<FeaturePackConfig> configs) {
+        if (configs != null) {
+            for (FeaturePackConfig c : configs) {
+                if (c != null && c.hasPatches()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static String buildOptions(ResolvedPlugins plugins) {

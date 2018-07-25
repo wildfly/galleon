@@ -107,15 +107,17 @@ If _--yes_ is provided, the command will proceed without asking for confirmation
 
 ### Observing an installation
 
-_[my-dir]$ state info [--dir=installation] --type=[configs|dependencies|patches]_
+_[my-dir]$ state info [--dir=installation] --type=[all|configs|dependencies]_
 
-Display the set of dependencies and/or configurations and/or applied patches. All is displayed by default.
+Display the set of installed feature-packs FPID. In addition can display configurations and dependencies. + 
+NB: If some patches are applied, the patch information is displayed.
 
 ### Observing a feature-pack
 
-_[my-dir]$ feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[configs|dependencies|options]_
+_[my-dir]$ feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|options]_
 
-Display the set of dependencies and/or configurations and/or options usable when installing/provisioning/upgrading. All is displayed by default.
+Display the FPID of a feature-pack. In addition can display dependencies, configurations 
+and options usable when installing/provisioning/upgrading.
 
 ### Exporting an installation to xml
 
