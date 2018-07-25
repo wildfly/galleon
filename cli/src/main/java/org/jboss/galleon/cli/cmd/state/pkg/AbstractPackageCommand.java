@@ -50,7 +50,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
         private final FeatureContainer container;
 
         public AllPackagesContainer(FeatureContainer container) {
-            super(null, null);
+            super(null, null, container.getProvisioningConfig());
             this.container = container;
         }
 

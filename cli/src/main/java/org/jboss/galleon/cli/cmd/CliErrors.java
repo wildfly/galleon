@@ -82,6 +82,10 @@ public interface CliErrors {
         return "Invalid history limit " + limit;
     }
 
+    static String invalidInfoType() {
+        return "Invalid info type";
+    }
+
     static String invalidUniverse() {
         return "Invalid universe";
     }

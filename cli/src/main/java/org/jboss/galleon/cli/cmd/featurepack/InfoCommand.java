@@ -30,6 +30,7 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
@@ -58,7 +59,7 @@ public class InfoCommand extends AbstractFeaturePackCommand {
         @Override
         protected List<String> getItems(PmCompleterInvocation completerInvocation) {
             // No patch for un-customized FP.
-            return Arrays.asList(CONFIGS, DEPENDENCIES, OPTIONS);
+            return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONS);
         }
 
     }
@@ -119,12 +120,14 @@ public class InfoCommand extends AbstractFeaturePackCommand {
                 commandInvocation.println(PATCH_FOR + patchFor);
             }
             try {
-                if (type == null) {
-                    displayDependencies(commandInvocation, dependencies);
-                    displayConfigs(commandInvocation, product);
-                    displayOptions(commandInvocation, layout);
-                } else {
+                if (type != null) {
                     switch (type) {
+                        case ALL: {
+                            displayDependencies(commandInvocation, dependencies);
+                            displayConfigs(commandInvocation, product);
+                            displayOptions(commandInvocation, layout);
+                            break;
+                        }
                         case CONFIGS: {
                             displayConfigs(commandInvocation, product);
                             break;
@@ -136,6 +139,9 @@ public class InfoCommand extends AbstractFeaturePackCommand {
                         case OPTIONS: {
                             displayOptions(commandInvocation, layout);
                             break;
+                        }
+                        default: {
+                            throw new CommandExecutionException(CliErrors.invalidInfoType());
                         }
                     }
                 }

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import org.aesh.command.CommandException;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
+import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.featurepack.InfoCommand;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -59,6 +60,9 @@ public class PatchTestCase {
         Path install1 = CliTestUtils.installAndCheck(cli, "install1", CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "snapshot", null),
                 CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
 
+        // No patches information
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(Headers.PATCHES));
+
         Path patchDir = cli.newDir("patches", true);
         FPID patchID = CliTestUtils.installPatch(cli, universeSpec, PRODUCER1, "1.0.0", "Alpha1", patchDir);
         Path patchFile = patchDir.toFile().listFiles()[0].toPath();
@@ -89,6 +93,7 @@ public class PatchTestCase {
 
         //Check that output contains the patch.
         cli.execute("state info --dir=" + install1);
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCHES));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(patchID.getBuild()));
 
         // uninstall the patch

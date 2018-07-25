@@ -54,7 +54,6 @@ public class FeatureContainerPathConsumer implements PathConsumer {
     public static final String DEPENDENCIES = "dependencies";
     public static final String PACKAGES = "packages";
     public static final String CONFIGS = "configs";
-    public static final String PATCHES = "patches";
     public static final String FINAL = "final";
     public static final String OPTIONS = "options";
     public static final String ROOT = "" + PathParser.PATH_SEPARATOR;

@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -65,7 +66,8 @@ public abstract class AbstractStateCommand extends PmSessionCommand implements C
         return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
     }
 
-    public FeatureContainer getFeatureContainer(PmSession session) throws ProvisioningException, Exception {
+    public FeatureContainer getFeatureContainer(PmSession session) throws ProvisioningException,
+            CommandExecutionException, IOException {
         if (session.getContainer() != null) {
             return session.getContainer();
         }
@@ -80,5 +82,17 @@ public abstract class AbstractStateCommand extends PmSessionCommand implements C
             container = FeatureContainers.fromProvisioningRuntime(session, runtime);
         }
         return container;
+    }
+
+    protected ProvisioningConfig getProvisioningConfig(PmSession session) throws ProvisioningException, CommandExecutionException {
+        if (session.getContainer() != null) {
+            return session.getContainer().getProvisioningConfig();
+        }
+        ProvisioningManager manager = getManager(session);
+
+        if (manager.getProvisionedState() == null) {
+            throw new CommandExecutionException("Specified directory doesn't contain an installation");
+        }
+        return manager.getProvisioningConfig();
     }
 }

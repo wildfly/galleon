@@ -24,16 +24,18 @@ import java.util.List;
 
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.PmCompleterInvocation;
-import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.PATCHES;
 
 /**
  *
  * @author jdenise@redhat.com
  */
 public class InfoTypeCompleter extends AbstractCompleter {
+
+    public static final String ALL = "all";
+
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        return Arrays.asList(CONFIGS, DEPENDENCIES, PATCHES);
+        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES);
     }
 
 }

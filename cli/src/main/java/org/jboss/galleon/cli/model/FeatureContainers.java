@@ -59,8 +59,8 @@ public abstract class FeatureContainers {
         if (fp != null) {
             return fp;
         }
-        fp = new FeaturePackInfo(name, fpid);
         try (ProvisioningRuntime rt = buildFullRuntime(fpid, session)) {
+            fp = new FeaturePackInfo(name, fpid, rt.getProvisioningConfig());
             populateFeatureContainer(fp, session, rt, true);
             Caches.addFeaturePackInfo(fpid, fp);
         }
@@ -69,7 +69,7 @@ public abstract class FeatureContainers {
 
     public static FeatureContainer fromProvisioningRuntime(PmSession session,
             ProvisioningRuntime runtime) throws ProvisioningException, IOException {
-        ProvisioningInfo info = new ProvisioningInfo();
+        ProvisioningInfo info = new ProvisioningInfo(runtime.getProvisioningConfig());
         populateFeatureContainer(info, session, runtime, false);
         return info;
     }
@@ -80,7 +80,8 @@ public abstract class FeatureContainers {
         Map<String, FeaturePackRuntime> gavs = new HashMap<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
             gavs.put(Identity.buildOrigin(rt.getFPID().getProducer()), rt);
-            FeaturePackConfig config = runtime.getProvisioningConfig().getFeaturePackDep(rt.getFPID().getProducer());
+            // Can be null if no transitive dep declared.
+            FeaturePackConfig config = runtime.getProvisioningConfig().getTransitiveDep(rt.getFPID().getProducer());
             fp.addDependency(rt.getFPID(), config);
         }
         List<CliPlugin> cliPlugins = new ArrayList<>();
