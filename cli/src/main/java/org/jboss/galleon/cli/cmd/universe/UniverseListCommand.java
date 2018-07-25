@@ -30,6 +30,7 @@ import org.jboss.galleon.cli.UniverseManager;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
+import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
@@ -130,15 +131,18 @@ public class UniverseListCommand extends PmSessionCommand {
         }
     }
 
-    private static void printUniverse(Pattern cPattern, UniverseSpec spec, org.jboss.galleon.universe.Universe<?> universe,
+    private static void printUniverse(Pattern cPattern, UniverseSpec spec,
+            org.jboss.galleon.universe.Universe<?> universe,
             PmCommandInvocation invoc) throws ProvisioningException {
-        Table table = new Table(Headers.PRODUCT, Headers.VERSION, Headers.QUALIFIER, Headers.BUILD);
+        Table table = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.LATEST_BUILD);
         for (Producer<?> producer : universe.getProducers()) {
             if (cPattern == null || cPattern.matcher(producer.getName()).matches()) {
                 for (Channel channel : producer.getChannels()) {
                     for (String freq : producer.getFrequencies()) {
                         String build = getBuild(spec, producer, channel, freq);
-                        table.addLine(producer.getName(), channel.getName(), freq,
+                        FeaturePackLocation loc = new FeaturePackLocation(null,
+                                producer.getName(), channel.getName(), freq, build);
+                        table.addLine(producer.getName(), StateInfoUtil.formatChannel(loc),
                                 (build == null ? "" : build));
                     }
                 }
