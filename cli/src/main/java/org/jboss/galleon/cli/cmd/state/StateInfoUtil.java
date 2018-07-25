@@ -294,16 +294,17 @@ public class StateInfoUtil {
     public static String buildDependencies(List<FeaturePackLocation> dependencies, Map<FPID, FeaturePackConfig> configs) {
         if (!dependencies.isEmpty()) {
             boolean showPatches = configs == null ? false : showPatches(configs.values());
-            Table table;
+            List<String> headers = new ArrayList<>();
+            headers.add(Headers.DEPENDENCY);
+            headers.add(Headers.BUILD);
             if (showPatches) {
-                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD, Headers.PATCHES, Headers.UNIVERSE);
-            } else {
-                table = new Table(Headers.DEPENDENCY, Headers.CHANNEL, Headers.BUILD, Headers.UNIVERSE);
+                headers.add(Headers.PATCHES);
             }
+            headers.add(Headers.CHANNEL);
+            Table table = new Table(headers);
             for (FeaturePackLocation d : dependencies) {
                 List<Cell> line = new ArrayList<>();
                 line.add(new Cell(d.getProducerName()));
-                line.add(new Cell(d.getChannelName()));
                 line.add(new Cell(d.getBuild()));
                 if (showPatches) {
                     FeaturePackConfig config = configs.get(d.getFPID());
@@ -315,7 +316,7 @@ public class StateInfoUtil {
                         line.add(patches);
                     }
                 }
-                line.add(new Cell(d.getUniverse() == null ? DEFAULT_UNIVERSE : d.getUniverse().toString()));
+                line.add(new Cell(formatChannel(d)));
                 table.addCellsLine(line);
             }
             table.sort(Table.SortType.ASCENDANT);
@@ -325,28 +326,28 @@ public class StateInfoUtil {
     }
 
     public static void printFeaturePack(PmCommandInvocation commandInvocation, FeaturePackLocation loc) {
-        Table t = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.BUILD, Headers.UNIVERSE);
-        FPID id = commandInvocation.getPmSession().getExposedLocation(loc).getFPID();
-        t.addLine(id.getProducer().getName(), id.getChannel().getName(), id.getBuild(),
-                id.getUniverse() == null ? DEFAULT_UNIVERSE : id.getUniverse().toString());
+        loc = commandInvocation.getPmSession().getExposedLocation(loc);
+        Table t = new Table(Headers.PRODUCT, Headers.BUILD, Headers.CHANNEL);
+        t.addLine(loc.getProducer().getName(), loc.getBuild(), formatChannel(loc));
         commandInvocation.println("");
         commandInvocation.println(t.build());
     }
 
     public static void printFeaturePacks(PmCommandInvocation commandInvocation, Collection<FeaturePackConfig> fps) {
         boolean showPatches = showPatches(fps);
-        Table t;
+        List<String> headers = new ArrayList<>();
+        headers.add(Headers.PRODUCT);
+        headers.add(Headers.BUILD);
         if (showPatches) {
-            t = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.BUILD, Headers.PATCHES, Headers.UNIVERSE);
-        } else {
-            t = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.BUILD, Headers.UNIVERSE);
+            headers.add(Headers.PATCHES);
         }
+        headers.add(Headers.CHANNEL);
+        Table t = new Table(headers);
         for (FeaturePackConfig c : fps) {
-            FPID id = commandInvocation.getPmSession().getExposedLocation(c.getLocation()).getFPID();
+            FeaturePackLocation loc = commandInvocation.getPmSession().getExposedLocation(c.getLocation());
             List<Cell> line = new ArrayList<>();
-            line.add(new Cell(id.getProducer().getName()));
-            line.add(new Cell(id.getChannel().getName()));
-            line.add(new Cell(id.getBuild()));
+            line.add(new Cell(loc.getProducer().getName()));
+            line.add(new Cell(loc.getBuild()));
             if (showPatches) {
                 if (c.hasPatches()) {
                     Cell patches = new Cell();
@@ -356,7 +357,7 @@ public class StateInfoUtil {
                     line.add(patches);
                 }
             }
-            line.add(new Cell(id.getUniverse() == null ? DEFAULT_UNIVERSE : id.getUniverse().toString()));
+            line.add(new Cell(formatChannel(loc)));
             t.addCellsLine(line);
         }
         commandInvocation.println("");
@@ -393,6 +394,12 @@ public class StateInfoUtil {
         } else {
             return null;
         }
+    }
+
+    public static String formatChannel(FeaturePackLocation loc) {
+        String channel = loc.getFrequency() == null ? loc.getChannel().getName() : loc.getChannel().getName()
+                + "/" + loc.getFrequency();
+        return (loc.getUniverse() == null ? "" : loc.getUniverse() + "@") + channel;
     }
 
     private static String buildOptionsTable(Set<PluginOption> options) {

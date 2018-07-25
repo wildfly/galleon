@@ -74,17 +74,22 @@ public class Table {
     private final List<String> headers = new ArrayList<>();
     private final List<List<Cell>> content = new ArrayList<>();
     private final Map<Integer, Integer> widths = new HashMap<>();
-    public Table(String... header) {
-        for (int i = 0; i < header.length; i++) {
-            int length = header[i].length();
+
+    public Table(List<String> headersList) {
+        for (int i = 0; i < headersList.size(); i++) {
+            int length = headersList.get(i).length();
             Integer w = widths.get(i);
             if (w == null) {
                 widths.put(i, length);
             } else if (w.compareTo(length) < 0) {
                 widths.put(i, length);
             }
-            headers.add(header[i]);
+            headers.add(headersList.get(i));
         }
+    }
+
+    public Table(String... headers) {
+        this(Arrays.asList(headers));
     }
 
     public boolean isEmpty() {

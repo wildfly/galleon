@@ -95,6 +95,7 @@ public class InstallUpdateTestCase {
         cli.execute("state check-updates --dir=" + install1);
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(universeSpec.toString()));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 

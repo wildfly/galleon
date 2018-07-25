@@ -32,13 +32,11 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
-import static org.jboss.galleon.cli.cmd.state.StateInfoUtil.DEFAULT_UNIVERSE;
 import org.jboss.galleon.layout.FeaturePackUpdatePlan;
 import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.PathsUtils;
 
 /**
@@ -90,14 +88,6 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
             throw new CommandExecutionException(Errors.homeDirNotUsable(mgr.getInstallationHome()));
         }
 
-        Table t;
-        if (includeAll) {
-            t = new Table(Headers.PRODUCT, Headers.VERSION, Headers.CURRENT_BUILD,
-                    Headers.UPDATE, Headers.PATCHES, Headers.DEPENDENCY, Headers.UNIVERSE);
-        } else {
-            t = new Table(Headers.PRODUCT, Headers.VERSION, Headers.CURRENT_BUILD,
-                    Headers.UPDATE, Headers.PATCHES, Headers.UNIVERSE);
-        }
         ProvisioningPlan plan;
         if (fp == null) {
             plan = mgr.getUpdates(includeAll);
@@ -111,15 +101,23 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
         }
         Updates updates = new Updates();
         updates.plan = plan;
-        updates.t = t;
         if (plan.isEmpty()) {
             return updates;
         }
+        List<String> headers = new ArrayList<>();
+        headers.add(Headers.PRODUCT);
+        headers.add(Headers.CURRENT_BUILD);
+        headers.add(Headers.UPDATE);
+        headers.add(Headers.PATCHES);
+        if (includeAll) {
+            headers.add(Headers.DEPENDENCY);
+        }
+        headers.add(Headers.CHANNEL);
+        updates.t = new Table(headers);
 
         for (FeaturePackUpdatePlan p : plan.getUpdates()) {
             FeaturePackLocation loc = p.getInstalledLocation();
             String update = p.hasNewLocation() ? p.getNewLocation().getBuild() : NONE;
-            UniverseSpec u = session.getPmSession().getExposedLocation(loc).getUniverse();
             Cell patches = new Cell();
             if (p.hasNewPatches()) {
                 for (FPID id : p.getNewPatches()) {
@@ -131,17 +129,16 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
 
             List<Cell> line = new ArrayList<>();
             line.add(new Cell(loc.getProducerName()));
-            line.add(new Cell(loc.getChannelName()));
             line.add(new Cell(loc.getBuild()));
             line.add(new Cell(update));
             line.add(patches);
             if (includeAll) {
                 line.add(new Cell(p.isTransitive() ? "Y" : "N"));
             }
-            line.add(new Cell((u == null ? DEFAULT_UNIVERSE : u.toString())));
-            t.addCellsLine(line);
+            line.add(new Cell(StateInfoUtil.formatChannel(loc)));
+            updates.t.addCellsLine(line);
         }
-        t.sort(Table.SortType.ASCENDANT);
+        updates.t.sort(Table.SortType.ASCENDANT);
         return updates;
     }
 
