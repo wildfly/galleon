@@ -186,8 +186,8 @@ public interface CliErrors {
         return failed("Undo");
     }
 
-    static String upgradeFailed() {
-        return failed("Upgrade");
+    static String updateFailed() {
+        return failed("Update");
     }
 
 }

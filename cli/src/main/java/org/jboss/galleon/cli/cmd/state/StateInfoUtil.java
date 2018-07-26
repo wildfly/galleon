@@ -388,7 +388,7 @@ public class StateInfoUtil {
         }
         if (!plugins.getInstall().isEmpty()) {
             found = true;
-            builder.append("Upgrade command options").append(Config.getLineSeparator());
+            builder.append("Update command options").append(Config.getLineSeparator());
             builder.append(buildOptionsTable(plugins.getDiff()));
         }
         if (found) {

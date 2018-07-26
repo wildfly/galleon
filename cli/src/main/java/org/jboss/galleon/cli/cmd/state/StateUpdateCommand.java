@@ -46,12 +46,12 @@ import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.PRODUCTS_
  *
  * @author jdenise@redhat.com
  */
-public class StateUpgradeCommand extends AbstractProvisionWithPlugins {
+public class StateUpdateCommand extends AbstractProvisionWithPlugins {
 
     static final String YES_OPTION_NAME = "yes";
 
 
-    public StateUpgradeCommand(PmSession pmSession) {
+    public StateUpdateCommand(PmSession pmSession) {
         super(pmSession);
     }
 
@@ -129,7 +129,7 @@ public class StateUpgradeCommand extends AbstractProvisionWithPlugins {
             }
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(session.getPmSession(),
-                    CliErrors.upgradeFailed(), ex);
+                    CliErrors.updateFailed(), ex);
         } catch (InterruptedException ignored) {
             // Just exit the command smoothly
         }
@@ -149,11 +149,11 @@ public class StateUpgradeCommand extends AbstractProvisionWithPlugins {
 
     @Override
     protected String getName() {
-        return "upgrade";
+        return "update";
     }
 
     @Override
     protected String getDescription() {
-        return "Upgrade the installation to latest available updates and patches";
+        return "Update the installation to latest available updates and patches";
     }
 }

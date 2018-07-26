@@ -1,11 +1,11 @@
 ## Galleon CLI tool
 This command line tool (_bin/galleon.[sh|bat]_) allows you to provision/manage any products/installations that comply with galleon feature-packs.
 Although being a generic tool, a builtin support is offered for products available from maven jboss community universe (eg: wildfly). +
-Possible actions that you can operate from the tool: install, uninstall, check for updates, patch, upgrade, undo last provisioning command.
+Possible actions that you can operate from the tool: install, uninstall, check for updates, patch, update, undo last provisioning command.
 
 ### Feature-pack
 A key concept in galleon system is the notion of feature-pack. A feature-pack is a content container. It can be a full product (eg: wildfly) 
-or part of a product (eg: a wildfly subsystem packaged as a feature-pack). With the tool you are going to install/uninstall/upgrade/... feature-packs. +
+or part of a product (eg: a wildfly subsystem packaged as a feature-pack). With the tool you are going to install/uninstall/update/... feature-packs. +
 NB: A galleon installation can be composed of 1 or more feature-packs.
 
 A feature-pack can be a file on your local file system or located inside a universe (a product catalog).
@@ -39,10 +39,10 @@ Then, later, when checking for updates or upgrading _myInstallation_ directory,
 the latest build that is at least of quality alpha will be used to update. 
 If a final release is available then it will be installed when upgrading.
 
-NB: Products being unique inside an installation, some commands (eg: _state upgrade_) 
+NB: Products being unique inside an installation, some commands (eg: _state update_) 
 only require the product part (_<product>[@universe]_) of an FPL. For example:
 
-_state upgrade --products=wildfly_
+_state update --products=wildfly_
 
 ### Universe feature-pack id (FPID)
 A feature-pack id (FPID) is the way to identify a product inside a universe by expressing a build number. 
@@ -98,11 +98,11 @@ _state check-updates [--dir=<installation dir>] [--include-all-dependencies] [--
 
 If no directory is provided, the current directory is used. If no products are provided, all installed products are checked for updates.
 
-### Upgrading an installation
+### Updating an installation
 
-_state upgrade [--dir=<installation dir> [--include-all-dependencies] [--yes] [--products=<list of products>] [list of discovered feature-pack options]_
+_state update [--dir=<installation dir> [--include-all-dependencies] [--yes] [--products=<list of products>] [list of discovered feature-pack options]_
 
-Display the ist of available updates/patches then upgrade. If no directory is provided, the current directory is used. 
+Display the ist of available updates/patches then update. If no directory is provided, the current directory is used. 
 If _--yes_ is provided, the command will proceed without asking for confirmation.
 
 ### Observing an installation
