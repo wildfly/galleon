@@ -37,7 +37,7 @@ public class StateExploreCommand extends AbstractStateCommand {
             if (pm.getContainer() != null) {
                 throw new CommandExecutionException("Already entered, use leave command");
             }
-            FeatureContainer container = getFeatureContainer(pm);
+            FeatureContainer container = getFeatureContainer(pm, null);
             pm.setExploredContainer(container);
             prompt = getName() + PathParser.PATH_SEPARATOR;
             pm.setCurrentPath(FeatureContainerPathConsumer.ROOT);

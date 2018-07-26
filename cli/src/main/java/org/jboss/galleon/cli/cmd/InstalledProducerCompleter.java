@@ -23,11 +23,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmCompleterInvocation;
-import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.util.PathsUtils;
 
 /**
- * Installed producer completer.
+ * Installed producer and transitive dependencies completer.
  *
  * @author jdenise@redhat.com
  */
@@ -40,10 +41,20 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
         List<String> items = new ArrayList<>();
         try {
             PathsUtils.assertInstallationDir(currentDir);
-            ProvisioningManager mgr = completerInvocation.getPmSession().
-                    newProvisioningManager(currentDir, false);
-            for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {
-                items.add(completerInvocation.getPmSession().getExposedLocation(fp.getLocation()).getProducer().toString());
+            boolean trackersEnabled = completerInvocation.getPmSession().isTrackersEnabled();
+            if (trackersEnabled) {
+                completerInvocation.getPmSession().enableTrackers(false);
+            }
+            try {
+                ProvisioningManager mgr = completerInvocation.getPmSession().
+                        newProvisioningManager(currentDir, false);
+                try (ProvisioningLayout<FeaturePackLayout> layout = mgr.getLayoutFactory().newConfigLayout(mgr.getProvisioningConfig())) {
+                    for (FeaturePackLayout fp : layout.getOrderedFeaturePacks()) {
+                        items.add(completerInvocation.getPmSession().getExposedLocation(fp.getFPID().getLocation()).getProducer().toString());
+                    }
+                }
+            } finally {
+                completerInvocation.getPmSession().enableTrackers(trackersEnabled);
             }
         } catch (Exception ex) {
             Logger.getLogger(InstalledProducerCompleter.class.getName()).log(Level.FINEST,

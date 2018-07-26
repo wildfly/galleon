@@ -80,9 +80,6 @@ public abstract class FeatureContainers {
         Map<String, FeaturePackRuntime> gavs = new HashMap<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
             gavs.put(Identity.buildOrigin(rt.getFPID().getProducer()), rt);
-            // Can be null if no transitive dep declared.
-            FeaturePackConfig config = runtime.getProvisioningConfig().getTransitiveDep(rt.getFPID().getProducer());
-            fp.addDependency(rt.getFPID(), config);
         }
         List<CliPlugin> cliPlugins = new ArrayList<>();
         FeaturePackPluginVisitor<CliPlugin> visitor = new FeaturePackPluginVisitor<CliPlugin>() {
