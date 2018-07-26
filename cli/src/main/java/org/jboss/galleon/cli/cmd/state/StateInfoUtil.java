@@ -43,6 +43,8 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
 import org.jboss.galleon.cli.resolver.ResolvedPlugins;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureAnnotation;
@@ -319,6 +321,29 @@ public class StateInfoUtil {
                 line.add(new Cell(formatChannel(d)));
                 table.addCellsLine(line);
             }
+            table.sort(Table.SortType.ASCENDANT);
+            return table.build();
+        }
+        return null;
+    }
+
+    public static String buildPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) {
+        if (!layout.hasPatches()) {
+            return null;
+        }
+        Table table = new Table(Headers.PATCH, Headers.PATCH_FOR, Headers.CHANNEL);
+
+        for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
+            List<FeaturePackLayout> patches = layout.getPatches(fpLayout.getFPID());
+            for (FeaturePackLayout patch : patches) {
+                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(patch.getFPID().getLocation());
+                FPID patchFor = patch.getSpec().getPatchFor();
+                table.addLine(patch.getFPID().getBuild(),
+                        patchFor.getProducer().getName() + FeaturePackLocation.BUILD_START + patchFor.getBuild(),
+                        formatChannel(loc));
+            }
+        }
+        if (!table.isEmpty()) {
             table.sort(Table.SortType.ASCENDANT);
             return table.build();
         }

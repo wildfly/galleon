@@ -111,10 +111,10 @@ If _--yes_ is provided, the command will proceed without asking for confirmation
 
 ### Observing an installation
 
-_[my-dir]$ state info [--dir=installation] --type=[all|configs|dependencies]_
+_[my-dir]$ state info [--dir=installation] --type=[all|configs|dependencies|patches]_
 
-Display the set of installed feature-packs FPID. In addition can display configurations and dependencies. + 
-NB: If some patches are applied, the patch information is displayed.
+Display the set of installed feature-packs FPID. In addition can display configurations, dependencies and patches. + 
+NB: If some patches are applied, the applied patches information is displayed.
 
 ### Observing a feature-pack
 

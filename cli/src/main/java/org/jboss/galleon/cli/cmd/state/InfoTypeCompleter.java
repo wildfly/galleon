@@ -32,10 +32,11 @@ import org.jboss.galleon.cli.PmCompleterInvocation;
 public class InfoTypeCompleter extends AbstractCompleter {
 
     public static final String ALL = "all";
+    public static final String PATCHES = "patches";
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES);
+        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, PATCHES);
     }
 
 }

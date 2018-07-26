@@ -31,7 +31,9 @@ public class Headers {
     public static final String LATEST_BUILD = "Latest Build";
     public static final String NAME = "Name";
     public static final String OPTION = "Option";
+    public static final String PATCH = "Patch";
     public static final String PATCHES = "Patches";
+    public static final String PATCH_FOR = "Patch For";
     public static final String PRODUCT = "Product";
     public static final String REQUIRED = "Required";
     public static final String UPDATE = "Update";

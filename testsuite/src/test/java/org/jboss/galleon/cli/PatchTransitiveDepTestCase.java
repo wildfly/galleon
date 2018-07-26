@@ -22,6 +22,7 @@ import org.jboss.galleon.ProvisioningException;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
+import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
@@ -74,6 +75,12 @@ public class PatchTransitiveDepTestCase {
 
         cli.execute("state info --dir=" + p + " --type=dependencies");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Patch.Final"));
+
+        cli.execute("state info --dir=" + p + " --type=patches");
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Patch.Final"));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH_FOR));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Final"));
     }
 
     private static void install() throws ProvisioningException {

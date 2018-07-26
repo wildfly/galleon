@@ -31,6 +31,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.PATCHES;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -65,18 +66,34 @@ public class StateInfoCommand extends AbstractStateCommand {
                             FeatureContainer container = getFeatureContainer(invoc.getPmSession(), layout);
                             displayFeaturePacks(invoc, config);
                             displayDependencies(invoc, layout);
+                            displayPatches(invoc, layout);
                             displayConfigs(invoc, container);
                             break;
                         }
                         case CONFIGS: {
                             FeatureContainer container = getFeatureContainer(invoc.getPmSession(), layout);
-                            displayFeaturePacks(invoc, config);
-                            displayConfigs(invoc, container);
+                            String configs = buildConfigs(invoc, container);
+                            if (configs != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(configs);
+                            }
                             break;
                         }
                         case DEPENDENCIES: {
-                            displayFeaturePacks(invoc, config);
-                            displayDependencies(invoc, layout);
+                            String deps = buildDependencies(invoc, layout);
+                            if (deps != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(deps);
+                            }
+                            break;
+                        }
+                        case PATCHES: {
+                            String patches = buildPatches(invoc, layout);
+                            if (patches != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(patches);
+                            }
+
                             break;
                         }
                         default: {
@@ -91,10 +108,14 @@ public class StateInfoCommand extends AbstractStateCommand {
     }
 
     private void displayConfigs(PmCommandInvocation invoc, FeatureContainer container) {
-        String str = StateInfoUtil.buildConfigs(container.getFinalConfigs());
+        String str = buildConfigs(invoc, container);
         if (str != null) {
             invoc.println(str);
         }
+    }
+
+    private String buildConfigs(PmCommandInvocation invoc, FeatureContainer container) {
+        return StateInfoUtil.buildConfigs(container.getFinalConfigs());
     }
 
     private void displayFeaturePacks(PmCommandInvocation invoc, ProvisioningConfig config) {
@@ -102,6 +123,13 @@ public class StateInfoCommand extends AbstractStateCommand {
     }
 
     private void displayDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        String str = buildDependencies(invoc, layout);
+        if (str != null) {
+            invoc.println(str);
+        }
+    }
+
+    private String buildDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         Map<FPID, FeaturePackConfig> configs = new HashMap<>();
         List<FeaturePackLocation> dependencies = new ArrayList<>();
         for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
@@ -120,9 +148,17 @@ public class StateInfoCommand extends AbstractStateCommand {
                 configs.put(loc.getFPID(), transitiveConfig);
             }
         }
-        String str = StateInfoUtil.buildDependencies(dependencies, configs);
+        return StateInfoUtil.buildDependencies(dependencies, configs);
+    }
+
+    private void displayPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        String str = buildPatches(invoc, layout);
         if (str != null) {
             invoc.println(str);
         }
+    }
+
+    private String buildPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        return StateInfoUtil.buildPatches(invoc, layout);
     }
 }
