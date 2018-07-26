@@ -92,6 +92,10 @@ Use the _install_ command to patch an existing installation.
 
 _install [--file=<path to patch fp zip file>]> [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
 
+### Un-installing a patch
+
+Use the _uninstall_ command to remove a given patch or use _state undo_ if the last provisioning command has been a patch installation.
+
 ### Checking for updates
 
 _state check-updates [--dir=<installation dir>] [--include-all-dependencies] [--products=<list of products>]_
@@ -102,7 +106,7 @@ If no directory is provided, the current directory is used. If no products are p
 
 _state update [--dir=<installation dir> [--include-all-dependencies] [--yes] [--products=<list of products>] [list of discovered feature-pack options]_
 
-Display the ist of available updates/patches then update. If no directory is provided, the current directory is used. 
+Display the list of available updates/patches then update. If no directory is provided, the current directory is used. 
 If _--yes_ is provided, the command will proceed without asking for confirmation.
 
 ### Observing an installation
