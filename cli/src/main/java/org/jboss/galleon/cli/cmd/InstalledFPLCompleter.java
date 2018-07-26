@@ -56,7 +56,7 @@ public class InstalledFPLCompleter extends AbstractCompleter {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(InstalledProducerCompleter.class.getName()).log(Level.FINEST,
+            Logger.getLogger(InstalledFPLCompleter.class.getName()).log(Level.FINEST,
                     "Exception while completing: {0}", ex.getLocalizedMessage());
         }
         return items;

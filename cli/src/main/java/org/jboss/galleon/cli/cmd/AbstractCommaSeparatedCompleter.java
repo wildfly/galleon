@@ -59,7 +59,7 @@ public abstract class AbstractCommaSeparatedCompleter extends AbstractCompleter 
                             iterator.remove();
                         }
                     }
-                    if (candidates.isEmpty() && hasMore && needsComma) {
+                    if (needsComma) {
                         candidates.add(chunk + ",");
                     }
                     offset = buffer.length() - chunk.length();

@@ -360,9 +360,11 @@ public class StateInfoUtil {
             line.add(new Cell(formatChannel(loc)));
             t.addCellsLine(line);
         }
-        commandInvocation.println("");
-        t.sort(Table.SortType.ASCENDANT);
-        commandInvocation.println(t.build());
+        if (!t.isEmpty()) {
+            commandInvocation.println("");
+            t.sort(Table.SortType.ASCENDANT);
+            commandInvocation.println(t.build());
+        }
     }
 
     private static boolean showPatches(Collection<FeaturePackConfig> configs) {

@@ -217,6 +217,10 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         enableTrackers = enable;
     }
 
+    public boolean isTrackersEnabled() {
+        return enableTrackers;
+    }
+
     private void registerTrackers() {
         ProgressTrackers.registerTrackers(this);
     }
@@ -280,6 +284,8 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
             } else {
                 registerTrackers();
             }
+        } else {
+            unregisterTrackers();
         }
         return new DefaultMessageWriter(out, err, verbose);
     }
