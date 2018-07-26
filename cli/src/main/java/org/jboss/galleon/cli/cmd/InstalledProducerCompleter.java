@@ -25,6 +25,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
 
 /**
@@ -36,9 +37,18 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
+        List<FeaturePackLocation> locations = getInstallationLocations(completerInvocation, true, false);
+        List<String> items = new ArrayList<>();
+        for (FeaturePackLocation loc : locations) {
+            items.add(loc.getProducer().toString());
+        }
+        return items;
+    }
+
+    public static List<FeaturePackLocation> getInstallationLocations(PmCompleterInvocation completerInvocation, boolean transitive, boolean patches) {
         CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
         Path currentDir = cmd.getInstallationDirectory(completerInvocation.getAeshContext());
-        List<String> items = new ArrayList<>();
+        List<FeaturePackLocation> items = new ArrayList<>();
         try {
             PathsUtils.assertInstallationDir(currentDir);
             boolean trackersEnabled = completerInvocation.getPmSession().isTrackersEnabled();
@@ -50,7 +60,15 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
                         newProvisioningManager(currentDir, false);
                 try (ProvisioningLayout<FeaturePackLayout> layout = mgr.getLayoutFactory().newConfigLayout(mgr.getProvisioningConfig())) {
                     for (FeaturePackLayout fp : layout.getOrderedFeaturePacks()) {
-                        items.add(completerInvocation.getPmSession().getExposedLocation(fp.getFPID().getLocation()).getProducer().toString());
+                        if (fp.isDirectDep() || (fp.isTransitiveDep() && transitive)) {
+                            items.add(completerInvocation.getPmSession().getExposedLocation(fp.getFPID().getLocation()));
+                        }
+                        if (patches) {
+                            List<FeaturePackLayout> appliedPatches = layout.getPatches(fp.getFPID());
+                            for (FeaturePackLayout patch : appliedPatches) {
+                                items.add(completerInvocation.getPmSession().getExposedLocation(patch.getFPID().getLocation()));
+                            }
+                        }
                     }
                 }
             } finally {

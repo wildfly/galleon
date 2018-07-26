@@ -765,6 +765,10 @@ public class ProvisioningLayout<F extends ProvisioningLayout.FeaturePackLayout> 
         return handle.newStagedDir();
     }
 
+    public boolean hasPatches() {
+        return !allPatches.isEmpty();
+    }
+
     private void rebuild(ProvisioningConfig config, boolean cleanupTransitive) throws ProvisioningException {
         final boolean trackProgress = featurePacks.isEmpty();
         featurePacks.clear();

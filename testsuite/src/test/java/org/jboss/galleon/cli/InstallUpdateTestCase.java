@@ -109,7 +109,7 @@ public class InstallUpdateTestCase {
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
 
         // upgrade to Alpha1, only producer1 upgraded.
-        cli.execute("state upgrade --yes --dir=" + install1);
+        cli.execute("state update --yes --dir=" + install1);
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
@@ -124,7 +124,7 @@ public class InstallUpdateTestCase {
         CliTestUtils.install(cli, universeSpec, PRODUCER2, "1.0.0.Alpha1");
 
         // Then upgrade producer2
-        cli.execute("state upgrade --yes --dir=" + install1 + " --products=" + CliTestUtils.buildFPL(universeSpec, PRODUCER2, null, null, null));
+        cli.execute("state update --yes --dir=" + install1 + " --products=" + CliTestUtils.buildFPL(universeSpec, PRODUCER2, null, null, null));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));

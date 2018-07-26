@@ -40,11 +40,11 @@ import org.jboss.galleon.cli.cmd.state.pkg.PackageCommand;
 @GroupCommandDefinition(description = "", name = "state")
 public class StateCommand implements GroupCommand<PmCommandInvocation, Command> {
 
-    private final StateUpgradeCommand upgradeCommand;
+    private final StateUpdateCommand updateCommand;
     private final StateProvisionCommand provisionCommand;
     public StateCommand(PmSession pmSession) {
         this.provisionCommand = new StateProvisionCommand(pmSession);
-        this.upgradeCommand = new StateUpgradeCommand(pmSession);
+        this.updateCommand = new StateUpdateCommand(pmSession);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
     @Override
     public List<CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation>> getParsedCommands() throws CommandLineParserException {
         List<CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation>> commands = new ArrayList<>();
-        commands.add(upgradeCommand.createCommand());
+        commands.add(updateCommand.createCommand());
         commands.add(provisionCommand.createCommand());
         return commands;
     }

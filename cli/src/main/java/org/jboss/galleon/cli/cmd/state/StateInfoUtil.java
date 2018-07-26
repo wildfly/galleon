@@ -43,6 +43,8 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
 import org.jboss.galleon.cli.resolver.ResolvedPlugins;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureAnnotation;
@@ -325,6 +327,29 @@ public class StateInfoUtil {
         return null;
     }
 
+    public static String buildPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) {
+        if (!layout.hasPatches()) {
+            return null;
+        }
+        Table table = new Table(Headers.PATCH, Headers.PATCH_FOR, Headers.CHANNEL);
+
+        for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
+            List<FeaturePackLayout> patches = layout.getPatches(fpLayout.getFPID());
+            for (FeaturePackLayout patch : patches) {
+                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(patch.getFPID().getLocation());
+                FPID patchFor = patch.getSpec().getPatchFor();
+                table.addLine(patch.getFPID().getBuild(),
+                        patchFor.getProducer().getName() + FeaturePackLocation.BUILD_START + patchFor.getBuild(),
+                        formatChannel(loc));
+            }
+        }
+        if (!table.isEmpty()) {
+            table.sort(Table.SortType.ASCENDANT);
+            return table.build();
+        }
+        return null;
+    }
+
     public static void printFeaturePack(PmCommandInvocation commandInvocation, FeaturePackLocation loc) {
         loc = commandInvocation.getPmSession().getExposedLocation(loc);
         Table t = new Table(Headers.PRODUCT, Headers.BUILD, Headers.CHANNEL);
@@ -388,7 +413,7 @@ public class StateInfoUtil {
         }
         if (!plugins.getInstall().isEmpty()) {
             found = true;
-            builder.append("Upgrade command options").append(Config.getLineSeparator());
+            builder.append("Update command options").append(Config.getLineSeparator());
             builder.append(buildOptionsTable(plugins.getDiff()));
         }
         if (found) {

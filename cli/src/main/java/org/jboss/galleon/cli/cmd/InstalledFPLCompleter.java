@@ -16,21 +16,15 @@
  */
 package org.jboss.galleon.cli.cmd;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.PmCompleterInvocation;
-import org.jboss.galleon.config.FeaturePackConfig;
+import static org.jboss.galleon.cli.cmd.InstalledProducerCompleter.getInstallationLocations;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.util.PathsUtils;
 
 /**
- * Installed FPID completer.
+ * Installed direct and patches completer.
  *
  * @author jdenise@redhat.com
  */
@@ -38,26 +32,10 @@ public class InstalledFPLCompleter extends AbstractCompleter {
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
-        Path currentDir = cmd.getInstallationDirectory(completerInvocation.getAeshContext());
+        List<FeaturePackLocation> locations = getInstallationLocations(completerInvocation, false, true);
         List<String> items = new ArrayList<>();
-        try {
-            PathsUtils.assertInstallationDir(currentDir);
-            ProvisioningManager mgr = completerInvocation.getPmSession().
-                    newProvisioningManager(currentDir, false);
-            for (FeaturePackConfig fp : mgr.getProvisioningConfig().getFeaturePackDeps()) {
-                items.add(completerInvocation.getPmSession().
-                        getExposedLocation(fp.getLocation()).getFPID().toString());
-                if (fp.hasPatches()) {
-                    for (FeaturePackLocation.FPID p : fp.getPatches()) {
-                        items.add(completerInvocation.getPmSession().
-                                getExposedLocation(p.getLocation()).getFPID().toString());
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(InstalledFPLCompleter.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", ex.getLocalizedMessage());
+        for (FeaturePackLocation loc : locations) {
+            items.add(loc.getFPID().toString());
         }
         return items;
     }

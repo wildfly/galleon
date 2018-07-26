@@ -96,6 +96,13 @@ public class PatchTestCase {
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCHES));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(patchID.getBuild()));
 
+        //Check that output contains the patch.
+        cli.execute("state info --dir=" + install1 + " --type=patches");
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH_FOR));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(patchID.getBuild()));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
+
         // uninstall the patch
         cli.execute("uninstall --dir=" + install1 + " " + patchID);
 
