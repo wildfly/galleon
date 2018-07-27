@@ -18,7 +18,6 @@ package org.jboss.galleon.cli;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.impl.internal.ParsedCommand;
@@ -52,10 +51,6 @@ public abstract class AbstractStateCommand extends PmSessionCommand implements C
     @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
             activator = DirActivator.class, description = "Installation directory.")
     protected String targetDirArg;
-
-    protected String getName() {
-        return Paths.get(targetDirArg).getFileName().toString();
-    }
 
     protected ProvisioningManager getManager(PmSession session) throws ProvisioningException {
         return session.newProvisioningManager(getInstallationDirectory(session.getAeshContext()), false);

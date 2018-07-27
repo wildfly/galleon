@@ -92,10 +92,9 @@ public class State {
         for (FeaturePackConfig cf : conf.getFeaturePackDeps()) {
             dependencies.add(cf.getLocation().getFPID());
         }
-        init(pmSession);
-        Map<String, FeatureContainer> fullDependencies = new HashMap<>();
-        buildDependencies(pmSession, dependencies, fullDependencies);
-        container.setFullDependencies(fullDependencies);
+        builder = conf.getBuilder();
+        config = buildNewConfig(pmSession);
+        path = installation.getFileName().toString() + PathParser.PATH_SEPARATOR;
     }
 
     public ProvisioningRuntime getRuntime() {
@@ -257,8 +256,10 @@ public class State {
 
     private ProvisioningConfig buildNewConfig(PmSession pmSession) throws ProvisioningException, IOException {
         ProvisioningConfig tmp = builder.build();
-        runtime.close();
-        runtime = ProvisioningRuntimeBuilder.newInstance(runtime.getMessageWriter())
+        if (runtime != null) {
+            runtime.close();
+        }
+        runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
                 .initLayout(pmSession.getLayoutFactory(), tmp)
                 .build();
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
@@ -269,7 +270,9 @@ public class State {
         // Need to have in sync the current with the full.
         // If fullConainer creation is a failure, the container will be not updated.
         Map<String, FeatureContainer> tmpDeps = new HashMap<>();
-        tmpDeps.putAll(container.getFullDependencies());
+        if (container != null) {
+            tmpDeps.putAll(container.getFullDependencies());
+        }
         buildDependencies(pmSession, dependencies, tmpDeps);
         container = tmpContainer;
         container.setEdit(true);

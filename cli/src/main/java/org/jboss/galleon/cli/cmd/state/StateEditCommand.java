@@ -27,6 +27,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
+import org.jboss.galleon.cli.path.PathParser;
 
 /**
  *
@@ -50,8 +51,8 @@ public class StateEditCommand extends PmSessionCommand {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.readContentFailed(), ex);
         }
         invoc.getPmSession().setState(session);
-        invoc.setPrompt(PmSession.buildPrompt(invoc.getPmSession().getState().getPath()));
-        invoc.println("Entering provisioning composition mode. Use 'feature-pack add' command to add content. Call 'state leave' to leave this mode.");
+        invoc.setPrompt(PmSession.buildPrompt("" + PathParser.PATH_SEPARATOR));
+        invoc.println("Entering provisioning composition mode. Use 'fp add' command to add content. Call 'state leave' to leave this mode.");
     }
 
     protected Path getInstallationHome(AeshContext context) {

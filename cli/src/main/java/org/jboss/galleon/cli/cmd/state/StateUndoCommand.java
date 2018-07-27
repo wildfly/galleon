@@ -57,10 +57,11 @@ public class StateUndoCommand extends org.jboss.galleon.cli.AbstractStateCommand
                 mgr.undo();
             } else {
                 State state = invoc.getPmSession().getState();
-                state.pop(invoc.getPmSession());
                 if (!state.hasActions()) {
                     throw new ProvisioningException(Errors.historyIsEmpty());
                 }
+                state.pop(invoc.getPmSession());
+
             }
         } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.undoFailed(), ex);
