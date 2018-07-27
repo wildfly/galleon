@@ -16,14 +16,14 @@
  */
 package org.jboss.galleon.cli;
 
-import org.jboss.galleon.cli.config.mvn.MavenSettings;
 import java.util.List;
-import org.eclipse.aether.RepositoryListener;
 
+import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.cli.config.mvn.MavenConfig;
+import org.jboss.galleon.cli.config.mvn.MavenSettings;
 import org.jboss.galleon.maven.plugin.util.AbstractMavenArtifactRepositoryManager;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 

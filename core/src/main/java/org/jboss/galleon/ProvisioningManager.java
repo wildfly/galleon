@@ -43,9 +43,9 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
-import org.jboss.galleon.util.StateHistoryUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
+import org.jboss.galleon.util.StateHistoryUtils;
 import org.jboss.galleon.xml.ProvisionedStateXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
@@ -628,7 +628,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case upgrade fails
      * @throws IOException  in case upgrade fails
      */
-    public void upgrade(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
+    public void upgrade(Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();
         Path tempInstallationDir = IoUtils.createRandomTmpDir();
         Path stagedDir = IoUtils.createRandomTmpDir();

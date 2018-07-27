@@ -17,8 +17,8 @@
 package org.jboss.galleon.cli.model;
 
 import java.util.Objects;
-import org.jboss.galleon.ArtifactCoords.Gav;
 
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;

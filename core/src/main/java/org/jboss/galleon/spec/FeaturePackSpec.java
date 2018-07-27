@@ -19,7 +19,7 @@ package org.jboss.galleon.spec;
 import java.util.Collections;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
@@ -98,7 +98,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
      * @param gav  Feature-pack artifact GAV
      * @return  this builder instance
      */
-    public static Builder builder(ArtifactCoords.Gav gav) {
+    public static Builder builder(Gav gav) {
         return new Builder().setFPID(LegacyGalleon1Universe.toFpl(gav).getFPID());
     }
 
@@ -110,7 +110,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final Set<String> defPackages;
     private final FPID patchFor;
 
-    private ArtifactCoords.Gav legacyGav;
+    private Gav legacyGav;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -124,7 +124,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
      *
      * @return  Feature-pack artifact GAV
      */
-    public ArtifactCoords.Gav getGav() {
+    public Gav getGav() {
         if(legacyGav == null) {
             try {
                 legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();

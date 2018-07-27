@@ -26,7 +26,7 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
@@ -44,7 +44,7 @@ import org.jboss.galleon.xml.ConfigXmlParser;
  */
 public class FeaturePackInstaller {
 
-    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, ArtifactCoords.Gav fpGav) {
+    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, Gav fpGav) {
         return new FeaturePackInstaller(repoHome, installationDir, LegacyGalleon1Universe.toFpl(fpGav));
     }
 

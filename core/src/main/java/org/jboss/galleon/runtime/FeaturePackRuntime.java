@@ -25,9 +25,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
@@ -52,7 +52,7 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
     private final int type;
 
-    private ArtifactCoords.Gav legacyGav;
+    private Gav legacyGav;
 
     FeaturePackRuntime(FeaturePackRuntimeBuilder builder, ProvisioningRuntime runtime) throws ProvisioningException {
         this.runtime = runtime;
@@ -95,7 +95,7 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
      *
      * @return  Feature-pack Maven artifact GAV
      */
-    public ArtifactCoords.Gav getGav() {
+    public Gav getGav() {
         if(legacyGav == null) {
             try {
                 legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();

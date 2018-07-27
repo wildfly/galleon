@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -57,7 +58,7 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
         return ArtifactCoords.newInstance(producer.substring(0, colon), producer.substring(colon + 1), fpl.getBuild(), ZIP);
     }
 
-    public static FeaturePackLocation toFpl(ArtifactCoords.Gav gav) {
+    public static FeaturePackLocation toFpl(Gav gav) {
         final String version = gav.getVersion();
         if(version == null) {
             return new FeaturePackLocation(

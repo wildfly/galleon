@@ -18,6 +18,7 @@ package org.jboss.galleon.cli;
 
 import java.util.Collection;
 import java.util.List;
+
 import org.aesh.command.Command;
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.readline.AeshContext;

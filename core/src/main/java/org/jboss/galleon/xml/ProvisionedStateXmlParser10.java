@@ -26,8 +26,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.runtime.ResolvedSpecId;
@@ -248,7 +248,7 @@ class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.VERSION));
         }
 
-        final ProvisionedFeaturePack.Builder fpBuilder = ProvisionedFeaturePack.builder(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getFPID());
+        final ProvisionedFeaturePack.Builder fpBuilder = ProvisionedFeaturePack.builder(LegacyGalleon1Universe.toFpl(new Gav(groupId, artifactId, version)).getFPID());
 
         while (reader.hasNext()) {
             switch (reader.nextTag()) {

@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.layout.FeaturePackDescription;
 import org.jboss.galleon.layout.FeaturePackDescriber;
+import org.jboss.galleon.layout.FeaturePackDescription;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 

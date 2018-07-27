@@ -34,9 +34,9 @@ import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
+import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.util.StringUtils;
 
 /**

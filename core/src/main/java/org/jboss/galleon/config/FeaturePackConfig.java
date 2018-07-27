@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -216,7 +216,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
      * @param gav  Feature-pack artifact GAV
      * @return  this builder instance
      */
-    public static Builder builder(ArtifactCoords.Gav gav) {
+    public static Builder builder(Gav gav) {
         return new Builder(LegacyGalleon1Universe.toFpl(gav));
     }
 
@@ -281,7 +281,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     protected final List<FPID> patches;
     private final Builder builder;
 
-    private ArtifactCoords.Gav legacyGav;
+    private Gav legacyGav;
 
     protected FeaturePackConfig(Builder builder) {
         super(builder);
@@ -317,7 +317,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
      *
      * @return  Feature-pack artifact GAV
      */
-    public ArtifactCoords.Gav getGav() {
+    public Gav getGav() {
         if(legacyGav == null) {
             try {
                 legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpl).toGav();

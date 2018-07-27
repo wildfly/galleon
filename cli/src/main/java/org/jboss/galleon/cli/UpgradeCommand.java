@@ -19,9 +19,10 @@ package org.jboss.galleon.cli;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
@@ -76,7 +77,7 @@ public class UpgradeCommand extends FromInstallationCommand {
             parameters.put("server-config", serverConfig);
         }
         try {
-            getManager(session).upgrade(ArtifactCoords.newGav(coord), parameters);
+            getManager(session).upgrade(Gav.parse(coord), parameters);
         } catch (ProvisioningException | IOException e) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
