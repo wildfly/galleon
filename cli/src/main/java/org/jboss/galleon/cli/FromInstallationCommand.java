@@ -16,12 +16,14 @@
  */
 package org.jboss.galleon.cli;
 
+import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
+
 import java.nio.file.Path;
+
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
 
 /**
  *

@@ -33,10 +33,6 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         return new ArtifactCoords(groupId, artifactId, version, null, extension);
     }
 
-    public static ArtifactCoords fromGav(Gav gav, String extension) {
-        return new ArtifactCoords(gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), null, extension);
-    }
-
     public static ArtifactCoords fromString(String str) {
         return new ArtifactCoords(str, "jar");
     }
@@ -45,215 +41,8 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         return new ArtifactCoords(str, defaultExtension);
     }
 
-    public static Gav newGav(String groupId, String artifactId, String version) {
-        return new ArtifactCoords(groupId, artifactId, version, "", "zip").toGav();
-    }
-
-    public static Gav newGav(String str) {
-
-        int i = str.indexOf(':');
-        if(i <= 0) {
-            throw new IllegalArgumentException("groupId is missing in '" + str + "'");
-        }
-        final String groupId = str.substring(0, i);
-        final String artifactId;
-        final String version;
-        i = str.indexOf(':', i + 1);
-        if(i < 0) {
-            artifactId = str.substring(groupId.length() + 1);
-            version = null;
-        } else {
-            artifactId = str.substring(groupId.length() + 1, i);
-            version = str.substring(i + 1);
-        }
-        return newGav(groupId, artifactId, version);
-    }
-
-    public static Ga newGa(String groupId, String artifactId) {
-        return new ArtifactCoords(groupId, artifactId, null, "", "zip").toGa();
-    }
-
     private static String get(String value, String defaultValue) {
         return (value == null || value.length() <= 0) ? defaultValue : value;
-    }
-
-    /**
-     * GroupId/ArtifactId/Version view of ArtifactCoords
-     *
-     * @author Alexey Loubyansky
-     */
-    public class Gav implements Comparable<Gav> {
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public ArtifactCoords toArtifactCoords() {
-            return ArtifactCoords.this;
-        }
-
-        public Ga toGa() {
-            return ArtifactCoords.this.toGa();
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder buf = new StringBuilder();
-            if(groupId != null) {
-                buf.append(groupId);
-            }
-            buf.append(':');
-            if(artifactId != null) {
-                buf.append(artifactId);
-            }
-            if(version != null) {
-                buf.append(':').append(version);
-            }
-            return buf.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((artifactId == null) ? 0 : artifactId.hashCode());
-            result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
-            result = prime * result + ((version == null) ? 0 : version.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            Gav other = (Gav) obj;
-            if (artifactId == null) {
-                if (other.getArtifactId() != null)
-                    return false;
-            } else if (!artifactId.equals(other.getArtifactId()))
-                return false;
-            if (groupId == null) {
-                if (other.getGroupId() != null)
-                    return false;
-            } else if (!groupId.equals(other.getGroupId()))
-                return false;
-            if (version == null) {
-                if (other.getVersion() != null)
-                    return false;
-            } else if (!version.equals(other.getVersion()))
-                return false;
-            return true;
-        }
-
-        @Override
-        public int compareTo(Gav o) {
-            if(o == null) {
-                return 1;
-            }
-            int i = groupId.compareTo(o.getGroupId());
-            if(i != 0) {
-                return i;
-            }
-            i = artifactId.compareTo(o.getArtifactId());
-            if(i != 0) {
-                return i;
-            }
-            if(version == null) {
-                return o.getVersion() == null ? 0 : -1;
-            }
-            if(o.getVersion() == null) {
-                return 1;
-            }
-            return version.compareTo(o.getVersion());
-        }
-    }
-
-    /**
-     * GroupId/ArtifactId view of ArtifactCoords
-     *
-     * @author Alexey Loubyansky
-     */
-    public class Ga implements Comparable<Ga> {
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public Gav toGav() {
-            return ArtifactCoords.this.toGav();
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder buf = new StringBuilder();
-            if(groupId != null) {
-                buf.append(groupId);
-            }
-            buf.append(':');
-            if(artifactId != null) {
-                buf.append(artifactId);
-            }
-            return buf.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((artifactId == null) ? 0 : artifactId.hashCode());
-            result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            Ga other = (Ga) obj;
-            if (artifactId == null) {
-                if (other.getArtifactId() != null)
-                    return false;
-            } else if (!artifactId.equals(other.getArtifactId()))
-                return false;
-            if (groupId == null) {
-                if (other.getGroupId() != null)
-                    return false;
-            } else if (!groupId.equals(other.getGroupId()))
-                return false;
-            return true;
-        }
-
-        @Override
-        public int compareTo(Ga o) {
-            if(o == null) {
-                return 1;
-            }
-            int i = groupId.compareTo(o.getGroupId());
-            if(i != 0) {
-                return i;
-            }
-            return artifactId.compareTo(o.getArtifactId());
-        }
     }
 
     private final String groupId;
@@ -261,9 +50,6 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     private final String version;
     private final String classifier;
     private final String extension;
-
-    private final Gav gavPart;
-    private final Ga gaPart;
 
     private ArtifactCoords(String str, String defaultExtension) {
         final Matcher m = COORDS_PATTERN.matcher(str);
@@ -277,8 +63,6 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         classifier = get(m.group(6), "");
         version = m.group(7);
 
-        gavPart = new Gav();
-        gaPart = new Ga();
     }
 
     public ArtifactCoords(String groupId, String artifactId, String version, String classifier, String extension) {
@@ -287,9 +71,6 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
         this.version = version;
         this.classifier = get(classifier, "");
         this.extension = get(extension, "jar");
-
-        gavPart = new Gav();
-        gaPart = new Ga();
     }
 
     public String getGroupId() {
@@ -313,11 +94,11 @@ public class ArtifactCoords implements Comparable<ArtifactCoords> {
     }
 
     public Gav toGav() {
-        return gavPart;
+        return new Gav(groupId, artifactId, version);
     }
 
     public Ga toGa() {
-        return gaPart;
+        return new Ga(groupId, artifactId);
     }
 
     @Override

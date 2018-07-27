@@ -16,14 +16,16 @@
  */
 package org.jboss.galleon.cli;
 
+import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
+
 import java.nio.file.Path;
+
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
-import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 
 /**

@@ -20,14 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.PackageDepsSpecBuilder;
 import org.jboss.galleon.spec.SpecId;
 import org.jboss.galleon.util.CollectionUtils;
-
-import java.util.Set;
 
 /**
  * @author Alexey Loubyansky

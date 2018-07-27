@@ -19,6 +19,7 @@ package org.jboss.galleon.cli;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.aesh.command.completer.OptionCompleter;
 
 /**

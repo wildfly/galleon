@@ -21,7 +21,7 @@ import static org.jboss.galleon.universe.TestConstants.GROUP_ID;
 
 import java.nio.file.Path;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseRepoTestBase;
@@ -98,7 +98,7 @@ public class MavenUniverseLocationTestCase extends UniverseRepoTestBase {
                 setVersion("5.1.0.Alpha1");
         FeaturePackCreator.getInstance()
         .addArtifactResolver(repo)
-        .newFeaturePack(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(fpArt.getGroupId(), fpArt.getArtifactId(), fpArt.getVersion())).getFPID())
+        .newFeaturePack(LegacyGalleon1Universe.toFpl(new Gav(fpArt.getGroupId(), fpArt.getArtifactId(), fpArt.getVersion())).getFPID())
         .getCreator()
         .install();
     }

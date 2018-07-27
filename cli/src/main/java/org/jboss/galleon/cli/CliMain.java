@@ -17,9 +17,8 @@
 package org.jboss.galleon.cli;
 
 import java.io.PrintStream;
-import org.jboss.galleon.cli.cmd.universe.UniverseCommand;
-import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
+
 import org.aesh.command.AeshCommandRuntimeBuilder;
 import org.aesh.command.CommandRuntime;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
@@ -29,17 +28,19 @@ import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
 import org.aesh.extensions.clear.Clear;
 import org.aesh.readline.ReadlineConsole;
-import org.jboss.galleon.cli.cmd.mvn.MavenCommand;
+import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
 import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
 import org.jboss.galleon.cli.cmd.filesystem.LsCommand;
 import org.jboss.galleon.cli.cmd.filesystem.PmMkdir;
 import org.jboss.galleon.cli.cmd.filesystem.PmRm;
 import org.jboss.galleon.cli.cmd.filesystem.PwdCommand;
-import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
+import org.jboss.galleon.cli.cmd.mvn.MavenCommand;
 import org.jboss.galleon.cli.cmd.plugin.InstallCommand;
-import org.jboss.galleon.cli.cmd.state.StateCommand;
 import org.jboss.galleon.cli.cmd.state.SearchCommand;
+import org.jboss.galleon.cli.cmd.state.StateCommand;
 import org.jboss.galleon.cli.cmd.state.feature.FeatureCommand;
+import org.jboss.galleon.cli.cmd.universe.UniverseCommand;
+import org.jboss.galleon.cli.config.Configuration;
 
 /**
  *

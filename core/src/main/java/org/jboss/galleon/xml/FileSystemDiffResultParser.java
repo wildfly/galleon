@@ -20,6 +20,7 @@ package org.jboss.galleon.xml;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 

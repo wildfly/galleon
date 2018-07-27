@@ -17,6 +17,7 @@
 package org.jboss.galleon.plugin;
 
 import java.io.IOException;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.runtime.PackageRuntime;

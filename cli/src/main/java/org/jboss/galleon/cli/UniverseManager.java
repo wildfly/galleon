@@ -16,7 +16,8 @@
  */
 package org.jboss.galleon.cli;
 
-import org.jboss.galleon.cli.resolver.PluginResolver;
+import static org.jboss.galleon.cli.PmSession.getWorkDir;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,13 +33,15 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.stream.XMLStreamException;
+
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.PmSession.getWorkDir;
 import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
+import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;

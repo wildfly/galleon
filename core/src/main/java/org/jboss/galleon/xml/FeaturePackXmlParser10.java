@@ -21,11 +21,12 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Gav;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
@@ -198,7 +199,7 @@ public class FeaturePackXmlParser10 implements PlugableXmlParser<FeaturePackSpec
         if (!required.isEmpty()) {
             throw ParsingUtils.missingAttributes(reader.getLocation(), required);
         }
-        fpBuilder.setFPID(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getFPID());
+        fpBuilder.setFPID(LegacyGalleon1Universe.toFpl(new Gav(groupId, artifactId, version)).getFPID());
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
