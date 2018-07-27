@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.plugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,6 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
-import org.jboss.galleon.cli.CliMain;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -38,6 +38,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
+import org.jboss.galleon.util.PathsUtils;
 
 /**
  *
@@ -46,7 +47,7 @@ import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 public abstract class AbstractProvisionWithPlugins extends AbstractDynamicCommand implements CommandWithInstallationDirectory {
 
     protected AbstractProvisionWithPlugins(PmSession pmSession) {
-        super(pmSession, true, false, CliMain.experimentalFeaturesEnabled());
+        super(pmSession, true, false);
     }
 
     @Override
@@ -116,5 +117,20 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
     @Override
     protected PmCommandActivator getActivator() {
         return new NoStateCommandActivator();
+    }
+
+    @Override
+    protected boolean canComplete(PmSession pmSession) {
+        //Only if we have a valid directory
+        String targetDirArg = (String) getValue(DIR_OPTION_NAME);
+        if (targetDirArg == null) {
+            // Check in argument or option, that is the option completion case.
+            targetDirArg = getOptionValue(DIR_OPTION_NAME);
+        }
+        if (targetDirArg != null) {
+            return true;
+        }
+        Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
+        return Files.exists(PathsUtils.getProvisioningXml(workDir));
     }
 }

@@ -39,7 +39,6 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
-import static org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand.RESOLUTION_MESSAGE;
 import org.jboss.galleon.cli.cmd.state.StateNoExplorationActivator;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.PluginResolver;
@@ -92,14 +91,21 @@ public class StateProvisionCommand extends AbstractProvisionWithPlugins {
                 return Collections.emptyList();
             }
             ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, pmSession.getAeshContext()));
-            opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config),
-                    RESOLUTION_MESSAGE).getInstall();
+            opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config)).getInstall();
         }
         for (PluginOption opt : opts) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
         }
         return options;
+    }
+
+    @Override
+    protected boolean canComplete(PmSession pmSession) {
+        if (pmSession.getState() != null) {
+            return true;
+        }
+        return super.canComplete(pmSession);
     }
 
     private Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {

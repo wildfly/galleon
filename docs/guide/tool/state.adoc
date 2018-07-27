@@ -70,15 +70,23 @@ _feature-pack info wildfly:current#1.0.0-Alpha1_
 _install <[FPL|FPID] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
 
 This creates a directory containing the installed feature-pack content (binaries, configs). +
-NB: To retrieve the set of feature-pack specific options call: +
+
+NB: Using completion, when an installation directory has been identified, the options that
+are specific to the feature-pack to install are proposed. When installing for the first time
+a feature-pack this can take some time (a matter of few seconds up to minutes 
+if the feature-pack needs to be downloaded from a remote location).
+
+You can retrieve the set of feature-pack specific options without relying on completion, to do so call: +
 _feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=options_ +
-You can then use the listed options (if any) to customize your installation.
+You can then use the listed options (if any) to customize your install command.
 
 ### Un-installing a feature-pack
 
 _uninstall [FPID] [--dir=<installation dir>]_
 
 This will remove the content installed by the feature-pack identified by the FPID.
+
+NB: Completer proposes the FPID you can un-install from the installation (products and patches).
 
 ### Un-doing the last provisioning command
 
@@ -90,7 +98,7 @@ This will revert the installation to the previous installed state.
 
 Use the _install_ command to patch an existing installation.
 
-_install [--file=<path to patch fp zip file>]> [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
+_install <[FPL|FPID] | [--file=<path to patch zip file>]> [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
 
 ### Un-installing a patch
 
@@ -104,10 +112,19 @@ If no directory is provided, the current directory is used. If no products are p
 
 ### Updating an installation
 
-_state update [--dir=<installation dir> [--include-all-dependencies] [--yes] [--products=<list of products>] [list of discovered feature-pack options]_
+_state update [--dir=<installation dir>] [--include-all-dependencies] [--yes] [--products=<list of products>] [feature-pack specific options]_
 
 Display the list of available updates/patches then update. If no directory is provided, the current directory is used. 
 If _--yes_ is provided, the command will proceed without asking for confirmation.
+
+NB: Using completion, when an installation directory has been identified, the options that
+are specific to the installed feature-pack(s) are proposed. When updating an installation for the first time 
+this can take some time (a matter of few seconds up to minutes if the feature-pack 
+needs to be downloaded from a remote location).
+
+You can retrieve the set of feature-pack specific options without relying on completion, to do so call: +
+_state info [--dir=<installation dir>] --type=options_ +
+You can then use the listed options (if any) to customize your update command.
 
 ### Observing an installation
 
@@ -129,7 +146,12 @@ _[my-dir]$ state export <new generated xml file> --dir=<installation>_
 
 ###  Provisioning an installation from xml
 
-_[my-dir]$ state provision <xml file> --dir=<target installation directory>_
+_[my-dir]$ state provision <xml file> --dir=<target installation directory> [feature-pack specific options]_
+
+NB: Using completion, when an installation directory has been identified, the options that
+are specific to the feature-pack(s) located in the XML configuration file are proposed. 
+When provisioning an installation for the first time this can take some time 
+(a matter of few seconds up to minutes if the feature-pack needs to be downloaded from a remote location).
 
 ### Managing the history of an installation
 

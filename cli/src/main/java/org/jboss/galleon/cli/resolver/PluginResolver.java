@@ -16,8 +16,10 @@
  */
 package org.jboss.galleon.cli.resolver;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
@@ -37,16 +39,30 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  */
 public class PluginResolver implements Resolver<ResolvedPlugins> {
 
-    private final ProvisioningConfig config;
+    private ProvisioningConfig config;
+    private Path file;
     private final PmSession session;
 
     private PluginResolver(PmSession session, ProvisioningConfig config) {
+        Objects.requireNonNull(session);
+        Objects.requireNonNull(config);
         this.session = session;
         this.config = config;
     }
 
+    private PluginResolver(PmSession session, Path file) {
+        Objects.requireNonNull(session);
+        Objects.requireNonNull(file);
+        this.session = session;
+        this.file = file;
+    }
+
     public static PluginResolver newResolver(PmSession session, ProvisioningConfig config) {
         return new PluginResolver(session, config);
+    }
+
+    public static PluginResolver newResolver(PmSession session, Path file) {
+        return new PluginResolver(session, file);
     }
 
     public static PluginResolver newResolver(PmSession session, FeaturePackLocation loc) throws ProvisioningDescriptionException {
@@ -57,16 +73,27 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
     @Override
     public ResolvedPlugins resolve() throws ResolutionException {
         ProvisioningLayout layout = null;
+        // Silent resolution.
+        session.unregisterTrackers();
         try {
-            layout = session.getLayoutFactory().newConfigLayout(config);
-            return resolvePlugins(layout);
+            try {
+                if (config != null) {
+                    layout = session.getLayoutFactory().newConfigLayout(config);
+                } else {
+                    // No registration in universe during completion
+                    layout = session.getLayoutFactory().newConfigLayout(file, false);
+                }
+                return resolvePlugins(layout);
 
-        } catch (Exception ex) {
-            throw new ResolutionException(ex.getLocalizedMessage(), ex);
-        } finally {
-            if (layout != null) {
-                layout.close();
+            } catch (Exception ex) {
+                throw new ResolutionException(ex.getLocalizedMessage(), ex);
+            } finally {
+                if (layout != null) {
+                    layout.close();
+                }
             }
+        } finally {
+            session.registerTrackers();
         }
     }
 

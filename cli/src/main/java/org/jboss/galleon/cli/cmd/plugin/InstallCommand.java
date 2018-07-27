@@ -45,6 +45,7 @@ import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.util.PathsUtils;
 
 /**
  *
@@ -98,9 +99,19 @@ public class InstallCommand extends AbstractPluginsCommand {
     @Override
     protected Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException {
         try {
-            return pmSession.getResolver().get(loc.toString(),
-                    PluginResolver.newResolver(pmSession, loc),
-                    RESOLUTION_MESSAGE).getInstall();
+            //If we have a file, retrieve the options from the file.
+            String file = (String) getValue(FILE_OPTION_NAME);
+            if (file == null) {
+                // Check in argument or option, that is the option completion case.
+                file = getOptionValue(FILE_OPTION_NAME);
+            }
+            if (file == null) {
+                return pmSession.getResolver().get(loc.toString(),
+                        PluginResolver.newResolver(pmSession, loc)).getInstall();
+            } else {
+                return pmSession.getResolver().get(file,
+                        PluginResolver.newResolver(pmSession, loc)).getInstall();
+            }
         } catch (InterruptedException ex) {
             Thread.interrupted();
             throw new ProvisioningException(ex);
@@ -185,10 +196,26 @@ public class InstallCommand extends AbstractPluginsCommand {
     }
 
     @Override
+    protected boolean canComplete(PmSession pmSession) {
+        //Only if we have a valid directory
+        String targetDirArg = (String) getValue(DIR_OPTION_NAME);
+        if (targetDirArg == null) {
+            // Check in argument or option, that is the option completion case.
+            targetDirArg = getOptionValue(DIR_OPTION_NAME);
+        }
+        if (targetDirArg != null) {
+            return true;
+        }
+        // Current dir must be empty or contain an installation
+        Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
+        return Files.exists(PathsUtils.getProvisioningXml(workDir)) || workDir.toFile().list().length == 0;
+    }
+
+    @Override
     protected Path getInstallationHome(AeshContext context) {
         String targetDirArg = (String) getValue(DIR_OPTION_NAME);
         Path workDir = PmSession.getWorkDir(context);
-        return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
+        return targetDirArg == null ? workDir : workDir.resolve(targetDirArg);
     }
 
     @Override

@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.PmCompleterInvocation;
+import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.OPTIONS;
 
 /**
  *
@@ -36,7 +37,7 @@ public class InfoTypeCompleter extends AbstractCompleter {
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, PATCHES);
+        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONS, PATCHES);
     }
 
 }

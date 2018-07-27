@@ -101,20 +101,13 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     private final Map<String, List<ProcessedOption>> dynamicOptions = new HashMap<>();
     private final Map<String, String> renamedOptions = new HashMap<>();
 
-    private static class DisabledDynamicOptionsProvider implements MapProcessedCommandBuilder.ProcessedOptionProvider {
-
-        private static final List<ProcessedOption> options = Collections.emptyList();
-
-        @Override
-        public List<ProcessedOption> getOptions(List<ProcessedOption> currentOptions) {
-            return options;
-        }
-    }
-
     private class DynamicOptionsProvider implements MapProcessedCommandBuilder.ProcessedOptionProvider {
 
         @Override
         public List<ProcessedOption> getOptions(List<ProcessedOption> currentOptions) {
+            if (!canComplete(pmSession)) {
+                return Collections.emptyList();
+            }
             try {
                 List<ProcessedOption> options = null;
                 String id = null;
@@ -181,7 +174,6 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     private final boolean checkForRequired;
     private final boolean optimizeRetrieval;
     private final boolean requireId;
-    private boolean enableCompletion;
     /**
      *
      * @param pmSession The session
@@ -189,13 +181,12 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
      * @param requireId
      * @param enableCompletion
      */
-    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId, boolean enableCompletion) {
+    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId) {
         this.pmSession = pmSession;
         this.onlyAtCompletion = optimizeRetrieval;
         this.checkForRequired = !optimizeRetrieval;
         this.optimizeRetrieval = optimizeRetrieval;
         this.requireId = requireId;
-        this.enableCompletion = enableCompletion;
     }
 
     protected abstract String getId(PmSession session) throws CommandExecutionException;
@@ -281,8 +272,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         }
 
         builder.description(getDescription());
-        builder.optionProvider(enableCompletion ? new DynamicOptionsProvider()
-                : new DisabledDynamicOptionsProvider());
+        builder.optionProvider(new DynamicOptionsProvider());
         return builder.create();
     }
 
@@ -344,6 +334,8 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     }
 
     protected abstract void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException;
+
+    protected abstract boolean canComplete(PmSession pmSession);
 
     private void println(PmCommandInvocation session, Throwable t) {
         if (t.getLocalizedMessage() == null) {
