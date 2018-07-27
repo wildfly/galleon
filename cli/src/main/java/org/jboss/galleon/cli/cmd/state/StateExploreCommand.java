@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -32,14 +33,14 @@ public class StateExploreCommand extends AbstractStateCommand {
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         PmSession pm = session.getPmSession();
-        String prompt = null;
+        Path install;
         try {
             if (pm.getContainer() != null) {
                 throw new CommandExecutionException("Already entered, use leave command");
             }
             FeatureContainer container = getFeatureContainer(pm, null);
             pm.setExploredContainer(container);
-            prompt = getName() + PathParser.PATH_SEPARATOR;
+            install = getInstallationDirectory(session.getAeshContext());
             pm.setCurrentPath(FeatureContainerPathConsumer.ROOT);
         } catch (Exception ex) {
             if (ex instanceof CommandExecutionException) {
@@ -47,7 +48,7 @@ public class StateExploreCommand extends AbstractStateCommand {
             }
             throw new CommandExecutionException(session.getPmSession(), CliErrors.exploreFailed(), ex);
         }
-        session.setPrompt(PmSession.buildPrompt(prompt));
-        session.println("Exploring " + getName() + ". Use 'state leave' to leave exploration.");
+        session.setPrompt(PmSession.buildPrompt("" + PathParser.PATH_SEPARATOR));
+        session.println("Exploring " + install.getFileName() + ". Use 'state leave' to leave exploration.");
     }
 }

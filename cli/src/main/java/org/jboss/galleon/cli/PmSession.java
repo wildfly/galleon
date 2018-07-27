@@ -358,19 +358,14 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         if (state != null) {
             return state.getPath();
         }
-        if (currentPath != null) {
-            return currentPath;
-        }
-        return null;
+        return currentPath;
     }
 
     public void setCurrentPath(String currentPath) {
         if (state != null) {
             state.setPath(currentPath);
         }
-        if (currentPath != null) {
-            this.currentPath = currentPath;
-        }
+        this.currentPath = currentPath;
     }
 
     public void println(String txt) {

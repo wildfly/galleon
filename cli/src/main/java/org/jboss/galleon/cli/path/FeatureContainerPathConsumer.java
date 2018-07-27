@@ -538,6 +538,29 @@ public class FeatureContainerPathConsumer implements PathConsumer {
                     if (grp == null) {
                         throw new PathConsumerException("Unknown " + chunk);
                     }
+                    switch (chunk) {
+                        case PACKAGES: {
+                            grp = Group.fromString("", PACKAGES);
+                            for (String cf : info.getPackages().keySet()) {
+                                grp.getGroups().add(Group.fromString("", cf));
+                            }
+                            break;
+                        }
+                        case FEATURES: {
+                            grp = Group.fromString("", FEATURES);
+                            for (String cf : info.getFeatureSpecs().keySet()) {
+                                grp.getGroups().add(Group.fromString("", cf));
+                            }
+                            break;
+                        }
+                        case DEPENDENCIES: {
+                            grp = Group.fromString("", DEPENDENCIES);
+                            for (String cf : info.getFullDependencies().keySet()) {
+                                grp.getGroups().add(Group.fromString("", cf));
+                            }
+                            break;
+                        }
+                    }
                     return grp;
                 } else {
                     return rootGrp;
