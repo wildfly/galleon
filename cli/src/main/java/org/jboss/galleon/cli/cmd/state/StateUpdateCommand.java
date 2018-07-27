@@ -16,10 +16,11 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.impl.internal.OptionType;
 import org.aesh.command.impl.internal.ProcessedOption;
@@ -29,6 +30,7 @@ import org.aesh.readline.action.KeyAction;
 import org.aesh.readline.terminal.Key;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -41,6 +43,9 @@ import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.UPDATES_A
 import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.UP_TO_DATE;
 import org.jboss.galleon.cli.model.state.State;
 import static org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand.PRODUCTS_OPTION_NAME;
+import org.jboss.galleon.cli.resolver.PluginResolver;
+import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.plugin.PluginOption;
 
 /**
  *
@@ -96,7 +101,21 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
 
     @Override
     protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
-        return Collections.emptyList();
+        String targetDirArg = (String) getValue(DIR_OPTION_NAME);
+        if (targetDirArg == null) {
+            // Check in argument or option, that is the option completion case.
+            targetDirArg = getOptionValue(DIR_OPTION_NAME);
+        }
+        Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
+        Path installation = targetDirArg == null ? workDir : workDir.resolve(targetDirArg);
+        ProvisioningConfig config = pmSession.newProvisioningManager(installation, false).getProvisioningConfig();
+        Set<PluginOption> opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config)).getDiff();
+        List<DynamicOption> options = new ArrayList<>();
+        for (PluginOption opt : opts) {
+            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
+            options.add(dynOption);
+        }
+        return options;
     }
 
     @Override

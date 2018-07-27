@@ -100,7 +100,7 @@ public class ResourceResolver {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T get(String key, Resolver<T> res, String msg) throws InterruptedException, ExecutionException {
+    public <T> T get(String key, Resolver<T> res) throws InterruptedException, ExecutionException {
         CompletableFuture<T> comp;
         synchronized (this) {
             comp = (CompletableFuture<T>) content.get(key);

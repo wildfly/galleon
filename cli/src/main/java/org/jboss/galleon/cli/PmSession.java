@@ -221,11 +221,13 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return enableTrackers;
     }
 
-    private void registerTrackers() {
-        ProgressTrackers.registerTrackers(this);
+    public void registerTrackers() {
+        if (enableTrackers) {
+            ProgressTrackers.registerTrackers(this);
+        }
     }
 
-    private void unregisterTrackers() {
+    public void unregisterTrackers() {
         ProgressTrackers.unregisterTrackers(this);
     }
 

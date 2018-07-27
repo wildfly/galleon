@@ -33,6 +33,8 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.PATCHES;
 import org.jboss.galleon.cli.model.FeatureContainer;
+import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.OPTIONS;
+import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout;
@@ -68,6 +70,7 @@ public class StateInfoCommand extends AbstractStateCommand {
                             displayDependencies(invoc, layout);
                             displayPatches(invoc, layout);
                             displayConfigs(invoc, container);
+                            displayOptions(invoc, layout);
                             break;
                         }
                         case CONFIGS: {
@@ -84,6 +87,14 @@ public class StateInfoCommand extends AbstractStateCommand {
                             if (deps != null) {
                                 displayFeaturePacks(invoc, config);
                                 invoc.println(deps);
+                            }
+                            break;
+                        }
+                        case OPTIONS: {
+                            String options = buildOptions(layout);
+                            if (options != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(options);
                             }
                             break;
                         }
@@ -160,5 +171,17 @@ public class StateInfoCommand extends AbstractStateCommand {
 
     private String buildPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         return StateInfoUtil.buildPatches(invoc, layout);
+    }
+
+    private String buildOptions(ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        return StateInfoUtil.buildOptions(PluginResolver.resolvePlugins(layout));
+    }
+
+    private void displayOptions(PmCommandInvocation commandInvocation,
+            ProvisioningLayout layout) throws ProvisioningException {
+        String str = buildOptions(layout);
+        if (str != null) {
+            commandInvocation.println(str);
+        }
     }
 }

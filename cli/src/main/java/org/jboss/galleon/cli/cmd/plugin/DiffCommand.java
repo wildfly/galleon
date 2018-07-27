@@ -17,6 +17,7 @@
 package org.jboss.galleon.cli.cmd.plugin;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.util.PathsUtils;
 
 /**
  *
@@ -68,7 +70,7 @@ public class DiffCommand extends AbstractPluginsCommand {
     protected Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException {
         try {
             return pmSession.getResolver().get(loc.toString(),
-                    PluginResolver.newResolver(pmSession, loc), RESOLUTION_MESSAGE).getDiff();
+                    PluginResolver.newResolver(pmSession, loc)).getDiff();
         } catch (InterruptedException ex) {
             Thread.interrupted();
             throw new ProvisioningException(ex);
@@ -123,5 +125,29 @@ public class DiffCommand extends AbstractPluginsCommand {
     @Override
     protected PmCommandActivator getActivator() {
         return new NoStateCommandActivator();
+    }
+
+    @Override
+    protected boolean canComplete(PmSession pmSession) {
+        Path installation = getPathOption(SRC_NAME);
+        String target = null;
+        if (Files.exists(PathsUtils.getProvisioningXml(installation))) {
+            target = (String) getValue(TARGET_NAME);
+            if (target == null) {
+                // Check in argument or option, that is the option completion case.
+                target = getOptionValue(TARGET_NAME);
+            }
+        }
+        return target != null;
+    }
+
+    private Path getPathOption(String name) {
+        String path = (String) getValue(name);
+        if (path == null) {
+            // Check in argument or option, that is the option completion case.
+            path = getOptionValue(name);
+        }
+        Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
+        return path == null ? workDir : workDir.resolve(path);
     }
 }

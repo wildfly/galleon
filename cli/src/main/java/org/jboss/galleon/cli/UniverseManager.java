@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.cli;
 
-import org.jboss.galleon.cli.resolver.PluginResolver;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -123,23 +122,6 @@ public class UniverseManager implements MavenChangeListener {
                             deps.add(ploc);
                         }
                     }
-                    if (CliMain.experimentalFeaturesEnabled()) {
-                        // Then resolve plugins
-                        Future<?> f2 = executorService.submit(() -> {
-                            try {
-                                for (FeaturePackLocation loc : deps) {
-                                    if (closed) {
-                                        return;
-                                    }
-                                    pmSession.getResolver().resolveSync(loc.toString(), PluginResolver.newResolver(pmSession, loc));
-                                }
-                            } catch (Exception ex) {
-                                LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
-                            }
-                        });
-                        submited.add(f2);
-                    }
-                    LOGGER.log(Level.FINE, "Successfully resolved builtin universe.");
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
                 }
