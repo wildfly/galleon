@@ -45,7 +45,6 @@ import org.jboss.galleon.cli.tracking.ProgressTrackers;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
@@ -428,19 +427,19 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return oa;
     }
 
-    public boolean existsInLocalRepository(FPID fpid) throws ProvisioningException {
-        FeaturePackLocation loc = getResolvedLocation(fpid.getLocation());
-        Producer<?> producer = universe.getUniverse(loc.
-                getUniverse()).getProducer(loc.getProducerName());
-        boolean hasFrequency = false;
-        if (producer != null) {
-            hasFrequency = producer.hasFrequencies();
-        }
-        String freq = loc.getFrequency() == null && hasFrequency ? "alpha" : loc.getFrequency();
-        loc = new FeaturePackLocation(loc.getUniverse(),
-                loc.getProducerName(), loc.getChannelName(), freq, loc.getBuild());
-        return universe.isResolved(loc);
-    }
+//    public boolean existsInLocalRepository(FPID fpid) throws ProvisioningException {
+//        FeaturePackLocation loc = getResolvedLocation(fpid.getLocation());
+//        Producer<?> producer = universe.getUniverse(loc.
+//                getUniverse()).getProducer(loc.getProducerName());
+//        boolean hasFrequency = false;
+//        if (producer != null) {
+//            hasFrequency = producer.hasFrequencies();
+//        }
+//        String freq = loc.getFrequency() == null && hasFrequency ? "alpha" : loc.getFrequency();
+//        loc = new FeaturePackLocation(loc.getUniverse(),
+//                loc.getProducerName(), loc.getChannelName(), freq, loc.getBuild());
+//        return universe.isResolved(loc);
+//    }
 
     public void downloadFp(FPID fpid) throws ProvisioningException {
         universe.resolve(getResolvedLocation(fpid.getLocation()));

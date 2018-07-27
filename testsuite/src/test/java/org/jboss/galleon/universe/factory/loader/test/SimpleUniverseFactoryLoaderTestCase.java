@@ -22,7 +22,9 @@ import static org.jboss.galleon.universe.TestConstants.GROUP_ID;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 import org.jboss.galleon.universe.UniverseRepoTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.MavenUniverseInstaller;
@@ -42,22 +44,21 @@ public class SimpleUniverseFactoryLoaderTestCase extends UniverseRepoTestBase {
 
     @Override
     public void doInit() throws Exception {
-        MavenArtifact artifact = new MavenArtifact().
-                setGroupId(GROUP_ID).
-                setArtifactId("producer-artifact1").
-                setVersion("1.0.0.Final");
-        MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, artifact, FP_GROUP_ID, FP_ARTIFACT_ID);
-        producerInstaller.addChannel("5", "[5.0,6.0)");
-        producerInstaller.addFrequencies("alpha", "beta");
-        producerInstaller.install();
-
-        artifact = new MavenArtifact().
-                setGroupId(GROUP_ID).
-                setArtifactId(UNIVERSE_ARTIFACT_ID).
-                setVersion("1.0.0.Final");
-        final MavenUniverseInstaller universeInstaller = new MavenUniverseInstaller(repo, artifact);
-        universeInstaller.addProducer("producer1", GROUP_ID, "producer-artifact1", "[1.0.0,2.0.0)");
-        universeInstaller.install();
+        {
+            final Gaecv artifact = Gaecv.builder().groupId(GROUP_ID).artifactId("producer-artifact1").version("1.0.0.Final")
+                    .build();
+            final MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, ResolvedGaecRange.ofSingleGaecv(artifact), FP_GROUP_ID, FP_ARTIFACT_ID);
+            producerInstaller.addChannel("5", "[5.0,6.0)");
+            producerInstaller.addFrequencies("alpha", "beta");
+            producerInstaller.install();
+        }
+        {
+            final Gaecv artifact = Gaecv.builder().groupId(GROUP_ID).artifactId(UNIVERSE_ARTIFACT_ID).version("1.0.0.Final")
+                    .build();
+            final MavenUniverseInstaller universeInstaller = new MavenUniverseInstaller(repo, artifact);
+            universeInstaller.addProducer("producer1", GROUP_ID, "producer-artifact1", "[1.0.0,2.0.0)");
+            universeInstaller.install();
+        }
     }
 
     @Test
@@ -65,7 +66,7 @@ public class SimpleUniverseFactoryLoaderTestCase extends UniverseRepoTestBase {
 
         final Universe<?> universe = UniverseFactoryLoader.getInstance()
                 .getUniverse(MavenUniverseFactory.ID,
-                        GROUP_ID + ':' + UNIVERSE_ARTIFACT_ID + ':' + "[1.0,)",
+                        GaecRange.builder().groupId(GROUP_ID).artifactId(UNIVERSE_ARTIFACT_ID).versionRange("[1.0,)").build(),
                         SimplisticMavenRepoManager.getInstance(repoHome));
         Assert.assertNotNull(universe);
         Assert.assertTrue(universe.hasProducer("producer1"));
@@ -77,7 +78,7 @@ public class SimpleUniverseFactoryLoaderTestCase extends UniverseRepoTestBase {
 
         final Universe<?> universe = UniverseFactoryLoader.getInstance()
                 .addArtifactResolver(SimplisticMavenRepoManager.getInstance(repoHome))
-                .getUniverse(MavenUniverseFactory.ID, GROUP_ID + ':' + UNIVERSE_ARTIFACT_ID + ':' + "[1.0,)");
+                .getUniverse(MavenUniverseFactory.ID, GaecRange.builder().groupId(GROUP_ID).artifactId(UNIVERSE_ARTIFACT_ID).versionRange("[1.0,)").build());
         Assert.assertNotNull(universe);
         Assert.assertTrue(universe.hasProducer("producer1"));
         Assert.assertTrue(universe.getProducer("producer1").hasChannel("5"));

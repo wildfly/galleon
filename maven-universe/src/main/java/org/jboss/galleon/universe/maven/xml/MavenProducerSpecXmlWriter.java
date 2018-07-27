@@ -19,7 +19,10 @@ package org.jboss.galleon.universe.maven.xml;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenProducerBase;
 import org.jboss.galleon.universe.maven.xml.MavenProducerSpecXmlParser10.Attribute;
 import org.jboss.galleon.universe.maven.xml.MavenProducerSpecXmlParser10.Element;
@@ -31,7 +34,7 @@ import org.jboss.galleon.xml.util.TextNode;
  *
  * @author Alexey Loubyansky
  */
-public class MavenProducerSpecXmlWriter extends BaseXmlWriter<MavenProducerBase> {
+public class MavenProducerSpecXmlWriter extends BaseXmlWriter<MavenProducerBase<?>> {
 
     private static final MavenProducerSpecXmlWriter INSTANCE = new MavenProducerSpecXmlWriter();
 
@@ -40,25 +43,27 @@ public class MavenProducerSpecXmlWriter extends BaseXmlWriter<MavenProducerBase>
     }
 
     @Override
-    protected ElementNode toElement(MavenProducerBase producer) throws XMLStreamException {
+    protected ElementNode toElement(MavenProducerBase<?> producer) throws XMLStreamException {
         final ElementNode producerEl = addElement(null, Element.PRODUCER);
         addAttribute(producerEl, Attribute.NAME, producer.getName());
-        final MavenArtifact artifact = producer.getArtifact();
-        String value = artifact.getGroupId();
-        if(value == null) {
-            throw new XMLStreamException("Producer " + producer.getName() + " is missing groupId");
+        final ResolvedGaecRange<?> artifact = producer.getArtifact();
+        final Object resolved = artifact.getResolved();
+        final Gaecv gaecv;
+        if (resolved instanceof Gaecv) {
+            gaecv = (Gaecv) resolved;
+        } else if (resolved instanceof Gaecvp) {
+            gaecv = ((Gaecvp) resolved).getGaecv();
+        } else {
+            throw new IllegalStateException("Expected "+ Gaecv.class.getName() + " or "+ Gaecvp.class.getName() +"; got "+ artifact.getClass().getName());
         }
-        addElement(producerEl, Element.GROUP_ID).addChild(new TextNode(value));
-        value = artifact.getArtifactId();
-        if(value == null) {
-            throw new XMLStreamException("Producer " + producer.getName() + " is missing artifactId");
-        }
-        addElement(producerEl, Element.ARTIFACT_ID).addChild(new TextNode(value));
-        value = artifact.getVersionRange();
-        if(value == null) {
+        final Gaec gaec = gaecv.getGaec();
+        addElement(producerEl, Element.GROUP_ID).addChild(new TextNode(gaec.getGroupId()));
+        addElement(producerEl, Element.ARTIFACT_ID).addChild(new TextNode(gaec.getArtifactId()));
+        final String versionRange = producer.getArtifact().getGaecRange().getVersionRange();
+        if(versionRange == null) {
             throw new XMLStreamException("Producer " + producer.getName() + " is missing version-range");
         }
-        addElement(producerEl, Element.VERSION_RANGE).addChild(new TextNode(value));
+        addElement(producerEl, Element.VERSION_RANGE).addChild(new TextNode(versionRange));
         return producerEl;
     }
 

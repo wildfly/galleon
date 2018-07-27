@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
@@ -47,6 +46,7 @@ import org.jboss.galleon.layout.FeaturePackLayoutTransformer;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
+import org.jboss.galleon.model.Gaecv;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
@@ -283,9 +283,9 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      * @return  resolved local path to the artifact
      * @throws ArtifactException  in case resolution fails
      */
-    public Path resolveArtifact(ArtifactCoords coords) throws ArtifactException {
+    public Path resolveArtifact(Gaecv coords) throws ArtifactException {
         try {
-            return getMaven().resolve(coords.toString());
+            return getMaven().resolve(coords).getPath();
         } catch (ProvisioningException e) {
             throw new ArtifactException("Failed to resolve " + coords, e);
         }

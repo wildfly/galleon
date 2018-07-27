@@ -26,7 +26,9 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenProducer;
 import org.jboss.galleon.universe.maven.MavenUniverseBase;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
@@ -41,7 +43,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  *
  * @author Alexey Loubyansky
  */
-public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCallbackHandler<MavenUniverseBase, MavenProducer>> {
+public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCallbackHandler<MavenUniverseBase<?>, MavenProducer>> {
 
     public static final String NAMESPACE_1_0 = "urn:jboss:galleon:maven:producer:spec:1.0";
     public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.PRODUCER.name);
@@ -155,7 +157,7 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
     }
 
     @Override
-    public void readElement(XMLExtendedStreamReader reader, ParsedCallbackHandler<MavenUniverseBase, MavenProducer> builder) throws XMLStreamException {
+    public void readElement(XMLExtendedStreamReader reader, ParsedCallbackHandler<MavenUniverseBase<?>, MavenProducer> builder) throws XMLStreamException {
         String name = null;
         for (int i = 0; i < reader.getAttributeCount(); i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i));
@@ -170,14 +172,15 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
         if(name == null) {
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
         }
-        final MavenArtifact artifact = new MavenArtifact();
+        final GaecRange.Builder rangeBuilder = GaecRange.builder();
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
                     try {
                         final MavenRepoManager repo = builder.getParent().getRepo();
-                        repo.resolveLatestVersion(artifact);
-                        builder.parsed(new MavenProducer(name, repo, artifact));
+                        final GaecRange range = rangeBuilder.build();
+                        final Gaecvp artifact = repo.resolveLatestVersion(range);
+                        builder.parsed(new MavenProducer(name, repo, new ResolvedGaecRange<Gaecvp>(range, artifact)));
                     } catch (MavenUniverseException e) {
                         throw new XMLStreamException(getParserMessage("Failed to instantiate producer " + name, reader.getLocation()), e);
                     }
@@ -187,13 +190,13 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
                     final Element element = Element.of(reader.getName());
                     switch (element) {
                         case GROUP_ID:
-                            artifact.setGroupId(reader.getElementText());
+                            rangeBuilder.groupId(reader.getElementText());
                             break;
                         case ARTIFACT_ID:
-                            artifact.setArtifactId(reader.getElementText());
+                            rangeBuilder.artifactId(reader.getElementText());
                             break;
                         case VERSION_RANGE:
-                            artifact.setVersionRange(reader.getElementText());
+                            rangeBuilder.versionRange(reader.getElementText());
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);

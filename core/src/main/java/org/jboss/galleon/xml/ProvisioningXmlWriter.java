@@ -26,6 +26,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
@@ -96,14 +97,14 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         }
     }
 
-    private static void writeUniverseConfig(ElementNode universesEl, String name, String factory, String location) {
+    private static void writeUniverseConfig(ElementNode universesEl, String name, String factory, GaecRange location) {
         final ElementNode universeEl = addElement(universesEl, Element.UNIVERSE.getLocalName(), universesEl.getNamespace());
         if(name != null) {
             addAttribute(universeEl, Attribute.NAME, name);
         }
         addAttribute(universeEl, Attribute.FACTORY, factory);
         if(location != null) {
-            addAttribute(universeEl, Attribute.LOCATION, location);
+            addAttribute(universeEl, Attribute.LOCATION, location.toString());
         }
     }
 

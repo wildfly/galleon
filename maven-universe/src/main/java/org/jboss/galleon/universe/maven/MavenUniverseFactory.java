@@ -18,6 +18,8 @@
 package org.jboss.galleon.universe.maven;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFactory;
@@ -33,7 +35,9 @@ public class MavenUniverseFactory implements UniverseFactory {
     public static final String DEFAULT_REPO_ID = RepositoryArtifactResolver.ID_PREFIX + MavenUniverseConstants.MAVEN;
     public static final String ID = MavenUniverseConstants.MAVEN;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.galleon.universe.UniverseFactory#getRepoType()
      */
     @Override
@@ -46,20 +50,26 @@ public class MavenUniverseFactory implements UniverseFactory {
         return DEFAULT_REPO_ID;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.galleon.universe.UniverseFactory#getUniverse(java.lang.String)
      */
     @Override
-    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException {
+    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, GaecRange location)
+            throws ProvisioningException {
         final MavenRepoManager repo;
-        if(artifactResolver != null) {
-            if(!(artifactResolver instanceof MavenRepoManager)) {
-                throw new MavenUniverseException(artifactResolver.getClass().getName() + " is not an instance of " + MavenRepoManager.class.getName());
+        if (artifactResolver != null) {
+            if (!(artifactResolver instanceof MavenRepoManager)) {
+                throw new MavenUniverseException(artifactResolver.getClass().getName() + " is not an instance of "
+                        + MavenRepoManager.class.getName());
             }
             repo = (MavenRepoManager) artifactResolver;
         } else {
             repo = SimplisticMavenRepoManager.getInstance();
         }
-        return new MavenUniverse(repo, MavenArtifact.fromString(location));
+
+        final Gaecvp gaecvp = repo.resolveLatestVersion(location);
+        return new MavenUniverse(repo, gaecvp);
     }
 }

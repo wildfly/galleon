@@ -31,7 +31,6 @@ import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -78,22 +77,22 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
     public Path getDir() {
         return dir;
     }
-
-    /**
-     * @deprecated
-     *
-     * @return  Feature-pack Maven artifact GAV
-     */
-    public ArtifactCoords.Gav getGav() {
-        if(legacyGav == null) {
-            try {
-                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to translate fpl to gav", e);
-            }
-        }
-        return legacyGav;
-    }
+//
+//    /**
+//     * @deprecated
+//     *
+//     * @return  Feature-pack Maven artifact GAV
+//     */
+//    public ArtifactCoords.Gav getGav() {
+//        if(legacyGav == null) {
+//            try {
+//                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
+//            } catch (ProvisioningException e) {
+//                throw new IllegalStateException("Failed to translate fpl to gav", e);
+//            }
+//        }
+//        return legacyGav;
+//    }
 
     @Override
     public FPID getFPID() {

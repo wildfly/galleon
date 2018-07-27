@@ -31,6 +31,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
@@ -75,7 +76,7 @@ public class UniverseListCommand extends PmSessionCommand {
             String factory = universe.substring(0, locIndex);
             String location = universe.substring(locIndex + 1, locIndexEnd);
             try {
-                UniverseSpec spec = new UniverseSpec(factory, location);
+                UniverseSpec spec = new UniverseSpec(factory, GaecRange.parse(location));
                 System.out.println("SPEC " + spec);
                 printUniverse(cPattern, spec, commandInvocation);
             } catch (ProvisioningException ex) {

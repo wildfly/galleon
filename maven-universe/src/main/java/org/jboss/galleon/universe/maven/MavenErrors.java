@@ -33,16 +33,16 @@ public class MavenErrors {
         throw new MavenUniverseException("Artifact is missing artifactId");
     }
 
-    public static void missingVersion(MavenArtifact artifact) throws MavenUniverseException {
-        throw new MavenUniverseException("Artifact " + artifact.getGroupId() + ':' + artifact.getArtifactId() + " is missing version");
+    public static void missingVersion(Object artifact) throws MavenUniverseException {
+        throw new MavenUniverseException("Artifact " + artifact + " is missing version");
     }
 
-    public static void missingVersionRange(MavenArtifact artifact) throws MavenUniverseException {
-        throw new MavenUniverseException("Artifact " + artifact.getGroupId() + ':' + artifact.getArtifactId() + " is missing version range");
+    public static void missingVersionRange(Object artifact) throws MavenUniverseException {
+        throw new MavenUniverseException("Artifact " + artifact + " is missing version range");
     }
 
-    public static void missingExtension(MavenArtifact artifact) throws MavenUniverseException {
-        throw new MavenUniverseException("Artifact " + artifact.getGroupId() + ':' + artifact.getArtifactId() + ':' + artifact.getVersion() + " is missing extension");
+    public static void missingExtension(Object artifact) throws MavenUniverseException {
+        throw new MavenUniverseException("Artifact " + artifact + " is missing extension");
     }
 
     public static MavenUniverseException producerNotFound(String producerName) {
@@ -53,8 +53,8 @@ public class MavenErrors {
         return new MavenUniverseException("Channel " + channelName + " is not found in producer " + producer);
     }
 
-    public static MavenUniverseException artifactNotFound(MavenArtifact artifact, Path repoHome) {
-        return new MavenUniverseException("Artifact " + artifact.getCoordsAsString() + " not found in " + repoHome);
+    public static MavenUniverseException artifactNotFound(Object artifact, Path repoHome) {
+        return new MavenUniverseException("Artifact " + artifact + " not found in " + repoHome);
     }
 
     public static String failedToResolveLatestVersion(String str) {

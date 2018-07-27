@@ -19,6 +19,7 @@ package org.jboss.galleon.universe.maven;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 
@@ -28,12 +29,12 @@ import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
  *
  * @author Alexey Loubyansky
  */
-public abstract class MavenUniverseBase implements Universe<MavenProducer> {
+public abstract class MavenUniverseBase<A> implements Universe<MavenProducer> {
 
     protected final MavenRepoManager repo;
-    protected final MavenArtifact artifact;
+    protected final A artifact;
 
-    protected MavenUniverseBase(MavenRepoManager repoManager, MavenArtifact artifact) {
+    protected MavenUniverseBase(MavenRepoManager repoManager, A artifact) {
         this.repo = repoManager;
         this.artifact = artifact;
     }
@@ -44,15 +45,13 @@ public abstract class MavenUniverseBase implements Universe<MavenProducer> {
     }
 
     @Override
-    public String getLocation() {
-        return artifact.getCoordsAsString();
-    }
+    public abstract String getLocation();
 
     public MavenRepoManager getRepo() {
         return repo;
     }
 
-    public MavenArtifact getArtifact() {
+    public A getArtifact() {
         return artifact;
     }
 

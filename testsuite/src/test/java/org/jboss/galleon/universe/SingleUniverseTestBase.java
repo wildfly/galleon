@@ -20,9 +20,10 @@ package org.jboss.galleon.universe;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.test.PmTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
@@ -35,7 +36,7 @@ public abstract class SingleUniverseTestBase extends PmTestBase {
 
     protected MvnUniverse mvnUniverse;
     protected String universeName = "test-universe";
-    protected MavenArtifact universeArtifact;
+    protected Gaecvp universeArtifact;
     private UniverseSpec universeSpec;
 
     @Override
@@ -45,7 +46,7 @@ public abstract class SingleUniverseTestBase extends PmTestBase {
 
     protected UniverseSpec getUniverseSpec() {
         if(universeSpec == null) {
-            universeSpec = new UniverseSpec(MavenUniverseFactory.ID, universeArtifact.getGroupId() + ':' + universeArtifact.getArtifactId());
+            universeSpec = new UniverseSpec(MavenUniverseFactory.ID, GaecRange.builder().groupId(universeArtifact.getGaecv().getGaec().getGroupId()).artifactId(universeArtifact.getGaecv().getGaec().getArtifactId()).build());
         }
         return universeSpec;
     }

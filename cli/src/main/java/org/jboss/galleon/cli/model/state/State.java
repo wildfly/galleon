@@ -41,6 +41,7 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
@@ -203,7 +204,7 @@ public class State {
         config = pushState(action, pmSession);
     }
 
-    public void addUniverse(PmSession pmSession, String name, String factory, String location) throws ProvisioningException, IOException {
+    public void addUniverse(PmSession pmSession, String name, String factory, GaecRange location) throws ProvisioningException, IOException {
         Action action = provisioning.addUniverse(name, factory, location);
         config = pushState(action, pmSession);
     }

@@ -23,6 +23,9 @@ import java.util.Map;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.GaecOrGaecv;
+import org.jboss.galleon.model.Gaecv;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -48,15 +51,33 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
         return universeSource;
     }
 
-    public static ArtifactCoords toArtifactCoords(FeaturePackLocation fpl) throws ProvisioningException {
+    public static Gaecv toArtifactCoords(FeaturePackLocation fpl) throws ProvisioningException {
         final String producer = fpl.getProducerName();
         final int colon = producer.indexOf(':');
         if(colon <= 0) {
             throw new ProvisioningException("Failed to determine group and artifact IDs for " + fpl);
         }
-        return ArtifactCoords.newInstance(producer.substring(0, colon), producer.substring(colon + 1), fpl.getBuild(), ZIP);
+        final String groupId = producer.substring(0, colon);
+        final String artifactId = producer.substring(colon + 1);
+        final String version = fpl.getBuild();
+        final String extension = ZIP;
+        return new Gaecv(new Gaec(groupId, artifactId, extension), version);
     }
 
+    public static FeaturePackLocation toFpl(GaecOrGaecv gav) {
+        if (!gav.isVersionResolved()) {
+            return new FeaturePackLocation(
+                    new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null),
+                    gav.getGaec().getGroupId() + ':' + gav.getGaec().getArtifactId(),
+                    null, null, null);
+        }
+        final String version = gav.getGaecv().getVersion();
+        final int i = version.indexOf('.');
+        return new FeaturePackLocation(
+                new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null),
+                gav.getGaec().getGroupId() + ':' + gav.getGaec().getArtifactId(),
+                i > 0 ? version.substring(0, i) : version, null, version);
+    }
     public static FeaturePackLocation toFpl(ArtifactCoords.Gav gav) {
         final String version = gav.getVersion();
         if(version == null) {

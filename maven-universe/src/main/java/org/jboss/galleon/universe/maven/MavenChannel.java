@@ -22,6 +22,9 @@ import java.util.Collection;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
@@ -54,11 +57,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
 
     @Override
     public String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(producer.getFeaturePackGroupId());
-        artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
-        artifact.setVersionRange(versionRange);
+        final GaecRange artifact = new GaecRange(new Gaec(producer.getFeaturePackGroupId(), producer.getFeaturePackArtifactId(), "zip"), versionRange);
         try {
             return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl));
         } catch(MavenLatestVersionNotAvailableException e) {
@@ -73,19 +72,17 @@ public class MavenChannel implements Channel, MavenChannelDescription {
 
     @Override
     public Path resolve(FeaturePackLocation fpl) throws MavenUniverseException {
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(producer.getFeaturePackGroupId());
-        artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
-
         if(fpl.getBuild() == null) {
-            artifact.setVersionRange(versionRange);
-            producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl));
+            final GaecRange artifact = new GaecRange(new Gaec(producer.getFeaturePackGroupId(), producer.getFeaturePackArtifactId(), "zip"), versionRange);
+            return producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl)).getPath();
         } else {
-            artifact.setVersion(fpl.getBuild());
-            producer.getRepo().resolve(artifact);
+            final Gaecv artifact = new Gaecv(new Gaec(producer.getFeaturePackGroupId(), producer.getFeaturePackArtifactId(), "zip"), fpl.getBuild());
+            try {
+                return producer.getRepo().resolve(artifact).getPath();
+            } catch (ProvisioningException e) {
+                throw new MavenUniverseException("Could not resolve "+ artifact, e);
+            }
         }
-        return artifact.getPath();
     }
 
     public String getFeaturePackGroupId() {
@@ -222,29 +219,25 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         return buf.toString();
     }
     */
-    @Override
-    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(producer.getFeaturePackGroupId());
-        artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
-
-        if (fpl.getBuild() == null) {
-            artifact.setVersionRange(versionRange);
-            return producer.getRepo().isLatestVersionResolved(artifact, getFrequency(fpl));
-        } else {
-            artifact.setVersion(fpl.getBuild());
-            return producer.getRepo().isResolved(artifact);
-        }
-    }
+//    @Override
+//    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
+//        final MavenArtifact artifact = new MavenArtifact();
+//        artifact.setGroupId(producer.getFeaturePackGroupId());
+//        artifact.setArtifactId(producer.getFeaturePackArtifactId());
+//        artifact.setExtension("zip");
+//
+//        if (fpl.getBuild() == null) {
+//            artifact.setVersionRange(versionRange);
+//            return producer.getRepo().isLatestVersionResolved(artifact, getFrequency(fpl));
+//        } else {
+//            artifact.setVersion(fpl.getBuild());
+//            return producer.getRepo().isResolved(artifact);
+//        }
+//    }
 
     @Override
     public String getLatestBuild(FeaturePackLocation.FPID fpid) throws ProvisioningException {
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(producer.getFeaturePackGroupId());
-        artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
-        artifact.setVersionRange(versionRange);
+        final GaecRange artifact = new GaecRange(new Gaec(producer.getFeaturePackGroupId(), producer.getFeaturePackArtifactId(), "zip"), versionRange);
         try {
             return producer.getRepo().getLatestVersion(artifact);
         } catch (MavenLatestVersionNotAvailableException e) {

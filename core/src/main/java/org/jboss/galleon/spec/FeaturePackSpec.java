@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -118,22 +117,22 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.defPackages = CollectionUtils.unmodifiable(builder.defPackages);
         this.patchFor = builder.patchFor;
     }
-
-    /**
-     * @deprecated
-     *
-     * @return  Feature-pack artifact GAV
-     */
-    public ArtifactCoords.Gav getGav() {
-        if(legacyGav == null) {
-            try {
-                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to translate fpl to gav", e);
-            }
-        }
-        return legacyGav;
-    }
+//
+//    /**
+//     * @deprecated
+//     *
+//     * @return  Feature-pack artifact GAV
+//     */
+//    public ArtifactCoords.Gav getGav() {
+//        if(legacyGav == null) {
+//            try {
+//                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
+//            } catch (ProvisioningException e) {
+//                throw new IllegalStateException("Failed to translate fpl to gav", e);
+//            }
+//        }
+//        return legacyGav;
+//    }
 
     public FPID getFPID() {
         return fpid;

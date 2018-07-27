@@ -19,6 +19,7 @@ package org.jboss.galleon.universe.galleon1;
 
 import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFactory;
@@ -52,7 +53,7 @@ public class LegacyGalleon1UniverseFactory implements UniverseFactory {
      * @see org.jboss.galleon.universe.UniverseFactory#getUniverse(org.jboss.galleon.repomanager.RepositoryArtifactResolver, java.lang.String)
      */
     @Override
-    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException {
+    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, GaecRange location) throws ProvisioningException {
         return new LegacyGalleon1Universe(artifactResolver);
     }
 }

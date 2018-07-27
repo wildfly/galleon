@@ -14,22 +14,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jboss.galleon.model;
 
-package org.jboss.galleon.universe;
-
-import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.model.GaecRange;
-import org.jboss.galleon.repo.RepositoryArtifactResolver;
+import java.nio.file.Path;
 
 /**
+ * A {@link Gaecv} with the absolute {@link #path} to the given artifact file in the local filesystem.
  *
- * @author Alexey Loubyansky
+ * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public interface UniverseFactory {
+public class Gaecvp {
 
-    String getFactoryId();
+    private final Gaecv gaecv;
+    private final Path path;
 
-    String getRepositoryId();
+    public Gaecvp(Gaecv gaecv, Path path) {
+        super();
+        this.gaecv = gaecv;
+        this.path = path;
+    }
 
-    Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, GaecRange location) throws ProvisioningException;
+    public Gaecv getGaecv() {
+        return gaecv;
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
+    @Override
+    public String toString() {
+        return gaecv.toString() + ":"+ path;
+    }
+
 }

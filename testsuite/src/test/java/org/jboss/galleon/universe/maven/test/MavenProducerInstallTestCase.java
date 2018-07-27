@@ -22,7 +22,8 @@ import static org.jboss.galleon.universe.TestConstants.*;
 import java.util.Collection;
 
 import org.jboss.galleon.universe.UniverseRepoTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenProducer;
 import org.jboss.galleon.universe.maven.MavenChannel;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
@@ -37,14 +38,15 @@ import org.junit.Test;
  */
 public class MavenProducerInstallTestCase extends UniverseRepoTestBase {
 
-    private MavenArtifact producerArtifact;
+    private Gaecv producerArtifact;
 
     @Override
     protected void doInit() {
-        producerArtifact = new MavenArtifact();
-        producerArtifact.setGroupId(GROUP_ID);
-        producerArtifact.setArtifactId("test-producer");
-        producerArtifact.setVersion("1.0.0.Final");
+        producerArtifact = Gaecv.builder()
+        .groupId(GROUP_ID)
+        .artifactId("test-producer")
+        .version("1.0.0.Final")
+        .build();
     }
 
     @Test
@@ -52,14 +54,13 @@ public class MavenProducerInstallTestCase extends UniverseRepoTestBase {
         final String fpGroupId = "fp-group1";
         final String fpArtifactId = "fp-artifact1";
 
-        final MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, producerArtifact, fpGroupId, fpArtifactId);
+        final MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, ResolvedGaecRange.ofSingleGaecv(producerArtifact), fpGroupId, fpArtifactId);
         producerInstaller.addFrequencies("alpha", "beta");
         producerInstaller.addChannel("1.0", "[1.0.0,2.0.0)");
         producerInstaller.addChannel("2.0", "[2.0.0,3.0.0)");
         producerInstaller.install();
 
-        producerArtifact.setPath(null);
-        MavenProducer producer = new MavenProducer("producer1", repo, producerArtifact);
+        MavenProducer producer = new MavenProducer("producer1", repo, ResolvedGaecRange.ofSingleGaecvp(repo.resolve(producerArtifact)));
         Assert.assertEquals(fpGroupId, producer.getFeaturePackGroupId());
         Assert.assertEquals(fpArtifactId, producer.getFeaturePackArtifactId());
         Collection<String> frequencies = producer.getFrequencies();

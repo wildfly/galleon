@@ -20,6 +20,8 @@ package org.jboss.galleon.repo;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
 
 /**
  *
@@ -31,5 +33,7 @@ public interface RepositoryArtifactResolver {
 
     String getRepositoryId();
 
-    Path resolve(String location) throws ProvisioningException;
+    //Path resolve(String location) throws ProvisioningException;
+    Gaecvp resolve(Gaecv artifact) throws ProvisioningException;
+    Gaecvp install(Gaecv artifact, Path path) throws ProvisioningException;
 }

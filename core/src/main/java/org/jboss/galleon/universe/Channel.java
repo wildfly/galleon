@@ -38,7 +38,7 @@ public interface Channel {
 
     Path resolve(FeaturePackLocation fpl) throws ProvisioningException;
 
-    boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException;
+//    boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException;
 
     default FeaturePackUpdatePlan getUpdatePlan(FeaturePackUpdatePlan.Request updateRequest) throws ProvisioningException {
         final FeaturePackLocation fpl = updateRequest.getInstalledLocation();

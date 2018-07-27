@@ -20,7 +20,8 @@ import java.io.File;
 import java.nio.file.Path;
 
 import org.apache.maven.shared.artifact.ArtifactCoordinate;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.Gaecv;
 
 /**
  * Represents the information of each item inside of resolve-locals configuration param for
@@ -32,7 +33,7 @@ public class ResolveLocalItem implements ArtifactCoordinate {
     private String groupId;
     private String artifactId;
     private String version;
-    private String extension = MavenArtifact.EXT_ZIP;
+    private String extension = "zip";
     private String classifier = "";
 
     private Boolean installInUniverse;
@@ -151,5 +152,13 @@ public class ResolveLocalItem implements ArtifactCoordinate {
 
     public String getError() {
         return error;
+    }
+
+    public Gaec toGaec() {
+        return new Gaec(groupId, artifactId, extension, classifier);
+    }
+
+    public Gaecv toGaecv() {
+        return new Gaecv(toGaec(), version);
     }
 }

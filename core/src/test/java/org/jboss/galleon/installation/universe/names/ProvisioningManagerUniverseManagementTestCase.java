@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.IoUtils;
 import org.junit.After;
@@ -60,7 +61,7 @@ public class ProvisioningManagerUniverseManagementTestCase {
         Assert.assertNull(getProvisioningConfig());
 
         ProvisioningManager pm = ProvisioningManager.builder().setInstallationHome(home).build();
-        pm.addUniverse("universe1", new UniverseSpec("factory1", "location1"));
+        pm.addUniverse("universe1", new UniverseSpec("factory1", GaecRange.parse("g1:a:e:c:v")));
 
         ProvisioningConfig config = getProvisioningConfig();
         assertNotNull(config);
@@ -70,7 +71,7 @@ public class ProvisioningManagerUniverseManagementTestCase {
         assertTrue(universes.containsKey("universe1"));
 
         pm = ProvisioningManager.builder().setInstallationHome(home).build();
-        pm.addUniverse("universe2", new UniverseSpec("factory2", "location2"));
+        pm.addUniverse("universe2", new UniverseSpec("factory2", GaecRange.parse("g2:a:e:c:v")));
 
         config = getProvisioningConfig();
         assertNotNull(config);
@@ -102,24 +103,24 @@ public class ProvisioningManagerUniverseManagementTestCase {
         Assert.assertNull(getProvisioningConfig());
 
         ProvisioningManager pm = ProvisioningManager.builder().setInstallationHome(home).build();
-        pm.setDefaultUniverse(new UniverseSpec("factory1", "location1"));
+        pm.setDefaultUniverse(new UniverseSpec("factory1", GaecRange.parse("g1:a:e:c:v")));
 
         ProvisioningConfig config = getProvisioningConfig();
         assertNotNull(config);
         Map<String, UniverseSpec> universes = config.getUniverseNamedSpecs();
         assertEquals(0, universes.size());
         assertTrue(config.hasDefaultUniverse());
-        assertEquals(new UniverseSpec("factory1", "location1"), config.getDefaultUniverse());
+        assertEquals(new UniverseSpec("factory1", GaecRange.parse("g1:a:e:c:v")), config.getDefaultUniverse());
 
         pm = ProvisioningManager.builder().setInstallationHome(home).build();
-        pm.setDefaultUniverse(new UniverseSpec("factory2", "location1"));
+        pm.setDefaultUniverse(new UniverseSpec("factory2", GaecRange.parse("g1:a:e:c:v")));
 
         config = getProvisioningConfig();
         assertNotNull(config);
         universes = config.getUniverseNamedSpecs();
         assertEquals(0, universes.size());
         assertTrue(config.hasDefaultUniverse());
-        assertEquals(new UniverseSpec("factory2", "location1"), config.getDefaultUniverse());
+        assertEquals(new UniverseSpec("factory2", GaecRange.parse("g1:a:e:c:v")), config.getDefaultUniverse());
 
         pm = ProvisioningManager.builder().setInstallationHome(home).build();
         pm.removeUniverse(null);

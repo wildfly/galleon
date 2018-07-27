@@ -30,6 +30,7 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenProducerSpecXmlParser;
 import org.jboss.galleon.universe.maven.xml.ParsedCallbackHandler;
@@ -42,9 +43,7 @@ import org.jboss.galleon.util.ZipUtils;
  *
  * @author Alexey Loubyansky
  */
-public class MavenUniverse extends MavenUniverseBase {
-
-    private static final String DEFAULT_RANGE = "[0.0,)";
+public class MavenUniverse extends MavenUniverseBase<Gaecvp> {
 
     private Map<String, MavenProducer> producers = Collections.emptyMap();
     private boolean fullyLoaded;
@@ -60,18 +59,8 @@ public class MavenUniverse extends MavenUniverseBase {
         }
     };
 
-    public MavenUniverse(MavenRepoManager repoManager, MavenArtifact artifact) throws MavenUniverseException {
+    public MavenUniverse(MavenRepoManager repoManager, Gaecvp artifact) throws MavenUniverseException {
         super(repoManager, artifact);
-        if(!artifact.isResolved()) {
-            if(artifact.getVersionRange() != null) {
-                repoManager.resolveLatestVersion(artifact);
-            } else if(artifact.getVersion() != null) {
-                repoManager.resolve(artifact);
-            } else {
-                artifact.setVersionRange(DEFAULT_RANGE);
-                repoManager.resolveLatestVersion(artifact);
-            }
-        }
     }
 
     public void resetCache() {
@@ -148,5 +137,10 @@ public class MavenUniverse extends MavenUniverseBase {
         fullyLoaded = true;
         producers = CollectionUtils.unmodifiable(producers);
         return producers.values();
+    }
+
+    @Override
+    public String getLocation() {
+        return artifact.getGaecv().toString();
     }
 }

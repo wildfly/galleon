@@ -18,8 +18,6 @@ package org.jboss.galleon.maven.plugin;
 
 import java.util.Collection;
 
-import org.jboss.galleon.ArtifactCoords;
-
 /**
  *
  * @author Alexey Loubyansky
@@ -38,15 +36,15 @@ public interface FpMavenErrors {
         return "Failed to install feature-pack into repository";
     }
 
-    static String artifactResolution(Collection<ArtifactCoords> artifacts) {
+    static String artifactResolution(Collection<Object> artifacts) {
         return "Failed to resolve artifacts: " + artifacts;
     }
 
-    static String artifactResolution(ArtifactCoords gav) {
+    static String artifactResolution(Object gav) {
         return "Failed to resolve " + gav;
     }
 
-    static String artifactMissing(ArtifactCoords gav) {
+    static String artifactMissing(Object gav) {
         return "Repository is missing artifact " + gav;
     }
 

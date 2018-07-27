@@ -26,7 +26,7 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.ProvisionConfigMvnTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 
 /**
@@ -43,7 +43,7 @@ public class LatestFinalTestCase extends ProvisionConfigMvnTestBase {
     private static final FeaturePackLocation FINAL1_FPL = FeaturePackLocation.fromString("producer1:1#1.0.1.Final");
     private static final FeaturePackLocation FINAL2_FPL = FeaturePackLocation.fromString("producer1:1#2.0.0.Final");
 
-    private MavenArtifact universe1Art;
+    private Gaecvp universe1Art;
     private FPID alpha1Fpid;
     private FPID alpha2Fpid;
     private FPID beta1Fpid;
@@ -116,7 +116,7 @@ public class LatestFinalTestCase extends ProvisionConfigMvnTestBase {
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
                 .addFeaturePackDep(FeaturePackLocation.fromString("producer1:1"))
                 .build();
     }
@@ -124,7 +124,7 @@ public class LatestFinalTestCase extends ProvisionConfigMvnTestBase {
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-        .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+        .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
         .addFeaturePackDep(FeaturePackLocation.fromString("producer1:1#1.0.1.Final"))
         .build();
     }

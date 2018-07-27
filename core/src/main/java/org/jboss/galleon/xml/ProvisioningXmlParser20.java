@@ -31,6 +31,7 @@ import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
@@ -259,7 +260,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
     private static void readUniverse(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> fpBuilder) throws XMLStreamException {
         String name = null;
         String factory = null;
-        String location = null;
+        GaecRange location = null;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
@@ -271,7 +272,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                     name = reader.getAttributeValue(i);
                     break;
                 case LOCATION:
-                    location = reader.getAttributeValue(i);
+                    location = GaecRange.parse(reader.getAttributeValue(i));
                     break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);

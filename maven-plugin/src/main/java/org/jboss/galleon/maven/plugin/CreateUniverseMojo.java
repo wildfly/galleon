@@ -35,7 +35,8 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.MavenUniverseInstaller;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
@@ -120,10 +121,7 @@ public class CreateUniverseMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        final MavenArtifact universeArtifact = new MavenArtifact()
-                .setGroupId(groupId)
-                .setArtifactId(artifactId)
-                .setVersion(version);
+        final Gaecv universeArtifact = Gaecv.builder().groupId(groupId).artifactId(artifactId).version(version).build();
         final MavenUniverseInstaller installer = new MavenUniverseInstaller(
                 SimplisticMavenRepoManager.getInstance(
                         Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),
@@ -142,10 +140,10 @@ public class CreateUniverseMojo extends AbstractMojo {
             }
         }
         try {
-            installer.install();
+            final Gaecvp gaecvp = installer.install();
+            projectHelper.attachArtifact(project, gaecvp.getGaecv().getGaec().getExtension(), gaecvp.getPath().toFile());
         } catch (MavenUniverseException e) {
             throw new MojoExecutionException("Failed to create universe", e);
         }
-        projectHelper.attachArtifact(project, "jar", universeArtifact.getPath().toFile());
     }
 }

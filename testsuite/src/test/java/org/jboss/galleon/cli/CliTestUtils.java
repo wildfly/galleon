@@ -24,6 +24,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
@@ -64,7 +65,7 @@ public abstract class CliTestUtils {
             universe.createProducer(p);
         }
         universe.install();
-        return new UniverseSpec(MavenUniverseFactory.ID, TestConstants.GROUP_ID + ":" + name);
+        return new UniverseSpec(MavenUniverseFactory.ID, GaecRange.builder().groupId(TestConstants.GROUP_ID).artifactId(name).build());
     }
 
     public static void install(CliWrapper cli, UniverseSpec universeSpec,

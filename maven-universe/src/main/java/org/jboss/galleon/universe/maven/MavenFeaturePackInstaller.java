@@ -20,6 +20,8 @@ package org.jboss.galleon.universe.maven;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.Gaecv;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Universe;
@@ -46,12 +48,7 @@ public class MavenFeaturePackInstaller implements UniverseFeaturePackInstaller {
         // make sure the channel exists
         producer.getChannel(fps.getChannelName());
 
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(producer.getFeaturePackGroupId());
-        artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setVersion(fpid.getBuild());
-        artifact.setExtension(ZIP);
-
+        final Gaecv artifact = new Gaecv(new Gaec(producer.getFeaturePackGroupId(), producer.getFeaturePackArtifactId(), ZIP), fpid.getBuild());
         producer.getRepo().install(artifact, fpZip);
     }
 }

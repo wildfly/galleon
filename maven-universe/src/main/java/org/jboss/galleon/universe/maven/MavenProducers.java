@@ -25,6 +25,9 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
@@ -35,24 +38,19 @@ import org.jboss.galleon.util.ZipUtils;
  */
 public class MavenProducers {
 
-    public static MavenProducers getInstance(MavenRepoManager repoManager, MavenArtifact artifact) {
-        return new MavenProducers(repoManager, artifact);
-    }
 
     private final MavenRepoManager repoManager;
-    private final MavenArtifact artifact;
     private final List<MavenProducerDescription<?>> producers = new ArrayList<>();
 
-    private MavenProducers(MavenRepoManager repoManager, MavenArtifact artifact) {
+    public MavenProducers(MavenRepoManager repoManager) {
         this.repoManager = repoManager;
-        this.artifact = artifact;
     }
 
     public void addProducer(MavenProducerDescription<?> producer) {
         producers.add(producer);
     }
 
-    public void install() throws MavenUniverseException {
+    public Gaecvp install(Gaecv artifact) throws MavenUniverseException {
         Path tmpDir = null;
         try {
             tmpDir = Files.createTempDirectory("gln-mvn-channel");
@@ -63,8 +61,8 @@ public class MavenProducers {
             final Path artifactFile = tmpDir.resolve(artifact.getArtifactFileName());
             Files.createDirectories(artifactFile.getParent());
             ZipUtils.zip(zipRoot, artifactFile);
-            repoManager.install(artifact, artifactFile);
-        } catch (IOException | XMLStreamException e) {
+            return repoManager.install(artifact, artifactFile);
+        } catch (IOException | XMLStreamException | ProvisioningException e) {
             throw new MavenUniverseException("Failed to create Maven universe producer artifact", e);
         } finally {
             if(tmpDir != null) {

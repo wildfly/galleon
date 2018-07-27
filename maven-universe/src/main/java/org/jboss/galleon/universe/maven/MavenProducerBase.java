@@ -19,6 +19,8 @@ package org.jboss.galleon.universe.maven;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 
@@ -28,17 +30,17 @@ import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
  *
  * @author Alexey Loubyansky
  */
-public abstract class MavenProducerBase implements Producer<MavenChannel>, MavenProducerDescription<MavenChannel> {
+public abstract class MavenProducerBase<A> implements Producer<MavenChannel>, MavenProducerDescription<MavenChannel> {
 
     protected static final String DEFAULT_FREQUENCY = "final"; // for maven artifact versions that's the default one
 
     protected final String name;
     protected final MavenRepoManager repo;
-    protected final MavenArtifact artifact;
+    protected final ResolvedGaecRange<A> artifact;
     protected String fpGroupId;
     protected String fpArtifactId;
 
-    protected MavenProducerBase(String name, MavenRepoManager repoManager, MavenArtifact artifact) throws MavenUniverseException {
+    protected MavenProducerBase(String name, MavenRepoManager repoManager, ResolvedGaecRange<A> artifact) throws MavenUniverseException {
         this.name = name;
         this.repo = repoManager;
         this.artifact = artifact;
@@ -49,7 +51,7 @@ public abstract class MavenProducerBase implements Producer<MavenChannel>, Maven
         return name;
     }
 
-    public MavenArtifact getArtifact() {
+    public ResolvedGaecRange<A> getArtifact() {
         return artifact;
     }
 

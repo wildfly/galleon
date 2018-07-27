@@ -39,6 +39,7 @@ import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
@@ -83,7 +84,8 @@ public class UniverseManager implements MavenChangeListener {
         config.getMavenConfig().addListener(this);
         UniverseFactoryLoader.getInstance().addArtifactResolver(maven);
         this.universeResolver = universeResolver;
-        builtinUniverseSpec = new UniverseSpec(MavenUniverseFactory.ID, JBOSS_UNIVERSE_GROUP_ID + ":" + JBOSS_UNIVERSE_ARTIFACT_ID);
+        GaecRange artifact = GaecRange.builder().groupId(JBOSS_UNIVERSE_GROUP_ID).artifactId(JBOSS_UNIVERSE_ARTIFACT_ID).build();
+        builtinUniverseSpec = new UniverseSpec(MavenUniverseFactory.ID, artifact );
     }
 
     public void disableBackgroundResolution() {
@@ -173,9 +175,9 @@ public class UniverseManager implements MavenChangeListener {
         return universeResolver.resolve(fpl);
     }
 
-    public synchronized boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
-        return universeResolver.isResolved(fpl);
-    }
+//    public synchronized boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
+//        return universeResolver.isResolved(fpl);
+//    }
 
     public synchronized FeaturePackLocation resolveLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
         return universeResolver.resolveLatestBuild(fpl);
@@ -190,7 +192,7 @@ public class UniverseManager implements MavenChangeListener {
         return mgr;
     }
 
-    public void addUniverse(String name, String factory, String location) throws ProvisioningException, IOException {
+    public void addUniverse(String name, String factory, GaecRange location) throws ProvisioningException, IOException {
         UniverseSpec u = new UniverseSpec(factory, location);
         if (pmSession.getState() != null) {
             pmSession.getState().addUniverse(pmSession, name, factory, location);

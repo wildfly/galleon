@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.model.state;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.UniverseSpec;
 
 /**
@@ -30,9 +31,9 @@ public class Provisioning {
 
         private final String name;
         private final String factory;
-        private final String location;
+        private final GaecRange location;
 
-        AddUniverseAction(String name, String factory, String location) {
+        AddUniverseAction(String name, String factory, GaecRange location) {
             this.name = name;
             this.factory = factory;
             this.location = location;
@@ -85,7 +86,7 @@ public class Provisioning {
         }
     }
 
-    State.Action addUniverse(String name, String factory, String location) {
+    State.Action addUniverse(String name, String factory, GaecRange location) {
         return new AddUniverseAction(name, factory, location);
     }
 

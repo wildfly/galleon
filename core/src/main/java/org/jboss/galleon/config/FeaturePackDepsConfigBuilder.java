@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
@@ -266,7 +267,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         return producerOrigins.get(producer);
     }
 
-    public B setDefaultUniverse(String factory, String location) throws ProvisioningDescriptionException {
+    public B setDefaultUniverse(String factory, GaecRange location) throws ProvisioningDescriptionException {
         return setDefaultUniverse(new UniverseSpec(factory, location));
     }
 
@@ -274,7 +275,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         return addUniverse(null, universeSpec);
     }
 
-    public B addUniverse(String name, String factory, String location) throws ProvisioningDescriptionException {
+    public B addUniverse(String name, String factory, GaecRange location) throws ProvisioningDescriptionException {
         return addUniverse(name, new UniverseSpec(factory, location));
     }
 

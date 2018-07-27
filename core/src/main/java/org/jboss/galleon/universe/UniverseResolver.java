@@ -118,9 +118,9 @@ public class UniverseResolver {
         return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).resolve(fpl);
     }
 
-    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
-        return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).isResolved(fpl);
-    }
+//    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
+//        return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName()).isResolved(fpl);
+//    }
 
     /**
      * Returns repository artifact resolver for specific repository type.
