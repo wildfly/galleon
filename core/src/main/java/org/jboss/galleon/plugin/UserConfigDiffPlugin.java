@@ -14,14 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.layout;
 
+package org.jboss.galleon.plugin;
+
+import java.nio.file.Path;
+
+import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.state.ProvisionedState;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public interface FeaturePackLayoutTransformer<F extends FeaturePackLayout, O extends FeaturePackLayout> {
-    F transform(O other) throws ProvisioningException;
+public interface UserConfigDiffPlugin extends ProvisioningPlugin {
+
+    void userConfigDiff(ProvisionedState provisionedState, ProvisioningLayout<?> layout, Path currentState, MessageWriter log)
+            throws ProvisioningException;
 }

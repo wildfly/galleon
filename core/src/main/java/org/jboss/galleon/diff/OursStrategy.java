@@ -35,7 +35,7 @@ public class OursStrategy extends FileSystemMerge {
     }
 
     @Override
-    public void executeUpdate(FileSystemDiffResult result) throws IOException {
+    public void executeUpdate(ProvisioningDiffResult result) throws IOException {
         for (Path deletedPath : result.getDeletedFiles()) {
             messageWriter.verbose("File %s has been removed", resolveStagePath(deletedPath));
             IoUtils.recursiveDelete(resolveStagePath(deletedPath));

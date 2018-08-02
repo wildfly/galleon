@@ -83,7 +83,6 @@ public class ProvisioningRuntimeBuilder {
 
     final long startTime;
     String encoding;
-    String operation;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
     Map<String, String> pluginOptions = Collections.emptyMap();
@@ -131,11 +130,6 @@ public class ProvisioningRuntimeBuilder {
 
     public ProvisioningRuntimeBuilder initLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config) throws ProvisioningException {
         layout = layoutFactory.newConfigLayout(config, FP_RT_FACTORY);
-        return this;
-    }
-
-    public ProvisioningRuntimeBuilder setOperation(String operation) {
-        this.operation = operation;
         return this;
     }
 

@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import java.nio.file.Paths;
 import java.util.Locale;
 
-import org.jboss.galleon.diff.FileSystemDiffResult;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
 import org.jboss.galleon.test.util.XmlParserValidator;
 import org.jboss.galleon.xml.FileSystemDiffResultParser;
 import org.junit.AfterClass;
@@ -34,7 +34,7 @@ import org.junit.Test;
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
 public class FileSystemDiffResultXmlParserTestCase {
-     private static final XmlParserValidator<FileSystemDiffResult> validator = new XmlParserValidator<>(
+     private static final XmlParserValidator<ProvisioningDiffResult> validator = new XmlParserValidator<>(
             Paths.get("src/main/resources/schema/galleon-diff-result-1_0.xsd"), FileSystemDiffResultParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
@@ -50,7 +50,7 @@ public class FileSystemDiffResultXmlParserTestCase {
 
     @Test
     public void readValid() throws Exception {
-        FileSystemDiffResult found = validator
+        ProvisioningDiffResult found = validator
                 .validateAndParse("xml/diff/filesystem_changes.xml", null, null);
         assertThat(found.getAddedFiles().size(), is(2));
         assertThat(found.getDeletedFiles().size(), is(17));

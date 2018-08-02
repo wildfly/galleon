@@ -19,6 +19,7 @@ package org.jboss.galleon.plugin;
 import java.nio.file.Path;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 
 /**
@@ -26,5 +27,5 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
 public interface UpgradePlugin extends ProvisioningPlugin {
-    void upgrade(ProvisioningRuntime runtime, Path customizedInstallation) throws ProvisioningException;
+    void upgrade(ProvisioningRuntime runtime, ProvisioningDiffResult diff, Path customizedInstallation) throws ProvisioningException;
 }

@@ -19,7 +19,7 @@ package org.jboss.galleon.layout;
 
 import static org.junit.Assert.assertArrayEquals;
 import java.util.Collection;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
+
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**

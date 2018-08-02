@@ -28,8 +28,8 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.LayoutTestBase;
-import org.jboss.galleon.layout.ProvisioningLayout.FeaturePackLayout;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 

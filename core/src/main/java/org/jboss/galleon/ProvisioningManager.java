@@ -20,15 +20,16 @@ package org.jboss.galleon;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.xml.stream.XMLStreamException;
-
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
+import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.plugin.UserConfigDiffPlugin;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
@@ -554,70 +555,38 @@ public class ProvisioningManager implements AutoCloseable {
         IoUtils.copy(userProvisionedXml, exportPath);
     }
 
-    public void exportConfigurationChanges(Path location,  FPID fpid, Map<String, String> options) throws ProvisioningException, IOException {
-        ProvisioningConfig configuration = this.getProvisioningConfig();
+    public void exportConfigurationChanges(Path location, FPID fpid, Map<String, String> options) throws ProvisioningException, IOException {
+        final ProvisioningConfig configuration = getProvisioningConfig();
         if (configuration == null) {
-            final Path userProvisionedXml = PathsUtils.getProvisioningXml(home);
-            if (!Files.exists(userProvisionedXml)) {
-                throw new ProvisioningException("Provisioned state record is missing for " + home);
-            }
-            Path xmlTarget = location;
-            if (Files.isDirectory(xmlTarget)) {
-                xmlTarget = xmlTarget.resolve(userProvisionedXml.getFileName());
-            }
-            Files.copy(userProvisionedXml, xmlTarget, StandardCopyOption.REPLACE_EXISTING);
+            throw new ProvisioningException("Provisioned state record is missing for " + home);
         }
-        Path tempInstallationDir = IoUtils.createRandomTmpDir();
-        try (ProvisioningManager reference = new ProvisioningManager(ProvisioningManager.builder()
-                    .setLayoutFactory(getLayoutFactory())
-                    .setEncoding(encoding)
-                    .setInstallationHome(tempInstallationDir)
-                    .setMessageWriter(new MessageWriter() {
-                        @Override
-                        public void verbose(Throwable cause, CharSequence message) {
-                            return;
-                        }
 
-                        @Override
-                        public void print(Throwable cause, CharSequence message) {
-                            log.print(cause, message);
-                        }
-
-                        @Override
-                        public void error(Throwable cause, CharSequence message) {
-                            log.error(cause, message);
-                        }
-
-                        @Override
-                        public boolean isVerboseEnabled() {
-                            return false;
-                        }
-
-                        @Override
-                        public void close() throws Exception {
-                            return;
-                        }
-                    }))) {
-            reference.provision(configuration);
-            try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
-                    .initLayout(getLayoutFactory(), configuration)
-                    .setEncoding(encoding)
-                    //.setInstallDir(tempInstallationDir)
-                    .addOptions(options)
-                    .setOperation(fpid != null ? "diff-to-feature-pack" : "diff")
-                    .build()) {
-                if(fpid != null) {
-                    ProvisioningRuntime.exportToFeaturePack(runtime, fpid, location, home);
-                } else {
-                    ProvisioningRuntime.diff(runtime, location, home);
-                    runtime.getDiff().toXML(location, home);
+        try (ProvisioningLayout<FeaturePackLayout> layout = getLayoutFactory().newConfigLayout(configuration)) {
+            final FeaturePackPluginVisitor<UserConfigDiffPlugin> visitor = new FeaturePackPluginVisitor<UserConfigDiffPlugin>() {
+                @Override
+                public void visitPlugin(UserConfigDiffPlugin plugin) throws ProvisioningException {
+                    plugin.userConfigDiff(getProvisionedState(), layout, getInstallationHome(), log);
                 }
-            } catch (XMLStreamException | IOException e) {
-                log.error(e, e.getMessage());
-            }
-        } finally {
-            IoUtils.recursiveDelete(tempInstallationDir);
+            };
+            layout.visitPlugins(visitor, UserConfigDiffPlugin.class);
         }
+
+        /*
+        try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
+                .initLayout(getLayoutFactory(), configuration)
+                .setEncoding(encoding)
+                .addOptions(options)
+                // .setOperation(fpid != null ? "diff-to-feature-pack" : "diff")
+                .build()) {
+            runtime.provision();
+            if (fpid != null) {
+                ProvisioningRuntime.exportToFeaturePack(runtime, fpid, location, home);
+            } else {
+                // execute the plug-ins
+                runtime.diff(location, home);
+            }
+        }
+        */
     }
 
     /**
@@ -698,18 +667,27 @@ public class ProvisioningManager implements AutoCloseable {
             reference.provision(ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.toFpl(fpGav))).build());
         }
         try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
-                    .initLayout(getLayoutFactory(), configuration)
-                    .setEncoding(encoding)
-                    //.setInstallDir(tempInstallationDir)
-                    .addOptions(options)
-                    .setOperation("upgrade")
-                    .build()) {
-                // install the software
-                Files.createDirectories(tempInstallationDir.resolve("model_diff"));
-                ProvisioningRuntime.diff(runtime, tempInstallationDir.resolve("model_diff"), home);
-                ProvisioningRuntime.upgrade(runtime, stagedDir, home);
+                .initLayout(getLayoutFactory(), configuration).setEncoding(encoding)
+                // .setInstallDir(tempInstallationDir)
+                .addOptions(options)
+                // .setOperation("upgrade")
+                .build()) {
+            // install the software
+            Files.createDirectories(tempInstallationDir.resolve("model_diff"));
+            // execute the plug-ins
+            final ProvisioningDiffResult diff = runtime.diff(tempInstallationDir.resolve("model_diff"), home);
+            // execute the plug-ins
+            runtime.executeUpgradePlugins(diff, home);
+            if (Files.exists(home)) {
+                IoUtils.recursiveDelete(home);
             }
-        finally {
+            try {
+                IoUtils.copy(stagedDir, home);
+            } catch (IOException e) {
+                throw new ProvisioningException(Errors.copyFile(stagedDir, home));
+            }
+
+        } finally {
             IoUtils.recursiveDelete(tempInstallationDir);
             IoUtils.recursiveDelete(stagedDir);
         }

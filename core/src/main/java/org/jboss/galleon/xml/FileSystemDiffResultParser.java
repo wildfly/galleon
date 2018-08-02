@@ -23,13 +23,13 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.diff.FileSystemDiffResult;
+import org.jboss.galleon.diff.ProvisioningDiffResult;
 
 /**
  *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-public class FileSystemDiffResultParser implements XmlParser<FileSystemDiffResult> {
+public class FileSystemDiffResultParser implements XmlParser<ProvisioningDiffResult> {
     public static final String NAMESPACE_1_0 = "urn:jboss:galleon:diff-result:1.0";
 
     enum Element implements XmlNameProvider {
@@ -105,8 +105,8 @@ public class FileSystemDiffResultParser implements XmlParser<FileSystemDiffResul
     }
 
     @Override
-    public FileSystemDiffResult parse(Reader input) throws XMLStreamException {
-        FileSystemDiffResult result = FileSystemDiffResult.empty();
+    public ProvisioningDiffResult parse(Reader input) throws XMLStreamException {
+        final ProvisioningDiffResult result = ProvisioningDiffResult.empty();
         XmlParsers.parse(input, result);
         return result;
     }

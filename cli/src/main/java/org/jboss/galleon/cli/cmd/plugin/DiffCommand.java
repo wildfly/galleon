@@ -60,8 +60,9 @@ public class DiffCommand extends AbstractPluginsCommand {
     protected void runCommand(PmCommandInvocation session, Map<String, String> options, FeaturePackLocation loc) throws CommandExecutionException {
         try {
             Path targetDirectory = toPath((String) getValue(TARGET_NAME), session.getAeshContext());
-            getManager(session).exportConfigurationChanges(targetDirectory, loc.getFPID(), options);
+            getManager(session).exportConfigurationChanges(targetDirectory, loc == null ? null : loc.getFPID(), options);
         } catch (ProvisioningException | IOException ex) {
+            ex.printStackTrace();
             throw new CommandExecutionException(session.getPmSession(), CliErrors.diffFailed(), ex);
         }
     }
@@ -102,6 +103,10 @@ public class DiffCommand extends AbstractPluginsCommand {
     }
 
     @Override
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
+    }
+
+    @Override
     protected String getName() {
         return "diff";
     }
@@ -113,8 +118,8 @@ public class DiffCommand extends AbstractPluginsCommand {
 
     @Override
     protected Path getInstallationHome(AeshContext context) {
-        String srcPath = (String) getValue(SRC_NAME);
-        return toPath(srcPath, context);
+        final String srcPath = (String) getValue(SRC_NAME);
+        return srcPath == null ? PmSession.getWorkDir(context) : toPath(srcPath, context);
     }
 
     private Path toPath(String value, AeshContext context) {
