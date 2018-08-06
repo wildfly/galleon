@@ -28,6 +28,7 @@ import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 
 /**
@@ -58,7 +59,7 @@ public class UniverseAddCommand extends PmSessionCommand {
     @Override
     protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {
         try {
-            commandInvocation.getPmSession().getUniverse().addUniverse(name, factory, location);
+            commandInvocation.getPmSession().getUniverse().addUniverse(name, factory, GaecRange.parse(location));
         } catch (IOException | ProvisioningException ex) {
             throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.addUniverseFailed(), ex);
         }

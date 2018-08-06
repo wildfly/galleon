@@ -35,7 +35,9 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
@@ -124,16 +126,14 @@ public class CreateProducerMojo extends AbstractMojo {
     }
 
     private void createProducer() throws MavenUniverseException, MojoExecutionException {
-        final MavenArtifact producerArtifact = new MavenArtifact()
-                .setGroupId(groupId)
-                .setArtifactId(artifactId)
-                .setVersion(version);
+        final Gaecv gaecv = Gaecv.builder().groupId(groupId).artifactId(artifactId).version(version).build();
+        final ResolvedGaecRange<Gaecv> artifact = ResolvedGaecRange.ofSingleGaecv(gaecv);
         final MavenProducerInstaller installer = new MavenProducerInstaller(
                 name,
                 SimplisticMavenRepoManager.getInstance(
                         Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),
                         new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories)),
-                producerArtifact,
+                artifact,
                 featurePackGroupId, featurePackArtifactId);
 
         for(String frequency : frequencies) {
@@ -152,10 +152,10 @@ public class CreateProducerMojo extends AbstractMojo {
             }
         }
         try {
-            installer.install();
+            final Gaecvp gaecvp = installer.install();
+            projectHelper.attachArtifact(project, gaecvp.getGaecv().getGaec().getExtension(), gaecvp.getPath().toFile());
         } catch (MavenUniverseException e) {
             throw new MojoExecutionException("Failed to create producer", e);
         }
-        projectHelper.attachArtifact(project, "jar", producerArtifact.getPath().toFile());
     }
 }

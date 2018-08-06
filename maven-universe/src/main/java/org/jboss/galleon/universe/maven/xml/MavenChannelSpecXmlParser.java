@@ -41,7 +41,7 @@ public class MavenChannelSpecXmlParser {
         XmlParsers.getInstance().plugin(MavenChannelSpecXmlParser10.ROOT_1_0, new MavenChannelSpecXmlParser10());
     }
 
-    public void parse(final Reader input, final ParsedCallbackHandler<MavenProducerBase, MavenChannel> builder) throws XMLStreamException {
+    public void parse(final Reader input, final ParsedCallbackHandler<MavenProducerBase<?>, MavenChannel> builder) throws XMLStreamException {
         XmlParsers.parse(input, builder);
     }
 }

@@ -20,7 +20,10 @@ package org.jboss.galleon.universe.maven.test;
 import static org.jboss.galleon.universe.TestConstants.*;
 
 import org.jboss.galleon.universe.UniverseRepoTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenProducer;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenErrors;
@@ -36,28 +39,28 @@ import org.junit.Test;
  */
 public class MavenUniverseInstallTestCase extends UniverseRepoTestBase {
 
-    private MavenArtifact universeArtifact;
+    private Gaecv universeArtifact;
 
     @Override
     protected void doInit() throws Exception {
-        universeArtifact = new MavenArtifact();
-        universeArtifact.setGroupId(GROUP_ID);
-        universeArtifact.setArtifactId("test-universe");
-        universeArtifact.setVersion("1.0.0.Final");
+        universeArtifact = Gaecv.builder()
+        .groupId(GROUP_ID)
+        .artifactId("test-universe")
+        .version("1.0.0.Final")
+        .build();
 
-        MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(GROUP_ID);
-        artifact.setArtifactId("producer1");
-        artifact.setVersion("1.0.0.Final");
-        MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, artifact);
+        Gaecv artifact = Gaecv.builder()
+        .groupId(GROUP_ID)
+        .artifactId("producer1")
+        .version("1.0.0.Final")
+        .build();
+        MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, ResolvedGaecRange.ofSingleGaecv(artifact));
         producerInstaller.addFrequencies("alpha", "beta");
         producerInstaller.install();
 
-        artifact = new MavenArtifact();
-        artifact.setGroupId(GROUP_ID);
-        artifact.setArtifactId("producer2");
-        artifact.setVersion("3.0.0.Final");
-        producerInstaller = new MavenProducerInstaller("producer2", repo, artifact);
+        artifact = Gaecv.builder().groupId(GROUP_ID).artifactId("producer2").version("3.0.0.Final")
+        .build();
+        producerInstaller = new MavenProducerInstaller("producer2", repo, ResolvedGaecRange.ofSingleGaecv(artifact));
         producerInstaller.addFrequencies("alpha", "beta");
         producerInstaller.install();
     }
@@ -68,21 +71,26 @@ public class MavenUniverseInstallTestCase extends UniverseRepoTestBase {
         final MavenUniverseInstaller universeInstaller = new MavenUniverseInstaller(repo, universeArtifact);
         universeInstaller.addProducer("producer1", GROUP_ID, "producer1", "[1.0.0,2.0.0)");
         universeInstaller.addProducer("producer2", GROUP_ID, "producer2", "[3.0.0,4.0.0)");
-        universeInstaller.install();
+        Gaecvp gaecvp = universeInstaller.install();
 
-        universeArtifact.setPath(null);
-        final MavenUniverse universe = new MavenUniverse(repo, universeArtifact);
+        final MavenUniverse universe = new MavenUniverse(repo, gaecvp);
 
         Assert.assertTrue(universe.hasProducer("producer1"));
-        MavenProducer producer = universe.getProducer("producer1");
-        Assert.assertEquals(GROUP_ID, producer.getArtifact().getGroupId());
-        Assert.assertEquals("producer1", producer.getArtifact().getArtifactId());
-        Assert.assertEquals("[1.0.0,2.0.0)", producer.getArtifact().getVersionRange());
+        {
+            final MavenProducer producer = universe.getProducer("producer1");
+            final Gaec gaec = producer.getArtifact().getResolved().getGaecv().getGaec();
+            Assert.assertEquals(GROUP_ID, gaec.getGroupId());
+            Assert.assertEquals("producer1", gaec.getArtifactId());
+            Assert.assertEquals("[1.0.0,2.0.0)", producer.getArtifact().getGaecRange().getVersionRange());
+        }
+        {
+            final MavenProducer producer = universe.getProducer("producer2");
+            final Gaec gaec = producer.getArtifact().getResolved().getGaecv().getGaec();
+            Assert.assertEquals(GROUP_ID, gaec.getGroupId());
+            Assert.assertEquals("producer2", gaec.getArtifactId());
+            Assert.assertEquals("[3.0.0,4.0.0)", producer.getArtifact().getGaecRange().getVersionRange());
+        }
 
-        producer = universe.getProducer("producer2");
-        Assert.assertEquals(GROUP_ID, producer.getArtifact().getGroupId());
-        Assert.assertEquals("producer2", producer.getArtifact().getArtifactId());
-        Assert.assertEquals("[3.0.0,4.0.0)", producer.getArtifact().getVersionRange());
         Assert.assertTrue(universe.hasProducer("producer2"));
 
         Assert.assertFalse(universe.hasProducer("producerN"));

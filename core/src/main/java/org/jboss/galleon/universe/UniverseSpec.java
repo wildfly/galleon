@@ -17,6 +17,8 @@
 
 package org.jboss.galleon.universe;
 
+import org.jboss.galleon.model.GaecRange;
+
 /**
  *
  * @author Alexey Loubyansky
@@ -29,20 +31,21 @@ public class UniverseSpec {
             if(start < 2) {
                 throw new IllegalArgumentException("Universe spec '" + src + "' does not follow format factory_id[(location)]");
             }
-            return new UniverseSpec(src.substring(0, start), src.substring(start + 1,src.length() - 1));
+            final String location = src.substring(start + 1,src.length() - 1);
+            return new UniverseSpec(src.substring(0, start), GaecRange.parse(location));
         }
         return new UniverseSpec(src, null);
     }
 
     private final String factory;
-    private final String location;
+    private final GaecRange location;
     private final int hash;
 
     public UniverseSpec(String factory) {
         this(factory, null);
     }
 
-    public UniverseSpec(String factory, String location) {
+    public UniverseSpec(String factory, GaecRange location) {
         this.factory = factory;
         this.location = location;
 
@@ -57,7 +60,7 @@ public class UniverseSpec {
         return factory;
     }
 
-    public String getLocation() {
+    public GaecRange getLocation() {
         return location;
     }
 

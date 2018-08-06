@@ -20,10 +20,12 @@ package org.jboss.galleon.creator.maven.test;
 import java.nio.file.Path;
 
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseRepoTestBase;
 import org.jboss.galleon.universe.UniverseResolver;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.MavenUniverseInstaller;
@@ -41,21 +43,21 @@ public class MavenUniverseFeaturePackCreatorTestCase extends UniverseRepoTestBas
     protected void doInit() throws Exception {
 
         final MavenProducerInstaller producer1 = new MavenProducerInstaller("producer1", repo,
-                new MavenArtifact().setGroupId("universe.producer.maven.test").setArtifactId("maven-producer1").setVersion("1.0.0.Final"),
+                ResolvedGaecRange.ofSingleGaecv(Gaecv.builder().groupId("universe.producer.maven.test").artifactId("maven-producer1").version("1.0.0.Final").build()),
                 "universe.feature-pack.maven.test", "feature-pack1")
                 .addFrequencies("alpha", "beta")
-                .addChannel("1.0", "[1.0.0,2.0.0)")
-                .install();
+                .addChannel("1.0", "[1.0.0,2.0.0)");
+        producer1.install();
 
         new MavenUniverseInstaller(repo,
-                new MavenArtifact().setGroupId("universe.maven.test").setArtifactId("maven-universe1").setVersion("1.0.0.Final"))
-                .addProducer(producer1.getName(), producer1.getArtifact().setPath(null).setVersionRange("[1.0,2.0-alpha)"))
+                Gaecv.builder().groupId("universe.maven.test").artifactId("maven-universe1").version("1.0.0.Final").build())
+                .addProducer(producer1.getName(), new GaecRange(producer1.getArtifact().getResolved().getGaec(), "[1.0,2.0-alpha)"))
                 .install();
 
         FeaturePackCreator.getInstance()
         .addArtifactResolver(repo)
         .newFeaturePack()
-            .setFPID(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(universe.maven.test:maven-universe1:[1.0,2.0-alpha)):1.0#1.0.0.Final").getFPID())
+            .setFPID(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(universe.maven.test:maven-universe1:jar::[1.0,2.0-alpha)):1.0#1.0.0.Final").getFPID())
             .newPackage("p1", true)
                 .writeContent("p1.txt", "p1 text")
                 .getFeaturePack()
@@ -68,7 +70,7 @@ public class MavenUniverseFeaturePackCreatorTestCase extends UniverseRepoTestBas
         final UniverseResolver universeResolver = UniverseResolver.builder()
                 .addArtifactResolver(SimplisticMavenRepoManager.getInstance(repoHome))
                 .build();
-        Path path = universeResolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(universe.maven.test:maven-universe1:[1.0,2.0-alpha)):1.0"));
+        Path path = universeResolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(universe.maven.test:maven-universe1:jar::[1.0,2.0-alpha)):1.0"));
         Assert.assertEquals("feature-pack1-1.0.0.Final.zip", path.getFileName().toString());
     }
 }

@@ -41,7 +41,7 @@ public class LayoutUtils {
         final UniverseSpec universe = fps.getUniverse();
         Path fpPath = fpLayoutDir.resolve(universe.getFactory());
         if (universe.getLocation() != null) {
-            fpPath = fpPath.resolve(ensureValidFileName(universe.getLocation()));
+            fpPath = fpPath.resolve(ensureValidFileName(universe.getLocation().toString()));
         }
         fpPath = fpPath.resolve(ensureValidFileName(fps.getProducerName())).resolve(fps.getChannelName()).resolve(ensureValidFileName(fpid.getBuild()));
         if (existing && !Files.exists(fpPath)) {

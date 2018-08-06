@@ -32,7 +32,7 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.ProvisionConfigMvnTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
@@ -45,7 +45,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
 
     private static final FeaturePackLocation FINAL1_FPL = FeaturePackLocation.fromString("producer1:1#1.0.1.Final");
 
-    private MavenArtifact universe1Art;
+    private Gaecvp universe1Art;
     private FPID final1Fpid;
 
     @Override
@@ -77,7 +77,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
                 .addFeaturePackDep(FeaturePackLocation.fromString("producer1:1"))
                 .addConfig(ConfigModel.builder("model1", "name1")
                         .excludeFeature(FeatureId.create("specA", "p1", "1"))
@@ -88,7 +88,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-        .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+        .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
         .addFeaturePackDep(FINAL1_FPL)
         .addConfig(ConfigModel.builder("model1", "name1")
                 .excludeFeature(FeatureId.create("specA", "p1", "1"))

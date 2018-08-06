@@ -17,14 +17,11 @@
 
 package org.jboss.galleon.universe.maven.repo;
 
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.maven.MavenUniverseConstants;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
-
-import java.nio.file.Path;
-
-import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.repo.RepositoryArtifactResolver;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 
 /**
  *
@@ -39,32 +36,29 @@ public interface MavenRepoManager extends RepositoryArtifactResolver {
         return REPOSITORY_ID;
     }
 
-    @Override
-    default Path resolve(String location) throws ProvisioningException {
-        final MavenArtifact artifact = MavenArtifact.fromString(location);
-        resolve(artifact);
-        return artifact.getPath();
+//    @Override
+//    default Path resolve(String location) throws ProvisioningException {
+//        final MavenArtifact artifact = MavenArtifact.fromString(location);
+//        resolve(artifact);
+//        return artifact.getPath();
+//    }
+
+//    boolean isResolved(MavenArtifact artifact) throws MavenUniverseException;
+//
+//    boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
+
+    default Gaecvp resolveLatestVersion(GaecRange artifact) throws MavenUniverseException {
+        return resolveLatestVersion(artifact, null);
     }
 
-    void resolve(MavenArtifact artifact) throws MavenUniverseException;
+    Gaecvp resolveLatestVersion(GaecRange artifact, String lowestQualifier) throws MavenUniverseException;
 
-    boolean isResolved(MavenArtifact artifact) throws MavenUniverseException;
-
-    boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
-
-    default void resolveLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
-        resolveLatestVersion(artifact, null);
-    }
-
-    void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
-
-    default String getLatestFinalVersion(MavenArtifact artifact) throws MavenUniverseException {
+    default String getLatestFinalVersion(GaecRange artifact) throws MavenUniverseException {
         return getLatestVersion(artifact, null);
     }
 
-    String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException;
+    String getLatestVersion(GaecRange artifact) throws MavenUniverseException;
 
-    String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
+    String getLatestVersion(GaecRange artifact, String lowestQualifier) throws MavenUniverseException;
 
-    void install(MavenArtifact artifact, Path path) throws MavenUniverseException;
 }

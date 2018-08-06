@@ -179,7 +179,7 @@ public class MavenArtifactVersionRangeParser {
                 case ')':
                 case ']':
                 default:
-                    throw unexpectedChar(rangeStr, ch, i - 1);
+                    return new SingleVersionRange(new MavenArtifactVersion(rangeStr), true);
             }
         }
         if(ranges == null) {

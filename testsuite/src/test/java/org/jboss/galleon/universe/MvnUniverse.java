@@ -22,9 +22,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.maven.MavenArtifact;
-import org.jboss.galleon.universe.maven.MavenProducerBase;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseInstaller;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
@@ -45,7 +47,7 @@ public class MvnUniverse {
 
     private final String name;
     private final MavenRepoManager repoManager;
-    private List<MavenProducerBase> producers = Collections.emptyList();
+    private List<MavenProducerInstaller> producers = Collections.emptyList();
 
     private MvnUniverse(String name, MavenRepoManager repoManager) {
         this.name = name;
@@ -54,7 +56,7 @@ public class MvnUniverse {
 
     public Path resolve(FPID fpid) throws ProvisioningException {
         final String producerName = fpid.getProducer().getName();
-        for(MavenProducerBase p : producers) {
+        for(MavenProducerInstaller p : producers) {
             if(p.getName().equals(producerName)) {
                 return p.getChannel(fpid.getChannel().getName()).resolve(fpid.getLocation());
             }
@@ -72,15 +74,16 @@ public class MvnUniverse {
 
     public MvnUniverse createProducer(String producerName, String fpArtifactId, String defaultFrequency) throws ProvisioningException {
         final MavenProducerInstaller producer = new MavenProducerInstaller(producerName, repoManager,
-                new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
-                        .setVersion("1.0.0.Final"),
+                ResolvedGaecRange.ofSingleGaecv(Gaecv.builder().groupId(TestConstants.GROUP_ID + '.' + name).artifactId(producerName)
+                        .version("1.0.0.Final").build()),
                 TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId)
                         .addFrequencies(frequencies)
                         .addChannel("1", "[1.0.0-alpha,2.0.0-alpha)");
         if(defaultFrequency != null) {
             producer.addFrequency(defaultFrequency, true);
         }
-        producers = CollectionUtils.add(producers, producer.install());
+        producer.install();
+        producers = CollectionUtils.add(producers, producer);
         return this;
     }
 
@@ -90,25 +93,25 @@ public class MvnUniverse {
 
     public MvnUniverse createProducer(String producerName, String fpArtifactId, int channels) throws ProvisioningException {
         MavenProducerInstaller producer = new MavenProducerInstaller(producerName, repoManager,
-                new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
-                        .setVersion("1.0.0.Final"),
+                ResolvedGaecRange.ofSingleGaecv(Gaecv.builder().groupId(TestConstants.GROUP_ID + '.' + name).artifactId(producerName)
+                        .version("1.0.0.Final").build()),
                 TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId);
         while(channels > 0) {
             producer.addFrequencies(frequencies).addChannel(Integer.toString(channels),
                     new StringBuilder().append('[').append(channels).append(".0.0-alpha,").append(channels + 1).append(".0.0-alpha)").toString());
             --channels;
         }
-        producers = CollectionUtils.add(producers, producer.install());
+        producer.install();
+        producers = CollectionUtils.add(producers, producer);
         return this;
     }
 
-    public MavenArtifact install() throws ProvisioningException {
-        final MavenArtifact universeArtifact = new MavenArtifact().setGroupId(TestConstants.GROUP_ID).setArtifactId(name).setVersion("1.0.0.Final");
+    public Gaecvp install() throws ProvisioningException {
+        final Gaecv universeArtifact = Gaecv.builder().groupId(TestConstants.GROUP_ID).artifactId(name).version("1.0.0.Final").build();
         final MavenUniverseInstaller installer = new MavenUniverseInstaller(repoManager, universeArtifact);
-        for(MavenProducerBase p : producers) {
-            installer.addProducer(p.getName(), p.getArtifact().setPath(null).setVersionRange("[1.0,)"));
+        for(MavenProducerInstaller p : producers) {
+            installer.addProducer(p.getName(), new GaecRange(p.getArtifact().getResolved().getGaec(), "[1.0,)"));
         }
-        installer.install();
-        return universeArtifact;
+        return installer.install();
     }
 }

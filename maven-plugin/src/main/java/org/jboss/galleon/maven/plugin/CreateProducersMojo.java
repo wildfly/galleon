@@ -31,7 +31,8 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.MavenProducers;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
@@ -88,19 +89,18 @@ public class CreateProducersMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final MavenArtifact artifact = new MavenArtifact().setGroupId(groupId).setArtifactId(artifactId).setVersion(version);
-        final MavenProducers installer = MavenProducers.getInstance(
+        final MavenProducers installer = new MavenProducers(
                 SimplisticMavenRepoManager.getInstance(Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),
-                        new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories)),
-                artifact);
+                        new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories)));
         for(ProducerDescription producer : producers) {
             installer.addProducer(producer);
         }
         try {
-            installer.install();
+            final Gaecv artifact = Gaecv.builder().groupId(groupId).artifactId(artifactId).version(version).build();
+            Gaecvp gaecvp = installer.install(artifact);
+            projectHelper.attachArtifact(project, gaecvp.getGaecv().getGaec().getExtension(), gaecvp.getPath().toFile());
         } catch (MavenUniverseException e) {
             throw new MojoExecutionException("Failed to create producers artifact", e);
         }
-        projectHelper.attachArtifact(project, "jar", artifact.getPath().toFile());
     }
 }

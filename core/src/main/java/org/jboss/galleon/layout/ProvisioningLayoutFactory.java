@@ -33,6 +33,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.progresstracking.DefaultProgressTracker;
 import org.jboss.galleon.progresstracking.NoOpProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressCallback;
@@ -137,7 +138,8 @@ public class ProvisioningLayoutFactory implements Closeable {
         // temporary conversion of galleon1 core to the universe it should belong to
         if(fpid.getUniverse().getFactory().equals(LegacyGalleon1UniverseFactory.ID) &&
                 "org.wildfly.core:wildfly-core-galleon-pack".equals(fpid.getProducer().getName())) {
-            fpid = new FeaturePackLocation(new UniverseSpec("maven", "org.jboss.universe:community-universe"), "wildfly-core",
+            final GaecRange loc = GaecRange.builder().groupId("org.jboss.universe").artifactId("community-universe").build();
+            fpid = new FeaturePackLocation(new UniverseSpec("maven", loc), "wildfly-core",
                     "current", null, fpid.getBuild()).getFPID();
         }
 

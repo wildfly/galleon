@@ -33,13 +33,13 @@ public interface ArtifactRepositoryManager extends RepositoryArtifactResolver {
         return REPOSITORY_ID;
     }
 
-    @Override
-    default Path resolve(String location) throws ProvisioningException {
-        return resolve(ArtifactCoords.fromString(location));
-    }
+//    @Override
+//    default Path resolve(String location) throws ProvisioningException {
+//        return resolve(ArtifactCoords.fromString(location));
+//    }
 
-    Path resolve(ArtifactCoords coords) throws ArtifactException;
-    void install(ArtifactCoords coords, Path artifact) throws ArtifactException;
+//    Path resolve(ArtifactCoords coords) throws ArtifactException;
+//    void install(ArtifactCoords coords, Path artifact) throws ArtifactException;
     void deploy(ArtifactCoords coords, Path artifact) throws ArtifactException;
     String getHighestVersion(ArtifactCoords coords, String range) throws ArtifactException;
 }

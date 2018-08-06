@@ -29,7 +29,9 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseRepoTestBase;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.MavenErrors;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
@@ -50,24 +52,24 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
     private static final String FP_GROUP_ID = "test.group";
 
     private UniverseResolver resolver;
-    private MavenArtifact universeArt;
+    private Gaecv universeArt;
 
     @Override
     public void doInit() throws Exception {
 
-        final MavenArtifact artifact = new MavenArtifact().
-                setGroupId(GROUP_ID).
-                setArtifactId(PRODUCER1_ARTIFACT_ID).
-                setVersion("1.0.0.Final");
-        MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, artifact, FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID);
+        final Gaecv artifact = Gaecv.builder().
+                groupId(GROUP_ID).
+                artifactId(PRODUCER1_ARTIFACT_ID).
+                version("1.0.0.Final").build();
+        MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, ResolvedGaecRange.ofSingleGaecv(artifact), FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID);
         producerInstaller.addChannel("5", "[5.0-alpha,6.0-alpha)");
         producerInstaller.addFrequencies("alpha", "beta");
         producerInstaller.install();
 
-        universeArt = new MavenArtifact().
-                setGroupId(GROUP_ID).
-                setArtifactId("universe1-artifact").
-                setVersion("1.0.0.Final");
+        universeArt = Gaecv.builder().
+                groupId(GROUP_ID).
+                artifactId("universe1-artifact").
+                version("1.0.0.Final").build();
         final MavenUniverseInstaller universeInstaller = new MavenUniverseInstaller(repo, universeArt);
         universeInstaller.addProducer("producer1", GROUP_ID, PRODUCER1_ARTIFACT_ID, "[1.0.0,2.0.0)");
         universeInstaller.install();
@@ -80,85 +82,86 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
     public void testMain() throws Exception {
 
         try {
-            resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
+            resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/alpha"));
             Assert.fail("Artifact does not exist");
         } catch(ProvisioningException e) {
-            final MavenArtifact artifact = new MavenArtifact();
-            artifact.setGroupId(FP_GROUP_ID);
-            artifact.setArtifactId(PRODUCER1_FP_ARTIFACT_ID);
-            artifact.setExtension("zip");
-            artifact.setVersionRange("[5.0-alpha,6.0-alpha)");
+            final GaecRange artifact = GaecRange.builder()
+            .groupId(FP_GROUP_ID)
+            .artifactId(PRODUCER1_FP_ARTIFACT_ID)
+            .extension("zip")
+            .versionRange("[5.0-alpha,6.0-alpha)")
+            .build();
             Assert.assertEquals(MavenErrors.artifactNotFound(artifact, repoHome).getLocalizedMessage(), e.getLocalizedMessage());
         }
 
         installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "5.1.0.Alpha1"));
 
         try {
-            resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
+            resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5"));
             Assert.fail("No final releases yet");
         } catch(ProvisioningException e) {
             // ignore
         }
 
-        MavenArtifact artifact = new MavenArtifact().
-                setGroupId(FP_GROUP_ID).
-                setArtifactId(PRODUCER1_FP_ARTIFACT_ID).
-                setExtension("zip").
-                setVersion("5.1.0.Alpha1");
-        Path path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        Gaecv.Builder artifactBuider = Gaecv.builder().
+                groupId(FP_GROUP_ID).
+                artifactId(PRODUCER1_FP_ARTIFACT_ID).
+                extension("zip").
+                version("5.1.0.Alpha1");
+        Path path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/alpha"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
         installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "4.1.0.Beta2"));
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/alpha"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
         installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "5.2.0.Final"));
-        artifact.setVersion("5.2.0.Final");
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        artifactBuider.version("5.2.0.Final");
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/alpha"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
         installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "5.2.1.Beta1"));
-        artifact.setVersion("5.2.1.Beta1");
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/beta"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
-        artifact.setVersion("5.2.0.Final");
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        artifactBuider.version("5.2.1.Beta1");
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/alpha"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/beta"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5"));
+        artifactBuider.version("5.2.0.Final");
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
         installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "6.0.0.Alpha1"));
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
-        artifact.setVersion("5.2.1.Beta1");
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5/alpha"));
+        artifactBuider.version("5.2.1.Beta1");
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
         installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "6.0.0.Final"));
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
-        artifact.setVersion("5.2.0.Final");
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5"));
+        artifactBuider.version("5.2.0.Final");
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
-        artifact.setVersion("5.1.0.Alpha1");
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.1.0.Alpha1"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        artifactBuider.version("5.1.0.Alpha1");
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5#5.1.0.Alpha1"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
 
-        artifact.setVersion("4.1.0.Beta2");
-        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#4.1.0.Beta2"));
-        Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
+        artifactBuider.version("4.1.0.Beta2");
+        path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5#4.1.0.Beta2"));
+        Assert.assertEquals(artifactBuider.build().getArtifactFileName(), path.getFileName().toString());
     }
 
     @Test
     public void testResolutionLocalPathInstalled() throws Exception {
-        FeaturePackLocation fpl = FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.0.0.Final");
+        FeaturePackLocation fpl = FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.toGaecRange() + "):5#5.0.0.Final");
 
-        MavenArtifact artifact = new MavenArtifact().
-                setGroupId(FP_GROUP_ID).
-                setArtifactId(PRODUCER1_FP_ARTIFACT_ID).
-                setExtension("zip").
-                setVersion("5.0.0.Final");
+        Gaecv artifact = Gaecv.builder()
+                .groupId(FP_GROUP_ID)
+                .artifactId(PRODUCER1_FP_ARTIFACT_ID)
+                .extension("zip")
+                .version("5.0.0.Final").build();
 
         FeaturePackCreator.getInstance()
                 .addArtifactResolver(repo)
@@ -176,7 +179,7 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
 
         try {
             resolver.resolve(fpl);
-            Assert.fail(String.format("The %s artifact is still installed in the local repository", artifact.getCoordsAsString()));
+            Assert.fail(String.format("The %s artifact is still installed in the local repository", artifact));
         } catch (ProvisioningException e) {
             // Expected exception
         }
@@ -190,7 +193,7 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
             path = resolver.resolve(fpl);
             Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
         } catch (ProvisioningException e) {
-            Assert.fail(String.format("Cannot resolve %s artifact using a resolved with a local feature pack location", artifact.getCoordsAsString()));
+            Assert.fail(String.format("Cannot resolve %s artifact using a resolved with a local feature pack location", artifact));
         }
     }
 

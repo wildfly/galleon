@@ -31,6 +31,10 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlWriter;
 import org.jboss.galleon.universe.maven.xml.MavenProducerXmlWriter;
@@ -42,29 +46,29 @@ import org.jboss.galleon.util.ZipUtils;
  *
  * @author Alexey Loubyansky
  */
-public class MavenProducerInstaller extends MavenProducerBase {
+public class MavenProducerInstaller extends MavenProducerBase<Gaecv> {
 
     private Set<String> frequencies = Collections.emptySet();
     private String defaultFrequency;
     private Map<String, MavenChannel> channels = new HashMap<>();
     private boolean installed;
 
-    public MavenProducerInstaller(String name, MavenRepoManager repoManager, MavenArtifact artifact) throws MavenUniverseException {
-        this(name, repoManager, artifact, null, null);
+    public MavenProducerInstaller(String name, MavenRepoManager repoManager, ResolvedGaecRange<Gaecv> artifact) throws MavenUniverseException {
+        this(name, repoManager, artifact, (String) null, (String) null);
     }
 
-    public MavenProducerInstaller(String name, MavenRepoManager repoManager, MavenArtifact artifact, String fpGroupId, String fpArtifactId) throws MavenUniverseException {
+    public MavenProducerInstaller(String name, MavenRepoManager repoManager, ResolvedGaecRange<Gaecv> artifact, String fpGroupId, String fpArtifactId) throws MavenUniverseException {
         super(name, repoManager, artifact);
         this.fpGroupId = fpGroupId;
         this.fpArtifactId = fpArtifactId;
     }
 
-    public MavenProducerInstaller(String name, MavenRepoManager repoManager, MavenArtifact artifact, MavenArtifact extendArtifact) throws MavenUniverseException {
+    public MavenProducerInstaller(String name, MavenRepoManager repoManager, ResolvedGaecRange<Gaecv> artifact, ResolvedGaecRange<Gaecvp> extendArtifact) throws MavenUniverseException {
         super(name, repoManager, artifact);
         extendProducer(name, extendArtifact);
     }
 
-    public MavenProducerInstaller extendProducer(String name, MavenArtifact extendArtifact) throws MavenUniverseException {
+    public MavenProducerInstaller extendProducer(String name, ResolvedGaecRange<Gaecvp> extendArtifact) throws MavenUniverseException {
         final MavenProducer otherProducer = new MavenProducer(name, repo, extendArtifact);
         if(fpGroupId == null) {
             fpGroupId = otherProducer.getFeaturePackGroupId();
@@ -171,7 +175,7 @@ public class MavenProducerInstaller extends MavenProducerBase {
         return channels.values();
     }
 
-    public MavenProducerInstaller install() throws MavenUniverseException {
+    public Gaecvp install() throws MavenUniverseException {
         if(installed) {
             throw new MavenUniverseException("The universe has already been installed");
         }
@@ -186,15 +190,14 @@ public class MavenProducerInstaller extends MavenProducerBase {
             tmpDir = Files.createTempDirectory("gln-mvn-producer");
             final Path zipRoot = tmpDir.resolve("root");
             addProducerDescription(this, zipRoot);
-            final Path artifactFile = tmpDir.resolve(artifact.getArtifactFileName());
+            final Path artifactFile = tmpDir.resolve(artifact.getResolved().getArtifactFileName());
             Files.createDirectories(artifactFile.getParent());
             ZipUtils.zip(zipRoot, artifactFile);
-            repo.install(artifact, artifactFile);
-            installed = true;
-            return this;
-        } catch (IOException | XMLStreamException e) {
+            return repo.install(artifact.getResolved(), artifactFile);
+        } catch (IOException | XMLStreamException | ProvisioningException e) {
             throw new MavenUniverseException("Failed to create Maven universe producer artifact", e);
         } finally {
+            installed = true;
             if(tmpDir != null) {
                 IoUtils.recursiveDelete(tmpDir);
             }

@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.apache.maven.shared.artifact.ArtifactCoordinate;
 import org.apache.maven.shared.dependencies.DependableCoordinate;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.Gaecv;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -245,4 +247,13 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
             throw new IllegalStateException("Galleon 1.x feature-pack Maven coordinates cannot be used: feature-pack Path has already been initialized");
         }
     }
+
+    public Gaec toGaec() {
+        return new Gaec(groupId, artifactId, extension, classifier);
+    }
+
+    public Gaecv toGaecv() {
+        return new Gaecv(toGaec(), version);
+    }
+
 }

@@ -20,12 +20,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ArtifactRepositoryManager;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.util.ZipUtils;
 
 /**
@@ -45,17 +47,18 @@ public class FeaturePackRepositoryManager implements ArtifactRepositoryManager {
     }
 
     @Override
-    public void install(ArtifactCoords coords, Path artifact) throws ArtifactException {
+    public Gaecvp install(Gaecv artifact, Path path) throws ProvisioningException {
         try {
-            final Path path = getArtifactPath(coords);
-            Files.createDirectories(path.getParent());
-            if(Files.isDirectory(artifact)) {
-                 ZipUtils.zip(artifact, path);
+            final Path repoPath = getArtifactPath(artifact);
+            Files.createDirectories(repoPath.getParent());
+            if(Files.isDirectory(path)) {
+                 ZipUtils.zip(path, repoPath);
             }else {
-                Files.copy(artifact, path, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(path, repoPath, StandardCopyOption.REPLACE_EXISTING);
             }
+            return new Gaecvp(artifact, repoPath);
         } catch (IOException ex) {
-            Logger.getLogger(FeaturePackRepositoryManager.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ProvisioningException("Could not install "+ artifact +" "+ path, ex);
         }
     }
 
@@ -65,29 +68,29 @@ public class FeaturePackRepositoryManager implements ArtifactRepositoryManager {
     }
 
     @Override
-    public Path resolve(ArtifactCoords coords) throws ArtifactException {
-        final Path path = getArtifactPath(coords);
+    public Gaecvp resolve(Gaecv artifact) throws ProvisioningException {
+        final Path path = getArtifactPath(artifact);
         if(!Files.exists(path)) {
-            throw new ArtifactException("Artifact " + coords + " not found in the repository at " + path);
+            throw new ArtifactException("Artifact " + artifact + " not found in the repository at " + path);
         }
-        return path;
+        return new Gaecvp(artifact, path);
     }
 
-    private Path getArtifactPath(final ArtifactCoords coords) {
+    private Path getArtifactPath(final Gaecv coords) {
+        final Gaec gaec = coords.getGaec();
         Path p = repoHome;
-        final String[] groupParts = coords.getGroupId().split("\\.");
+        final String[] groupParts = gaec.getGroupId().split("\\.");
         for (String part : groupParts) {
             p = p.resolve(part);
         }
-        p = p.resolve(coords.getArtifactId());
+        p = p.resolve(gaec.getArtifactId());
         p = p.resolve(coords.getVersion());
         final StringBuilder fileName = new StringBuilder();
-        fileName.append(coords.getArtifactId()).append('-').append(coords.getVersion());
-        final String classifier = coords.getClassifier();
-        if(classifier != null && !classifier.isEmpty()) {
-            fileName.append('-').append(classifier);
+        fileName.append(gaec.getArtifactId()).append('-').append(coords.getVersion());
+        if(gaec.hasClassifier()) {
+            fileName.append('-').append(gaec.getClassifier());
         }
-        fileName.append('.').append(coords.getExtension());
+        fileName.append('.').append(gaec.getExtension());
         return p.resolve(fileName.toString());
     }
 
@@ -95,4 +98,5 @@ public class FeaturePackRepositoryManager implements ArtifactRepositoryManager {
     public String getHighestVersion(ArtifactCoords coords, String range) throws ArtifactException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
 }

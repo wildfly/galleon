@@ -50,17 +50,12 @@ public class LegacyGalleon1Channel implements Channel {
      */
     @Override
     public Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
-        return universe.artifactResolver.resolve(LegacyGalleon1Universe.toArtifactCoords(fpl).toString());
+        return universe.artifactResolver.resolve(LegacyGalleon1Universe.toArtifactCoords(fpl)).getPath();
     }
 
     @Override
     public String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
         throw new ProvisioningException("Failed to determine the latest build for " + fpl + ": operation not supported");
-    }
-
-    @Override
-    public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

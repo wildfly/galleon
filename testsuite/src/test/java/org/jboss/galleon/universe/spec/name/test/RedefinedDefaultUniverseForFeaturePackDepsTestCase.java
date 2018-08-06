@@ -26,7 +26,7 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.ProvisionConfigMvnTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 
 /**
@@ -39,8 +39,8 @@ public class RedefinedDefaultUniverseForFeaturePackDepsTestCase extends Provisio
     private static final FeaturePackLocation FP2_FPL = FeaturePackLocation.fromString("producer2:1#1.0.0.Final");
     private static final FeaturePackLocation FP3_FPL = FeaturePackLocation.fromString("producer3:1#1.0.0.Final");
 
-    private MavenArtifact universe1Art;
-    private MavenArtifact universe2Art;
+    private Gaecvp universe1Art;
+    private Gaecvp universe2Art;
     private FPID fp1Fpid;
     private FPID fp2Fpid;
     private FPID fp3Fpid;
@@ -64,7 +64,7 @@ public class RedefinedDefaultUniverseForFeaturePackDepsTestCase extends Provisio
         creator
         .newFeaturePack()
             .setFPID(fp1Fpid)
-            .setDefaultUniverse(MavenUniverseFactory.ID, universe2Art.getCoordsAsString())
+            .setDefaultUniverse(MavenUniverseFactory.ID, universe2Art.getGaecv().toGaecRange())
             .addDependency(FP2_FPL)
             .addDependency(FP3_FPL)
             .newPackage("p1", true)
@@ -89,7 +89,7 @@ public class RedefinedDefaultUniverseForFeaturePackDepsTestCase extends Provisio
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
                 .addFeaturePackDep(FP1_FPL)
                 .build();
     }

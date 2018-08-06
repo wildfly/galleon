@@ -38,6 +38,7 @@ import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.creator.tasks.FsTaskContext;
 import org.jboss.galleon.creator.tasks.FsTaskList;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
@@ -86,12 +87,12 @@ public class FeaturePackBuilder {
         return this;
     }
 
-    public FeaturePackBuilder setDefaultUniverse(String factory, String location) throws ProvisioningDescriptionException {
+    public FeaturePackBuilder setDefaultUniverse(String factory, GaecRange location) throws ProvisioningDescriptionException {
         fpBuilder.setDefaultUniverse(factory, location);
         return this;
     }
 
-    public FeaturePackBuilder addUniverse(String name, String factory, String location) throws ProvisioningDescriptionException {
+    public FeaturePackBuilder addUniverse(String name, String factory, GaecRange location) throws ProvisioningDescriptionException {
         fpBuilder.addUniverse(name, factory, location);
         return this;
     }

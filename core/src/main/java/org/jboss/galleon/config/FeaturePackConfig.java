@@ -27,7 +27,6 @@ import java.util.Set;
 import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
@@ -311,22 +310,22 @@ public class FeaturePackConfig extends ConfigCustomizations {
     public Builder getBuilder() {
         return builder;
     }
-
-    /**
-     * @deprecated
-     *
-     * @return  Feature-pack artifact GAV
-     */
-    public ArtifactCoords.Gav getGav() {
-        if(legacyGav == null) {
-            try {
-                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpl).toGav();
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to translate fpl to gav", e);
-            }
-        }
-        return legacyGav;
-    }
+//
+//    /**
+//     * @deprecated
+//     *
+//     * @return  Feature-pack artifact GAV
+//     */
+//    public ArtifactCoords.Gav getGav() {
+//        if(legacyGav == null) {
+//            try {
+//                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpl).toGav();
+//            } catch (ProvisioningException e) {
+//                throw new IllegalStateException("Failed to translate fpl to gav", e);
+//            }
+//        }
+//        return legacyGav;
+//    }
 
     public FeaturePackLocation getLocation() {
         return fpl;

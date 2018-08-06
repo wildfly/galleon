@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlParser;
 import org.jboss.galleon.universe.maven.xml.MavenParsedProducerCallbackHandler;
@@ -44,10 +46,10 @@ import org.jboss.galleon.util.ZipUtils;
  *
  * @author Alexey Loubyansky
  */
-public class MavenProducer extends MavenProducerBase {
+public class MavenProducer extends MavenProducerBase<Gaecvp> {
 
-    private final ParsedCallbackHandler<MavenProducerBase, MavenChannel> parsedChannelHandler = new ParsedCallbackHandler<MavenProducerBase, MavenChannel>() {
-        public MavenProducerBase getParent() {
+    private final ParsedCallbackHandler<MavenProducerBase<?>, MavenChannel> parsedChannelHandler = new ParsedCallbackHandler<MavenProducerBase<?>, MavenChannel>() {
+        public MavenProducerBase<?> getParent() {
             return MavenProducer.this;
         }
 
@@ -61,15 +63,12 @@ public class MavenProducer extends MavenProducerBase {
     private Map<String, MavenChannel> channels = Collections.emptyMap();
     private boolean fullyLoaded;
 
-    public MavenProducer(String name, MavenRepoManager repoManager, MavenArtifact artifact) throws MavenUniverseException {
+    public MavenProducer(String name, MavenRepoManager repoManager, ResolvedGaecRange<Gaecvp> artifact) throws MavenUniverseException {
         super(name, repoManager, artifact);
-        if(!artifact.isResolved()) {
-            repoManager.resolve(artifact);
-        }
-        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getResolved().getPath())) {
             final Path producerXml = getProducerXml(zipfs, name);
             if(!Files.exists(producerXml)) {
-                throw new MavenUniverseException("Failed to locate " + producerXml + " in " + artifact.getCoordsAsString());
+                throw new MavenUniverseException("Failed to locate " + producerXml + " in " + artifact);
             }
             try(BufferedReader reader = Files.newBufferedReader(producerXml)) {
                 MavenProducerXmlParser.getInstance().parse(reader, new MavenParsedProducerCallbackHandler() {
@@ -105,7 +104,7 @@ public class MavenProducer extends MavenProducerBase {
                 throw new MavenUniverseException("Failed to parse " + producerXml, e);
             }
         } catch (IOException e) {
-            throw new MavenUniverseException("Failed to read " + artifact.getPath(), e);
+            throw new MavenUniverseException("Failed to read " + artifact.getResolved().getPath(), e);
         }
         if(defaultFrequency == null) {
             defaultFrequency = DEFAULT_FREQUENCY;
@@ -149,7 +148,7 @@ public class MavenProducer extends MavenProducerBase {
         } if(fullyLoaded) {
             return false;
         }
-        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getResolved().getPath())) {
             final Path channelXml = getChannelXml(zipfs, this.name, name);
             if(!Files.exists(channelXml)) {
                 return false;
@@ -160,7 +159,7 @@ public class MavenProducer extends MavenProducerBase {
                 throw new MavenUniverseException("Failed to read " + channelXml, e);
             }
         } catch (IOException e) {
-            throw new MavenUniverseException("Failed to read " + artifact.getPath(), e);
+            throw new MavenUniverseException("Failed to read " + artifact.getResolved().getPath(), e);
         }
         return true;
     }
@@ -184,7 +183,7 @@ public class MavenProducer extends MavenProducerBase {
         if(fullyLoaded) {
             return channels.values();
         }
-        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
+        try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getResolved().getPath())) {
             try(DirectoryStream<Path> stream = Files.newDirectoryStream(getChannelsDir(zipfs, name))) {
                 for(Path channelDir : stream) {
                     final Path channelXml = channelDir.resolve(MAVEN_CHANNEL_XML);
@@ -199,7 +198,7 @@ public class MavenProducer extends MavenProducerBase {
                 }
             }
         } catch (IOException e) {
-            throw new MavenUniverseException("Failed to read " + artifact.getPath(), e);
+            throw new MavenUniverseException("Failed to read " + artifact.getResolved().getPath(), e);
         }
         fullyLoaded = true;
         channels = CollectionUtils.unmodifiable(channels);

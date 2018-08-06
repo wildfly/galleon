@@ -26,6 +26,12 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
+import org.jboss.galleon.model.ResolvedGaecRange;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenProducerSpecXmlWriter;
 import org.jboss.galleon.util.IoUtils;
@@ -37,16 +43,16 @@ import static org.jboss.galleon.universe.maven.MavenUniverseConstants.*;
  *
  * @author Alexey Loubyansky
  */
-public class MavenUniverseInstaller extends MavenUniverseBase {
+public class MavenUniverseInstaller extends MavenUniverseBase<Gaecv> {
 
     private Map<String, MavenProducer> producers = new HashMap<>();
     private boolean installed;
 
-    public MavenUniverseInstaller(MavenRepoManager repoManager, MavenArtifact artifact) {
+    public MavenUniverseInstaller(MavenRepoManager repoManager, Gaecv artifact) {
         super(repoManager, artifact);
     }
 
-    public MavenUniverseInstaller extendUniverse(MavenArtifact extendArtifact) throws MavenUniverseException {
+    public MavenUniverseInstaller extendUniverse(Gaecvp extendArtifact) throws MavenUniverseException {
         final MavenUniverse otherUniverse = new MavenUniverse(repo, extendArtifact);
         for(MavenProducer producer : otherUniverse.getProducers()) {
             addProducer(producer);
@@ -55,15 +61,12 @@ public class MavenUniverseInstaller extends MavenUniverseBase {
     }
 
     public MavenUniverseInstaller addProducer(String producer, String groupId, String artifactId, String versionRange) throws MavenUniverseException {
-        return addProducer(producer, new MavenArtifact().setGroupId(groupId).setArtifactId(artifactId).setVersionRange(versionRange));
+        return addProducer(producer, new GaecRange(new Gaec(groupId, artifactId, "jar"), versionRange));
     }
 
-    public MavenUniverseInstaller addProducer(String producer, MavenArtifact artifact) throws MavenUniverseException {
-        if(artifact.getVersionRange() == null) {
-            MavenErrors.missingVersionRange(artifact);
-        }
-        repo.resolveLatestVersion(artifact);
-        return addProducer(new MavenProducer(producer, repo, artifact));
+    public MavenUniverseInstaller addProducer(String producer, GaecRange artifact) throws MavenUniverseException {
+        final Gaecvp gaecvp = repo.resolveLatestVersion(artifact);
+        return addProducer(new MavenProducer(producer, repo, new ResolvedGaecRange<Gaecvp>(artifact, gaecvp)));
     }
 
     public MavenUniverseInstaller addProducer(MavenProducer producer) throws MavenUniverseException {
@@ -78,7 +81,7 @@ public class MavenUniverseInstaller extends MavenUniverseBase {
         return this;
     }
 
-    public void install() throws MavenUniverseException {
+    public Gaecvp install() throws MavenUniverseException {
         if(installed) {
             throw new MavenUniverseException("The universe has already been installed");
         }
@@ -88,7 +91,7 @@ public class MavenUniverseInstaller extends MavenUniverseBase {
             final Path zipRoot = tmpDir.resolve("root");
             final Path locations = getProducerLocations(zipRoot);
             Files.createDirectories(locations);
-            for(MavenProducerBase producer : producers.values()) {
+            for(MavenProducerBase<?> producer : producers.values()) {
                 final Path producerDir = locations.resolve(producer.getName());
                 Files.createDirectory(producerDir);
                 final Path producerXml = producerDir.resolve(MAVEN_PRODUCER_XML);
@@ -97,15 +100,15 @@ public class MavenUniverseInstaller extends MavenUniverseBase {
             final Path artifactFile = tmpDir.resolve(artifact.getArtifactFileName());
             Files.createDirectories(artifactFile.getParent());
             ZipUtils.zip(zipRoot, artifactFile);
-            repo.install(artifact, artifactFile);
-        } catch (IOException | XMLStreamException e) {
+            return repo.install(artifact, artifactFile);
+        } catch (IOException | XMLStreamException | ProvisioningException e) {
             throw new MavenUniverseException("Failed to create Maven universe artifact", e);
         } finally {
+            installed = true;
             if(tmpDir != null) {
                 IoUtils.recursiveDelete(tmpDir);
             }
         }
-        installed = true;
     }
 
     @Override
@@ -125,6 +128,11 @@ public class MavenUniverseInstaller extends MavenUniverseBase {
     @Override
     public Collection<MavenProducer> getProducers() throws MavenUniverseException {
         return producers.values();
+    }
+
+    @Override
+    public String getLocation() {
+        return artifact.toString();
     }
 
 }

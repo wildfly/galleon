@@ -20,13 +20,13 @@ package org.jboss.galleon.universe.frequency.test;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.ProvisionConfigMvnTestBase;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 
 /**
@@ -44,7 +44,7 @@ public class LatestSnapshotTestCase extends ProvisionConfigMvnTestBase {
     private static final FeaturePackLocation FINAL1_SNAPSHOT_FPL = FeaturePackLocation.fromString("producer1:1#1.0.2.Final-SNAPSHOT");
     private static final FeaturePackLocation FINAL2_FPL = FeaturePackLocation.fromString("producer1:1#2.0.0.Final");
 
-    private MavenArtifact universe1Art;
+    private Gaecvp universe1Art;
     private FPID alpha1Fpid;
     private FPID alpha2Fpid;
     private FPID beta1Fpid;
@@ -125,7 +125,7 @@ public class LatestSnapshotTestCase extends ProvisionConfigMvnTestBase {
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+                .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
                 .addFeaturePackDep(FeaturePackLocation.fromString("producer1:1/snapshot"))
                 .build();
     }
@@ -133,7 +133,7 @@ public class LatestSnapshotTestCase extends ProvisionConfigMvnTestBase {
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-        .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getCoordsAsString())
+        .setDefaultUniverse(MavenUniverseFactory.ID, universe1Art.getGaecv().toGaecRange())
         .addFeaturePackDep(FeaturePackLocation.fromString("producer1:1/snapshot#1.0.2.Final-SNAPSHOT"))
         .build();
     }

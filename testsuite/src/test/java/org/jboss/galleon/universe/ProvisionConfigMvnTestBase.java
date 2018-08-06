@@ -19,10 +19,11 @@ package org.jboss.galleon.universe;
 
 import java.nio.file.Path;
 
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
@@ -42,10 +43,17 @@ public abstract class ProvisionConfigMvnTestBase extends PmProvisionConfigTestBa
         return MvnUniverse.getInstance(name, (MavenRepoManager) repo);
     }
 
-    protected FPID mvnFPID(FeaturePackLocation fpl, MavenArtifact universeArtifact) {
+    protected FPID mvnFPID(FeaturePackLocation fpl, Gaecvp universeArtifact) {
         return new FeaturePackLocation(
                 universeArtifact == null ? null
-                        : new UniverseSpec(MavenUniverseFactory.ID, universeArtifact.getCoordsAsString()),
+                        : new UniverseSpec(MavenUniverseFactory.ID, universeArtifact.getGaecv().toGaecRange()),
+                fpl.getProducerName(), fpl.getChannelName(), fpl.getFrequency(), fpl.getBuild()).getFPID();
+    }
+
+    protected FPID mvnFPID(FeaturePackLocation fpl, GaecRange universeArtifact) {
+        return new FeaturePackLocation(
+                universeArtifact == null ? null
+                        : new UniverseSpec(MavenUniverseFactory.ID, universeArtifact),
                 fpl.getProducerName(), fpl.getChannelName(), fpl.getFrequency(), fpl.getBuild()).getFPID();
     }
 }

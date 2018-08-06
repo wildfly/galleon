@@ -29,8 +29,11 @@ import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.Gaec;
+import org.jboss.galleon.model.GaecRange;
+import org.jboss.galleon.model.Gaecv;
+import org.jboss.galleon.model.Gaecvp;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
-import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
 import org.jboss.galleon.universe.maven.MavenLatestVersionNotAvailableException;
 import org.jboss.galleon.util.IoUtils;
@@ -72,30 +75,16 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
         return REPOSITORY_ID;
     }
 
-    @Override
-    public Path resolve(String location) throws ProvisioningException {
-        return MavenRepoManager.super.resolve(location);
-    }
-
-    @Override
-    public Path resolve(ArtifactCoords coords) throws ArtifactException {
-        final MavenArtifact artifact = toMavenArtifact(coords);
-        try {
-            resolve(artifact);
-        } catch (MavenUniverseException e) {
-            throw new ArtifactException("Failed to resolve " + coords, e);
-        }
-        return artifact.getPath();
-    }
-
-    @Override
-    public void install(ArtifactCoords coords, Path artifact) throws ArtifactException {
-        try {
-            install(toMavenArtifact(coords), artifact);
-        } catch (MavenUniverseException e) {
-            throw new ArtifactException("Failed to install " + coords, e);
-        }
-    }
+//    @Override
+//    public Path resolve(ArtifactCoords coords) throws ArtifactException {
+//        final MavenArtifact artifact = toMavenArtifact(coords);
+//        try {
+//            resolve(artifact);
+//        } catch (MavenUniverseException e) {
+//            throw new ArtifactException("Failed to resolve " + coords, e);
+//        }
+//        return artifact.getPath();
+//    }
 
     @Override
     public void deploy(ArtifactCoords coords, Path artifact) throws ArtifactException {
@@ -104,109 +93,77 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
 
     @Override
     public String getHighestVersion(ArtifactCoords coords, String range) throws ArtifactException {
+        final GaecRange r = new GaecRange(new Gaec(coords.getGroupId(), coords.getArtifactId(), coords.getExtension(),coords.getClassifier()), range);
         try {
-            return getLatestFinalVersion(toMavenArtifact(coords).setVersionRange(range));
+            return getLatestFinalVersion(r);
         } catch (MavenUniverseException e) {
             throw new ArtifactException("Failed to resolve the latest version for " + coords, e);
         }
     }
 
-    private MavenArtifact toMavenArtifact(ArtifactCoords coords) {
-        return new MavenArtifact()
-                .setGroupId(coords.getGroupId())
-                .setArtifactId(coords.getArtifactId())
-                .setVersion(coords.getVersion())
-                .setClassifier(coords.getClassifier())
-                .setExtension(coords.getExtension());
-    }
-
     @Override
-    public void resolve(MavenArtifact artifact) throws MavenUniverseException {
-        if(artifact.isResolved()) {
-            throw new MavenUniverseException("Artifact is already resolved");
-        }
-        Path path = null;
+    public Gaecvp resolve(Gaecv artifact) throws ProvisioningException {
         try {
-            path = getArtifactPath(artifact);
+            final Path path = getArtifactPath(artifact);
             if (!Files.exists(path)) {
                 throw new MavenUniverseException(pathDoesNotExist(artifact, path));
             }
-            artifact.setPath(path);
-            return;
+            return new Gaecvp(artifact, path);
         } catch (MavenUniverseException e) {
             if (fallback == null) {
                 throw e;
             }
         }
-        try {
-            fallback.resolve(artifact);
-        } catch(MavenUniverseException e) {
-            throw new MavenUniverseException(pathDoesNotExist(artifact, path), e);
-        }
+        return fallback.resolve(artifact);
     }
 
     @Override
-    public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        if(artifact.isResolved()) {
-            throw new MavenUniverseException("Artifact is already resolved");
-        }
+    public Gaecvp resolveLatestVersion(GaecRange artifact, String lowestQualifier) throws MavenUniverseException {
         Path path = null;
         try {
             path = resolveLatestVersionDir(artifact, lowestQualifier);
-            artifact.setVersion(path.getFileName().toString());
-            path = path.resolve(artifact.getArtifactFileName());
+            final Gaecv gaecv = new Gaecv(artifact.getGaec(), path.getFileName().toString());
+            path = path.resolve(gaecv.getArtifactFileName());
             if (!Files.exists(path)) {
                 throw new MavenUniverseException(pathDoesNotExist(artifact, path));
             }
-            artifact.setPath(path);
-            return;
+            return new Gaecvp(gaecv, path);
         } catch (MavenUniverseException e) {
             if (fallback == null) {
                 throw e;
             }
         }
-        fallback.resolveLatestVersion(artifact, lowestQualifier);
+        return fallback.resolveLatestVersion(artifact, lowestQualifier);
     }
 
-    private String pathDoesNotExist(MavenArtifact artifact, Path path) throws MavenUniverseException {
-        return "Failed to resolve " + artifact.getCoordsAsString() + ": " + path + " does not exist";
+    private String pathDoesNotExist(Object artifact, Path path) throws MavenUniverseException {
+        return "Failed to resolve " + artifact + ": " + path + " does not exist";
     }
 
     @Override
-    public String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+    public String getLatestVersion(GaecRange artifact, String lowestQualifier) throws MavenUniverseException {
         return resolveLatestVersionDir(artifact, lowestQualifier).getFileName().toString();
     }
 
     @Override
-    public void install(MavenArtifact artifact, Path path) throws MavenUniverseException {
-        if(artifact.isResolved()) {
-            throw new MavenUniverseException("Artifact is already associated with a path " + path);
-        }
+    public Gaecvp install(Gaecv artifact, Path path) throws MavenUniverseException {
         final Path targetPath = getArtifactPath(artifact);
         try {
             IoUtils.copy(path, targetPath);
         } catch (IOException e) {
-            throw new MavenUniverseException("Failed to install " + artifact.getCoordsAsString(), e);
+            throw new MavenUniverseException("Failed to install " + artifact, e);
         }
-        artifact.setPath(targetPath);
+        return new Gaecvp(artifact, targetPath);
     }
 
-    private Path resolveLatestVersionDir(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        if(artifact.getGroupId() == null) {
-            MavenErrors.missingGroupId();
-        }
-        if(artifact.getArtifactId() == null) {
-            MavenErrors.missingArtifactId();
-        }
-        if(artifact.getVersionRange() == null) {
-            throw new MavenUniverseException("Version range is missing for " + artifact.getCoordsAsString());
-        }
+    private Path resolveLatestVersionDir(GaecRange artifact, String lowestQualifier) throws MavenUniverseException {
+        final Gaec gaec = artifact.getGaec();
         Path artifactDir = repoHome;
-        final String[] groupParts = artifact.getGroupId().split("\\.");
+        final String[] groupParts = gaec.getGroupId().split("\\.");
         for (String part : groupParts) {
             artifactDir = artifactDir.resolve(part);
         }
-        artifactDir = artifactDir.resolve(artifact.getArtifactId());
+        artifactDir = artifactDir.resolve(gaec.getArtifactId());
         if(!Files.exists(artifactDir)) {
             throw MavenErrors.artifactNotFound(artifact, repoHome);
         }
@@ -254,41 +211,39 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
 
             final MavenArtifactVersion latest = MavenArtifactVersion.getLatest(versions, lowestQualifier);
             if(latest == null) {
-                throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()));
+                throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(artifact.toString()));
             }
             return artifactDir.resolve(latest.toString());
         } catch(MavenUniverseException e) {
             throw e;
         } catch (Exception e) {
-            throw new MavenUniverseException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()), e);
+            throw new MavenUniverseException(MavenErrors.failedToResolveLatestVersion(artifact.toString()), e);
         }
     }
 
-    private Path getArtifactPath(MavenArtifact artifact) throws MavenUniverseException {
-        if(artifact.getGroupId() == null) {
-            MavenErrors.missingGroupId();
-        }
+    private Path getArtifactPath(Gaecv artifact) throws MavenUniverseException {
+        final Gaec gaec = artifact.getGaec();
         Path p = repoHome;
-        final String[] groupParts = artifact.getGroupId().split("\\.");
+        final String[] groupParts = gaec.getGroupId().split("\\.");
         for (String part : groupParts) {
             p = p.resolve(part);
         }
         final String artifactFileName = artifact.getArtifactFileName();
-        return p.resolve(artifact.getArtifactId()).resolve(artifact.getVersion()).resolve(artifactFileName);
+        return p.resolve(gaec.getArtifactId()).resolve(artifact.getVersion()).resolve(artifactFileName);
     }
 
-    @Override
-    public boolean isResolved(MavenArtifact artifact) throws MavenUniverseException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+//    @Override
+//    public boolean isResolved(MavenArtifact artifact) throws MavenUniverseException {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
+
+//    @Override
+//    public boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
 
     @Override
-    public boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
+    public String getLatestVersion(GaecRange artifact) throws MavenUniverseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -24,6 +24,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.util.CollectionUtils;
 
@@ -76,16 +77,16 @@ public class UniverseFactoryLoader {
         return this;
     }
 
-    public Universe<?> getUniverse(String factoryId, String location) throws ProvisioningException {
+    public Universe<?> getUniverse(String factoryId, GaecRange location) throws ProvisioningException {
         final UniverseFactory factory = getUniverseFactory(factoryId);
         return factory.getUniverse(getArtifactResolver(factory.getRepositoryId()), location);
     }
 
-    public Universe<?> getUniverse(String factoryId, String location, String repoId) throws ProvisioningException {
+    public Universe<?> getUniverse(String factoryId, GaecRange location, String repoId) throws ProvisioningException {
         return getUniverseFactory(factoryId).getUniverse(getArtifactResolver(repoId), location);
     }
 
-    public Universe<?> getUniverse(String factoryId, String location, RepositoryArtifactResolver artifactResolver) throws ProvisioningException {
+    public Universe<?> getUniverse(String factoryId, GaecRange location, RepositoryArtifactResolver artifactResolver) throws ProvisioningException {
         final UniverseFactory factory = getUniverseFactory(factoryId);
         if(artifactResolver == null) {
             throw new ProvisioningException("artifactResolver is null");

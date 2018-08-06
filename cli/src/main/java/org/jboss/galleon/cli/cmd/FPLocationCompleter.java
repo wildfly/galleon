@@ -26,6 +26,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.UniverseManager;
+import org.jboss.galleon.model.GaecRange;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
@@ -115,13 +116,14 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                             if (spec == null || spec.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
                                 continue;
                             }
-                            if (!candidates.contains(spec.getLocation())) {
+                            final String specLocationString = spec.getLocation().toString();
+                            if (!candidates.contains(specLocationString)) {
                                 if (spec.getFactory().equals(parsedLocation.getUniverseFactory())
                                         && resolver.getUniverse(spec).hasProducer(parsedLocation.getProducer())) {
-                                    if (spec.getLocation().equals(universeLocation)) {
-                                        candidates.add(spec.getLocation() + FeaturePackLocation.UNIVERSE_LOCATION_END);
-                                    } else if (spec.getLocation().startsWith(universeLocation)) {
-                                        candidates.add(spec.getLocation());
+                                    if (specLocationString.equals(universeLocation)) {
+                                        candidates.add(specLocationString + FeaturePackLocation.UNIVERSE_LOCATION_END);
+                                    } else if (specLocationString.startsWith(universeLocation)) {
+                                        candidates.add(specLocationString);
                                     }
                                     break;
                                 }
@@ -176,7 +178,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                         } else if (parsedLocation.getUniverseFactory() == null) {
                             spec = pmSession.getUniverse().getDefaultUniverseSpec();
                         } else {
-                            spec = new UniverseSpec(parsedLocation.getUniverseFactory(), parsedLocation.getUniverseLocation());
+                            spec = new UniverseSpec(parsedLocation.getUniverseFactory(), GaecRange.parse(parsedLocation.getUniverseLocation()));
                         }
                         if (spec != null) {
                             String latestBuild = null;
@@ -227,7 +229,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                 // default universe
                 spec = pmSession.getUniverse().getDefaultUniverseSpec();
             } else {
-                spec = new UniverseSpec(parsedLocation.getUniverseFactory(), parsedLocation.getUniverseLocation());
+                spec = new UniverseSpec(parsedLocation.getUniverseFactory(), GaecRange.parse(parsedLocation.getUniverseLocation()));
             }
             if (spec == null) {
                 return null;
