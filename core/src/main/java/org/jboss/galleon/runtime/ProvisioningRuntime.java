@@ -285,10 +285,21 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      */
     public Path resolveArtifact(ArtifactCoords coords) throws ArtifactException {
         try {
-            return getMaven().resolve(coords.toString());
+            return (maven == null ? maven = getArtifactResolver("repository.maven") : maven).resolve(coords.toString());
         } catch (ProvisioningException e) {
             throw new ArtifactException("Failed to resolve " + coords, e);
         }
+    }
+
+    /**
+     * Returns repository artifact resolver for specific repository type.
+     *
+     * @param repositoryId  repository id
+     * @return  artifact resolver
+     * @throws ProvisioningException  in case artifact resolver was not configured for the repository type
+     */
+    public RepositoryArtifactResolver getArtifactResolver(String repositoryId) throws ProvisioningException {
+        return layout.getFactory().getUniverseResolver().getArtifactResolver(repositoryId);
     }
 
     @Override
@@ -416,9 +427,5 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             }
         };
         visitCheckOptionsPlugins(visitor, UpgradePlugin.class);
-    }
-
-    private RepositoryArtifactResolver getMaven() throws ProvisioningException {
-        return maven == null ? maven = layout.getFactory().getUniverseResolver().getArtifactResolver("repository.maven") : maven;
     }
 }
