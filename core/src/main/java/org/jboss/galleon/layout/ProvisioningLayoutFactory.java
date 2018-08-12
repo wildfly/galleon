@@ -93,6 +93,10 @@ public class ProvisioningLayoutFactory implements Closeable {
         this.universeResolver = universeResolver;
     }
 
+    public Path getHome() {
+        return home;
+    }
+
     public void setProgressCallback(String id, ProgressCallback<?> callback) {
         if (callback == null) {
             progressTrackers.remove(id);
