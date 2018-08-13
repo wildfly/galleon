@@ -62,12 +62,13 @@ public abstract class ProgressTrackers {
 
     private static void init(PmSession session) {
         if (trackers.isEmpty()) {
-            ProvisioningLayoutFactory factory = session.getLayoutFactory();
             BuildLayoutTracker layout = new BuildLayoutTracker(session);
             trackers.put(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD, layout);
 
             PackagesTracker packages = new PackagesTracker();
             trackers.put(ProvisioningLayoutFactory.TRACK_PACKAGES, packages);
+
+            trackers.put("JBMODULES", new JBossModulesTracker());
 
             ConfigsTracker configs = new ConfigsTracker();
             trackers.put(ProvisioningLayoutFactory.TRACK_CONFIGS, configs);
