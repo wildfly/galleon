@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.cli.cmd.plugin;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
-import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -58,6 +56,7 @@ public class DiffCommand extends AbstractPluginsCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation session, Map<String, String> options, FeaturePackLocation loc) throws CommandExecutionException {
+        /*
         try {
             Path targetDirectory = toPath((String) getValue(TARGET_NAME), session.getAeshContext());
             getManager(session).exportConfigurationChanges(targetDirectory, loc == null ? null : loc.getFPID(), options);
@@ -65,6 +64,7 @@ public class DiffCommand extends AbstractPluginsCommand {
             ex.printStackTrace();
             throw new CommandExecutionException(session.getPmSession(), CliErrors.diffFailed(), ex);
         }
+        */
     }
 
     @Override

@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.cli;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -24,11 +23,10 @@ import java.util.Map;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
-import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 /**
+ * @deprecated
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
 @CommandDefinition(name = "changes", description = "Saves current provisioned configuration changes into the specified directory.", activator = NoStateCommandActivator.class)
@@ -80,10 +78,12 @@ public class ChangesCommand extends FromInstallationCommand {
         }
         final Resource specTargetResource = exportDirArg.resolve(session.getAeshContext().getCurrentWorkingDirectory()).get(0);
         final Path targetFile = Paths.get(specTargetResource.getAbsolutePath());
+        /*
         try {
             getManager(session).exportConfigurationChanges(targetFile, null, options);
         } catch (ProvisioningException | IOException e) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
+        */
     }
 }
