@@ -594,13 +594,7 @@ public class ProvisioningManager implements AutoCloseable {
         * /
     }
 */
-    /**
-     *
-     * @param fpGav  Feature-pack Maven artifact GAV
-     * @param options  plugin options
-     * @throws ProvisioningException  in case upgrade fails
-     * @throws IOException  in case upgrade fails
-     *
+    /*
     public void upgrade(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();
         Path tempInstallationDir = IoUtils.createRandomTmpDir();

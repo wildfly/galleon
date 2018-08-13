@@ -178,8 +178,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
      *
      * @param pmSession The session
      * @param optimizeRetrieval True, optimize retrieval.
-     * @param requireId
-     * @param enableCompletion
+     * @param requireId  whether the id is required
      */
     public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId) {
         this.pmSession = pmSession;
