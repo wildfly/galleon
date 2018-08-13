@@ -39,7 +39,7 @@ public abstract class RecapOnPulseProgressCallback<T> implements ProgressCallbac
     protected abstract void doStart(ProgressTracker<T> tracker);
 
     @Override
-    public void processing(ProgressTracker<T> tracker) {
+    public void processed(ProgressTracker<T> tracker) {
         processedItems.add(tracker.getItem());
     }
 
