@@ -25,11 +25,7 @@ import java.util.Map;
 
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.diff.ProvisioningDiffResult;
-import org.jboss.galleon.layout.FeaturePackLayout;
-import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
-import org.jboss.galleon.plugin.UserConfigDiffPlugin;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
@@ -37,13 +33,11 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.StateHistoryUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
@@ -335,6 +329,17 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case the uninstallation fails
      */
     public void uninstall(FeaturePackLocation.FPID fpid) throws ProvisioningException {
+        uninstall(fpid, Collections.emptyMap());
+    }
+
+    /**
+     * Uninstalls the specified feature-pack.
+     *
+     * @param fpid  feature-pack ID
+     * @param pluginOptions  provisioning plugin options
+     * @throws ProvisioningException  in case of a failure
+     */
+    public void uninstall(FeaturePackLocation.FPID fpid, Map<String, String> pluginOptions) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
         final boolean empty = config == null || !config.hasFeaturePackDeps();
         if(empty) {
@@ -342,7 +347,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID());
-            try (ProvisioningRuntime runtime = getRuntime(layout, Collections.emptyMap())) {
+            try (ProvisioningRuntime runtime = getRuntime(layout, pluginOptions)) {
                 doProvision(runtime);
             }
         }
@@ -554,7 +559,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
         IoUtils.copy(userProvisionedXml, exportPath);
     }
-
+/*
     public void exportConfigurationChanges(Path location, FPID fpid, Map<String, String> options) throws ProvisioningException, IOException {
         final ProvisioningConfig configuration = getProvisioningConfig();
         if (configuration == null) {
@@ -571,7 +576,7 @@ public class ProvisioningManager implements AutoCloseable {
             layout.visitPlugins(visitor, UserConfigDiffPlugin.class);
         }
 
-        /*
+        / *
         try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
                 .initLayout(getLayoutFactory(), configuration)
                 .setEncoding(encoding)
@@ -586,17 +591,16 @@ public class ProvisioningManager implements AutoCloseable {
                 runtime.diff(location, home);
             }
         }
-        */
+        * /
     }
-
+*/
     /**
-     * @deprecated
      *
      * @param fpGav  Feature-pack Maven artifact GAV
      * @param options  plugin options
      * @throws ProvisioningException  in case upgrade fails
      * @throws IOException  in case upgrade fails
-     */
+     *
     public void upgrade(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
         ProvisioningConfig configuration = this.getProvisioningConfig();
         Path tempInstallationDir = IoUtils.createRandomTmpDir();
@@ -692,6 +696,7 @@ public class ProvisioningManager implements AutoCloseable {
             IoUtils.recursiveDelete(stagedDir);
         }
     }
+    */
 
     public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, Map<String, String> options)
             throws ProvisioningException {

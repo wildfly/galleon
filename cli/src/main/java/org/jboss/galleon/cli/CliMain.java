@@ -108,7 +108,7 @@ public class CliMain {
                 .command(state)
                 .command(install.createCommand())
                 //.command(ProvisionSpecCommand.class)
-                .command(ChangesCommand.class)
+                //.command(ChangesCommand.class)
                 //.command(UpgradeCommand.class)
                 .command(UninstallCommand.class)
                 .command(CdCommand.class)

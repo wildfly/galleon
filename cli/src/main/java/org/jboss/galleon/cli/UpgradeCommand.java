@@ -16,17 +16,15 @@
  */
 package org.jboss.galleon.cli;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 /**
+ * @deprecated
+ *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
 @CommandDefinition(name = "upgrade", description = "Saves current provisioned configuration into the specified file.", activator = NoStateCommandActivator.class)
@@ -75,10 +73,12 @@ public class UpgradeCommand extends FromInstallationCommand {
         if (serverConfig != null) {
             parameters.put("server-config", serverConfig);
         }
+        /*
         try {
             getManager(session).upgrade(ArtifactCoords.newGav(coord), parameters);
         } catch (ProvisioningException | IOException e) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
+        */
     }
 }
