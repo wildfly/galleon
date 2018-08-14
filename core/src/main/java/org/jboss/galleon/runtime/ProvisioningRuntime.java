@@ -30,8 +30,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -278,21 +276,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     public Map<String, String> getPluginOptions() {
         return pluginOptions;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param coords  Maven artifact coordinates
-     * @return  resolved local path to the artifact
-     * @throws ArtifactException  in case resolution fails
-     */
-    public Path resolveArtifact(ArtifactCoords coords) throws ArtifactException {
-        try {
-            return (maven == null ? maven = getArtifactResolver("repository.maven") : maven).resolve(coords.toString());
-        } catch (ProvisioningException e) {
-            throw new ArtifactException("Failed to resolve " + coords, e);
-        }
     }
 
     /**

@@ -124,7 +124,7 @@ public class ProvisionStateMojo extends AbstractMojo {
      * involving the universe-based feature-pack resolver at provisioning time.
      */
     @Parameter(alias = "resolve-locals")
-    private List<ResolveLocalItem> resolveLocals = Collections.EMPTY_LIST;
+    private List<ResolveLocalItem> resolveLocals = Collections.emptyList();
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {

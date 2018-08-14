@@ -19,14 +19,11 @@ package org.jboss.galleon.spec;
 import java.util.Collections;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
@@ -92,16 +89,6 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         return new Builder();
     }
 
-    /**
-     * @deprecated
-     *
-     * @param gav  Feature-pack artifact GAV
-     * @return  this builder instance
-     */
-    public static Builder builder(ArtifactCoords.Gav gav) {
-        return new Builder().setFPID(LegacyGalleon1Universe.toFpl(gav).getFPID());
-    }
-
     public static Builder builder(FPID fpid) {
         return new Builder().setFPID(fpid);
     }
@@ -110,29 +97,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final Set<String> defPackages;
     private final FPID patchFor;
 
-    private ArtifactCoords.Gav legacyGav;
-
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
         this.fpid = builder.fpid;
         this.defPackages = CollectionUtils.unmodifiable(builder.defPackages);
         this.patchFor = builder.patchFor;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return  Feature-pack artifact GAV
-     */
-    public ArtifactCoords.Gav getGav() {
-        if(legacyGav == null) {
-            try {
-                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to translate fpl to gav", e);
-            }
-        }
-        return legacyGav;
     }
 
     public FPID getFPID() {

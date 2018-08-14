@@ -26,7 +26,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
@@ -248,7 +247,7 @@ class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.VERSION));
         }
 
-        final ProvisionedFeaturePack.Builder fpBuilder = ProvisionedFeaturePack.builder(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getFPID());
+        final ProvisionedFeaturePack.Builder fpBuilder = ProvisionedFeaturePack.builder(LegacyGalleon1Universe.toFpl(groupId, artifactId, version).getFPID());
 
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
@@ -444,18 +443,18 @@ class ProvisionedStateXmlParser10 implements PlugableXmlParser<ProvisionedState.
         }
         Set<Attribute> missingAttrs = null;
         if (group == null) {
-            missingAttrs = new HashSet<Attribute>();
+            missingAttrs = new HashSet<>();
             missingAttrs.add(Attribute.GROUP_ID);
         }
         if (artifact == null) {
             if (missingAttrs == null) {
-                missingAttrs = new HashSet<Attribute>();
+                missingAttrs = new HashSet<>();
             }
             missingAttrs.add(Attribute.ARTIFACT_ID);
         }
         if (version == null) {
             if (missingAttrs == null) {
-                missingAttrs = new HashSet<Attribute>();
+                missingAttrs = new HashSet<>();
             }
             missingAttrs.add(Attribute.VERSION);
         }

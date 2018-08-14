@@ -26,14 +26,12 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1RepositoryManager;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
@@ -44,17 +42,14 @@ import org.jboss.galleon.xml.ConfigXmlParser;
  */
 public class FeaturePackInstaller {
 
-    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, ArtifactCoords.Gav fpGav) {
-        return new FeaturePackInstaller(repoHome, installationDir, LegacyGalleon1Universe.toFpl(fpGav));
-    }
-
-    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir, FeaturePackLocation fpl) {
-        return new FeaturePackInstaller(repoHome, installationDir, fpl);
+    public static FeaturePackInstaller newInstance(Path repoHome, Path installationDir) {
+        return new FeaturePackInstaller(repoHome, installationDir);
     }
 
     private final Path repoHome;
     private final Path installationDir;
-    private final FeaturePackLocation fpl;
+    private FeaturePackLocation fpl;
+    private Path localPath;
     private boolean inheritConfigs = true;
     private List<ConfigurationId> includedConfigs = Collections.emptyList();
     private Path customConfig;
@@ -63,10 +58,19 @@ public class FeaturePackInstaller {
     private List<String> excludedPackages = Collections.emptyList();
     private Map<String, String> pluginOptions = Collections.emptyMap();
 
-    private FeaturePackInstaller(Path repoHome, Path installationDir, FeaturePackLocation fpl) {
+    private FeaturePackInstaller(Path repoHome, Path installationDir) {
         this.repoHome = repoHome;
         this.installationDir = installationDir;
+    }
+
+    public FeaturePackInstaller setFpl(FeaturePackLocation fpl) {
         this.fpl = fpl;
+        return this;
+    }
+
+    public FeaturePackInstaller setLocalArtifact(Path localPath) {
+        this.localPath = localPath;
+        return this;
     }
 
     public FeaturePackInstaller setInheritConfigs(boolean inheritConfigs) {
@@ -140,6 +144,9 @@ public class FeaturePackInstaller {
                     throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
                 }
             }
+            if(localPath != null) {
+                fpl = manager.getLayoutFactory().addLocal(localPath, false);
+            }
             FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(fpl)
                     .setInheritPackages(inheritPackages)
                     .setInheritConfigs(inheritConfigs);
@@ -175,7 +182,7 @@ public class FeaturePackInstaller {
 
     private ProvisioningManager getManager() throws ProvisioningException {
         return ProvisioningManager.builder()
-                .addArtifactResolver(FeaturePackRepositoryManager.newInstance(repoHome))
+                .addArtifactResolver(LegacyGalleon1RepositoryManager.newInstance(repoHome))
                 .setInstallationHome(installationDir)
                 .build();
     }

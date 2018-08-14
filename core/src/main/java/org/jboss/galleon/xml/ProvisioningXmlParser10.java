@@ -24,7 +24,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.config.ConfigCustomizationsBuilder;
 import org.jboss.galleon.config.ConfigId;
@@ -246,7 +245,7 @@ public class ProvisioningXmlParser10 implements PlugableXmlParser<ProvisioningCo
             throw ParsingUtils.missingAttributes(reader.getLocation(), required);
         }
         String origin = null;
-        final FeaturePackConfig.Builder depBuilder = FeaturePackConfig.builder(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)));
+        final FeaturePackConfig.Builder depBuilder = FeaturePackConfig.builder(LegacyGalleon1Universe.toFpl(groupId, artifactId, version));
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {

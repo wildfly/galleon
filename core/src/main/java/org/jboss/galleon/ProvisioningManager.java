@@ -62,20 +62,6 @@ public class ProvisioningManager implements AutoCloseable {
         private Builder() {
         }
 
-        /**
-         * @deprecated
-         *
-         * @param arm  artifact repository manager
-         * @return  this builder instance
-         */
-        public Builder setArtifactResolver(ArtifactRepositoryManager arm) {
-            try {
-                return addArtifactResolver(arm);
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to set artifact resolver", e);
-            }
-        }
-
         public Builder setEncoding(String encoding) {
             this.encoding = encoding;
             return this;

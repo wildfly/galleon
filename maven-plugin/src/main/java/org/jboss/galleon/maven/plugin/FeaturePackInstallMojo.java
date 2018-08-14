@@ -17,6 +17,7 @@
 package org.jboss.galleon.maven.plugin;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +32,17 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.artifact.ArtifactCoordinate;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.jboss.galleon.maven.plugin.util.ArtifactItem;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePackInstaller;
+import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.maven.MavenArtifact;
+import org.jboss.galleon.universe.maven.MavenUniverseException;
+import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 
 /**
  * This maven plugin  installs a feature-pack into an empty directory or a
@@ -133,9 +138,11 @@ public class FeaturePackInstallMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final FeaturePackLocation fpl;
-        if(featurePack != null) {
-            fpl = LegacyGalleon1Universe.toFpl(featurePack.getArtifactCoords().toGav());
+
+        FeaturePackLocation fpl = null;
+        Path localPath = null;
+        if (featurePack != null) {
+            localPath = resolveMaven(featurePack, new MavenArtifactRepositoryManager(repoSystem, repoSession));
         } else if(location != null) {
             fpl = FeaturePackLocation.fromString(location);
         } else {
@@ -144,8 +151,9 @@ public class FeaturePackInstallMojo extends AbstractMojo {
 
         final FeaturePackInstaller fpInstaller = FeaturePackInstaller.newInstance(
                 repoSession.getLocalRepository().getBasedir().toPath(),
-                installDir.toPath(),
-                fpl)
+                installDir.toPath())
+                .setFpl(fpl)
+                .setLocalArtifact(localPath)
                 .setInheritConfigs(inheritConfigs)
                 .includeConfigs(includedConfigs)
                 .setInheritPackages(inheritPackages)
@@ -167,5 +175,20 @@ public class FeaturePackInstallMojo extends AbstractMojo {
                 System.setProperty(MAVEN_REPO_LOCAL, originalMavenRepoLocal);
             }
         }
+    }
+
+    private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MojoExecutionException {
+        final MavenArtifact artifact = new MavenArtifact();
+        artifact.setGroupId(coordinate.getGroupId());
+        artifact.setArtifactId(coordinate.getArtifactId());
+        artifact.setVersion(coordinate.getVersion());
+        artifact.setExtension(coordinate.getExtension());
+        artifact.setClassifier(coordinate.getClassifier());
+        try {
+            resolver.resolve(artifact);
+        } catch (MavenUniverseException e) {
+            throw new MojoExecutionException("Failed to resolve artifact " + artifact, e);
+        }
+        return artifact.getPath();
     }
 }

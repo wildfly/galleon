@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.layout.FeaturePackLayout;
@@ -31,7 +30,6 @@ import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -45,8 +43,6 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
     private final int type;
-
-    private ArtifactCoords.Gav legacyGav;
 
     FeaturePackRuntime(FeaturePackRuntimeBuilder builder) throws ProvisioningException {
         this.fpid = builder.producer.getLocation().getFPID();
@@ -77,22 +73,6 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
     @Override
     public Path getDir() {
         return dir;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return  Feature-pack Maven artifact GAV
-     */
-    public ArtifactCoords.Gav getGav() {
-        if(legacyGav == null) {
-            try {
-                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()).toGav();
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to translate fpl to gav", e);
-            }
-        }
-        return legacyGav;
     }
 
     @Override

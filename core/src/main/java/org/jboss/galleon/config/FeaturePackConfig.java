@@ -24,13 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
@@ -211,16 +208,6 @@ public class FeaturePackConfig extends ConfigCustomizations {
     }
 
     /**
-     * @deprecated
-     *
-     * @param gav  Feature-pack artifact GAV
-     * @return  this builder instance
-     */
-    public static Builder builder(ArtifactCoords.Gav gav) {
-        return new Builder(LegacyGalleon1Universe.toFpl(gav));
-    }
-
-    /**
      * Creates a new config builder for feature-pack with the specified location
      *
      * @param fpl  feature-pack location
@@ -281,8 +268,6 @@ public class FeaturePackConfig extends ConfigCustomizations {
     protected final List<FPID> patches;
     private final Builder builder;
 
-    private ArtifactCoords.Gav legacyGav;
-
     protected FeaturePackConfig(Builder builder) {
         super(builder);
         assert builder.fpl != null : "location is null";
@@ -310,22 +295,6 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
     public Builder getBuilder() {
         return builder;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return  Feature-pack artifact GAV
-     */
-    public ArtifactCoords.Gav getGav() {
-        if(legacyGav == null) {
-            try {
-                legacyGav = LegacyGalleon1Universe.toArtifactCoords(fpl).toGav();
-            } catch (ProvisioningException e) {
-                throw new IllegalStateException("Failed to translate fpl to gav", e);
-            }
-        }
-        return legacyGav;
     }
 
     public FeaturePackLocation getLocation() {
