@@ -1,0 +1,40 @@
+### Customizing the effective package set of a dependency
+
+As illustrated in the example above, the effective package set of the dependency contributes to the effective package set of the distribution. The feature-pack declaring the dependency, though, is allowed to customize the effective package set of the dependency (the package set it inherits) using the already mentioned in previous chapters `include` and `exclude` XML elements in its `feature-pack.xml`. For example:
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <dependencies>
+        <dependency location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0">
+            <packages>
+                <exclude name="p1"/>
+                <exclude name="p2"/>
+                <include name="p3"/>
+                <include name="p4"/>
+            </packages>
+        </dependency>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+        <package name="p2"/>
+    </default-packages>
+ </feature-pack>
+----
+
+Element `packages` under `dependency` in `feature-pack.xml` has exactly the same structure as element `packages` in the provisioning XML configuration file, mentioned earlier in <<_effective_package_set, the chaper describing the effective package set>> of a feature-pack.
+
+Now the effective package set of a distribution provisioned from `fp1` becomes:
+
+* `fp1` packages `p1` and `p2`;
+
+** plus their dependencies on non-default packages (if any);
+
+* the effective package set of `fp2`;
+
+** minus packages `p1` and `p2` from `fp2` and their dependencies on other packages;
+
+** plus packages `p3` and `p4` from `fp2` and their dependencies on other packages.
+
+NOTE: in case `fp2` in its turn depended on other feature-packs then the effective package sets of those feature-packs (possibly customized using `include`/`exclude` in the corresponding dependency declaration in the `feature-pack.xml` of `fp2`).

@@ -1,7 +1,0 @@
-## Provisioning FS content
-
-In a feature-pack, the file system content of the distribution is organized into packages. What is provisioned content-wise at the end depends on which packages were selected for the target installation.
-
-include::packages/index.adoc[]
-
-include::provisioned-package-set/index.adoc[]

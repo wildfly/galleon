@@ -1,0 +1,84 @@
+## Patches
+
+The provisioning mechanism also supports feature-pack patching. Once a feature-pack has been released, the producer of the feature-pack may release patches for it. A patch could overwrite certain content of the feature-pack it applies to (i.e. certain packages or resources) and/or overwrite or re-define a part of the configuration.
+
+A patch itself is also a feature-pack. The only thing that differentiates it from a usual feature-pack is element `patch` in its `feature-pack.xml`. Here is an example:
+[source,xml]
+----
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+    location="producer1@maven(org.jboss.universe:community-universe):1#1.0.0.Patch1.Final">
+
+    <patch for="prod1@maven(org.jboss.galleon.universe.test:test-universe):1#1.0.0.Final"/> <!--1-->
+
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+</feature-pack>
+----
+<1> indicates that the feature-pack is a patch which applies to the feature-pack specified as the value of `for` attribute
+
+NOTE: There is not currently any restriction on the patch feature-pack versioning. `1.0.0.Patch1.Final` above is just a random example.
+
+IMPORTANT: Patches can only be applied to a specific version of the feature-pack. An attempt to apply a patch to an installation that does not include the feature-pack version the patch was built for will result in a failure.
+
+As any other feature-pack, a patch can be installed and uninstalled.
+
+NOTE: It is possible to apply multiple patches to the same feature-pack in the installation.
+
+### What can be patched
+
+Patch basically provides a new version of certain content and/or redefines some configuration from the feature-pack it targets. Here is what can be patched:
+
+* packages (including their content and definitions);
+
+* feature specs (by providing updated feature specs);
+
+* feature groups (by providing updated feature groups);
+
+* various feature-pack resources;
+
+* provisioning plugins (by including new versions of the plugins).
+
+NOTE: Patches may also include content that is not present in the feature-pack that apply to (i.e. new packages, feature specs, groups, resources, plugins).
+
+### Multiple patches for the same feature-pack
+
+As it was mentioned earlier, it is possible to apply multiple patches for the same feature-pack. In case patches don't overlap in terms of what they patch, the order in which they are applied is not significant. If patches do overlap, the order in which they are applied most probably becomes significant. Because the patch that is applied last will overwrite patches that were applied before it.
+
+NOTE: Like any other feature-pack, patches may declare dependencies on other patches. That could be one of the ways to control the order in which the patches will be applied.
+
+### Applying patches
+
+`feature-pack` element may include element `patches` which lists patches that should be installed for the feature-pack. E.g.
+
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+        <patches>
+            <patch id="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Patch1.Final"/>
+            <patch id="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Patch2.Final"/>
+        </patches>
+    </feature-pack>
+</installation>
+----
+
+#### Patching transitive dependencies
+
+It is also possible to apply patches to transitive dependencies. E.g.
+
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <transitive>
+        <feature-pack location="prod2@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+            <patches>
+                <patch id="prod2@maven(org.jboss.universe:community-universe):1#1.0.0.Patch1.Final"/>
+                <patch id="prod2@maven(org.jboss.universe:community-universe):1#1.0.0.Patch2.Final"/>
+            </patches>
+        </feature-pack>
+    </transitive>
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+</installation>
+----
+

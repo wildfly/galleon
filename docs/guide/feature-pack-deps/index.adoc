@@ -1,0 +1,38 @@
+## Feature-pack dependencies
+
+Feature pack may depend on one or more other feature-packs. Feature-pack dependencies are expressed in `feature-pack.xml` file. For example:
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <dependencies>
+        <dependency location="fp2@maven(org.jboss.universe:community-universe):2#2.0.1"/>
+        <dependency location="fp3@maven(org.jboss.universe:community-universe):1#1.0.2"/>
+    </dependencies>
+    <default-packages>
+        <package name="package1"/>
+        <package name="package2"/>
+    </default-packages>
+ </feature-pack>
+----
+
+In this case feature-pack `fp1` depends on feature-packs `fp2` and `fp3`. And if a user requests to install `fp1`, feature-packs `fp2` and `fp3` will be installed by the mechanism implicitly as dependencies of `fp1`.
+
+If we further assume that `fp3` depends on feature-pack `fp4` and `fp2` and `fp4` don’t have any further dependencies. The effective package set of the distribution provisioned from `fp1` will consist of:
+
+*   the effective package set of `fp1`;
+
+*   the effective package set of `fp2`;
+
+*   the effective package set of `fp3`;
+
+*   the effective package set of `fp4`.
+
+NOTE: `fp2` and `fp3` are called *direct* dependencies of `fp1`, while `fp4` is called a *transitive* dependency of `fp1` and a *direct* dependency of `fp3`.
+
+include::customized-inherited-packages.adoc[]
+
+include::disabling-inheritance.adoc[]
+
+include::merging-dependencies.adoc[]

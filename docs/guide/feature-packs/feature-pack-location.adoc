@@ -1,0 +1,70 @@
+### Feature-pack location
+
+Feature-pack location is an expression that is used to resolve the feature-pack artifact from the remote repository and also identify the feature-pack among other feature-packs.
+
+The general and complete feature-pack location format is *_producer_*@*_universe_*:**_channel_**/*_frequency_*#*_build_*
+
+* *_producer_* - simple name of a feature-pack producer, normally a product or a component name;
+* *_universe_* - the universe the producer belongs to (universe is basically a named set of feature-pack producers);
+* *_channel_* - source of backward compatible feature-pack builds;
+* *_frequency_* - denotes the lowest accepted build quality (e.g. alpha, beta, final, etc) for the feature-pack builds pulled from the channel;
+* *_build_* - feature-pack build number or version.
+
+Some of the parts above are or could be optional. For example, a user could add a specific universe as the default one for the distribution (in its provisioning configuration) and then not include it explicitly in feature-pack locations for the feature-packs coming from that universe.
+
+Frequency is, generally, also optional and could be omitted.
+
+With the universe and frequency omitted the location becomes *_producer_*:**_channel_**#*_build_*
+
+Here is an example of a full feature-pack location:
+
+`wildfly@maven(org.jboss.universe:community-universe):current/beta#14.0.0.Beta2`
+
+And a shortened version:
+
+`wildfly:current#14.0.0.Beta2`
+
+NOTE: Galleon CLI tool comes pre-configured with `maven(org.jboss.universe:community-universe)` as the default universe, which means Galleon CLI users can omit the universe part for wildfly and other feature-pack producers from that universe and also, in general, rely on TAB-completion for feature-pack locations.
+
+Using Galleon CLI
+[source,java]
+----
+install wildfly@maven(org.jboss.universe:community-universe):current/beta#14.0.0.Beta2
+----
+
+and
+
+[source,java]
+----
+install wildfly:current#14.0.0.Beta2
+----
+
+will result in the exact same distribution. And to install the latest (final) version of `wildfly` a user can simply type
+
+[source,java]
+----
+install wildfly:current
+----
+
+#### Channel
+
+Channel represents a source of backward compatible releases. Channels are defined and configured by feature-pack producers.
+
+As an example, a channel could be mapped to a major version of a product. Suppose, there is product `productA` with development branches `1.x` and `2.x` and `2.x` branch is not backward compatible with `1.x` branch. In this case, the producer of `productA` could define two channels `1` for branch `1.x` and `2` for branch `2.x`. Then, to install the latest available (final) release of `1.x` branch the user would request the tool to install `productA:1` and `productA:2` for the latest available (final) release on `2.x` branch.
+
+#### Frequency
+
+Frequency is a channel option that indicates the lowest acceptable build quality when the tool is looking for the latest build of the product. Supported frequencies are defined and configured by feature-pack producers. If the user has not provided any frequency, the default is assumed to be the final (or GA) release.
+
+NOTE: Frequency is used by the provisioning mechanism only when looking for the latest build. I.e. when installing a product for which the user has not specified the version or when looking for updates for the already installed products.
+
+The following is a valid feature-pack location expression: `productA:1#1.0.0.Beta2`.
+
+Although the frequency is missing, which means it's equivalent to `productA:1/final#1.0.0.Beta2`. Installing `productA:1#1.0.0.Beta2` will still install `1.0.0.Beta2`, because the user has provided the desired version explicitly.
+
+But if the user requests an update to the latest version, the tool will check the frequency and will look for the latest available release that satisfies the frequency. In the example above, the tool will not update the distribution until `1.0.0.Final` becomes available, even if `1.0.0.Beta3` becomes available before that.
+
+However, if the user installed the same feature-pack as `productA:1/beta#1.0.0.Beta2` and requested an update to the latest version, the tool would also look for the available beta releases and propose `1.0.0.Beta3` if it's available.
+
+NOTE: frequency specifies the lowest quality, which mean installing `productA:1/beta` may actually install `1.0.0.Final` if the final release is available.
+

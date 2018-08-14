@@ -1,0 +1,18 @@
+### Configuration package dependencies
+
+`config` elements may include feature-pack package dependencies. So that when a configuration is included into the installation, the relevant packages required by the configuration are automatically included as well. Package dependencies are configured using the same elements described in <<_feature_package_dependencies,the feature package dependencies>>. E.g.
+
+[source,xml]
+----
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+              location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+  <config model="modelA">
+    <packages>
+     <package name="p1"/>
+     <package name="p2" optional="true"/>
+    </packages>
+  </config>
+</feature-pack>
+----
+
+Now every configuration of `modelA` will depend on and bring into the installation the specified packages.

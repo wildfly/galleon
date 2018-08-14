@@ -1,0 +1,111 @@
+### Customizing package set of a transitive dependency
+
+Let's suppose we have the following two feature-packs:
+
+.Feature-pack fp1
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+     <dependencies>
+         <dependency location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0">
+             <packages inherit="false"> <!--1-->
+                 <include name="p3"/>
+                 <include name="p4"/>
+                 <exclude name="p5"/>
+             </packages>
+         </dependency>
+     </dependencies>
+     <default-packages>
+         <package name="p1"/>
+     </default-packages>
+ </feature-pack>
+----
+<1> Let's assume `fp2` also contains packages `p4`, `p5` among others.
+
+.Feature-pack fp2
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0" >
+     <default-packages>
+         <package name="p1"/>
+         <package name="p2"/>
+         <package name="p3"/>
+     </default-packages>
+ </feature-pack>
+----
+
+If we provision a distribution from `fp1` like this
+
+.Distribution provisioning configuration
+[source.xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+
+its effective package set will include:
+
+* `fp1:p1` plus its dependencies;
+* `p3` and `p4` from `fp2` plus their dependencies excluding `p5`.
+
+NOTE: The provisioning mechanism will not install the default configuration of `fp2` but its customized version defined by `fp1`, in other words a subset of `fp2` that `fp1` needs.
+
+Now if we provision our distribution as
+
+[source.xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <feature-pack location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0"/>
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+
+its effective package set will become:
+
+* `fp1:p1` plus its dependencies;
+* `p1`, `p2`, `p3` and `p4` from `fp2` plus their dependencies (*not excluding `p5`*).
+
+NOTE: The provisioning mechanism will install the default configuration of `fp2` plus what `fp1` needs on top of it.
+
+IMPORTANT: `feature-pack` element appearing in the provisioning configuration under `installation` always points to the default configuration of the feature-pack.
+
+Now let's suppose we want to add another package from `fp2` to our distribution but we want to start from the customized `fp2` configuration defined by `fp1`. One way of achieving that would be
+
+[source.xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <feature-pack location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0">
+         <packages inherit="false">
+             <include name="p3"/>
+             <include name="p4"/>
+             <exclude name="p5"/>
+             <include name="p6"/> <!--1-->
+         </packages>
+     </feature-pack>
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+<1> the package we want to add to our distribution
+
+That works but is not very practical. We basically copied the customizations of `fp2` from `fp1` to our provisioning configuration. If the configuration was more sophisticated it wouldn't be that easy. Here is an easier alternative:
+
+[source.xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <transitive>
+         <feature-pack location="fp2@maven(org.jboss.universe:community-universe)"> <!--1-->
+             <packages>
+                 <include name="p6"/>
+             </packages>
+         </feature-pack>
+     </transitive>
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+<1> Note, although we could provide the full version of `fp2` here, we chose not to, the mechanism will resolve it to the version specified in `feature-pack.xml` of `fp1`
+
+IMPORTANT: By including `feature-pack` element under `transitive` we indicate to the provisioning mechanism that the feature-pack we are about to customize appears on a dependency branch of another feature-pack installed in this configuration directly and that we want to adjust the configuration defined by the feature-pack that depends on it instead of the configuration defined in its `feature-pack.xml`.
+

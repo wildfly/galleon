@@ -47,6 +47,7 @@ public class OverrideDependencyCustomSetWithOriginalTestCase extends PmProvision
                         .builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp3", "2", "2.0.0.Final").getLocation())
                         .excludePackage("a")
                         .excludePackage("b")
+                        .includePackage("d")
                         .build())
                 .newPackage("p1", true)
                     .writeContent("fp2/p1.txt", "p1")
@@ -69,6 +70,9 @@ public class OverrideDependencyCustomSetWithOriginalTestCase extends PmProvision
                     .getFeaturePack()
                 .newPackage("c1")
                     .writeContent("fp3/c1.txt", "c1")
+                    .getFeaturePack()
+                .newPackage("d")
+                    .writeContent("fp3/d.txt", "d")
                     .getFeaturePack()
                 .getCreator()
             .install();
@@ -94,6 +98,7 @@ public class OverrideDependencyCustomSetWithOriginalTestCase extends PmProvision
                         .addPackage("b1")
                         .addPackage("c")
                         .addPackage("c1")
+                        .addPackage("d")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Alpha"))
                         .addPackage("p1")
@@ -111,6 +116,7 @@ public class OverrideDependencyCustomSetWithOriginalTestCase extends PmProvision
                 .addFile("fp3/b1.txt", "b1")
                 .addFile("fp3/c.txt", "c")
                 .addFile("fp3/c1.txt", "c1")
+                .addFile("fp3/d.txt", "d")
                 .build();
     }
 }

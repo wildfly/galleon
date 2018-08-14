@@ -1,0 +1,13 @@
+include::overview.adoc[]
+
+include::dir.adoc[]
+
+include::metadata.adoc[]
+
+include::dependencies.adoc[]
+
+include::default-packages.adoc[]
+
+include::non-default-packages.adoc[]
+
+include::effective-package-set/index.adoc[]

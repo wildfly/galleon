@@ -1,21 +1,23 @@
 ## Overview
 
-Galleon is a Maven repository-based Java provisioning tool designed to manage software installations that consist of one or more products. The tool supports:
+Galleon is a provisioning tool designed to create and maintain software distributions that consist of one or more products (or components). The tool supports:
 
-* installation of products;
+* adding products to a distribution;
 
-** their default and customized configurations;
+** their default and custom configurations;
 
-* integration of the installed products;
+* removing products from a distribution;
 
-* resolution and verification of configuration and runtime dependencies;
+* integration of the products in the distribution;
+
+* resolution and validation of the resulting configuration and runtime dependencies;
 
 * patching and version updates;
 
 * product-specific provisioning plugins;
 
-* identification of the changes to the provisioned software (the FS content and/or the configuration) applied manually or using thirdparty tools;
+* identification of the changes to the provisioned distribution (the FS content and/or the configuration) applied manually or using thirdparty tools;
 
-* export the current environment configuration with the goal to reproduce it later at another location.
+* exporting the description of the current state of the distribution with the goal to reproduce it later at another location.
 
-The tool includes a command-line interface and a public API. There is also a Maven plugin that provisions an installation according to the configuration.
+The tool includes a command-line interface and a public API. There is also a Maven plugin that allows provisioning a distribution according to the provided configuration.
