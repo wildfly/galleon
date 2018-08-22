@@ -1,0 +1,8 @@
+## Feature-pack transitive dependencies
+
+Suppose there is feature-pack `fp1` that depends on `fp2` and `fp2` in its turn depends on `fp3`. In this case, `fp2` is a *direct* dependency of `fp1` while `fp3` is a *transitive* dependency of `fp1` and a *direct* dependency of `fp2`.
+
+IMPORTANT: Transitive dependencies are the dependencies of the dependencies.
+
+include::customizing-transitive-dep.adoc[]
+

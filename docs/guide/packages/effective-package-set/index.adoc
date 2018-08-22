@@ -1,0 +1,9 @@
+### Effective package set
+
+This chapter is dedicated to the effective package set of a feature-pack (without dependencies) that is going to be installed, how it is resolved by the mechanism and how it can be adjusted by a user.
+
+include::original-package-set.adoc[]
+
+include::package-exclusion.adoc[]
+
+include::package-inclusion.adoc[]

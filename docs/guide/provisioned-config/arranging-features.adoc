@@ -1,0 +1,147 @@
+### Arranging features in configurations
+
+Resolved configuration models are meant to be further processed by the provisioning plugins that actually generate the final configuration files. A resolved configuration is basically a set of features and properties. Plugins simply iterate through the features in the resolved configuration and generate the corresponding configuration fragments for the installation.
+
+The order in which features appear in the resolved configuration may be significant. By default the order of the features in the resolved configuration reflects the order in which the features were added to the configuration, i.e. the order in which the features appeared in the `config` element. Although, in case there are dependencies between features, the mechanism will re-order the features according to their dependencies, i.e. if feature `F1` depends on feature `F2`, even if `F1` was added to the configuration before `F2`, in the resolved configuration `F2` will appear before `F1`.
+
+#### Feature branches
+
+Features in the resolved configuration are actually organized into branches. In the simplest case, there is only one branch for all the features of the configuration.
+
+There are cases though, when a certain set of features has to be handled in a different way than the rest of the features in the same configuration. E.g. there could be a few features that form a circular dependency. The mechanism automatically detects those and notifies the plugins in case they need to handle them in a special way. Other examples of branches will be described below.
+
+#### Batches
+
+Batch is a branch features of which have to be handled atomically. E.g. if processing a feature by a plugin changes a certain state of the model during generation of the final configuration then to avoid a potentionally temporary inconsistent state, batches indicate to the plugins that a specific set of features has to be processed together as a unit and as a single configuration change.
+
+One example could be features that form circular dependencies. Handling them one by one may result in referential integrity (or some other kind of) constraint violation during the final configuration generation.
+
+By default, branches are not flagged as batches. This can be configured though with property `config.branch-is-batch`. E.g.
+
+[source="xml"]
+----
+    <config model="standalone">
+        <props>
+            <prop name="config.branch-is-batch" value="true"/>
+        </props>
+        <!-- the rest is skipped -->
+----
+
+The fragment above makes all the branches of all the `standalone` configuration models in the installation batches by default.
+
+Batch flag can further be enabled or disabled for a specific branch with feature spec annotations.
+
+[source="xml"]
+----
+<feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="core-service.management">
+    <annotation name="feature-branch">
+        <elem name="id" value="core-service.management"/>
+        <elem name="batch" value="true"/>
+    </annotation>
+        <!-- the rest is skipped -->
+----
+
+This marks branch `core-service.management` as batch.
+
+#### Branch per feature spec
+
+In some cases it might be useful to arrange features in the resolved configuration by their specs. Some plugins may find it more optimal to process, e.g., all the features of `Spec1` first then all the features of `Spec2`, etc. The mechanism can be instructed to do that by including property `config.branch-per-spec` in `config` element, e.g.
+
+[source="xml"]
+----
+    <config model="standalone">
+        <props>
+            <prop name="config.branch-per-spec" value="true"/>
+        </props>
+        <!-- the rest is skipped -->
+----
+
+IMPORTANT: the resulting branches of the configuration will be ordered according to the feature dependencies. E.g. if features of `Spec1` reference features of `Spec2`, the branch of features `Spec2` will appear in the configuration before the branch of features `Spec1`.
+
+The example above is arranging all the features in the configuration by specs. In some cases though it would be useful to group only features of specific specs together and leave the rest of the features as they are. This can be configured by adding the following feature spec annotation
+
+[source="xml"]
+----
+<feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="core-service.management">
+    <annotation name="feature-branch">
+        <elem name="spec" value="true"/>
+    </annotation>
+        <!-- the rest is skipped -->
+----
+
+#### Isolating circular dependencies
+
+The mechanism may identify circular dependencies between features in a configuration and create a separate branch for them. Here is how to enable this
+[source="xml"]
+----
+    <config model="standalone">
+        <props>
+            <prop name="config.isolate-circular-deps" value="true"/>
+        </props>
+        <!-- the rest is skipped -->
+----
+
+#### Parent-children branch
+
+Often features in configurations form parent-children relationships. Some plugins may find it useful to receive features arranged as parent-children branches. This can be configured per feature spec. E.g.
+
+[source="xml"]
+----
+<feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="SpecP">
+    <annotation name="feature-branch">
+        <elem name="parent-children"/>
+    </annotation>
+    <!-- the rest is skipped -->
+----
+
+Which means every feature of spec `SpecP` will start a branch containing all the features that are children (direct or transitive) of the `SpecP` feature.
+
+#### Branches with explicit IDs
+
+When a branch is created, the mechanism assigns an ID to the branch. A user may instruct the mechanism to group features of certain specs on a branch with a given ID. E.g.
+
+[source="xml"]
+----
+<feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="Spec1">
+    <annotation name="feature-branch">
+        <elem name="id" value="Branch1"/>
+    </annotation>
+    <!-- the rest is skipped -->
+</feature-spec>
+
+<feature-spec xmlns="urn:jboss:galleon:feature-spec:1.0" name="Spec2">
+    <annotation name="feature-branch">
+        <elem name="id" value="Branch1"/>
+    </annotation>
+    <!-- the rest is skipped -->
+</feature-spec>
+----
+
+In the example above features of `Spec1` and `Spec2` will be collected on the same branch `Branch1`.
+
+#### Merging independent branches
+
+After a configuration has been resolved, it may appear that some branches share certain common characteristics. E.g. most probably some features in the configuration will depend other features. Which makes the corresponding feature branches depend on other feature branches. There could be a few branches though that don't depend on other branches (although there could be branches that depend on them). To reduce the total number of branches per configuration, independent branches could be merged into a single independent branch. This can be configured by adding the following property to the `config` element
+
+[source="xml"]
+----
+    <config model="standalone">
+        <props>
+            <prop name="config.merge-independent-branches" value="true"/>
+        </props>
+        <!-- the rest is skipped -->
+----
+
+#### Merging branches with the same dependencies
+
+While the previous option merges only the independent branches, this one identifies branches with the same dependencies on other branches and merges them into a single branch. It can be enabled by adding the following property
+
+[source="xml"]
+----
+    <config model="standalone">
+        <props>
+            <prop name="config.config.merge-same-deps-branches" value="true"/>
+        </props>
+        <!-- the rest is skipped -->
+----
+

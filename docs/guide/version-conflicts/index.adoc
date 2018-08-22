@@ -1,0 +1,114 @@
+## Overriding dependency versions and resolving conflicts
+
+Suppose we have these feature-packs
+
+.Feature-pack fp1
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <dependencies>
+        <dependency location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0"/>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+.Feature-pack fp2
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0" >
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+Feature-pack `fp1` declares a dependency on version `2.0.0` of `fp2`. Even if later backward compatible versions of `fp2` are available, provisioning a distribution from `fp1` will get `fp2` version `2.0.0` installed. If we still want to upgrade `fp2` there are two ways to do that
+
+1) install the desired version of `fp2` directly as
+
+[source,xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <feature-pack location="fp2@maven(org.jboss.universe:community-universe):2#2.0.1"/>
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+
+2) use `transitive` element to override the version of `fp2` specified in `feature-pack.xml` of `fp1`
+
+[source,xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <transitive>
+         <feature-pack location="fp2@maven(org.jboss.universe:community-universe):2#2.0.1"/>
+     </transitive>
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+
+The advantage of specifying the version in the transitive dependency is that it will override only the version of `fp2` w/o affecting its customizations (if any) applied to `fp2` by `fp1`. While installing the new version directly will install the default configuration of `fp2`.
+
+This example has illustrated the basic version overriding rule.
+
+IMPORTANT: Feature-pack versions that appear higher in the feature-pack dependency hierarchy (i.e. closer to the root in the provisioning configuration) override versions that appear further down in the dependency hierarchy, no matter whether they are higher or lower in comparison.
+
+### Resolving version conflicts
+
+It is possible to run into a version conflict when feature-packs on different dependency branches delcare dependencies on different versions of the same feature-pack. Since it happens on different branches, the version overriding rule does not apply and the provisioning mechanism cannot automatically pick the version. Here is an example
+
+.Feature-pack fp1
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <dependencies>
+        <dependency location="fp3@maven(org.jboss.universe:community-universe):1#1.2.0"/>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+.Feature-pack fp2
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp2@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <dependencies>
+        <dependency location="fp3@maven(org.jboss.universe:community-universe):1#1.3.0"/>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+.Provisioning configuration
+[source,xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+     <feature-pack location="fp2@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+
+Provisioning of this configuration will fail with the version conflict for feature-pack `fp3`. `fp1` depends on `fp3` version `1.2.0` and `fp2` depends on `fp3` version `1.3.0`. `fp1` and `fp2` are two roots of separate dependency branches, so the version overriding rule does not apply to `fp3`.
+
+To resolve this kind of version conflict a user cane either install `fp3` directly or specify its desired version in the `transitive` element of the `installation`. E.g.
+[source,xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <transitive>
+         <feature-pack location="fp3@maven(org.jboss.universe:community-universe):1#1.4.0"/>
+     </transitive>
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+     <feature-pack location="fp2@maven(org.jboss.universe:community-universe):1#1.0.0"/>
+ </installation>
+----
+

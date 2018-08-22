@@ -1,0 +1,18 @@
+### Feature-pack default packages
+
+Feature pack may define a set of default packages. This set of default packages is installed when the user does not provide explicit instructions about which packages from the feature-pack to install.
+
+Default packages are explicitly listed in `feature-pack.xml` file which is a part of the feature-pack archive. For example:
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <default-packages>
+        <package name="package1" />
+        <package name="package2" />
+    </default-packages>
+ </feature-pack>
+----
+
+If this feature-pack is installed without further customizations, `package1` and `package2` will be installed by default, although the feature-pack above may still contain other packages (not listed as default) that may not get installed.

@@ -1,0 +1,41 @@
+#### Including features and feature groups from other feature-packs
+
+Feature groups, as well as `config` elements in `feature-pack.xml`, may include features and feature groups from other feature-packs. If those feature-packs appear to be dependencies (direct or transitive) of the feature-pack that uses their feature specs and groups in its configuration, the mechanism will most probably be able to resolve the origins of those feature specs and groups by navigating the feature-pack dependency tree.
+
+However, if there are multiple feature specs or feature groups with the same name in the feature-pack dependency hierarchy, it may become confusing which feature spec or feature group was meant as the target. In this case, the origin of those feature specs and feature groups can be specified with element `origin` and its attribute 'name' referencing the corresponding feature-pack dependency declared in the `feature-pack.xml`. For example
+
+[source,xml]
+----
+<feature-group-spec name="group1" xmlns="urn:jboss:galleon:feature-group:1.0">
+
+  <feature spec="feature1">
+    <param name="id" value="a1"/>
+  </feature>
+
+  <origin name="another-feature-pack">
+    <feature-group name="group2"/>
+    <feature spec="feature2">
+      <param name="id" value="b1"/>
+    </feature>
+  </origin>
+
+  <feature-group name="group3"/>
+
+  <origin name="another-feature-pack">
+    <feature-group name="group3"/>
+  </origin>
+
+</feature-group-spec>
+----
+
+In this case, the order of the features in the resolved feature group will be
+
+. `feature1:id=a1` from the local feature-pack;
+
+. features from `group2` from `another-feature-pack`;
+
+. `feature2:id=b1` from `another-feature-pack`;
+
+. features from `group3` from the local feature-pack;
+
+. features from `group3` from `another-feature-pack`.

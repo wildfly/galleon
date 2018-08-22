@@ -39,11 +39,12 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniverseTestBase {
+public class BasicTransitiveDepCustomizationWithVersionChangeTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1Fpl;
     private FeaturePackLocation fp2Fpl;
-    private FeaturePackLocation fp3fpl;
+    private FeaturePackLocation fp3_100_fpl;
+    private FeaturePackLocation fp3_101_fpl;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
@@ -57,12 +58,13 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
 
         fp1Fpl = newFpl("producer1", "1", "1.0.0.Final");
         fp2Fpl = newFpl("producer2", "1", "1.0.0.Final");
-        fp3fpl = newFpl("producer3", "1", "1.0.0.Final");
+        fp3_100_fpl = newFpl("producer3", "1", "1.0.0.Final");
+        fp3_101_fpl = newFpl("producer3", "1", "1.0.1.Final");
 
         creator.newFeaturePack()
         .setFPID(fp1Fpl.getFPID())
         .addDependency(fp2Fpl)
-        .addDependency(FeaturePackConfig.transitiveBuilder(new FeaturePackLocation(fp3fpl.getUniverse(), fp3fpl.getProducerName(), null, null, null))
+        .addDependency(FeaturePackConfig.transitiveBuilder(fp3_101_fpl)
                 .excludePackage("p2")
                 .includePackage("p3")
                 .build())
@@ -76,7 +78,7 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
 
         creator.newFeaturePack()
             .setFPID(fp2Fpl.getFPID())
-            .addDependency(FeaturePackConfig.builder(fp3fpl)
+            .addDependency(FeaturePackConfig.builder(fp3_100_fpl)
                     .excludePackage("p4")
                     .build())
             .addSpec(FeatureSpec.builder("specB")
@@ -89,7 +91,7 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
                 .writeContent("fp2/p1.txt", "fp2");
 
         creator.newFeaturePack()
-            .setFPID(fp3fpl.getFPID())
+            .setFPID(fp3_100_fpl.getFPID())
             .addSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -97,8 +99,8 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
                 .addFeature(new FeatureConfig("specC").setParam("p1", "1"))
                 .build())
             .newPackage("p1", true)
-                .addDependency("p2", true)
-                .addDependency("p4", true)
+                .addDependency("p2")
+                .addDependency("p4")
                 .writeContent("fp3/p1.txt", "fp3 100 p1")
                 .getFeaturePack()
             .newPackage("p2")
@@ -109,6 +111,29 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
                 .getFeaturePack()
             .newPackage("p4")
                 .writeContent("fp3/p4.txt", "fp3 100 p4");
+
+
+        creator.newFeaturePack()
+            .setFPID(fp3_101_fpl.getFPID())
+            .addSpec(FeatureSpec.builder("specC")
+                .addParam(FeatureParameterSpec.createId("p1"))
+                .build())
+            .addConfig(ConfigModel.builder("model1", "name1")
+                .addFeature(new FeatureConfig("specC").setParam("p1", "2"))
+                .build())
+            .newPackage("p1", true)
+                .addDependency("p2", true)
+                .addDependency("p4", true)
+                .writeContent("fp3/p1.txt", "fp3 101 p1")
+                .getFeaturePack()
+            .newPackage("p2")
+                .writeContent("fp3/p2.txt", "fp3 101 p2")
+                .getFeaturePack()
+            .newPackage("p3")
+                .writeContent("fp3/p3.txt", "fp3 101 p3")
+                .getFeaturePack()
+            .newPackage("p4")
+                .writeContent("fp3/p4.txt", "fp3 101 p4");
 
         creator.install();
     }
@@ -123,9 +148,9 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp3fpl.getFPID())
-                        .addPackage("p3")
+                .addFeaturePack(ProvisionedFeaturePack.builder(fp3_101_fpl.getFPID())
                         .addPackage("p1")
+                        .addPackage("p3")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp2Fpl.getFPID())
                         .addPackage("p1")
@@ -136,7 +161,7 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3fpl.getFPID().getProducer(), "specC", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3_101_fpl.getFPID().getProducer(), "specC", "p1", "2")))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2Fpl.getFPID().getProducer(), "specB", "p1", "1")))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1Fpl.getFPID().getProducer(), "specA", "p1", "1")))
                         .build())
@@ -148,8 +173,8 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
         return newDirBuilder()
                 .addFile("fp1/p1.txt", "fp1")
                 .addFile("fp2/p1.txt", "fp2")
-                .addFile("fp3/p1.txt", "fp3 100 p1")
-                .addFile("fp3/p3.txt", "fp3 100 p3")
+                .addFile("fp3/p1.txt", "fp3 101 p1")
+                .addFile("fp3/p3.txt", "fp3 101 p3")
                 .build();
     }
 }

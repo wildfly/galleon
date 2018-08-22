@@ -1,1 +1,0 @@
-Generic configuration model is based on an abstract schema that describes configurable units and relationships between them.

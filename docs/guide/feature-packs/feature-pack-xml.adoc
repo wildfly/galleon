@@ -1,52 +1,46 @@
 ### Feature-pack metadata (feature-pack.xml)
 
-Feature-pack metadata contains the following information:
+Generally, feature-pack metadata contains the following information:
 
-* *GAV* - feature-pack groupId, artifactId and version;
+* *Feature-pack location* - string expression that indicates how to resolve the feature-pack artifact from a remote repository and how it can be identified among other feature-packs;
 
 * _(optional)_ *dependencies* -  dependencies on other feature-packs.
 
-* _(optional)_ *config* -  config elements describe the default configurations generated for the installation (there could be more than one default configuration);
+* _(optional)_ *configuration* -  the default configurations of the product (there could be more than one default configuration);
 
-* _(optional)_ *default packages* - the names of the packages that are installed by default.
+* _(optional)_ *default packages* - names of the packages that are installed by default.
 
 
-Here is an illustration of how it may look like in a *feature-pack.xml* file:
+Here is an illustration of how it may look like in a `feature-pack.xml` file:
 
 [source,xml]
 ----
- <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
-                groupId="org.my-group"
-                artifactId="my-artifact"
-                version="1.0.0.Alpha1">
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+    location="wildfly-servlet@maven(org.jboss.universe:community-universe):current#14.0.0.Beta2"> <!--1-->
     <dependencies>
-        <dependency groupId="org.another-group"
-                    artifactId="another-artifact"
-                    version="3.0.0.Final"/>
+        <dependency location="wildfly-core@maven(org.jboss.universe:community-universe):current#6.0.0.Beta1"/> <!--2-->
     </dependencies>
-    <config>
-        <props>
-            <prop name="prop1" value="value1"/>
-            <prop name="prop2" value="value2"/>
-        </props>
-        <feature-group name="group1"/>
-        <feature spec="feature1">
+    <config model="standalone" name="standalone.xml"> <!--3-->
+        <feature-group name="standalone"/>
+        <feature spec="another-feature">
             <param name="p1" value="v1" />
             <param name="p2" value="v2" />
         </feature>
     </config>
-    <default-packages>
-        <package name="package1"/>
-        <package name="package2"/>
+    <config model="domain" name="domain.xml">
+        <feature-group name="domain"/>
+    </config>
+    <config model="host" name="host.xml">
+        <feature-group name="host"/>
+    </config>
+    <default-packages> <!--4-->
+        <package name="docs"/>
+        <package name="modules.all"/>
     </default-packages>
- </feature-pack>
+</feature-pack>
 ----
-
-In this example:
-
-* feature-pack *org.my-group:my-artifact:1.0.0.Alpha1* depends on feature-pack *org.another-group:another-artifact:3.0.0.Final*;
-
-* config element describes the default configuration that will be generated;
-
-* packages *package1* and *package2* are installed by default.
+<1> Feature-pack location and build info;
+<2> Dependency on another feature-pack;
+<3> Description of the default `standalone.xml` configuration;
+<4> List of packages that should be installed by default.
 

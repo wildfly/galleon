@@ -1,0 +1,19 @@
+## Feature-pack packages
+
+A package is a minimal atomic unit of filesystem content that can be included into or excluded from the installation. It could be a set of files and/or provisioning-related resources attached to the package used by the mechanism to provision a piece of filesystem content.
+
+Essentially, a software release (filesystem content-wise) is represented as a set of packages released under a common version.
+
+Package contains:
+
+*   metadata describing the package;
+
+*   _(optional)_ FS content which is copied into the installation when the package is installed;
+
+*   _(optional)_ other provisioning resources that are used during provisioning to generate and/or integrate the content (or what the package represents) properly into the target installation.
+
+Package may declare dependencies on other packages that belong to the same or another feature-pack. Before a package is installed, the tool will make sure all its dependencies are satisifed (which includes automatic installation of the ones that are missing from the installation).
+
+Package is identified by its name. The name must be unique in the scope of the feature-pack the package belongs to.
+
+Packages are not versioned. Only the feature-pack has a version.

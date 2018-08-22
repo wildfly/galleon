@@ -1,0 +1,38 @@
+#### Explicit package exclusion
+
+A package may be explicitly excluded from the feature-pack's effective package set. For example, given the following feature-pack definition (`feature-pack.xml`):
+
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <default-packages>
+        <package name="p1" />
+        <package name="p2" />
+    </default-packages>
+ </feature-pack>
+----
+
+and assuming that
+
+* package `p1` has an optional dependency on non-default package `p11`,
+
+* package `p2` has an optional dependency on non-default package `p22`.
+
+The original effective package set of `fp1` includes `p1`, `p11`, `p2` and `p22`.
+
+If a user is interested in a subset of the effective package set, in fact, only in package `p1`, for example, it can be expressed in the provisioning XML configuration file as
+
+[source,xml]
+----
+ <installation xmlns="urn:jboss:galleon:provisioning:2.0">
+     <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0">
+         <packages>
+             <exclude name="p11"/>
+             <exclude name="p2"/>
+         </packages>
+     </feature-pack>
+ </installation>
+----
+
+Packages `p11` and `p2` are explicitly excluded and package `p22` is a non-default package which is not a direct or transitive dependency of the packages to be installed, i.e. `p1`.

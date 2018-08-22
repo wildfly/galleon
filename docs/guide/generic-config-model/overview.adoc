@@ -1,0 +1,22 @@
+In addition to provisioning various filesystem content as packages, the mechanism also allows generation of the configuration files for the target installation taking into account the customizations applied by the user to the feature-pack defaults.
+
+Feature-pack metadata (`feature-pack.xml`) may include one or more `config` elements each of which describes a specific type of configuration supported by the resulting installation. In a simple (and perhaps the most common) case, the configuration described under `config` element will represent a specific configuration file in the provisioned installation.
+
+Installation configuration is described using a generic configuration model. The generic configuration model is based on an abstract schema that describes configurable units and relationships between them. The model allows a user to manipulate the confguration in a generic way by adding to and/or removing parts from it, and/or overwriting some parameter values. The responsibilities of the core provisioning mechanism with regards to the configuration are:
+
+* resolve the final installation configuration model taking into account the customizations applied to the pre-defined in `feature-pack.xml` default configuration;
+
+* make sure the resolved configuration model is valid by:
+
+** verifying that all the required parameter values are set;
+
+** checking the referential integrity of the resolved configuration model (i.e. in case certain configuration units imply presence of certain other configuration units);
+
+** making sure that the capability requirements in the resolved configuration are satisfied;
+
+** and that packages required by the configuration model are included into the installation;
+
+* present the units of the resolved configuration to the provisioning plugins in the order the configuration model was populated but also respecting the dependencies of those units.
+
+NOTE: The generic provisioning mechanism itself does not generate the final configuration files. As indicated above, it only resolves the effective generic configuration model for the provisioned installation and makes sure it does not violate various constraints it might have. It is the responsibility of product-specific provisioning plugins to generate the final configuration file(s) from the already resolved and validated generic configuration model.
+

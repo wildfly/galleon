@@ -1,0 +1,45 @@
+### Picking default configs into the installation
+
+There are two scenarios when including a configuration could be necessary:
+
+. when the configuration was excluded with `<exclude model="_model_name_"/>`;
+
+. when inhertance of the default configurations was disabled with `<default-configs inherit="false">`.
+
+The first one of course assumes that the configuration is associated with both name and model. It could look like this:
+[source,xml]
+----
+<feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+    <default-configs>
+        <exclude model="model1"/>
+        <include name="config1" model="model1"/>
+    </default-configs>
+</feature-pack>
+----
+
+The example above excludes all the `model1` configurations except `config1`.
+
+[[disable-def-configs]]Here is an example for the second scenario
+[source,xml]
+----
+<feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+    <default-configs inherit="false">
+        <include name="config1"/>
+        <include name="config1" model="model1"/>
+    </default-configs>
+</feature-pack>
+----
+
+The example above picks only `config1` and `model1:config1` from all the default configurations to be included into the distribution.
+
+It is also possible to include configurations of a specific model, e.g.
+[source,xml]
+----
+<feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+    <default-configs inherit="false">
+        <include model="model1"/>
+    </default-configs>
+</feature-pack>
+----
+
+In this case, all the default configurations of `model1` will be included into the distribution.

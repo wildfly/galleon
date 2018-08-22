@@ -1,0 +1,24 @@
+### Package metadata (package.xml)
+
+Package metadata contains the following information:
+
+* *package name*;
+*   _(optional)_ *dependencies* - dependencies on other packages from the same and/or other feature-packs;
+
+Here is an illustration of how `package.xml` might look like:
+
+[source,xml]
+----
+ <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
+    <dependencies>
+        <package name="p2"/>
+        <package name="p3" optional="true"/>
+        <origin name="another-feature-pack">
+            <package name="p1"/>
+            <package name="p11" optional="true"/>
+        </origin>
+    </dependencies>
+ </package-spec>
+----
+
+Here package `p1` declares dependencies on packages `p2` and `p3` that belong to the same feature-pack as `p1` and packages `p1` and `p11` that belong to another feature-pack referenced by alias `another-feature-pack`.

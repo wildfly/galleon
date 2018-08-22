@@ -1,7 +1,0 @@
-##### Feature-pack non-default packages
-
-Feature-pack may contain packages that are not marked as default in the *feature-pack.xml*. Non-default packages can be installed either:
-
-*   implicitly, in case a default package declared a dependency on a non-default package or the non-default package appears as a transitive dependency of a default package;
-
-*   explicitly, in case a user explicitly selected a non-default package to be installed.

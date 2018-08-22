@@ -1,0 +1,31 @@
+### Features
+
+Minimal configurable unit of the generic configuration model is called a *feature*. A *feature* is described by a *feature specification* (or *feature spec* further in the text). A *feature spec* describes how a feature can be configured, while a *feature* is a specific configuration of a *feature spec*.
+
+Feature specs are identified by their names that must be unique in the scope of the feature-pack.
+
+A feature spec describes
+
+* the configurable parameters (including their names, default values (if any) and whether they are nillable);
+
+* _(optionally)_ <<feature-refs,references to other feature specs>>;
+
+* _(optionally)_ <<feature-deps,dependencies on other features>>;
+
+* _(optionally)_ <<caps,required capabilities>>;
+
+* _(optionally)_ <<caps,provided capabilities>>;
+
+* _(optionally)_ <<feature-package-deps,dependencies on packages>>;
+
+* _(optionally)_ <<feature-annotations,annnotations>>.
+
+Feature specs are stored in `spec.xml` files in the directories named after the feature spec names under feature-pack's `features` directory. For example
+
+[options="nowrap"]
+ features/
+ |-feature1/
+ | `-spec.xml
+ `-feature2/
+   `-spec.xml
+

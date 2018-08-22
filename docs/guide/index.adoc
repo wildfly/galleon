@@ -22,9 +22,19 @@ include::feature-packs/index.adoc[]
 
 include::workflow/index.adoc[]
 
-include::provisioning-content/index.adoc[]
+include::packages/index.adoc[]
+
+include::feature-pack-deps/index.adoc[]
+
+include::transitive-deps/index.adoc[]
+
+include::version-conflicts/index.adoc[]
+
+include::generic-config-model/index.adoc[]
 
 include::provisioned-config/index.adoc[]
+
+include::patches/index.adoc[]
 
 include::maven-plugin/index.adoc[]
 

@@ -1,0 +1,81 @@
+### Merging package sets of dependencies
+
+Suppose feature-pack `fp1` depends on feature-packs `fp2` and `fp3`. Both `fp2` and `fp3` depend on their own custom package sets of feature-pack `fp4`. When `fp1` is installed, the effective package set of *fp4* will be a merge of the custom package sets of `fp4` defined in `fp2` and `fp3` as their dependencies.
+
+For example:
+
+.Feature-pack fp1
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
+    <dependencies>
+        <dependency location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0"/>
+        <dependency location="fp3@maven(org.jboss.universe:community-universe):2#2.0.0"/>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+.Feature-pack fp2
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp2@maven(org.jboss.universe:community-universe):2#2.0.0" >
+    <dependencies>
+        <dependency location="fp4@maven(org.jboss.universe:community-universe):2#2.0.0">
+            <packages>
+                <exclude name="p1"/>
+                <exclude name="p3"/>
+            </packages>
+        </dependency>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+.Feature-pack fp3
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp3@maven(org.jboss.universe:community-universe):2#2.0.0" >
+    <dependencies>
+        <dependency location="fp4@maven(org.jboss.universe:community-universe):2#2.0.0">
+            <packages inherit=”false”>
+                <!-- assume fp4 also contains non-default package p4 -->
+                <include name="p4"/>
+            </packages>
+        </dependency>
+    </dependencies>
+    <default-packages>
+        <package name="p1"/>
+    </default-packages>
+ </feature-pack>
+----
+
+.Feature-pack fp4
+[source,xml]
+----
+ <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
+                location="fp4@maven(org.jboss.universe:community-universe):2#2.0.0" >
+    <default-packages>
+        <package name="p1"/>
+        <package name="p2"/>
+        <package name="p3"/>
+    </default-packages>
+ </feature-pack>
+----
+
+A distribution provisioned from `fp1` without further customizations will include:
+
+* `fp1:p1` and its dependencies;
+
+* `fp2:p1` and its dependencies;
+
+* `fp3:p1` and its dependencies;
+
+* `fp4:p2`, `fp4:p4` and their dependencies.

@@ -1,7 +1,0 @@
-include::overview.adoc[]
-
-include::dir.adoc[]
-
-include::metadata.adoc[]
-
-include::dependencies.adoc[]

@@ -1,25 +1,25 @@
 ## Feature-packs
 
-Feature-pack represents a released unit of software that can be installed or uninstalled using the provisioning tool. Feature-packs are Maven artifacts identified by GAV (groupId, artifactId and version).
+Feature-pack represents a released unit of software (project, product, component, etc) that can be installed or uninstalled using Galleon tools. Feature-packs are ZIP archives that are normally deployed by the feature-pack producers to artifact repositories (such as Maven) where they can be discovered and consumed by users using Galleon tools.
 
 Feature-pack contains:
 
 * metadata describing
 
-** dependencies on other featurepacks;
+** dependencies on other feature-packs;
 
-** the default configuration(s) of the distribution;
+** the default configuration(s) of the product the feature-pack represents;
 
-** the default package set that should be installed;
+** the package set that should be installed by default;
 
-* _(optional)_ a set of content packages;
+* _(optional)_ a set of packages (that represent various filesystem content);
 
-* _(optional)_ a set of configuration features;
+* _(optional)_ a set of configuration feature specs (used to define and/or tune parts of the product configuration);
 
-* _(optional)_ various resources required to properly assemble and setup the installation;
+* _(optional)_ various resources required to properly assemble and configure the product;
 
-* _(optional)_ custom provisioning plug-ins.
+* _(optional)_ product-specific provisioning plug-ins.
 
 
-Feature-pack may declare dependencies on other feature-packs. Before a feature-pack is installed the tool will make sure its dependencies are satisifed (installing the missing ones).
+NOTE: Feature-pack may declare dependencies on other feature-packs. Before a feature-pack is installed the tool will make sure its dependencies are satisifed (by installing the missing ones).
 
