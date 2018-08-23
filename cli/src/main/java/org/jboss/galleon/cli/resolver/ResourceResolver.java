@@ -89,7 +89,7 @@ public class ResourceResolver {
             t = res.resolve();
         } catch (Throwable thr) {
             java.util.logging.Logger.getLogger(ResourceResolver.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", thr.getLocalizedMessage());
+                    "Exception while resolving: {0}", thr.getLocalizedMessage());
             synchronized (this) {
                 content.remove(key);
                 finalComp.completeExceptionally(thr);
@@ -101,6 +101,12 @@ public class ResourceResolver {
 
     @SuppressWarnings("unchecked")
     public <T> T get(String key, Resolver<T> res) throws InterruptedException, ExecutionException {
+        // if no key, must resolve without the ability to re-use content.
+        if (key == null) {
+            CompletableFuture<T> comp = new CompletableFuture<>();
+            resolve(key, comp, res);
+            return comp.get();
+        }
         CompletableFuture<T> comp;
         synchronized (this) {
             comp = (CompletableFuture<T>) content.get(key);

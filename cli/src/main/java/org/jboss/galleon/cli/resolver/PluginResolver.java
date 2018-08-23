@@ -42,6 +42,7 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
     private ProvisioningConfig config;
     private Path file;
     private final PmSession session;
+    private ProvisioningLayout layout;
 
     private PluginResolver(PmSession session, ProvisioningConfig config) {
         Objects.requireNonNull(session);
@@ -55,6 +56,17 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
         Objects.requireNonNull(file);
         this.session = session;
         this.file = file;
+    }
+
+    private PluginResolver(PmSession session, ProvisioningLayout layout) {
+        Objects.requireNonNull(session);
+        Objects.requireNonNull(layout);
+        this.session = session;
+        this.layout = layout;
+    }
+
+    public static PluginResolver newResolver(PmSession session, ProvisioningLayout layout) {
+        return new PluginResolver(session, layout);
     }
 
     public static PluginResolver newResolver(PmSession session, ProvisioningConfig config) {
@@ -72,24 +84,27 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
 
     @Override
     public ResolvedPlugins resolve() throws ResolutionException {
-        ProvisioningLayout layout = null;
+        boolean closeLayout = layout == null;
+        ProvisioningLayout pLayout = layout;
         // Silent resolution.
         session.unregisterTrackers();
         try {
             try {
-                if (config != null) {
-                    layout = session.getLayoutFactory().newConfigLayout(config);
-                } else {
-                    // No registration in universe during completion
-                    layout = session.getLayoutFactory().newConfigLayout(file, false);
+                if (pLayout == null) {
+                    if (config != null) {
+                        pLayout = session.getLayoutFactory().newConfigLayout(config);
+                    } else {
+                        // No registration in universe during completion
+                        pLayout = session.getLayoutFactory().newConfigLayout(file, false);
+                    }
                 }
-                return resolvePlugins(layout);
+                return resolvePlugins(pLayout);
 
             } catch (Exception ex) {
                 throw new ResolutionException(ex.getLocalizedMessage(), ex);
             } finally {
-                if (layout != null) {
-                    layout.close();
+                if (closeLayout && pLayout != null) {
+                    pLayout.close();
                 }
             }
         } finally {

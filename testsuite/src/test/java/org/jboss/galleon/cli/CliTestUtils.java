@@ -24,6 +24,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
@@ -73,6 +74,18 @@ public abstract class CliTestUtils {
         FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
                 producer, "1", null, version);
         creator.newFeaturePack(fp1.getFPID())
+                .newPackage("p1", true)
+                .writeContent("fp1/p1.txt", "fp1 p1");
+        creator.install();
+    }
+
+    public static void install(CliWrapper cli, UniverseSpec universeSpec,
+            String producer, String version, Class<? extends InstallPlugin> plugin) throws ProvisioningException {
+        FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
+        FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
+                producer, "1", null, version);
+        creator.newFeaturePack(fp1.getFPID())
+                .addPlugin(plugin)
                 .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1");
         creator.install();

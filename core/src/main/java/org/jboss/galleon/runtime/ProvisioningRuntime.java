@@ -397,12 +397,12 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         };
         layout.visitPlugins(v, clazz);
         // check if provided options exist
-/*        for (String userOption : pluginOptions.keySet()) {
+        for (String userOption : pluginOptions.keySet()) {
             if (!options.contains(userOption)) {
                 throw new ProvisioningException("Option " + userOption + " is not supported");
             }
         }
-*/        layout.visitPlugins(visitor, clazz);
+        layout.visitPlugins(visitor, clazz);
     }
 
     public <T extends ProvisioningPlugin> void visitPlugins(FeaturePackPluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {

@@ -186,6 +186,10 @@ public interface CliErrors {
         return failed("Undo");
     }
 
+    static String uninstallFailed() {
+        return failed("Uninstall");
+    }
+
     static String updateFailed() {
         return failed("Update");
     }
