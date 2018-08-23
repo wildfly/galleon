@@ -37,6 +37,7 @@ import org.jboss.galleon.cli.cmd.filesystem.PmRm;
 import org.jboss.galleon.cli.cmd.filesystem.PwdCommand;
 import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
 import org.jboss.galleon.cli.cmd.plugin.InstallCommand;
+import org.jboss.galleon.cli.cmd.plugin.UninstallCommand;
 import org.jboss.galleon.cli.cmd.state.StateCommand;
 import org.jboss.galleon.cli.cmd.state.SearchCommand;
 import org.jboss.galleon.cli.cmd.state.feature.FeatureCommand;
@@ -97,6 +98,7 @@ public class CliMain {
         // Create commands that are dynamic (or contain dynamic sub commands).
         // Options are discovered at execution time
         InstallCommand install = new InstallCommand(pmSession);
+        UninstallCommand uninstall = new UninstallCommand(pmSession);
         //ProvisionedSpecCommand state = new ProvisionedSpecCommand(pmSession);
         FeatureCommand feature = new FeatureCommand(pmSession);
         StateCommand state = new StateCommand(pmSession);
@@ -110,7 +112,7 @@ public class CliMain {
                 //.command(ProvisionSpecCommand.class)
                 //.command(ChangesCommand.class)
                 //.command(UpgradeCommand.class)
-                .command(UninstallCommand.class)
+                .command(uninstall.createCommand())
                 .command(CdCommand.class)
                 .command(PmExitCommand.class)
                 .command(LsCommand.class)

@@ -82,11 +82,13 @@ You can then use the listed options (if any) to customize your install command.
 
 ### Un-installing a feature-pack
 
-_uninstall [FPID] [--dir=<installation dir>]_
+_uninstall [FPID] [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
 
-This will remove the content installed by the feature-pack identified by the FPID.
+This will remove the content installed by the feature-pack identified by the FPID. Some feature-pack specific options
+can be provided, they will be used when re-provisioning the remaining (if any) feature-packs.
 
-NB: Completer proposes the FPID you can un-install from the installation (products and patches).
+NB: Completer proposes the FPID you can un-install from the installation (products and patches). Completion
+of feature-pack specific options are handled the same way as in the install command.
 
 ### Un-doing the last provisioning command
 
