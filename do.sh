@@ -58,5 +58,5 @@ if [[ -n $BUILD ]]; then
 fi
 
 if [[ -n $RUN ]]; then
-java $JAVA_OPTS -jar ./cli/target/galleon-cli-2.0.0.Beta2-SNAPSHOT.jar
+java $JAVA_OPTS -jar ./cli/target/galleon-cli-2.0.0.Final.jar
 fi
