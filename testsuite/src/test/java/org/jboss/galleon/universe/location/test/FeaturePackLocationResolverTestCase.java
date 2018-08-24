@@ -20,15 +20,11 @@ package org.jboss.galleon.universe.location.test;
 import static org.jboss.galleon.universe.TestConstants.GROUP_ID;
 
 import java.nio.file.Path;
-
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactCoords.Gav;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseRepoTestBase;
 import org.jboss.galleon.universe.UniverseResolver;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
@@ -60,7 +56,9 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
                 setArtifactId(PRODUCER1_ARTIFACT_ID).
                 setVersion("1.0.0.Final");
         MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, artifact, FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID);
+        producerInstaller.addChannel("6", "[6.0-alpha,7.0-alpha)");
         producerInstaller.addChannel("5", "[5.0-alpha,6.0-alpha)");
+        producerInstaller.addChannel("4", "[4.0-alpha,5.0-alpha)");
         producerInstaller.addFrequencies("alpha", "beta");
         producerInstaller.install();
 
@@ -91,7 +89,7 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
             Assert.assertEquals(MavenErrors.artifactNotFound(artifact, repoHome).getLocalizedMessage(), e.getLocalizedMessage());
         }
 
-        installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "5.1.0.Alpha1"));
+        installFp(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.1.0.Alpha1"));
 
         try {
             resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
@@ -108,18 +106,18 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
         Path path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
 
-        installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "4.1.0.Beta2"));
+        installFp(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):4#4.1.0.Beta2"));
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
 
-        installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "5.2.0.Final"));
+        installFp(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.2.0.Final"));
         artifact.setVersion("5.2.0.Final");
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
 
-        installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "5.2.1.Beta1"));
+        installFp(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.2.1.Beta1"));
         artifact.setVersion("5.2.1.Beta1");
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
@@ -129,14 +127,14 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
         artifact.setVersion("5.2.0.Final");
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
 
-        installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "6.0.0.Alpha1"));
+        installFp(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):6#6.0.0.Alpha1"));
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5/alpha"));
         artifact.setVersion("5.2.1.Beta1");
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
 
-        installFp(ArtifactCoords.newGav(FP_GROUP_ID, PRODUCER1_FP_ARTIFACT_ID, "6.0.0.Final"));
+        installFp(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):6#6.0.0.Final"));
         path = resolver.resolve(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5"));
         artifact.setVersion("5.2.0.Final");
         Assert.assertEquals(artifact.getArtifactFileName(), path.getFileName().toString());
@@ -194,10 +192,10 @@ public class FeaturePackLocationResolverTestCase extends UniverseRepoTestBase {
         }
     }
 
-    private void installFp(Gav fpGav) throws ProvisioningException {
+    private void installFp(FeaturePackLocation fpl) throws ProvisioningException {
         FeaturePackCreator.getInstance()
         .addArtifactResolver(repo)
-        .newFeaturePack(LegacyGalleon1Universe.toFpl(fpGav).getFPID())
+        .newFeaturePack(fpl.getFPID())
         .getCreator()
         .install();
     }

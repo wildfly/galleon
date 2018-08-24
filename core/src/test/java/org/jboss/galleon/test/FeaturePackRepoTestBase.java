@@ -26,9 +26,9 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
-import org.jboss.galleon.repomanager.FeaturePackRepositoryManager;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.TestUtils;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1RepositoryManager;
 import org.jboss.galleon.util.IoUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -69,7 +69,7 @@ public class FeaturePackRepoTestBase {
     }
 
     protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
-        return FeaturePackRepositoryManager.newInstance(repoHome);
+        return LegacyGalleon1RepositoryManager.newInstance(repoHome);
     }
 
     protected FeaturePackCreator initCreator() throws ProvisioningException {

@@ -22,7 +22,6 @@ import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.shared.artifact.ArtifactCoordinate;
 import org.apache.maven.shared.dependencies.DependableCoordinate;
 import org.codehaus.plexus.util.StringUtils;
-import org.jboss.galleon.ArtifactCoords;
 
 /**
  * ArtifactItem represents information specified for each artifact.
@@ -210,9 +209,4 @@ public class ArtifactItem
     public String getExtension() {
         return extension != null ? extension : "jar";
     }
-
-    public ArtifactCoords getArtifactCoords() {
-        return new ArtifactCoords(groupId, artifactId, version, classifier, extension);
-    }
-
 }

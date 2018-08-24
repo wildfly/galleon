@@ -17,7 +17,6 @@
 
 package org.jboss.galleon.universe.galleon1;
 
-import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.Universe;
@@ -30,7 +29,7 @@ import org.jboss.galleon.universe.UniverseFactory;
 public class LegacyGalleon1UniverseFactory implements UniverseFactory {
 
     public static final String ID = "galleon1";
-    public static final String DEFAULT_REPO_ID = ArtifactRepositoryManager.REPOSITORY_ID;
+    public static final String DEFAULT_REPO_ID = RepositoryArtifactResolver.ID_PREFIX + "maven";
 
     /* (non-Javadoc)
      * @see org.jboss.galleon.universe.UniverseFactory#getFactoryId()

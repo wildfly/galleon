@@ -22,7 +22,7 @@ import org.eclipse.aether.RepositoryListener;
 
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.jboss.galleon.ArtifactException;
+import org.jboss.galleon.cli.config.mvn.ArtifactException;
 import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.maven.plugin.util.AbstractMavenArtifactRepositoryManager;
 import org.jboss.galleon.universe.maven.MavenUniverseException;

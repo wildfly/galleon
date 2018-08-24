@@ -21,12 +21,10 @@ import static org.jboss.galleon.universe.TestConstants.GROUP_ID;
 
 import java.nio.file.Path;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseRepoTestBase;
 import org.jboss.galleon.universe.UniverseResolver;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
 import org.jboss.galleon.universe.maven.MavenProducerInstaller;
@@ -98,7 +96,7 @@ public class MavenUniverseLocationTestCase extends UniverseRepoTestBase {
                 setVersion("5.1.0.Alpha1");
         FeaturePackCreator.getInstance()
         .addArtifactResolver(repo)
-        .newFeaturePack(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(fpArt.getGroupId(), fpArt.getArtifactId(), fpArt.getVersion())).getFPID())
+        .newFeaturePack(FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + '(' + universeArt.getCoordsAsString() + "):5#5.1.0.Alpha1").getFPID())
         .getCreator()
         .install();
     }

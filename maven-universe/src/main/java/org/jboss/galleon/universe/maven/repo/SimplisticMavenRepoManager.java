@@ -25,9 +25,6 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.ArtifactException;
-import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.MavenArtifact;
@@ -39,7 +36,7 @@ import org.jboss.galleon.util.IoUtils;
  *
  * @author Alexey Loubyansky
  */
-public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, MavenRepoManager {
+public class SimplisticMavenRepoManager implements MavenRepoManager {
 
     public static final String REPOSITORY_ID = MavenRepoManager.REPOSITORY_ID;
     public static final String SIMPLISTIC_MAVEN_REPO_HOME = "simplistic.maven.repo.home";
@@ -75,49 +72,6 @@ public class SimplisticMavenRepoManager implements ArtifactRepositoryManager, Ma
     @Override
     public Path resolve(String location) throws ProvisioningException {
         return MavenRepoManager.super.resolve(location);
-    }
-
-    @Override
-    public Path resolve(ArtifactCoords coords) throws ArtifactException {
-        final MavenArtifact artifact = toMavenArtifact(coords);
-        try {
-            resolve(artifact);
-        } catch (MavenUniverseException e) {
-            throw new ArtifactException("Failed to resolve " + coords, e);
-        }
-        return artifact.getPath();
-    }
-
-    @Override
-    public void install(ArtifactCoords coords, Path artifact) throws ArtifactException {
-        try {
-            install(toMavenArtifact(coords), artifact);
-        } catch (MavenUniverseException e) {
-            throw new ArtifactException("Failed to install " + coords, e);
-        }
-    }
-
-    @Override
-    public void deploy(ArtifactCoords coords, Path artifact) throws ArtifactException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getHighestVersion(ArtifactCoords coords, String range) throws ArtifactException {
-        try {
-            return getLatestFinalVersion(toMavenArtifact(coords).setVersionRange(range));
-        } catch (MavenUniverseException e) {
-            throw new ArtifactException("Failed to resolve the latest version for " + coords, e);
-        }
-    }
-
-    private MavenArtifact toMavenArtifact(ArtifactCoords coords) {
-        return new MavenArtifact()
-                .setGroupId(coords.getGroupId())
-                .setArtifactId(coords.getArtifactId())
-                .setVersion(coords.getVersion())
-                .setClassifier(coords.getClassifier())
-                .setExtension(coords.getExtension());
     }
 
     @Override

@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -48,27 +47,29 @@ public class LegacyGalleon1Universe implements Universe<LegacyGalleon1Producer> 
         return universeSource;
     }
 
-    public static ArtifactCoords toArtifactCoords(FeaturePackLocation fpl) throws ProvisioningException {
+    public static String toMavenCoords(FeaturePackLocation fpl) throws ProvisioningException {
         final String producer = fpl.getProducerName();
         final int colon = producer.indexOf(':');
         if(colon <= 0) {
             throw new ProvisioningException("Failed to determine group and artifact IDs for " + fpl);
         }
-        return ArtifactCoords.newInstance(producer.substring(0, colon), producer.substring(colon + 1), fpl.getBuild(), ZIP);
+        final StringBuilder buf = new StringBuilder();
+        buf.append(producer.substring(0, colon)).append(':').append(producer.substring(colon + 1)).append(':').append(ZIP);
+        buf.append(':').append(fpl.getBuild());
+        return buf.toString();
     }
 
-    public static FeaturePackLocation toFpl(ArtifactCoords.Gav gav) {
-        final String version = gav.getVersion();
+    public static FeaturePackLocation toFpl(String groupId, String artifactId, String version) {
         if(version == null) {
             return new FeaturePackLocation(
                     new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null),
-                    gav.getGroupId() + ':' + gav.getArtifactId(),
+                    groupId + ':' + artifactId,
                     null, null, version);
         }
         final int i = version.indexOf('.');
         return new FeaturePackLocation(
                 new UniverseSpec(LegacyGalleon1UniverseFactory.ID, null),
-                gav.getGroupId() + ':' + gav.getArtifactId(),
+                groupId + ':' + artifactId,
                 i > 0 ? version.substring(0, i) : version, null, version);
     }
 

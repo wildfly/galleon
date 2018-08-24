@@ -17,12 +17,9 @@
 package org.jboss.galleon.cli.model;
 
 import java.util.Objects;
-import org.jboss.galleon.ArtifactCoords.Gav;
-
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 
 /**
  *
@@ -36,10 +33,6 @@ public class Identity implements Comparable<Identity> {
     private Identity(String origin, String name) {
         this.origin = origin;
         this.name = name;
-    }
-
-    public static Identity fromGav(Gav origin, String name) {
-        return new Identity(FeaturePackConfig.getDefaultOriginName(LegacyGalleon1Universe.toFpl(origin)), name);
     }
 
     public static Identity fromChannel(ProducerSpec origin, String name) {

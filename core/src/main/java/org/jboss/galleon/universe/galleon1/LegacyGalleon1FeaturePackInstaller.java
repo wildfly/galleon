@@ -18,7 +18,6 @@
 package org.jboss.galleon.universe.galleon1;
 
 import java.nio.file.Path;
-import org.jboss.galleon.ArtifactRepositoryManager;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
@@ -44,10 +43,10 @@ public class LegacyGalleon1FeaturePackInstaller implements UniverseFeaturePackIn
         // make sure the channel exists
         producer.getChannel(channel.getName());
 
-        if(!(mvnUni.artifactResolver instanceof ArtifactRepositoryManager)) {
-            throw new ProvisioningException(mvnUni.artifactResolver.getClass().getName() + " is not an instance of " + ArtifactRepositoryManager.class.getName());
+        if(!(mvnUni.artifactResolver instanceof LegacyGalleon1RepositoryManager)) {
+            throw new ProvisioningException(mvnUni.artifactResolver.getClass().getName() + " is not an instance of " + LegacyGalleon1RepositoryManager.class.getName());
         }
 
-        ((ArtifactRepositoryManager) mvnUni.artifactResolver).install(LegacyGalleon1Universe.toArtifactCoords(fpid.getLocation()), fpZip);
+        ((LegacyGalleon1RepositoryManager) mvnUni.artifactResolver).install(LegacyGalleon1Universe.toMavenCoords(fpid.getLocation()), fpZip);
     }
 }

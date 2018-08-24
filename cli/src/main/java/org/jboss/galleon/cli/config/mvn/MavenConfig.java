@@ -30,7 +30,6 @@ import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
-import org.jboss.galleon.ArtifactException;
 import org.jboss.galleon.ProvisioningException;
 import static org.jboss.galleon.cli.CliMavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
 import org.jboss.galleon.util.PropertyUtils;

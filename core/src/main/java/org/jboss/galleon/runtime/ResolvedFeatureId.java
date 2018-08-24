@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jboss.galleon.ArtifactCoords;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -158,7 +157,7 @@ public class ResolvedFeatureId {
                 } else if(version == null) {
                     formatException(str);
                 } else {
-                    specId = new ResolvedSpecId(LegacyGalleon1Universe.toFpl(ArtifactCoords.newGav(groupId, artifactId, version)).getProducer(), buf.toString());
+                    specId = new ResolvedSpecId(LegacyGalleon1Universe.toFpl(groupId, artifactId, version).getProducer(), buf.toString());
                     break;
                 }
                 buf.setLength(0);
