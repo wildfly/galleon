@@ -163,6 +163,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return config;
     }
 
+    public ProvisioningLayout<FeaturePackRuntime> getLayout() {
+        return layout;
+    }
+
     @Override
     public boolean hasFeaturePacks() {
         return layout.hasFeaturePacks();
