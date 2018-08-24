@@ -68,6 +68,10 @@ public interface HelpDescriptions {
     String FEATURE_PACK = "Contains commands to manage feature packs";
     String FEATURE_PATH = "Configuration / Feature id";
     String FILESYSTEM = "Contains commands to navigate the filesystem";
+    String FIND = "Find feature pack locations that match the pattern";
+    String FIND_PATTERN = "Feature pack location pattern. eg: wildfly:*.Final to search for all Final builds";
+    String FIND_UNIVERSE = "Provide a universe id in order to search for feature packs "
+            + "located in not installed universe";
     String FP_FILE = "Feature pack zip file";
     String FP_FILE_IMPORT = FP_FILE + " to import";
     String FP_FILE_PATH = "Path to feature pack zip file";
@@ -94,9 +98,10 @@ public interface HelpDescriptions {
     String INSTALL_IN_UNIVERSE = "Install feature pack to universe. Optional, it is installed by default";
     String LEAVE_EXPLORATION = "Leave exploration";
     String LEAVE_STATE = "Leave provisioning state";
-    String LIST = "List latest available feature packs that you can install from the builtin universe";
-    String LIST_FILTER_PATTERN = "List only feature packs that match the provided pattern";
-    String LIST_UNIVERSE = "Provide a universe id in order to list feature packs from not installed universe";
+    String LIST = "List latest available feature packs for the default frequency";
+    String LIST_ALL_FREQUENCIES = "Display the latest builds for all frequencies";
+    String LIST_UNIVERSE = "Provide a universe id in order to list feature packs "
+            + "located in not installed universe";
     String LOCATION_FP_RESOLVE = "Location of feature pack to resolve";
     String LS = "List the current node content";
     String MAVEN = "Contains commands to configure maven support";

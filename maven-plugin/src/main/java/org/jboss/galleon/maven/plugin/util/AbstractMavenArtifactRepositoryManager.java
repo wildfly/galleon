@@ -20,6 +20,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.eclipse.aether.RepositorySystem;
@@ -165,6 +166,18 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
                 mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
         return doGetHighestVersion(artifact, mavenArtifact.getCoordsAsString());
+    }
+
+    @Override
+    public List<String> getAllVersions(MavenArtifact mavenArtifact) throws MavenUniverseException {
+        Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
+                mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
+        VersionRangeResult rangeResult = getVersionRange(artifact, mavenArtifact.getCoordsAsString());
+        List<String> versions = new ArrayList<>();
+        for (Version v : rangeResult.getVersions()) {
+            versions.add(v.toString());
+        }
+        return versions;
     }
 
     @Override

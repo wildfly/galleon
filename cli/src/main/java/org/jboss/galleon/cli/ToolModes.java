@@ -32,6 +32,7 @@ import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
 import org.jboss.galleon.cli.cmd.filesystem.FileSystemCommand;
 import org.jboss.galleon.cli.cmd.installation.InstallationCommand;
 import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand;
+import org.jboss.galleon.cli.cmd.maingrp.FindCommand;
 import org.jboss.galleon.cli.cmd.maingrp.GetInfoCommand;
 import org.jboss.galleon.cli.cmd.maingrp.InstallCommand;
 import org.jboss.galleon.cli.cmd.maingrp.ListFeaturePacksCommand;
@@ -92,6 +93,7 @@ public class ToolModes {
 
         // Common commands
         commonCommands.add(containerBuilder.create(new Clear()));
+        commonCommands.add(containerBuilder.create(new FindCommand()));
         commonCommands.add(containerBuilder.create(help));
         commonCommands.add(containerBuilder.create(new FeaturePackCommand()));
         commonCommands.add(containerBuilder.create(new ListFeaturePacksCommand()));

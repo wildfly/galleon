@@ -68,6 +68,15 @@ public abstract class CliTestUtils {
         return new UniverseSpec(MavenUniverseFactory.ID, TestConstants.GROUP_ID + ":" + name);
     }
 
+    public static UniverseSpec setupUniverse(MvnUniverse universe, CliWrapper cli, String name,
+            List<String> producers, String defaultFrequency) throws ProvisioningException {
+        for (String p : producers) {
+            universe.createProducer(p, p + "-feature-pack", defaultFrequency);
+        }
+        universe.install();
+        return new UniverseSpec(MavenUniverseFactory.ID, TestConstants.GROUP_ID + ":" + name);
+    }
+
     public static void install(CliWrapper cli, UniverseSpec universeSpec,
             String producer, String version) throws ProvisioningException {
         FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());

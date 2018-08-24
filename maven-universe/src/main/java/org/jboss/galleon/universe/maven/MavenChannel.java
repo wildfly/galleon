@@ -19,6 +19,7 @@ package org.jboss.galleon.universe.maven;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
@@ -68,6 +69,25 @@ public class MavenChannel implements Channel, MavenChannelDescription {
             }
             throw new LatestVersionNotAvailableException(fpl);
         } catch(MavenUniverseException e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public List<String> getAllBuilds(FeaturePackLocation fpl) throws ProvisioningException {
+        final MavenArtifact artifact = new MavenArtifact();
+        artifact.setGroupId(producer.getFeaturePackGroupId());
+        artifact.setArtifactId(producer.getFeaturePackArtifactId());
+        artifact.setExtension("zip");
+        artifact.setVersionRange(versionRange);
+        try {
+            return producer.getRepo().getAllVersions(artifact);
+        } catch (MavenLatestVersionNotAvailableException e) {
+            if (fpl.getFrequency() == null && producer.hasDefaultFrequency()) {
+                fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), producer.getDefaultFrequency(), null);
+            }
+            throw new LatestVersionNotAvailableException(fpl);
+        } catch (MavenUniverseException e) {
             throw e;
         }
     }

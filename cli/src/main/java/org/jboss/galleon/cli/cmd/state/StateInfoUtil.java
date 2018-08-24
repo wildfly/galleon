@@ -313,7 +313,7 @@ public class StateInfoUtil {
             if (showPatches) {
                 headers.add(Headers.PATCHES);
             }
-            headers.add(Headers.CHANNEL);
+            headers.add(Headers.UPDATE_CHANNEL);
             Table table = new Table(headers);
             for (FeaturePackLocation d : dependencies) {
                 List<Cell> line = new ArrayList<>();
@@ -342,7 +342,7 @@ public class StateInfoUtil {
         if (!layout.hasPatches()) {
             return null;
         }
-        Table table = new Table(Headers.PATCH, Headers.PATCH_FOR, Headers.CHANNEL);
+        Table table = new Table(Headers.PATCH, Headers.PATCH_FOR, Headers.UPDATE_CHANNEL);
 
         for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
             List<FeaturePackLayout> patches = layout.getPatches(fpLayout.getFPID());
@@ -363,7 +363,7 @@ public class StateInfoUtil {
 
     public static void printFeaturePack(PmCommandInvocation commandInvocation, FeaturePackLocation loc) {
         loc = commandInvocation.getPmSession().getExposedLocation(loc);
-        Table t = new Table(Headers.PRODUCT, Headers.BUILD, Headers.CHANNEL);
+        Table t = new Table(Headers.PRODUCT, Headers.BUILD, Headers.UPDATE_CHANNEL);
         t.addLine(loc.getProducer().getName(), loc.getBuild(), formatChannel(loc));
         commandInvocation.println("");
         commandInvocation.println(t.build());
@@ -377,7 +377,7 @@ public class StateInfoUtil {
         if (showPatches) {
             headers.add(Headers.PATCHES);
         }
-        headers.add(Headers.CHANNEL);
+        headers.add(Headers.UPDATE_CHANNEL);
         Table t = new Table(headers);
         for (FeaturePackConfig c : fps) {
             FeaturePackLocation loc = commandInvocation.getPmSession().getExposedLocation(c.getLocation());

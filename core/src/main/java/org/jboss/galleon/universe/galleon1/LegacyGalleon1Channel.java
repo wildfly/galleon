@@ -18,6 +18,8 @@
 package org.jboss.galleon.universe.galleon1;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.Channel;
@@ -51,6 +53,11 @@ public class LegacyGalleon1Channel implements Channel {
     @Override
     public Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
         return universe.artifactResolver.resolve(LegacyGalleon1Universe.toMavenCoords(fpl));
+    }
+
+    @Override
+    public List<String> getAllBuilds(FeaturePackLocation fpl) throws ProvisioningException {
+        return Collections.emptyList();
     }
 
     @Override

@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.jboss.galleon.ProvisioningException;
@@ -243,6 +244,11 @@ public class SimplisticMavenRepoManager implements MavenRepoManager {
 
     @Override
     public String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<String> getAllVersions(MavenArtifact artifact) throws MavenUniverseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

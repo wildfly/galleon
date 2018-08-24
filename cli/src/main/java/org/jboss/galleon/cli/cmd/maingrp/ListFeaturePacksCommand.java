@@ -16,9 +16,9 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.aesh.utils.Config;
@@ -27,18 +27,15 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
-import org.jboss.galleon.cli.UniverseManager;
+import org.jboss.galleon.cli.UniverseManager.UniverseVisitor;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
-import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
-import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 
 /**
  *
@@ -47,130 +44,71 @@ import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 @CommandDefinition(name = "list-feature-packs", description = HelpDescriptions.LIST)
 public class ListFeaturePacksCommand extends PmSessionCommand {
 
-    @Option(required = false, name = "filter-pattern", description = HelpDescriptions.LIST_FILTER_PATTERN)
-    private String pattern;
+    private static final String NONE = "NONE";
 
-    @Option(required = false, name = "from-universe", description = HelpDescriptions.LIST_UNIVERSE)
+    @Option(required = false, name = "universe", description = HelpDescriptions.LIST_UNIVERSE)
     private String fromUniverse;
 
+    @Option(required = false, name = "all-frequencies", hasValue = false, description = HelpDescriptions.LIST_ALL_FREQUENCIES)
+    private Boolean allFrequencies;
+
     @Override
-    public void runCommand(PmCommandInvocation commandInvocation)
+    public void runCommand(PmCommandInvocation invoc)
             throws CommandExecutionException {
-        UniverseSpec defaultUniverse = commandInvocation.getPmSession().getUniverse().
-                getDefaultUniverseSpec();
-
-        Pattern cPattern = null;
-        if (pattern != null) {
-            pattern = pattern.replaceAll("\\*", ".*");
-            cPattern = Pattern.compile(pattern);
-        }
-        if (fromUniverse != null) {
-            int locIndex = fromUniverse.indexOf("(");
-            if (locIndex < 0) {
-                throw new CommandExecutionException(CliErrors.invalidUniverse());
-            }
-            int locIndexEnd = fromUniverse.indexOf(")");
-            if (locIndexEnd < 0) {
-                throw new CommandExecutionException(CliErrors.invalidUniverse());
-            }
-
-            String factory = fromUniverse.substring(0, locIndex);
-            String location = fromUniverse.substring(locIndex + 1, locIndexEnd);
-            try {
-                UniverseSpec spec = new UniverseSpec(factory, location);
-                printUniverse(cPattern, spec, commandInvocation);
-            } catch (ProvisioningException ex) {
-                throw new CommandExecutionException(commandInvocation.getPmSession(),
-                        CliErrors.resolvedUniverseFailed(), ex);
-            }
-        } else {
-            try {
-                UniverseSpec builtinUniverse = commandInvocation.getPmSession().
-                        getUniverse().getBuiltinUniverseSpec();
-                if (builtinUniverse.equals(defaultUniverse)) {
-                    commandInvocation.println("Default universe (builtin maven universe)");
-                    printUniverse(cPattern, builtinUniverse, commandInvocation);
-                } else if (defaultUniverse != null) {
-                    commandInvocation.println("Default universe");
-                    printUniverse(cPattern, defaultUniverse, commandInvocation);
+        Map<UniverseSpec, Table> tables = new HashMap<>();
+        Map<UniverseSpec, Exception> exceptions = new HashMap<>();
+        UniverseVisitor visitor = new UniverseVisitor() {
+            @Override
+            public void visit(Producer<?> producer, FeaturePackLocation loc) {
+                if (loc.getFrequency() == null) {
+                    return;
                 }
-            } catch (ProvisioningException ex) {
-                throw new CommandExecutionException(commandInvocation.getPmSession(),
-                        CliErrors.resolvedUniverseFailed(), ex);
-            }
-
-            Set<String> universes = commandInvocation.getPmSession().getUniverse().getUniverseNames();
-            if (!universes.isEmpty()) {
-                commandInvocation.println(Config.getLineSeparator() + "Universes local to this provisioning state");
-            }
-            for (String u : universes) {
-                UniverseSpec universe = null;
-                try {
-                    universe = commandInvocation.getPmSession().getUniverse().getUniverseSpec(u);
-                    if (universe.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
-                        continue;
+                if (allFrequencies || loc.getFrequency().equals(producer.getDefaultFrequency())) {
+                    Table table = tables.get(loc.getUniverse());
+                    if (table == null) {
+                        table = new Table(Headers.PRODUCT, Headers.UPDATE_CHANNEL, Headers.LATEST_BUILD);
+                        tables.put(loc.getUniverse(), table);
                     }
-                    printUniverse(cPattern, universe, commandInvocation);
-                } catch (ProvisioningException ex) {
-                    throw new CommandExecutionException(commandInvocation.getPmSession(),
-                            CliErrors.resolvedUniverseFailed(), ex);
+                    loc = invoc.getPmSession().getExposedLocation(loc);
+                    table.addLine(producer.getName(), StateInfoUtil.formatChannel(loc),
+                            (loc.getBuild() == null ? NONE : loc.getBuild()));
                 }
             }
-        }
-    }
 
-    private static void printUniverse(Pattern cPattern, UniverseSpec spec, PmCommandInvocation invoc) throws ProvisioningException {
-        UniverseManager resolver = invoc.getPmSession().getUniverse();
-        Universe<? extends Producer> universe = resolver.getUniverse(spec);
-        invoc.println(spec.toString() + (spec.getLocation().equals(universe.getLocation()) ? ""
-                : ", actual location " + universe.getLocation()));
-        Collection<? extends Producer> producers = universe.getProducers();
-        if (producers.isEmpty()) {
-            invoc.println(" No product available");
-        } else {
-            printUniverse(cPattern, spec, universe, invoc);
-        }
-    }
-
-    private static void printUniverse(Pattern cPattern, UniverseSpec spec,
-            org.jboss.galleon.universe.Universe<?> universe,
-            PmCommandInvocation invoc) throws ProvisioningException {
-        Table table = new Table(Headers.PRODUCT, Headers.CHANNEL, Headers.LATEST_BUILD);
-        for (Producer<?> producer : universe.getProducers()) {
-            if (cPattern == null || cPattern.matcher(producer.getName()).matches()) {
-                for (Channel channel : producer.getChannels()) {
-                    for (String freq : producer.getFrequencies()) {
-                        String build = getBuild(spec, producer, channel, freq);
-                        FeaturePackLocation loc = new FeaturePackLocation(null,
-                                producer.getName(), channel.getName(), freq, build);
-                        table.addLine(producer.getName(), StateInfoUtil.formatChannel(loc),
-                                (build == null ? "" : build));
-                    }
-                }
+            @Override
+            public void exception(UniverseSpec spec, Exception ex) {
+                exceptions.put(spec, ex);
             }
-        }
-        if (table.isEmpty()) {
-            invoc.println(" No product found.");
-        } else {
-            table.sort(Table.SortType.ASCENDANT);
-            invoc.println(table.build());
-        }
-    }
-
-    private static String getBuild(UniverseSpec spec, Producer<?> producer, Channel channel, String freq) {
-        FeaturePackLocation loc = new FeaturePackLocation(spec, producer.getName(), channel.getName(), freq, null);
-        String build = null;
+        };
         try {
-            build = channel.getLatestBuild(loc);
+            if (fromUniverse != null) {
+                invoc.getPmSession().getUniverse().
+                        visitUniverse(UniverseSpec.fromString(fromUniverse), visitor, true);
+            } else {
+                invoc.getPmSession().getUniverse().
+                        visitAllUniverses(visitor, true);
+            }
         } catch (ProvisioningException ex) {
-            // OK, no build.
+            throw new CommandExecutionException(invoc.getPmSession(),
+                    CliErrors.resolvedUniverseFailed(), ex);
         }
-        return build;
+        FindCommand.printExceptions(invoc, exceptions);
+        for (Entry<UniverseSpec, Table> entry : tables.entrySet()) {
+            UniverseSpec universeSpec = entry.getKey();
+            String universeName = invoc.getPmSession().getUniverse().getUniverseName(universeSpec);
+            universeName = universeName == null ? universeSpec.toString() : universeName;
+            invoc.println(Config.getLineSeparator() + "Universe " + universeName
+                    + Config.getLineSeparator());
+            if (!exceptions.containsKey(entry.getKey())) {
+                Table table = entry.getValue();
+                table.sort(Table.SortType.ASCENDANT);
+                invoc.println(table.build());
+            }
+        }
     }
 
     @Override
     public CommandDomain getDomain() {
         return CommandDomain.PROVISIONING;
     }
-
 }

@@ -21,6 +21,7 @@ import org.jboss.galleon.universe.maven.MavenUniverseConstants;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
@@ -65,6 +66,8 @@ public interface MavenRepoManager extends RepositoryArtifactResolver {
     String getLatestVersion(MavenArtifact artifact) throws MavenUniverseException;
 
     String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
+
+    List<String> getAllVersions(MavenArtifact artifact) throws MavenUniverseException;
 
     void install(MavenArtifact artifact, Path path) throws MavenUniverseException;
 }

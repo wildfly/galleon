@@ -22,7 +22,8 @@ package org.jboss.galleon.cli.cmd;
  */
 public class Headers {
     public static final String BUILD = "Build";
-    public static final String CHANNEL = "Update Channel";
+    public static final String BUILDS = "Builds";
+    public static final String CHANNEL = "Channel";
     public static final String CONFIGURATION = "Configuration";
     public static final String CONFIGURATION_ITEM = "Configuration Item";
     public static final String CURRENT_BUILD = "Current Build";
@@ -37,5 +38,6 @@ public class Headers {
     public static final String PRODUCT = "Product";
     public static final String REQUIRED = "Required";
     public static final String UPDATE = "Update";
+    public static final String UPDATE_CHANNEL = "Update Channel";
     public static final String VALUE = "Value";
 }
