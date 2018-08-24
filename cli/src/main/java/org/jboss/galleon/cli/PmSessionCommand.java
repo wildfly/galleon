@@ -47,6 +47,10 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
             throw new CommandException(t);
         }
         // t.printStackTrace();
+        printException(session.getPmSession(), t);
+    }
+
+    static void printException(PmSession session, Throwable t) {
         if (t instanceof RuntimeException) {
             t.printStackTrace(session.getErr());
         }
@@ -82,7 +86,7 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
         return t;
     }
 
-    private static void println(PmCommandInvocation session, Throwable t) {
+    private static void println(PmSession session, Throwable t) {
         if(t.getLocalizedMessage() == null) {
             session.println(t.getClass().getName());
         } else {

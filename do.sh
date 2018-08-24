@@ -39,6 +39,9 @@ do
      run)
           unset BUILD
           ;;
+     *)
+          ARGS="$ARGS $1"
+          ;;
     esac
     shift
 done
@@ -58,5 +61,5 @@ if [[ -n $BUILD ]]; then
 fi
 
 if [[ -n $RUN ]]; then
-java $JAVA_OPTS -jar ./cli/target/galleon-cli-3.0.0.Alpha1-SNAPSHOT.jar
+java $JAVA_OPTS -jar ./cli/target/galleon-cli-3.0.0.Alpha1-SNAPSHOT.jar $ARGS
 fi

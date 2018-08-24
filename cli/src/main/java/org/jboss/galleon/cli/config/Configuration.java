@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -135,6 +137,10 @@ public class Configuration implements MavenChangeListener {
     }
 
     public static Configuration parse() throws ProvisioningException {
+        return parse(Collections.emptyMap());
+    }
+
+    public static Configuration parse(Map<String, String> options) throws ProvisioningException {
         Configuration config = new Configuration();
         Path configFile = getConfigFile();
         if (Files.exists(configFile)) {

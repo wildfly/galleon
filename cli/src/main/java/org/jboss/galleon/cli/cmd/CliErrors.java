@@ -52,6 +52,10 @@ public interface CliErrors {
         return failed("Display content");
     }
 
+    static String emptyOption(String opt) {
+        return "Empty option " + opt;
+    }
+
     static String enterFPFailed() {
         return failed("Enter feature-pack");
     }
@@ -123,6 +127,11 @@ public interface CliErrors {
     static String newStateFailed() {
         return failed("Create new state");
     }
+
+    static String notFile(String absolutePath) {
+        return "Not a file: " + absolutePath;
+    }
+
 
     static String provisioningFailed() {
         return failed("Provisioning");
@@ -202,6 +211,10 @@ public interface CliErrors {
 
     static String uninstallFailed() {
         return failed("Uninstall");
+    }
+
+    static String unknownFile(String absolutePath) {
+        return "File " + absolutePath + " doesn't exist";
     }
 
     static String updateFailed() {

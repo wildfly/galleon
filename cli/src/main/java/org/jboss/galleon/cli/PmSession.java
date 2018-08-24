@@ -31,8 +31,6 @@ import org.aesh.command.activator.OptionActivator;
 import org.aesh.command.activator.OptionActivatorProvider;
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.command.completer.CompleterInvocationProvider;
-import org.aesh.command.invocation.CommandInvocation;
-import org.aesh.command.invocation.CommandInvocationProvider;
 import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
 import org.aesh.utils.Config;
@@ -62,7 +60,7 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
  *
  * @author Alexey Loubyansky
  */
-public class PmSession implements CommandInvocationProvider<PmCommandInvocation>, CompleterInvocationProvider<PmCompleterInvocation>,
+public class PmSession implements CompleterInvocationProvider<PmCompleterInvocation>,
         CommandActivatorProvider, OptionActivatorProvider<OptionActivator> {
 
     private class CliOverwritePolicy implements OverwritePolicy {
@@ -264,6 +262,7 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private final CliOverwritePolicy policy = new CliOverwritePolicy();
     private final boolean interactive;
     private final FeaturePackCacheManager cacheManager;
+
     public PmSession(Configuration config) throws Exception {
         this(config, true);
     }
@@ -513,17 +512,16 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return Paths.get(aeshCtx.getCurrentWorkingDirectory().getAbsolutePath());
     }
 
-    @Override
-    public PmCommandInvocation enhanceCommandInvocation(CommandInvocation commandInvocation) {
-        return new PmCommandInvocation(this, out, err, commandInvocation);
-    }
-
     void setOut(PrintStream out) {
         this.out = out;
     }
 
     void setErr(PrintStream err) {
         this.err = err;
+    }
+
+    PrintStream getErr() {
+        return err;
     }
 
     @Override

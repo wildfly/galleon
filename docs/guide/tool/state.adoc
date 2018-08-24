@@ -3,6 +3,10 @@ This command line tool (_bin/galleon.[sh|bat]_) allows you to provision/manage a
 Although being a generic tool, a builtin support is offered for products available from maven jboss community universe (eg: wildfly). +
 Possible actions that you can operate from the tool: install, uninstall, check for updates, patch, update, undo last provisioning command.
 
+Launching the tool without any argument starts an interactive shell. Type _exit_ to exit the tool. +
+Launching the tool with a command as argument will execute the command and exit, eg: _galleon.sh install wildfly-core:current --dir=myinstallation_ +
+Launching the tool with _--file=<path to script file>_ will execute the set of commands and exit.
+
 ### Feature-pack
 A key concept in galleon system is the notion of feature-pack. A feature-pack is a content container. It can be a full product (eg: wildfly) 
 or part of a product (eg: a wildfly subsystem packaged as a feature-pack). With the tool you are going to install/uninstall/update/... feature-packs. +
