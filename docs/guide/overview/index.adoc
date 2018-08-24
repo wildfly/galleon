@@ -4,7 +4,7 @@ Galleon is a provisioning tool designed to create and maintain software distribu
 
 * adding products to a distribution;
 
-** their default and custom configurations;
+** their default and customized configurations;
 
 * removing products from a distribution;
 
@@ -16,8 +16,12 @@ Galleon is a provisioning tool designed to create and maintain software distribu
 
 * product-specific provisioning plugins;
 
-* identification of the changes to the provisioned distribution (the FS content and/or the configuration) applied manually or using thirdparty tools;
+* detection of the changes in the provisioned distribution (its filesystem content and/or its configuration) applied by the user manually or by means of other management tools
 
-* exporting the description of the current state of the distribution with the goal to reproduce it later at another location.
+** to be able to preserve them after a version upgrade (having made sure the changes are compatible in the new version)
+
+** or create a provisioning configuration that could be used to reproduce the state of the distribution including the user changes;
+
+* exporting the provisioning configuration of the current state of the distribution with the goal to reproduce it later at another location.
 
 The tool includes a command-line interface and a public API. There is also a Maven plugin that allows provisioning a distribution according to the provided configuration.
