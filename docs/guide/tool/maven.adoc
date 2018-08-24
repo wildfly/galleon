@@ -20,7 +20,7 @@ Type the following commands: +
 _mvn add-repository --name=myrepo --url=http://foorepo_ +
 
 ### Repository policies (this could be made configurable)
-Never update of local artifacts. +
+Daily update. +
 Warn if checksum differs.
 
 ### Advanced maven configuration

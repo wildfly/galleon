@@ -28,6 +28,7 @@ import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.ProxySelector;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_DAILY;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
@@ -56,6 +57,7 @@ public class Util {
         session.setOffline(offline);
         final LocalRepository localRepo = new LocalRepository(path.toString());
         session.setLocalRepositoryManager(repoSystem.newLocalRepositoryManager(session, localRepo));
+        session.setUpdatePolicy(UPDATE_POLICY_DAILY);
         if (proxySelector != null) {
             session.setProxySelector(proxySelector);
         }
