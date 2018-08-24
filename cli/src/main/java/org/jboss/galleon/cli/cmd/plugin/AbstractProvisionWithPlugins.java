@@ -47,13 +47,7 @@ import org.jboss.galleon.util.PathsUtils;
 public abstract class AbstractProvisionWithPlugins extends AbstractDynamicCommand implements CommandWithInstallationDirectory {
 
     protected AbstractProvisionWithPlugins(PmSession pmSession) {
-        super(pmSession, true, false);
-    }
-
-    @Override
-    protected String getId(PmSession session) throws CommandExecutionException {
-        // We can't cache anything.
-        return null;
+        super(pmSession, true);
     }
 
     protected abstract List<ProcessedOption> getOtherOptions() throws OptionParserException;

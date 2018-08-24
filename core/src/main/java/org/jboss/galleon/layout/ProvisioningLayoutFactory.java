@@ -33,6 +33,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.cache.FeaturePackCacheManager;
 import org.jboss.galleon.progresstracking.DefaultProgressTracker;
 import org.jboss.galleon.progresstracking.NoOpProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressCallback;
@@ -46,8 +47,6 @@ import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.IoUtils;
-import org.jboss.galleon.util.LayoutUtils;
-import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
 
 /**
@@ -68,11 +67,15 @@ public class ProvisioningLayoutFactory implements Closeable {
     }
 
     public static ProvisioningLayoutFactory getInstance(UniverseResolver universeResolver) {
-        return new ProvisioningLayoutFactory(IoUtils.createRandomTmpDir(), universeResolver);
+        return new ProvisioningLayoutFactory(universeResolver);
     }
 
     public static ProvisioningLayoutFactory getInstance(Path home, UniverseResolver universeResolver) {
-        return new ProvisioningLayoutFactory(home, universeResolver);
+        return getInstance(universeResolver, new FeaturePackCacheManager(home));
+    }
+
+    public static ProvisioningLayoutFactory getInstance(UniverseResolver universeResolver, FeaturePackCacheManager cacheManager) {
+        return new ProvisioningLayoutFactory(universeResolver, cacheManager);
     }
 
     @SuppressWarnings("unchecked")
@@ -82,19 +85,24 @@ public class ProvisioningLayoutFactory implements Closeable {
                     NO_OP_PROGRESS_TRACKER);
     }
 
-    private final Path home;
     private final UniverseResolver universeResolver;
     private AtomicInteger openHandles = new AtomicInteger();
     private Map<String, UniverseFeaturePackInstaller> universeInstallers;
     private Map<String, ProgressTracker<?>> progressTrackers = new HashMap<>();
+    private final FeaturePackCacheManager cacheManager;
 
-    private ProvisioningLayoutFactory(Path home, UniverseResolver universeResolver) {
-        this.home = home;
+    private ProvisioningLayoutFactory(UniverseResolver universeResolver) {
+        this(universeResolver, null);
+    }
+
+    private ProvisioningLayoutFactory(UniverseResolver universeResolver,
+            FeaturePackCacheManager cacheManager) {
         this.universeResolver = universeResolver;
+        this.cacheManager = cacheManager == null ? new FeaturePackCacheManager() : cacheManager;
     }
 
     public Path getHome() {
-        return home;
+        return cacheManager.getHome();
     }
 
     public void setProgressCallback(String id, ProgressCallback<?> callback) {
@@ -145,12 +153,8 @@ public class ProvisioningLayoutFactory implements Closeable {
                     "current", null, fpid.getBuild()).getFPID();
         }
 
-        final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpid, false);
-        if(Files.exists(fpDir)) {
-            IoUtils.recursiveDelete(fpDir);
-        }
+        cacheManager.put(featurePack, fpid);
 
-        unpack(fpDir, featurePack);
         if(!installInUniverse) {
             return fpid.getLocation();
         }
@@ -231,29 +235,11 @@ public class ProvisioningLayoutFactory implements Closeable {
     }
 
     private synchronized Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
-        final Path fpDir = LayoutUtils.getFeaturePackDir(home, fpl.getFPID(), false);
-        if(Files.exists(fpDir)) {
-            return fpDir;
-        }
-        unpack(fpDir, universeResolver.resolve(fpl));
-        return fpDir;
+        return cacheManager.put(universeResolver, fpl);
     }
 
     public synchronized void removeFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
-        IoUtils.recursiveDelete(LayoutUtils.getFeaturePackDir(home, fpl.getFPID(), false));
-    }
-
-    private void unpack(final Path fpDir, final Path artifactPath) throws ProvisioningException {
-        try {
-            Files.createDirectories(fpDir);
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.mkdirs(fpDir), e);
-        }
-        try {
-            ZipUtils.unzip(artifactPath, fpDir);
-        } catch (IOException e) {
-            throw new ProvisioningException("Failed to unzip " + artifactPath + " to " + fpDir, e);
-        }
+        cacheManager.remove(fpl.getFPID());
     }
 
     ProvisioningLayout.Handle createHandle() {
@@ -267,13 +253,17 @@ public class ProvisioningLayoutFactory implements Closeable {
     }
 
     Path newConfigLayoutDir() {
-        return IoUtils.createRandomDir(home);
+        return IoUtils.createRandomDir(cacheManager.getHome());
     }
 
     @Override
     public void close() {
-        IoUtils.recursiveDelete(home);
-        if(openHandles.get() != 0) {
+        cacheManager.close();
+        checkOpenLayouts();
+    }
+
+    public void checkOpenLayouts() {
+        if (openHandles.get() != 0) {
             throw new IllegalStateException("Remaining open handles: " + openHandles.get());
         }
     }

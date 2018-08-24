@@ -120,7 +120,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     public StateAddFeatureCommand(PmSession pmSession) {
-        super(pmSession, false, true);
+        super(pmSession, false);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
         try {
             session.getPmSession().getState().addFeature(session.getPmSession(),
                     getSpec(session.getPmSession().getState(),
-                            getId(session.getPmSession())), getConfiguration(session.getPmSession().getState()), options);
+                            getId()), getConfiguration(session.getPmSession().getState()), options);
         } catch (IOException | PathParserException | PathConsumerException | ProvisioningException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.addFeatureFailed(), ex);
         }
@@ -176,8 +176,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
         return "Add a new feature";
     }
 
-    @Override
-    protected String getId(PmSession session) {
+    private String getId() {
         List<String> args = (List<String>) getValue(ARGUMENT_NAME);
         if (args == null) {
             // Check in argument, that is the option completion case.
@@ -206,9 +205,9 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     @Override
-    protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
+    protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
-        for (Entry<String, FeatureParameterSpec> entry : getSpec(state, id).getSpec().getParams().entrySet()) {
+        for (Entry<String, FeatureParameterSpec> entry : getSpec(state, getId()).getSpec().getParams().entrySet()) {
             DynamicOption dyn = new DynamicOption(entry.getKey(), !entry.getValue().isNillable() && !entry.getValue().hasDefaultValue(), true);
             String defValue = entry.getValue().getDefaultValue();
             if (defValue != null) {

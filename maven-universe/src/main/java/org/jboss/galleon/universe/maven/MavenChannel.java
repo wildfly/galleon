@@ -26,6 +26,7 @@ import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 import org.jboss.galleon.universe.Producer;
+import org.jboss.galleon.universe.maven.repo.MavenArtifactVersion;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -252,5 +253,11 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         } catch (MavenUniverseException e) {
             throw e;
         }
+    }
+
+    @Override
+    public boolean isDevBuild(FeaturePackLocation.FPID fpid) {
+        MavenArtifactVersion version = new MavenArtifactVersion(fpid.getBuild());
+        return version.isSnapshot();
     }
 }

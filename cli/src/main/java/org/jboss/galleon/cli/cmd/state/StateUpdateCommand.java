@@ -100,7 +100,7 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
     }
 
     @Override
-    protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
+    protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         String targetDirArg = (String) getValue(DIR_OPTION_NAME);
         if (targetDirArg == null) {
             // Check in argument or option, that is the option completion case.
@@ -109,7 +109,7 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
         Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
         Path installation = targetDirArg == null ? workDir : workDir.resolve(targetDirArg);
         ProvisioningConfig config = pmSession.newProvisioningManager(installation, false).getProvisioningConfig();
-        Set<PluginOption> opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config)).getDiff();
+        Set<PluginOption> opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getDiff();
         List<DynamicOption> options = new ArrayList<>();
         for (PluginOption opt : opts) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());

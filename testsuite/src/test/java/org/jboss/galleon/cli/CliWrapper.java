@@ -16,11 +16,11 @@
  */
 package org.jboss.galleon.cli;
 
-import com.google.common.io.Files;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandNotFoundException;
@@ -45,7 +45,7 @@ public class CliWrapper {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     public CliWrapper() throws Exception {
         userHome = System.getProperty("user.home");
-        testUserHome = Files.createTempDir();
+        testUserHome = Files.createTempDirectory("galleon-cli-user-home-").toFile();
         System.setProperty("user.home", testUserHome.getAbsolutePath());
         // This is the default repository if no repository has been set.
         mvnRepo = new File(testUserHome, ".m2" + File.separator + "repository");

@@ -51,6 +51,7 @@ public class CliMain {
     public static void main(String[] args) throws Exception {
         Configuration config = Configuration.parse();
         final PmSession pmSession = new PmSession(config);
+        pmSession.cleanupLayoutCache();
         // Side effect is to resolve plugins.
         pmSession.getUniverse().resolveBuiltinUniverse();
 

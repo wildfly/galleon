@@ -16,6 +16,8 @@
  */
 package org.jboss.galleon.cli.cmd;
 
+import java.nio.file.Path;
+
 /**
  *
  * @author jdenise@redhat.com
@@ -80,6 +82,10 @@ public interface CliErrors {
 
     static String invalidBoolean(String value) {
         return "Invalid boolean value " + value;
+    }
+
+    static String invalidConfigDirectory(Path galleonDir) {
+        return "Configuration directory " + galleonDir + " is not a directory.";
     }
 
     static String invalidHistoryLimit(String limit) {
