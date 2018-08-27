@@ -30,8 +30,13 @@ import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_ALWAYS;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_DAILY;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_INTERVAL;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_NEVER;
 import org.jboss.galleon.ProvisioningException;
 import static org.jboss.galleon.cli.CliMavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.util.PropertyUtils;
 import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
 
@@ -40,6 +45,20 @@ import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
  * @author jdenise@redhat.com
  */
 public class MavenConfig {
+
+    static final String DEFAULT_SNAPSHOT_UPDATE_POLICY = UPDATE_POLICY_NEVER;
+    static final String DEFAULT_RELEASE_UPDATE_POLICY = UPDATE_POLICY_DAILY;
+
+    private static final List<String> VALID_UPDATE_POLICIES;
+
+    static {
+        List<String> policies = new ArrayList<>();
+        policies.add(UPDATE_POLICY_NEVER);
+        policies.add(UPDATE_POLICY_ALWAYS);
+        policies.add(UPDATE_POLICY_DAILY);
+        policies.add(UPDATE_POLICY_INTERVAL + ":");
+        VALID_UPDATE_POLICIES = Collections.unmodifiableList(policies);
+    }
 
     private static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
     static {
@@ -56,6 +75,38 @@ public class MavenConfig {
     private Path localRepository;
     private final List<MavenChangeListener> listeners = new ArrayList<>();
     private Path settings;
+    private String defaultSnapshotPolicy = DEFAULT_SNAPSHOT_UPDATE_POLICY;
+    private String defaultReleasePolicy = DEFAULT_RELEASE_UPDATE_POLICY;
+
+    public String getDefaultSnapshotPolicy() {
+        return defaultSnapshotPolicy;
+    }
+
+    public String getDefaultReleasePolicy() {
+        return defaultReleasePolicy;
+    }
+
+    public void setDefaultSnapshotPolicy(String policy) throws ProvisioningException,
+            XMLStreamException, IOException {
+        if (policy == null) {
+            defaultSnapshotPolicy = DEFAULT_SNAPSHOT_UPDATE_POLICY;
+        } else {
+            validatePolicy(policy);
+            defaultSnapshotPolicy = policy;
+        }
+        advertise();
+    }
+
+    public void setDefaultReleasePolicy(String policy) throws ProvisioningException,
+            XMLStreamException, IOException {
+        if (policy == null) {
+            defaultReleasePolicy = DEFAULT_RELEASE_UPDATE_POLICY;
+        } else {
+            validatePolicy(policy);
+            defaultReleasePolicy = policy;
+        }
+        advertise();
+    }
 
     public Path getSettings() {
         return settings;
@@ -88,7 +139,14 @@ public class MavenConfig {
     }
 
     public Collection<MavenRemoteRepository> getRemoteRepositories() {
-        return repositories.isEmpty() ? DEFAULT_REPOSITORIES : Collections.unmodifiableCollection(repositories.values());
+        if (repositories.isEmpty()) {
+            return DEFAULT_REPOSITORIES;
+        } else {
+            List<MavenRemoteRepository> repos = new ArrayList<>();
+            repos.addAll(DEFAULT_REPOSITORIES);
+            repos.addAll(repositories.values());
+            return Collections.unmodifiableCollection(repos);
+        }
     }
 
     public Set<String> getRemoteRepositoryNames() {
@@ -110,6 +168,16 @@ public class MavenConfig {
             writer.writeCharacters(localRepository.toAbsolutePath().toString());
             writer.writeEndElement();
         }
+        if (!defaultReleasePolicy.equals(DEFAULT_RELEASE_UPDATE_POLICY)) {
+            writer.writeStartElement(MavenConfigXml.RELEASE_UPDATE_POLICY);
+            writer.writeCharacters(defaultReleasePolicy);
+            writer.writeEndElement();
+        }
+        if (!defaultSnapshotPolicy.equals(DEFAULT_SNAPSHOT_UPDATE_POLICY)) {
+            writer.writeStartElement(MavenConfigXml.SNAPSHOT_UPDATE_POLICY);
+            writer.writeCharacters(defaultSnapshotPolicy);
+            writer.writeEndElement();
+        }
         if (settings != null) {
             writer.writeStartElement(MavenConfigXml.SETTINGS);
             writer.writeCharacters(settings.toAbsolutePath().toString());
@@ -124,6 +192,12 @@ public class MavenConfig {
                 writer.writeStartElement(MavenConfigXml.REPOSITORY);
                 writer.writeAttribute(MavenConfigXml.NAME, repo.getName());
                 writer.writeAttribute(MavenConfigXml.TYPE, repo.getType());
+                if (repo.getReleaseUpdatePolicy() != null) {
+                    writer.writeAttribute(MavenConfigXml.RELEASE_UPDATE_POLICY, repo.getReleaseUpdatePolicy());
+                }
+                if (repo.getSnapshotUpdatePolicy() != null) {
+                    writer.writeAttribute(MavenConfigXml.SNAPSHOT_UPDATE_POLICY, repo.getSnapshotUpdatePolicy());
+                }
                 writer.writeCharacters(repo.getUrl());
                 writer.writeEndElement();
             }
@@ -157,5 +231,30 @@ public class MavenConfig {
         } else {
             return new MavenCliSettings(this, repoSystem, listener);
         }
+    }
+
+    static void validatePolicy(String policy) throws ProvisioningException {
+        // A null policy means that it will get replaced by default policy.
+        if (policy == null) {
+            return;
+        }
+        String radical = UPDATE_POLICY_INTERVAL + ":";
+        if (policy.startsWith(radical)) {
+            String minutes = policy.substring(radical.length());
+            try {
+                Integer.parseInt(minutes);
+            } catch (NumberFormatException ex) {
+                throw new ProvisioningException(CliErrors.invalidMavenUpdatePolicy(policy));
+            }
+            return;
+        }
+
+        if (!VALID_UPDATE_POLICIES.contains(policy)) {
+                throw new ProvisioningException(CliErrors.invalidMavenUpdatePolicy(policy));
+        }
+    }
+
+    public static List<String> getUpdatePolicies() {
+        return VALID_UPDATE_POLICIES;
     }
 }

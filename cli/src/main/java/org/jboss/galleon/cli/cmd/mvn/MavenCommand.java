@@ -28,7 +28,7 @@ import org.jboss.galleon.cli.PmCommandInvocation;
  */
 @GroupCommandDefinition(description = "", name = "mvn", groupCommands = {MavenAddRepository.class,
     MavenRemoveRepository.class, MavenInfo.class, MavenSetLocalRepository.class, FetchArtifact.class,
-    MavenSetSettings.class})
+    MavenSetSettings.class, MavenSetReleasePolicy.class, MavenSetSnapshotPolicy.class})
 public class MavenCommand implements Command<PmCommandInvocation> {
 
     @Override

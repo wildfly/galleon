@@ -23,6 +23,8 @@ import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
+import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_WARN;
 import org.jboss.galleon.cli.Util;
 
 /**
@@ -54,10 +56,14 @@ class MavenCliSettings implements MavenSettings {
     private List<RemoteRepository> buildRepositories(MavenConfig config) throws ArtifactException {
         List<RemoteRepository> repos = new ArrayList<>();
         for (MavenRemoteRepository repo : config.getRemoteRepositories()) {
-            // The default policy for both snapshots and releases is to update daily.
-            // This is required in order for the CLI to check in the remote repository for new releases.
             RemoteRepository.Builder builder = new RemoteRepository.Builder(repo.getName(),
                     repo.getType(), repo.getUrl());
+            builder.setSnapshotPolicy(new RepositoryPolicy(true,
+                    repo.getSnapshotUpdatePolicy() == null ? config.getDefaultSnapshotPolicy() : repo.getSnapshotUpdatePolicy(),
+                    CHECKSUM_POLICY_WARN));
+            builder.setReleasePolicy(new RepositoryPolicy(true,
+                    repo.getReleaseUpdatePolicy() == null ? config.getDefaultReleasePolicy() : repo.getReleaseUpdatePolicy(),
+                    CHECKSUM_POLICY_WARN));
             repos.add(builder.build());
         }
         return repos;

@@ -86,6 +86,10 @@ public interface CliErrors {
         return "Invalid info type";
     }
 
+    static String invalidMavenUpdatePolicy(String policy) {
+        return "Invalid update policy " + policy;
+    }
+
     static String invalidUniverse() {
         return "Invalid universe";
     }

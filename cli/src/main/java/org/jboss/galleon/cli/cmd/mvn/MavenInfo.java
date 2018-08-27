@@ -40,6 +40,8 @@ public class MavenInfo extends PmSessionCommand {
         t.addLine("Maven xml settings", (config.getSettings() == null ? "No settings file set"
                 : config.getSettings().normalize().toString()));
         t.addLine("Local repository", config.getLocalRepository().normalize().toString());
+        t.addLine("Default release policy", config.getDefaultReleasePolicy());
+        t.addLine("Default snapshot policy", config.getDefaultSnapshotPolicy());
         Cell repositories = new Cell();
         Cell title = new Cell("Remote repositories");
         if (config.getRemoteRepositories().isEmpty()) {
@@ -50,6 +52,10 @@ public class MavenInfo extends PmSessionCommand {
                 repositories.addLine(rep.getName());
                 repositories.addLine(" url=" + rep.getUrl());
                 repositories.addLine(" type=" + rep.getType());
+                repositories.addLine(" releaseUpdatePolicy=" + (rep.getReleaseUpdatePolicy() == null
+                        ? config.getDefaultReleasePolicy() : rep.getReleaseUpdatePolicy()));
+                repositories.addLine(" snapshotUpdatePolicy=" + (rep.getSnapshotUpdatePolicy() == null
+                        ? config.getDefaultSnapshotPolicy() : rep.getSnapshotUpdatePolicy()));
             }
         }
         t.addCellsLine(title, repositories);
