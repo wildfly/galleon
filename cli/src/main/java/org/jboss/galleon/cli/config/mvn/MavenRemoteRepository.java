@@ -16,6 +16,8 @@
  */
 package org.jboss.galleon.cli.config.mvn;
 
+import org.jboss.galleon.ProvisioningException;
+
 /**
  *
  * @author jdenise@redhat.com
@@ -24,11 +26,27 @@ public class MavenRemoteRepository {
     private final String name;
     private final String url;
     private final String type;
+    private final String releaseUpdatePolicy;
+    private final String snapshotUpdatePolicy;
 
-    public MavenRemoteRepository(String name, String type, String url) {
+    MavenRemoteRepository(String name, String type, String url) {
         this.name = name;
         this.url = url;
         this.type = type;
+        // Will be set with default configured policies.
+        this.releaseUpdatePolicy = null;
+        this.snapshotUpdatePolicy = null;
+    }
+
+    public MavenRemoteRepository(String name, String type, String releaseUpdatePolicy,
+            String snapshotUpdatePolicy, String url) throws ProvisioningException {
+        this.name = name;
+        this.url = url;
+        this.type = type;
+        MavenConfig.validatePolicy(releaseUpdatePolicy);
+        this.releaseUpdatePolicy = releaseUpdatePolicy;
+        MavenConfig.validatePolicy(snapshotUpdatePolicy);
+        this.snapshotUpdatePolicy = snapshotUpdatePolicy;
     }
 
     /**
@@ -50,6 +68,20 @@ public class MavenRemoteRepository {
      */
     public String getType() {
         return type;
+    }
+
+    /**
+     * @return the updateReleasePolicy
+     */
+    public String getReleaseUpdatePolicy() {
+        return releaseUpdatePolicy;
+    }
+
+    /**
+     * @return the updateSnapshotPolicy
+     */
+    public String getSnapshotUpdatePolicy() {
+        return snapshotUpdatePolicy;
     }
 
 }

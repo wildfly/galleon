@@ -34,6 +34,8 @@ public class MavenConfigXml {
     public static final String LOCAL_REPOSITORY = "local-repository";
     public static final String SETTINGS = "settings";
     public static final String NAME = "name";
+    public static final String SNAPSHOT_UPDATE_POLICY = "snapshotUpdatePolicy";
+    public static final String RELEASE_UPDATE_POLICY = "releaseUpdatePolicy";
     public static final String TYPE = "type";
     public static final String REPOSITORY = "repository";
     public static final String MAVEN = "maven";
@@ -58,6 +60,14 @@ public class MavenConfigXml {
                         }
                         case SETTINGS: {
                             config.setSettings(Paths.get(reader.getElementText()));
+                            break;
+                        }
+                        case SNAPSHOT_UPDATE_POLICY: {
+                            config.setDefaultSnapshotPolicy(reader.getElementText());
+                            break;
+                        }
+                        case RELEASE_UPDATE_POLICY: {
+                            config.setDefaultReleasePolicy(reader.getElementText());
                             break;
                         }
                         default: {
@@ -87,7 +97,8 @@ public class MavenConfigXml {
                     switch (reader.getLocalName()) {
                         case REPOSITORY: {
                             MavenRemoteRepository repo = new MavenRemoteRepository(reader.getAttributeValue(null, NAME),
-                                    reader.getAttributeValue(null, TYPE), reader.getElementText());
+                                    reader.getAttributeValue(null, TYPE), reader.getAttributeValue(null, RELEASE_UPDATE_POLICY),
+                                    reader.getAttributeValue(null, SNAPSHOT_UPDATE_POLICY), reader.getElementText());
                             config.addRemoteRepository(repo);
                             break;
                         }
