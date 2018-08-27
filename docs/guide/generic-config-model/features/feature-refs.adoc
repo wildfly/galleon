@@ -218,7 +218,7 @@ If we were to add features of these specs to a config, it could look like this
 
 [source,xml]
 ----
- <config>
+ <config name="main">
    <feature spec="featureP">
      <param name="parentId" value="parent1"/>
    </feature>
@@ -233,7 +233,7 @@ This approach is very verbose, the value for `parentId` parameter is set on ever
 
 [source,xml]
 ----
- <config>
+ <config name="main">
    <feature spec="featureP">
      <param name="parentId" value="parent1"/>
      <feature spec="featureC">
@@ -264,7 +264,7 @@ In case the reference name is different from the referenced feature spec name, i
 Then the name of the reference has to be explicitly specified when the child feature is nested using the `parent-ref` attribute, e.g.
 [source,xml]
 ----
- <config>
+ <config name="main">
    <feature spec="featureP">
      <param name="parentId" value="parent1"/>
      <feature spec="featureC" parent-ref="parent">

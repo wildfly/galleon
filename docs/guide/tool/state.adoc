@@ -392,4 +392,3 @@ _[!edit!/]$ add-universe [--name=<universe name>] --factory=<universe factory> -
 
 Remove a named or default (without using the --name option) universe from the state. + 
 _[!edit!/]$ remove-universe [--name=<universe name>]_
-

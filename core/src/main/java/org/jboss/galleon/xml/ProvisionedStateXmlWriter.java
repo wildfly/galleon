@@ -22,8 +22,8 @@ import org.jboss.galleon.state.FeaturePack;
 import org.jboss.galleon.state.FeaturePackPackage;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Attribute;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Element;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser30.Attribute;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser30.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**

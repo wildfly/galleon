@@ -45,11 +45,11 @@ public class MappedRefToOneBranchedPerSpecTestCase extends PmInstallFeaturePackT
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("afk").setType("List<String>").build())
@@ -59,6 +59,7 @@ public class MappedRefToOneBranchedPerSpecTestCase extends PmInstallFeaturePackT
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                     .addFeature(
                             new FeatureConfig("specB")
@@ -92,6 +93,7 @@ public class MappedRefToOneBranchedPerSpecTestCase extends PmInstallFeaturePackT
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specA").setParam("id", "1").setParam("a", "a1").build()).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specA").setParam("id", "1").setParam("a", "a2").build()).build())

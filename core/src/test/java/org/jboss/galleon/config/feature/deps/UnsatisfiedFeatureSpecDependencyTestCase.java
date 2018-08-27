@@ -43,10 +43,10 @@ public class UnsatisfiedFeatureSpecDependencyTestCase extends PmInstallFeaturePa
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addFeatureDep(FeatureDependencySpec.create(FeatureId.create("specA", "id", "a")))
                     .build())

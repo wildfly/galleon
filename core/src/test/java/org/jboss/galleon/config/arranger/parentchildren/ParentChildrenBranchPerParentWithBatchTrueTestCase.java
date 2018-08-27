@@ -97,20 +97,21 @@ public class ParentChildrenBranchPerParentWithBatchTrueTestCase extends PmInstal
         creator
         .newFeaturePack(FP1_GAV)
 
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addAnnotation(FeatureAnnotation.parentChildrenBranch()
                             .setElement(FeatureAnnotation.FEATURE_BRANCH_SPEC, "false"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addFeatureRef(FeatureReferenceSpec.create("specA"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .addParam(FeatureParameterSpec.createId("b"))
                     .build())
-            .addSpec(FeatureSpec.builder("specC")
+            .addFeatureSpec(FeatureSpec.builder("specC")
                     .addParam(FeatureParameterSpec.createId("c"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty(ConfigModel.BRANCH_IS_BATCH, "true")
 
                     .addFeature(new FeatureConfig("specA").setParam("a", "1"))
@@ -141,6 +142,7 @@ public class ParentChildrenBranchPerParentWithBatchTrueTestCase extends PmInstal
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty(ConfigModel.BRANCH_IS_BATCH, "true")
 
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1")).build())

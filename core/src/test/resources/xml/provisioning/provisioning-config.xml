@@ -17,15 +17,15 @@
     limitations under the License.
 
 -->
-<installation xmlns="urn:jboss:galleon:provisioning:1.0">
-  <feature-pack groupId="org.jboss.group1" artifactId="fp1" version="0.0.1">
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+  <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
     <default-configs inherit="false">
       <include model="model1"/>
       <exclude name="name1" model="model1"/>
       <include name="name2" model="model2"/>
       <exclude model="model2"/>
     </default-configs>
-    <config>
+    <config name="main">
       <feature-group name="dep1"/>
       <feature-group name="dep2" inherit-features="false"/>
       <feature-group name="dep3" inherit-features="false">

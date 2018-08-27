@@ -46,14 +46,14 @@ public class ReferenceIncludeExternalTestCase extends PmInstallFeaturePackTestBa
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
             .newFeaturePack(FP1_GAV)
-                .addSpec(FeatureSpec.builder("specA")
+                .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", "aSpec"))
                     .build())
             .getCreator()
             .newFeaturePack(FP2_GAV)
                 .addDependency("fp1", FP1_GAV.getLocation())
-                .addSpec(FeatureSpec.builder("specB")
+                .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -64,6 +64,7 @@ public class ReferenceIncludeExternalTestCase extends PmInstallFeaturePackTestBa
                             .build())
                     .build())
                 .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("name", "b")
@@ -84,6 +85,7 @@ public class ReferenceIncludeExternalTestCase extends PmInstallFeaturePackTestBa
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "name", "a")).setConfigParam("a", "aSpec").build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP2_GAV.getProducer(), "specB", "name", "b"))
                                 .setConfigParam("a", "a")

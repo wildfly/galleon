@@ -182,22 +182,6 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return super.removeConfig(id);
         }
 
-        @Override
-        public int getDefinedConfigIndex(ConfigId id) throws ProvisioningDescriptionException {
-            if(transitive) {
-                transitiveDoesNotDefineConfigs();
-            }
-            return super.getDefinedConfigIndex(id);
-        }
-
-        @Override
-        public Builder addConfig(int index, ConfigModel config) throws ProvisioningDescriptionException {
-            if(transitive) {
-                transitiveDoesNotDefineConfigs();
-            }
-            return super.addConfig(index, config);
-        }
-
         private void transitiveDoesNotDefineConfigs() throws ProvisioningDescriptionException {
             throw new ProvisioningDescriptionException("Transitive dependency does not define configs");
         }

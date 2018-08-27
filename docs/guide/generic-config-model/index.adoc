@@ -5,3 +5,5 @@ include::overview.adoc[]
 include::features/index.adoc[]
 
 include::feature-groups/index.adoc[]
+
+include::layers/index.adoc[]

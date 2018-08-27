@@ -45,11 +45,11 @@ public class SimpleMappedRefWithIncludeTestCase extends PmInstallFeaturePackTest
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .addParam(FeatureParameterSpec.create("p1", "specA"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("afk").setNillable().setType("List<String>").build())
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -59,6 +59,7 @@ public class SimpleMappedRefWithIncludeTestCase extends PmInstallFeaturePackTest
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("b", "b1")
@@ -78,6 +79,7 @@ public class SimpleMappedRefWithIncludeTestCase extends PmInstallFeaturePackTest
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "a", "a1")).setConfigParam("p1", "specA").build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "a", "a2")).setConfigParam("p1", "specA").build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "a", "a3")).setConfigParam("p1", "specA").build())

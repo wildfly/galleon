@@ -44,11 +44,6 @@ public class FeatureGroup extends FeatureGroupSupport {
             this.inheritFeatures = inheritFeatures;
         }
 
-        @Override
-        public Builder setConfigDep(String depName, ConfigId configId) {
-            throw new UnsupportedOperationException();
-        }
-
         public FeatureGroup build() throws ProvisioningDescriptionException {
             return new FeatureGroup(this);
         }

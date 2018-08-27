@@ -26,7 +26,7 @@ Suppose, we have the following group spec:
 Here is how all the features of spec `feature1` can be included into the config:
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group1" inherit-features="false">
     <include spec="feature1"/>
   </feature-group>

@@ -39,13 +39,9 @@ public class FeatureGroupXmlParser implements XmlParser<FeatureGroup> {
     }
 
     @Override
-    public FeatureGroup parse(final Reader input) throws XMLStreamException {
+    public FeatureGroup parse(final Reader input) throws XMLStreamException, ProvisioningDescriptionException {
         final FeatureGroup.Builder configBuilder = FeatureGroup.builder();
         XmlParsers.parse(input, configBuilder);
-        try {
-            return configBuilder.build();
-        } catch (ProvisioningDescriptionException e) {
-            throw new XMLStreamException("Failed to parse feature-group xml", e);
-        }
+        return configBuilder.build();
     }
 }

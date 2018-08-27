@@ -45,7 +45,7 @@ public class LinkChainTestCase extends PmInstallFeaturePackTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("Link")
+            .addFeatureSpec(FeatureSpec.builder("Link")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("prev", true))
                     .addParam(FeatureParameterSpec.create("next", true))
@@ -60,7 +60,7 @@ public class LinkChainTestCase extends PmInstallFeaturePackTestBase {
                             .mapParam("next", "name")
                             .build())
                     .build())
-            .addConfig(ConfigModel.builder()
+            .addConfig(ConfigModel.builder().setName("main")
                     .addFeature(
                             new FeatureConfig("Link")
                             .setParam("name", "b")
@@ -88,7 +88,7 @@ public class LinkChainTestCase extends PmInstallFeaturePackTestBase {
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
-                .addConfig(ProvisionedConfigBuilder.builder()
+                .addConfig(ProvisionedConfigBuilder.builder().setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "Link", "name", "b"))
                                 .setConfigParam("prev", "a")
                                 .setConfigParam("next", "c")

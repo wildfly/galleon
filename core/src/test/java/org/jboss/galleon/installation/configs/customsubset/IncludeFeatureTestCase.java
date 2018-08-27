@@ -49,7 +49,7 @@ public class IncludeFeatureTestCase extends PmProvisionConfigTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
             .newFeaturePack(FP1_GAV)
-                .addSpec(FeatureSpec.builder("specA")
+                .addFeatureSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
                         .build())
                 .addConfig(ConfigModel.builder("model1", "config1")
@@ -58,7 +58,7 @@ public class IncludeFeatureTestCase extends PmProvisionConfigTestBase {
                         .build())
                 .getCreator()
             .newFeaturePack(FP2_GAV)
-                .addSpec(FeatureSpec.builder("specB")
+                .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .build())
                 .addConfig(ConfigModel.builder("model1", "config1")

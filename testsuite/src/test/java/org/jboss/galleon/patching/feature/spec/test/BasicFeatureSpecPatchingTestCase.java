@@ -52,7 +52,7 @@ public class BasicFeatureSpecPatchingTestCase extends ProvisionFromUniverseTestB
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         fp1 = newFpl("prod1", "1", "1.0.0.Final");
         creator.newFeaturePack(fp1.getFPID())
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "fp1"))
                     .addParam(FeatureParameterSpec.create("p2", "fp1"))
@@ -66,7 +66,7 @@ public class BasicFeatureSpecPatchingTestCase extends ProvisionFromUniverseTestB
         fp1Patch1 = newFpl("prod1", "1", "1.0.0.Patch1.Final");
         creator.newFeaturePack(fp1Patch1.getFPID())
             .setPatchFor(fp1.getFPID())
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "fp1"))
                     .addParam(FeatureParameterSpec.create("p2", "patched"))

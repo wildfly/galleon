@@ -45,7 +45,7 @@ public class OverwriteUnsetParameterValueInMergeTestCase extends PmInstallFeatur
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1", "def1"))
                     .build())
@@ -68,6 +68,7 @@ public class OverwriteUnsetParameterValueInMergeTestCase extends PmInstallFeatur
                             .setParam("p1", "group3"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("group1"))
                     .addFeatureGroup(FeatureGroup.forGroup("group2"))
                     .addFeatureGroup(FeatureGroup.forGroup("group3"))
@@ -86,6 +87,7 @@ public class OverwriteUnsetParameterValueInMergeTestCase extends PmInstallFeatur
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p1", "group3")
                                 .build())

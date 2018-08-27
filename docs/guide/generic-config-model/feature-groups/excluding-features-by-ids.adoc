@@ -26,7 +26,7 @@ Suppose, we have defined the following group:
 Here is how `feature1:id=a1` and `feature2:id=b1` can be excluded when `group1` is added a configuration:
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group1">
     <exclude feature-id="feature1:id=a1"/>
     <exclude feature-id="feature2:id=b1"/>

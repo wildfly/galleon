@@ -49,7 +49,7 @@ public class AddFeatureGroupTestCase extends PmProvisionConfigTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
             .newFeaturePack(FP1_GAV)
-                .addSpec(FeatureSpec.builder("specA")
+                .addFeatureSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
                         .build())
                 .addFeatureGroup(FeatureGroup.builder("group1")
@@ -66,7 +66,7 @@ public class AddFeatureGroupTestCase extends PmProvisionConfigTestBase {
                         .build())
                 .getCreator()
             .newFeaturePack(FP2_GAV)
-                .addSpec(FeatureSpec.builder("specB")
+                .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .build())
                 .addFeatureGroup(FeatureGroup.builder("group1")

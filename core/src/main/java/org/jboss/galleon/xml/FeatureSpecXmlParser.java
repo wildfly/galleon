@@ -39,13 +39,9 @@ public class FeatureSpecXmlParser implements XmlParser<FeatureSpec> {
     }
 
     @Override
-    public FeatureSpec parse(final Reader input) throws XMLStreamException {
+    public FeatureSpec parse(final Reader input) throws XMLStreamException, ProvisioningDescriptionException {
         final FeatureSpec.Builder builder = FeatureSpec.builder();
         XmlParsers.parse(input, builder);
-        try {
-            return builder.build();
-        } catch (ProvisioningDescriptionException e) {
-            throw new XMLStreamException("Failed to create feature spec", e);
-        }
+        return builder.build();
     }
 }

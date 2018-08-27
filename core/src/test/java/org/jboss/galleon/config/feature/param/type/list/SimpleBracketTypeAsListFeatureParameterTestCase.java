@@ -45,7 +45,7 @@ public class SimpleBracketTypeAsListFeatureParameterTestCase extends PmInstallFe
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.builder("my-list").setDefaultValue("[]").setType("[]").build())
                     .build())
@@ -56,6 +56,7 @@ public class SimpleBracketTypeAsListFeatureParameterTestCase extends PmInstallFe
                             .setParam("my-list", "[ a , b ]"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("group1"))
                     .addFeature(
                             new FeatureConfig("specA")
@@ -76,6 +77,7 @@ public class SimpleBracketTypeAsListFeatureParameterTestCase extends PmInstallFe
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("my-list", "[a, {b=c}, [d, e], {f={g=h}}]")
                                 .build())

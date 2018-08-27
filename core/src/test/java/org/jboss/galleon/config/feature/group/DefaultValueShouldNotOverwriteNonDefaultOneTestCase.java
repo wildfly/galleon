@@ -45,7 +45,7 @@ public class DefaultValueShouldNotOverwriteNonDefaultOneTestCase extends PmInsta
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", "specA"))
                     .build())
@@ -61,6 +61,7 @@ public class DefaultValueShouldNotOverwriteNonDefaultOneTestCase extends PmInsta
                             .setParam("name", "aOne"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
                     .build())
@@ -78,6 +79,7 @@ public class DefaultValueShouldNotOverwriteNonDefaultOneTestCase extends PmInsta
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "aOne"))
                                 .setConfigParam("a", "fg1")
                                 .build())

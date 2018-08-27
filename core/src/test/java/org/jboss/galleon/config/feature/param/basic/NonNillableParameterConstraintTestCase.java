@@ -42,11 +42,12 @@ public class NonNillableParameterConstraintTestCase extends PmInstallFeaturePack
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("name", "a1"))
@@ -67,7 +68,7 @@ public class NonNillableParameterConstraintTestCase extends PmInstallFeaturePack
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, "main"), e.getLocalizedMessage());
         Assert.assertNotNull(e.getCause());
         Assert.assertEquals(Errors.nonNillableParameterIsNull(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"), "p1"), e.getCause().getLocalizedMessage());
     }

@@ -1,44 +1,90 @@
 ### Configuration model attributes
 
-Configuration models are described in `feature-pack.xml` file using `config` elements. `feature-pack.xml` file may contain zero, one or more `config` elements. Each configuration may include the following *optional* attributes:
+Every configuration must be associated with at least one of the following attributes:
 
-* `name` - the name of the configuration;
+* `name` - name of the configuration;
 
-* `model` - the name of the configuration model.
+* `model` - name of the configuration model.
 
-In XML it could look like this (the content of the `config` elements has been left out as not important in this example):
+`name` and `model` attributes serve as the identity of the configuration. They are essential when customizing and merging configurations.
+
+If a configuration is associated only with a name (and no model) then only the name will be used as the identity of the configuration.
+
+If a configuration is associated with a name and a model then the combination of the name and the model will be used as the identity of the configuration.
+
+Feature-pack may include predefined configurations in its `configs` directory whose structure can be described as
+
+[options="nowrap"]
+ configs/
+ |- model1/
+ | |- name1/
+ | |  `- config.xml
+ | | ...
+ | |- nameN/
+ | |  `- config.xml
+ | `- model.xml
+ | ...
+ |- modelM/
+ | |- name1/
+ | |  `- config.xml
+ | | ...
+ | |- nameN/
+ | |  `- config.xml
+ | `- model.xml
+ |- name1/
+ |  `-config.xml
+ | ...
+ `- nameN/
+    `-config.xml
+
+If a configuration is associated with a name but not a model then its definition will be located in `configs/_config_name_/config.xml` and start with the following root element:
+
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="config_name">
+    <!-- skipped content -->
+</config>
+----
+
+If a configuration is associated only with a model then its definition will located in `configs/_config_model_/model.xml` and start with the following root element:
+
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="config_model">
+    <!-- skipped content -->
+</config>
+----
+
+If a configuration is associated with both model and a name its definition will be located in `configs/_model_name_/_config_name_/config.xml` and start with the following root element:
+
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="model_name" name="config_name">
+    <!-- skipped content -->
+</config>
+----
+
+
+Predefined configuration models can be referenced from `feature-pack.xml` file and customized (manipulated) in the provisioning configuration of the installation (which is also an XML file) using `config` elements. Every `config` element will include the corresponding `name` and possibly `model` attributes to specify the identity of the configuration it is targeting.
+
+IMPORTANT: Every `config` element in `feature-pack.xml` or installation provisioning configuration triggers installation of the configuration it is targeting.
+
+That means, when a feature-pack is installed, by default all the configurations referenced from its `feature-pack.xml` are installed. Users may explicitly specify though which configurations should the final distribution include and customize those and/or provide their own custom configurations in the provisioning configuration of the installation.
+
+Here is an example of `feature-pack.xml` with `config` elements:
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
-              location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0">
-  <config>
-    <!-- anonymous config -->
-  </config>
+              location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0">
 
   <config name="config1">
-    <!-- named config -->
-  </config>
-
-  <config model="model1">
-    <!-- model1 model-only config -->
+    <!-- named configuration -->
   </config>
 
   <config model="model1" name="config1">
-    <!-- named model1 config -->
+    <!-- named configuration of model1 -->
   </config>
 
 </feature-pack>
 ----
-
-`name` and `model` attributes are optional, which means it is well possible to define a configuration w/o those attributes. This kind of configuration is called *anonymous*. A feature pack may define zero, one or more anonymous configs.
-
-`name` and `model` attributes serve as an identity of the configuration. They are essential when customizing and merging configurations.
-
-If a configuration is associated only with a name (and no model) then only the name will be used as the identity of the configuration.
-
-If a configuration is associated with a name and a model then a combination of the name and the model will be used as the identity of the configuration.
-
-In the example above configuration named `config1` and configuration `model1:config1` are two unrelated configurations.
-
-When a feature-pack is installed, by default all the configurations defined in its `feature-pack.xml` are installed. Users may explicitly specify though which configurations should the final distribution include and customize those and/or provide their own custom configurations.
 

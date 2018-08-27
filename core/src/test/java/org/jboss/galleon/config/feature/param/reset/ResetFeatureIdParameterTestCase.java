@@ -46,7 +46,7 @@ public class ResetFeatureIdParameterTestCase extends PmInstallFeaturePackTestBas
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .build())
             .addFeatureGroup(FeatureGroup.builder("group1")
@@ -55,6 +55,7 @@ public class ResetFeatureIdParameterTestCase extends PmInstallFeaturePackTestBas
                             .setParam("name", "a1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             // id parameter overwrites the config
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
@@ -75,6 +76,7 @@ public class ResetFeatureIdParameterTestCase extends PmInstallFeaturePackTestBas
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")).build())
                         .build())
                 .build();

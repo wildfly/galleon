@@ -45,10 +45,10 @@ public class SimpleMappedRefToOneTestCase extends PmInstallFeaturePackTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("afk").setType("List<String>").build())
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -58,6 +58,7 @@ public class SimpleMappedRefToOneTestCase extends PmInstallFeaturePackTestBase {
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("b", "b1")
@@ -80,6 +81,7 @@ public class SimpleMappedRefToOneTestCase extends PmInstallFeaturePackTestBase {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "a", "a1")).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "b", "b1"))
                                 .setConfigParam("afk", "[a1]")

@@ -16,14 +16,14 @@
  */
 package org.jboss.galleon.xml;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.ResolvedFeatureSpec;
 import org.jboss.galleon.runtime.ResolvedSpecId;
@@ -31,6 +31,7 @@ import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
 import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.StringUtils;
 
 /**
  *
@@ -45,6 +46,7 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
     private String model;
     private String name;
     private Map<String, String> props = Collections.emptyMap();
+    private List<ConfigId> layers = Collections.emptyList();
     private List<ProvisionedFeature> features = Collections.emptyList();
 
     private ProvisionedConfigBuilder() {
@@ -61,17 +63,12 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
     }
 
     public ProvisionedConfigBuilder setProperty(String name, String value) {
-        switch(props.size()) {
-            case 0:
-                props = Collections.singletonMap(name, value);
-                break;
-            case 1:
-                final Map.Entry<String, String> entry = props.entrySet().iterator().next();
-                props = new HashMap<>(2);
-                props.put(entry.getKey(), entry.getValue());
-            default:
-                props.put(name, value);
-        }
+        props = CollectionUtils.put(props, name, value);
+        return this;
+    }
+
+    public ProvisionedConfigBuilder addLayer(String model, String name) {
+        layers = CollectionUtils.add(layers, new ConfigId(model, name));
         return this;
     }
 
@@ -81,12 +78,9 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
     }
 
     public ProvisionedConfig build() {
-        if(props.size() > 1) {
-            props = Collections.unmodifiableMap(props);
-        }
-        if(features.size() > 1) {
-            features = Collections.unmodifiableList(features);
-        }
+        props = CollectionUtils.unmodifiable(props);
+        layers = CollectionUtils.unmodifiable(layers);
+        features = CollectionUtils.unmodifiable(features);
         return this;
     }
 
@@ -113,6 +107,16 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
     @Override
     public Map<String, String> getProperties() {
         return props;
+    }
+
+    @Override
+    public boolean hasLayers() {
+        return !layers.isEmpty();
+    }
+
+    @Override
+    public Collection<ConfigId> getLayers() {
+        return layers;
     }
 
     @Override
@@ -147,6 +151,7 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((features == null) ? 0 : features.hashCode());
+        result = prime * result + ((layers == null) ? 0 : layers.hashCode());
         result = prime * result + ((model == null) ? 0 : model.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + ((props == null) ? 0 : props.hashCode());
@@ -166,6 +171,11 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
             if (other.features != null)
                 return false;
         } else if (!features.equals(other.features))
+            return false;
+        if (layers == null) {
+            if (other.layers != null)
+                return false;
+        } else if (!layers.equals(other.layers))
             return false;
         if (model == null) {
             if (other.model != null)
@@ -205,6 +215,11 @@ public class ProvisionedConfigBuilder implements ProvisionedConfig {
                 buf.append(',').append(entry.getKey()).append('=').append(entry.getValue());
             }
             buf.append("} ");
+        }
+        if(!layers.isEmpty()) {
+            buf.append(" layers=");
+            StringUtils.append(buf, layers);
+            buf.append(' ');
         }
         if(!features.isEmpty()) {
             buf.append("features={");

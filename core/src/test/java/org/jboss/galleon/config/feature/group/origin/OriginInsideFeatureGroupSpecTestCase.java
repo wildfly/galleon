@@ -47,7 +47,7 @@ public class OriginInsideFeatureGroupSpecTestCase extends PmInstallFeaturePackTe
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP1_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "fp1"))
                     .build())
@@ -62,7 +62,7 @@ public class OriginInsideFeatureGroupSpecTestCase extends PmInstallFeaturePackTe
             .getCreator()
         .newFeaturePack(FP2_GAV)
             .addDependency(FP1_GAV.getLocation())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "fp2"))
                     .build())
@@ -75,6 +75,7 @@ public class OriginInsideFeatureGroupSpecTestCase extends PmInstallFeaturePackTe
         .newFeaturePack(FP3_GAV)
             .addDependency(FP2_GAV.getLocation())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .build())
             .getCreator()
@@ -93,6 +94,7 @@ public class OriginInsideFeatureGroupSpecTestCase extends PmInstallFeaturePackTe
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "id", "1"))
                                 .setConfigParam("p1", "fp1")
                                 .build())

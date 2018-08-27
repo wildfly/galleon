@@ -42,18 +42,19 @@ public class MissingCapProviderFromMultipleCollectionParamValuesTestCase extends
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .providesCapability("$a.$p")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .addParam(FeatureParameterSpec.createId("p"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .requiresCapability("$p1.$p2")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("p1").setType("List<String>").build())
                     .addParam(FeatureParameterSpec.builder("p2").setType("List<String>").build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("b", "b1")
@@ -84,7 +85,7 @@ public class MissingCapProviderFromMultipleCollectionParamValuesTestCase extends
     @Override
     protected String[] pmErrors() {
         return new String[] {
-                Errors.failedToBuildConfigSpec(null, null),
+                Errors.failedToBuildConfigSpec(null, "main"),
                 "No provider found for capability 2.b required by {org.jboss.pm.test:fp1@galleon1}specB:b=b1 as $p1.$p2"
         };
     }

@@ -46,7 +46,7 @@ public class SimpleListFeatureParameterTestCase extends PmInstallFeaturePackTest
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.builder("my-list").setDefaultValue("[]").setType("List").build())
                     .build())
@@ -56,6 +56,7 @@ public class SimpleListFeatureParameterTestCase extends PmInstallFeaturePackTest
                             .setParam("name", "a1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig("specA").setParam("my-list", "[ a , b ]"))
@@ -79,6 +80,7 @@ public class SimpleListFeatureParameterTestCase extends PmInstallFeaturePackTest
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("my-list", "[c, d]")
                                 .build())

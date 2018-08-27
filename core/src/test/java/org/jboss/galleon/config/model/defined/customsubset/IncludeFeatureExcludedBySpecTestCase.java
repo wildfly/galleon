@@ -47,10 +47,10 @@ public class IncludeFeatureExcludedBySpecTestCase extends PmProvisionConfigTestB
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-        .addSpec(FeatureSpec.builder("specA")
+        .addFeatureSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .build())
-        .addSpec(FeatureSpec.builder("specB")
+        .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .build())
         .addConfig(ConfigModel.builder().setName("config1").setModel("model1")

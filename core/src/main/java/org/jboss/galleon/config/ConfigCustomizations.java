@@ -16,7 +16,7 @@
  */
 package org.jboss.galleon.config;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,7 +35,7 @@ public class ConfigCustomizations {
     protected final Map<String, Boolean> excludedModels;
     protected final Set<ConfigId> includedConfigs;
     protected final Set<ConfigId> excludedConfigs;
-    protected final List<ConfigModel> definedConfigs;
+    protected final Map<ConfigId, ConfigModel> definedConfigs;
     protected final boolean hasModelOnlyConfigs;
 
     protected ConfigCustomizations(ConfigCustomizationsBuilder<?> builder) {
@@ -113,8 +113,16 @@ public class ConfigCustomizations {
         return !definedConfigs.isEmpty();
     }
 
-    public List<ConfigModel> getDefinedConfigs() {
-        return definedConfigs;
+    public Collection<ConfigModel> getDefinedConfigs() {
+        return definedConfigs.values();
+    }
+
+    public boolean hasDefinedConfig(ConfigId configId) {
+        return definedConfigs.containsKey(configId);
+    }
+
+    public ConfigModel getDefinedConfig(ConfigId configId) {
+        return definedConfigs.get(configId);
     }
 
     public boolean hasModelOnlyConfigs() {
@@ -197,7 +205,7 @@ public class ConfigCustomizations {
         }
         if(!definedConfigs.isEmpty()) {
             builder.append(" defined configs ");
-            StringUtils.append(builder, definedConfigs);
+            StringUtils.append(builder, definedConfigs.values());
         }
     }
 }

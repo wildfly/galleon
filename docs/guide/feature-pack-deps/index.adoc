@@ -1,6 +1,6 @@
 ## Feature-pack dependencies
 
-Feature pack may depend on one or more other feature-packs. Feature-pack dependencies are expressed in `feature-pack.xml` file. For example:
+Feature-pack may depend on one or more other feature-packs. Feature-pack dependencies are expressed in `feature-pack.xml` file. For example:
 
 [source,xml]
 ----

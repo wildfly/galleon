@@ -47,10 +47,10 @@ public class BasicIndirectFeatureGroupExtensionTestCase extends PmInstallFeature
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specP")
+            .addFeatureSpec(FeatureSpec.builder("specP")
                     .addParam(FeatureParameterSpec.createId("parent"))
                     .build())
-            .addSpec(FeatureSpec.builder("specC")
+            .addFeatureSpec(FeatureSpec.builder("specC")
                     .addParam(FeatureParameterSpec.createId("parent"))
                     .addParam(FeatureParameterSpec.createId("child"))
                     .addParam(FeatureParameterSpec.create("a"))
@@ -63,6 +63,7 @@ public class BasicIndirectFeatureGroupExtensionTestCase extends PmInstallFeature
                             .setParam("parent", "p1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specP", "parent", "p1"), new FeatureConfig()
                                     .addFeature(
@@ -86,6 +87,7 @@ public class BasicIndirectFeatureGroupExtensionTestCase extends PmInstallFeature
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specP", "parent", "p1")).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specC").setParam("parent", "p1").setParam("child", "c1").build())
                                 .setConfigParam("a", "config")

@@ -47,13 +47,8 @@ public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
             .newFeaturePack(FP1_GAV)
-                .addSpec(FeatureSpec.builder("specA")
+                .addFeatureSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
-                        .build())
-                .addConfig(ConfigModel.builder(null, null)
-                        .setConfigDep("dep1", new ConfigId(null, "configB"))
-                        .setProperty("id", "fp1")
-                        .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build())
                 .addConfig(ConfigModel.builder(null, "configA")
                         .setConfigDep("dep1", new ConfigId("model2", "config2"))
@@ -116,10 +111,6 @@ public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
                         .setName("configB")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getProducer(),  "specA"), "id", "1")))
                         .build())
-                .addConfig(ProvisionedConfigBuilder.builder()
-                        .setProperty("id", "fp1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getProducer(),  "specA"), "id", "1")))
-                        .build())
                 .build();
     }
 
@@ -131,8 +122,7 @@ public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
                 "model2 config2",
                 "configA",
                 "model1 config1",
-                "configB",
-                "anonymous fp1"
+                "configB"
         };
     }
 }

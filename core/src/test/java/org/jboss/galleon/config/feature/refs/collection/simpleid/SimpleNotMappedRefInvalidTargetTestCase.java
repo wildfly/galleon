@@ -42,10 +42,10 @@ public class SimpleNotMappedRefInvalidTargetTestCase extends PmInstallFeaturePac
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("a").setType("List<String>").build())
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -54,6 +54,7 @@ public class SimpleNotMappedRefInvalidTargetTestCase extends PmInstallFeaturePac
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("b", "b1")
@@ -74,7 +75,7 @@ public class SimpleNotMappedRefInvalidTargetTestCase extends PmInstallFeaturePac
     @Override
     protected String[] pmErrors() {
         return new String[] {
-                Errors.failedToBuildConfigSpec(null, null),
+                Errors.failedToBuildConfigSpec(null, "main"),
                 "{org.jboss.pm.test:fp1@galleon1}specB:b=b1 has unresolved dependency on {org.jboss.pm.test:fp1@galleon1}specA:a=a2"
         };
     }

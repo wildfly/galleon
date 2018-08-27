@@ -43,12 +43,12 @@ public class UnsetRequiredCapabilityNillableParameterTestCase extends PmInstallF
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                 .providesCapability("cap.$p1")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .addParam(FeatureParameterSpec.builder("p1").setNillable().setDefaultValue("spec").build())
                 .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                 .requiresCapability("cap.spec")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .build())
@@ -59,6 +59,7 @@ public class UnsetRequiredCapabilityNillableParameterTestCase extends PmInstallF
                             .setParam("p1", "spec"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specA", "name", "a1"), new FeatureConfig().unsetParam("p1"))
                             .build())
@@ -76,7 +77,7 @@ public class UnsetRequiredCapabilityNillableParameterTestCase extends PmInstallF
 
     @Override
     protected String[] pmErrors() {
-        return new String[] {Errors.failedToBuildConfigSpec(null, null),
+        return new String[] {Errors.failedToBuildConfigSpec(null, "main"),
                 "Failed to resolve capability cap.$p1 for {org.jboss.pm.test:fp1@galleon1}specA:name=a1",
                 "Parameter p1 is missing value to resolve capability cap.$p1"};
     }

@@ -200,7 +200,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                             try {
                                 fpBuilder.addConfig(config.build());
                             } catch (ProvisioningDescriptionException e) {
-                                throw new XMLStreamException("Failed to parse " + Element.CONFIG, reader.getLocation(), e);
+                                throw new XMLStreamException("Failed to parse config element", reader.getLocation(), e);
                             }
                             break;
                         case DEFAULT_PACKAGES:

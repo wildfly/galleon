@@ -42,15 +42,16 @@ public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTe
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .providesCapability("cap.a")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .requiresCapability("cap.$a")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("b", "b1"))
@@ -74,7 +75,7 @@ public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTe
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals("Failed to build config", e.getMessage());
+        Assert.assertEquals("Failed to build config named main", e.getMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@galleon1}specB:b=b1", e.getMessage());

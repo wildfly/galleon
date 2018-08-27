@@ -26,7 +26,6 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigItemContainerBuilder;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroup;
@@ -52,8 +51,6 @@ public class FeatureGroupXml {
 
     public enum Element implements XmlNameProvider {
 
-        CONFIG_DEPS("config-deps"),
-        CONFIG_DEP("config-dep"),
         DEPENDS("depends"),
         EXCLUDE("exclude"),
         FEATURE("feature"),
@@ -63,8 +60,6 @@ public class FeatureGroupXml {
         ORIGIN("origin"),
         PACKAGES("packages"),
         PARAM("param"),
-        PROP("prop"),
-        PROPS("props"),
         RESET_PARAM("reset"),
         UNSET_PARAM("unset"),
 
@@ -74,9 +69,7 @@ public class FeatureGroupXml {
         private static final Map<String, Element> elementsByLocal;
 
         static {
-            elementsByLocal = new HashMap<String, Element>(16);
-            elementsByLocal.put(CONFIG_DEPS.name, CONFIG_DEPS);
-            elementsByLocal.put(CONFIG_DEP.name, CONFIG_DEP);
+            elementsByLocal = new HashMap<String, Element>(12);
             elementsByLocal.put(DEPENDS.name, DEPENDS);
             elementsByLocal.put(EXCLUDE.name, EXCLUDE);
             elementsByLocal.put(FEATURE.name, FEATURE);
@@ -86,8 +79,6 @@ public class FeatureGroupXml {
             elementsByLocal.put(ORIGIN.name, ORIGIN);
             elementsByLocal.put(PACKAGES.name, PACKAGES);
             elementsByLocal.put(PARAM.name, PARAM);
-            elementsByLocal.put(PROP.name, PROP);
-            elementsByLocal.put(PROPS.name, PROPS);
             elementsByLocal.put(RESET_PARAM.name, RESET_PARAM);
             elementsByLocal.put(UNSET_PARAM.name, UNSET_PARAM);
             elementsByLocal.put(null, UNKNOWN);
@@ -123,7 +114,6 @@ public class FeatureGroupXml {
 
     protected enum Attribute implements XmlNameProvider {
 
-        ID("id"),
         FEATURE("feature"),
         FEATURE_ID("feature-id"),
         INCLUDE("include"),
@@ -143,8 +133,7 @@ public class FeatureGroupXml {
         private static final Map<QName, Attribute> attributes;
 
         static {
-            attributes = new HashMap<QName, Attribute>(14);
-            attributes.put(new QName(ID.name), ID);
+            attributes = new HashMap<QName, Attribute>(13);
             attributes.put(new QName(FEATURE.name), FEATURE);
             attributes.put(new QName(FEATURE_ID.name), FEATURE_ID);
             attributes.put(new QName(INCLUDE.name), INCLUDE);
@@ -327,36 +316,8 @@ public class FeatureGroupXml {
                 case XMLStreamConstants.END_ELEMENT:
                     return;
                 case XMLStreamConstants.START_ELEMENT:
-                    final Element element = Element.of(reader.getName().getLocalPart());
-                    switch (element) {
-                        case INCLUDE:
-                            readInclude(reader, null, builder);
-                            break;
-                        case EXCLUDE:
-                            readExclude(reader, null, builder);
-                            break;
-                        case ORIGIN:
-                            readOriginIncludeExclude(reader, builder);
-                            break;
-                        case FEATURE_GROUP:
-                            builder.addFeatureGroup(readFeatureGroupDependency(null, reader));
-                            break;
-                        case FEATURE:
-                            final FeatureConfig nested = new FeatureConfig();
-                            readFeatureConfig(reader, nested);
-                            builder.addFeature(nested);
-                            break;
-                        case PROPS:
-                            readProps(reader, builder);
-                            break;
-                        case PACKAGES:
-                            PackageDepsSpecXmlParser.parsePackageDeps(Element.PACKAGES, reader, builder);
-                            break;
-                        case CONFIG_DEPS:
-                            readConfigDeps(reader, builder);
-                            break;
-                        default:
-                            throw ParsingUtils.unexpectedContent(reader);
+                    if(!handleFeatureGroupBodyElement(reader, builder)) {
+                        throw ParsingUtils.unexpectedContent(reader);
                     }
                     break;
                 default:
@@ -366,119 +327,34 @@ public class FeatureGroupXml {
         throw ParsingUtils.endOfDocument(reader.getLocation());
     }
 
-    private static void readProps(XMLExtendedStreamReader reader, FeatureGroupBuilderSupport<?> builder) throws XMLStreamException {
-        ParsingUtils.parseNoAttributes(reader);
-        while (reader.hasNext()) {
-            switch (reader.nextTag()) {
-                case XMLStreamConstants.END_ELEMENT: {
-                    return;
-                }
-                case XMLStreamConstants.START_ELEMENT: {
-                    final Element element = Element.of(reader.getName().getLocalPart());
-                    switch (element) {
-                        case PROP:
-                            readProp(reader, builder);
-                            break;
-                        default:
-                            throw ParsingUtils.unexpectedContent(reader);
-                    }
-                    break;
-                }
-                default: {
-                    throw ParsingUtils.unexpectedContent(reader);
-                }
-            }
+    public static boolean handleFeatureGroupBodyElement(XMLExtendedStreamReader reader, FeatureGroupBuilderSupport<?> builder)
+            throws XMLStreamException {
+        final Element element = Element.of(reader.getName().getLocalPart());
+        switch (element) {
+            case INCLUDE:
+                readInclude(reader, null, builder);
+                break;
+            case EXCLUDE:
+                readExclude(reader, null, builder);
+                break;
+            case ORIGIN:
+                readOriginIncludeExclude(reader, builder);
+                break;
+            case FEATURE_GROUP:
+                builder.addFeatureGroup(readFeatureGroupDependency(null, reader));
+                break;
+            case FEATURE:
+                final FeatureConfig nested = new FeatureConfig();
+                readFeatureConfig(reader, nested);
+                builder.addFeature(nested);
+                break;
+            case PACKAGES:
+                PackageDepsSpecXmlParser.parsePackageDeps(Element.PACKAGES, reader, builder);
+                break;
+            default:
+                return false;
         }
-        throw ParsingUtils.endOfDocument(reader.getLocation());
-    }
-
-    private static void readProp(XMLExtendedStreamReader reader, FeatureGroupBuilderSupport<?> builder) throws XMLStreamException {
-        String name = null;
-        String value = null;
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
-            switch (attribute) {
-                case NAME:
-                    name = reader.getAttributeValue(i);
-                    break;
-                case VALUE:
-                    value = reader.getAttributeValue(i);
-                    break;
-                default:
-                    throw ParsingUtils.unexpectedContent(reader);
-            }
-        }
-        if(name == null) {
-            if(value == null) {
-                final Set<Attribute> attrs = new HashSet<>();
-                attrs.add(Attribute.NAME);
-                attrs.add(Attribute.VALUE);
-                throw ParsingUtils.missingAttributes(reader.getLocation(), attrs);
-            }
-            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
-        } else if(value == null) {
-            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.VALUE));
-        }
-        builder.setProperty(name, value);
-        ParsingUtils.parseNoContent(reader);
-    }
-
-    private static void readConfigDeps(XMLExtendedStreamReader reader, FeatureGroupBuilderSupport<?> builder) throws XMLStreamException {
-        ParsingUtils.parseNoAttributes(reader);
-        while (reader.hasNext()) {
-            switch (reader.nextTag()) {
-                case XMLStreamConstants.END_ELEMENT: {
-                    return;
-                }
-                case XMLStreamConstants.START_ELEMENT: {
-                    final Element element = Element.of(reader.getName().getLocalPart());
-                    switch (element) {
-                        case CONFIG_DEP:
-                            readConfigDep(reader, builder);
-                            break;
-                        default:
-                            throw ParsingUtils.unexpectedContent(reader);
-                    }
-                    break;
-                }
-                default: {
-                    throw ParsingUtils.unexpectedContent(reader);
-                }
-            }
-        }
-        throw ParsingUtils.endOfDocument(reader.getLocation());
-    }
-
-    private static void readConfigDep(XMLExtendedStreamReader reader, FeatureGroupBuilderSupport<?> builder) throws XMLStreamException {
-        String id = null;
-        String name = null;
-        String model = null;
-        final int count = reader.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
-            switch (attribute) {
-                case ID:
-                    id = reader.getAttributeValue(i);
-                    break;
-                case NAME:
-                    name = reader.getAttributeValue(i);
-                    break;
-                case MODEL:
-                    model = reader.getAttributeValue(i);
-                    break;
-                default:
-                    throw ParsingUtils.unexpectedContent(reader);
-            }
-        }
-        if(id == null || name == null && model == null) {
-            if(id == null) {
-                throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.ID));
-            }
-            throw ParsingUtils.missingOneOfAttributes(reader.getLocation(), Attribute.NAME, Attribute.MODEL);
-        }
-        builder.setConfigDep(id, new ConfigId(model, name));
-        ParsingUtils.parseNoContent(reader);
+        return true;
     }
 
     private static void readOriginIncludeExclude(XMLExtendedStreamReader reader, FeatureGroupBuilderSupport<?> builder) throws XMLStreamException {

@@ -60,7 +60,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
         creator
         .newFeaturePack()
             .setFPID(final1Fpid)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("p1"))
                     .build())
             .addConfig(ConfigModel.builder("model1", "name1")

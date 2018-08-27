@@ -16,13 +16,19 @@
  */
 package org.jboss.galleon.xml;
 
+import java.io.BufferedReader;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.staxmapper.XMLElementReader;
 import org.jboss.staxmapper.XMLMapper;
 
@@ -60,10 +66,30 @@ public class XmlParsers {
         INSTANCE.doParse(reader, builder);
     }
 
+    public static ConfigLayerSpec parseConfigLayerSpec(Path p, String model) throws ProvisioningException {
+        try(BufferedReader reader = Files.newBufferedReader(p)) {
+            return parseConfigLayerSpec(reader, model);
+        } catch (Exception e) {
+            throw new ProvisioningException(Errors.parseXml(p), e);
+        }
+    }
+
+    public static ConfigLayerSpec parseConfigLayerSpec(Reader reader, String model) throws ProvisioningException {
+        ConfigLayerSpec.Builder builder = ConfigLayerSpec.builder();
+        builder.setModel(model);
+        try {
+            parse(reader, builder);
+        } catch (XMLStreamException e) {
+            throw new ProvisioningException("Failed to parse config layer spec", e);
+        }
+        return builder.build();
+    }
+
     private final XMLMapper mapper;
 
     private XmlParsers() {
         mapper = XMLMapper.Factory.create();
+        new ConfigLayerXmlParser10().plugin(this);
         new ConfigXmlParser10().plugin(this);
         new FeatureConfigXmlParser10().plugin(this);
         new FeatureGroupXmlParser10().plugin(this);
@@ -74,6 +100,7 @@ public class XmlParsers {
         new PackageXmlParser10().plugin(this);
         new ProvisionedStateXmlParser10().plugin(this);
         new ProvisionedStateXmlParser20().plugin(this);
+        new ProvisionedStateXmlParser30().plugin(this);
         new ProvisioningXmlParser10().plugin(this);
         new ProvisioningXmlParser20().plugin(this);
     }

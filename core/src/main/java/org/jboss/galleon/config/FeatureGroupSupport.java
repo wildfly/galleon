@@ -95,6 +95,10 @@ public abstract class FeatureGroupSupport extends PackageDepsSpec implements Con
         return false;
     }
 
+    public boolean isLayer() {
+        return false;
+    }
+
     @Override
     public String getOrigin() {
         return origin;
@@ -107,14 +111,6 @@ public abstract class FeatureGroupSupport extends PackageDepsSpec implements Con
 
     public String getName() {
         return name;
-    }
-
-    public boolean hasProperties() {
-        return false;
-    }
-
-    public Map<String, String> getProperties() {
-        return Collections.emptyMap();
     }
 
     public boolean isInheritFeatures() {

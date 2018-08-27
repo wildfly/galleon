@@ -46,7 +46,7 @@ public class ResetNillableParameterTestCase extends PmInstallFeaturePackTestBase
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1", true))
                     .build())
@@ -57,6 +57,7 @@ public class ResetNillableParameterTestCase extends PmInstallFeaturePackTestBase
                             .setParam("p1", "group1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig().resetParam("p1"))
@@ -76,6 +77,7 @@ public class ResetNillableParameterTestCase extends PmInstallFeaturePackTestBase
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")).build())
                         .build())
                 .build();

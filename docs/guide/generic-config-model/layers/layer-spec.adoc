@@ -1,0 +1,29 @@
+#### Layer spec
+
+A layer spec is defined in `layer-spec.xml` file which, for the most part, content-wise is identical to a feature-group spec except it allows to configure dependencies on other layers. Here is an example
+
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <dependencies>
+        <layer name="layerB"/> <!--1-->
+        <layer name="layerC" optional="true"/> <!--2-->
+    </dependencies>
+
+    <!-- various features and feature groups -->
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p1" value="value"/>
+    </feature>
+    <feature-group name="groupA"/>
+
+    <packages>
+        <package name="packageA"/> <!--3-->
+        <package name="packageB" optional="true"/> <!--4-->
+    </packages>
+</layer-spec>
+----
+<1> required dependency on `layerB` (`layerA` can't be installed unless `layerB` has been installed)
+<2> optional dependency on `layerC` (`layerC` will be installed when `layerA` is installed but if `layerC` has been excluded by the user, `layerA` will still be installed)
+<3> required dependency on `packageA` (`layerA` can't be installed unless `packageA` has been installed)
+<4> optional dependency on `packageB` (`packageB` will be installed when `layerA` is installed but if `packageB` has been excluded by the user, `layerA` will still be installed)

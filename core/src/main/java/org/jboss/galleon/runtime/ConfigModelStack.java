@@ -17,11 +17,14 @@
 package org.jboss.galleon.runtime;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -29,7 +32,9 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureGroupSupport;
+import org.jboss.galleon.spec.ConfigLayerDependency;
 import org.jboss.galleon.spec.FeatureDependencySpec;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  * @author Alexey Loubyansky
@@ -65,7 +70,7 @@ class ConfigModelStack {
         }
 
         boolean push(FeatureGroupSupport fg) throws ProvisioningException {
-            final ResolvedFeatureGroupConfig resolvedFg = rt.resolveFeatureGroupConfig(fg);
+            final ResolvedFeatureGroupConfig resolvedFg = rt.resolveFeatureGroupConfig(ConfigModelStack.this, fg);
             if (!fg.isConfig() && !ConfigModelStack.this.isRelevant(resolvedFg)) {
                 return false;
             }
@@ -79,6 +84,13 @@ class ConfigModelStack {
             }
             final ResolvedFeatureGroupConfig last = groupStack.remove(groupStack.size() - 1);
             rt.processIncludedFeatures(last);
+        }
+
+        boolean isLayerFilteredOut(String layerName) {
+            if(config == null) {
+                return false;
+            }
+            return config.isInheritLayers() ? config.isLayerExcluded(layerName) : !config.isLayerIncluded(layerName);
         }
 
         boolean isFilteredOut(ResolvedSpecId specId, final ResolvedFeatureId id) {
@@ -154,12 +166,50 @@ class ConfigModelStack {
     // features in the order they should be processed by the provisioning handlers
     private List<ResolvedFeature> orderedFeatures = null;
 
+    private Set<ConfigId> addedLayers;
+    private List<ConfigId> includedLayers;
+    private Map<String, ConfigLayerDependency> layerDeps;
+
     ConfigModelStack(ConfigId configId, ProvisioningRuntimeBuilder rt) throws ProvisioningException {
         this.id = configId;
         this.rt = rt;
         lastConfig = new ConfigScope(null);
         configs.add(lastConfig);
         newFgScope();
+    }
+
+    boolean addLayer(ConfigId layerId) {
+        return (addedLayers == null ? addedLayers = new LinkedHashSet<>() : addedLayers).add(layerId);
+    }
+
+    void addLayerDep(ConfigLayerDependency layerDep) {
+        if(layerDeps == null) {
+            layerDeps = Collections.singletonMap(layerDep.getName(), layerDep);
+        } else {
+            final ConfigLayerDependency existing = layerDeps.get(layerDep.getName());
+            if(existing == null || existing.isOptional() && !layerDep.isOptional()) {
+                layerDeps = CollectionUtils.putLinked(layerDeps, layerDep.getName(), layerDep);
+            }
+        }
+    }
+
+    boolean hasLayerDeps() {
+        return layerDeps != null;
+    }
+
+    Collection<ConfigLayerDependency> getLayerDeps() {
+        return layerDeps == null ? Collections.emptyList() : layerDeps.values();
+    }
+
+    void includedLayer(ConfigId layerId) {
+        if(includedLayers == null) {
+            includedLayers = new ArrayList<>(addedLayers.size());
+        }
+        includedLayers.add(layerId);
+    }
+
+    List<ConfigId> getIncludedLayers() {
+        return includedLayers == null ? Collections.emptyList() : includedLayers;
     }
 
     boolean hasProperties() {
@@ -212,12 +262,21 @@ class ConfigModelStack {
         return lastProcessedScope.config;
     }
 
+    ConfigModel peekAtConfig() {
+        return lastConfig.config;
+    }
+
     boolean pushGroup(FeatureGroupSupport fg) throws ProvisioningException {
         if(!lastConfig.push(fg)) {
             return false;
         }
         newFgScope();
         return true;
+    }
+
+    FeatureGroupSupport peekAtGroup() {
+        final ResolvedFeatureGroupConfig resolvedGroup = lastConfig.groupStack.get(lastConfig.groupStack.size() - 1);
+        return resolvedGroup.fg;
     }
 
     void popGroup() throws ProvisioningException {
@@ -292,6 +351,20 @@ class ConfigModelStack {
         if(configs.size() > 1) {
             for (int i = configs.size() - 2; i >= 0; --i) {
                 if (configs.get(i).isFilteredOut(specId, id)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    boolean isLayerFilteredOut(String layerName) {
+        if(lastConfig.isLayerFilteredOut(layerName)) {
+            return true;
+        }
+        if(configs.size() > 1) {
+            for (int i = configs.size() - 2; i >= 0; --i) {
+                if (configs.get(i).isLayerFilteredOut(layerName)) {
                     return true;
                 }
             }

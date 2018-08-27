@@ -16,8 +16,8 @@
  */
 package org.jboss.galleon.config;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,8 +36,8 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
     protected Set<ConfigId> includedConfigs = Collections.emptySet();
     protected Map<String, Boolean> excludedModels = Collections.emptyMap();
     protected Set<ConfigId> excludedConfigs = Collections.emptySet();
-    protected List<ConfigModel> definedConfigs = Collections.emptyList();
-    protected boolean hasModelOnlyConfigs = false;
+    protected Map<ConfigId, ConfigModel> definedConfigs = Collections.emptyMap();
+    protected boolean hasModelOnlyConfigs;
 
     @SuppressWarnings("unchecked")
     public B initConfigs(ConfigCustomizations clone) {
@@ -66,42 +66,38 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
 
     @SuppressWarnings("unchecked")
     public B addConfig(ConfigModel config) throws ProvisioningDescriptionException {
-        definedConfigs = CollectionUtils.add(definedConfigs, config);
+        final ConfigId id = config.getId();
+        if(id.isAnonymous()) {
+            throw new ProvisioningDescriptionException("Anonymous configs are not supported in " + getClass().getName());
+        }
+        definedConfigs = CollectionUtils.putLinked(definedConfigs, id, config);
         this.hasModelOnlyConfigs |= config.id.isModelOnly();
         return (B) this;
     }
 
+    public boolean hasDefinedConfigs() {
+        return !definedConfigs.isEmpty();
+    }
+
+    public Collection<ConfigModel> getDefinedConfigs() {
+        return definedConfigs.values();
+    }
+
     @SuppressWarnings("unchecked")
     public B removeConfig(ConfigId id) throws ProvisioningDescriptionException {
-        int index = getDefinedConfigIndex(id);
-        definedConfigs = CollectionUtils.remove(definedConfigs, index);
+        definedConfigs = CollectionUtils.remove(definedConfigs, id);
         // reset flag
         hasModelOnlyConfigs = false;
-        for (ConfigModel cm : definedConfigs) {
+        for (ConfigModel cm : definedConfigs.values()) {
             hasModelOnlyConfigs |= cm.id.isModelOnly();
         }
         return (B) this;
     }
 
-    public int getDefinedConfigIndex(ConfigId id) throws ProvisioningDescriptionException {
-        int index = -1;
-        for (int i = 0; i < definedConfigs.size(); i++) {
-            ConfigModel cm = definedConfigs.get(i);
-            if (cm.getId().equals(id)) {
-                index = i;
-                break;
-            }
-        }
-        if (index == -1) {
-            throw new ProvisioningDescriptionException("Config " + id + " is not added");
-        }
-        return index;
-    }
-
     @SuppressWarnings("unchecked")
-    public B addConfig(int index, ConfigModel config) throws ProvisioningDescriptionException {
-        definedConfigs = CollectionUtils.add(definedConfigs, index, config);
-        this.hasModelOnlyConfigs |= config.id.isModelOnly();
+    public B removeAllConfigs() {
+        definedConfigs = Collections.emptyMap();
+        hasModelOnlyConfigs = false;
         return (B) this;
     }
 

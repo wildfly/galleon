@@ -1,0 +1,14 @@
+### Layers
+
+IMPORTANT: A layer is meant to represent a certain configuration flavor that can be used on its own or in combination with other layers to produce the final configuration.
+
+The idea behind layers is to predefine certain technology or some other purpose specific complete configurations (that can be used individually or in combination) and expose them as a multichoice to users composing their desired configuration.
+
+For example, let's suppose we are provisioning an application server that supports multiple technologies such as EJB, Servlet, Messaging, etc. Those technologies could be viewed as components that make up the complete server but also, possibly, as a user's choice at installation time, in case the user is actually interested only in a subset of those or perhaps simply one, or something that is not included into the default set.
+
+Layers are defined in feature-pack archive's `layers` directory. A layer is associated with a name but also, <<_configuration_model_attributes,as configuration models>>, can be associated with a configuration model. If a layer is associated with a configuration model, its definition in the feature-pack archive will appear in `layers/_config_model_/_layer_name_/layer-spec.xml` file, otherwise it will end up in `layers/_layer_name_/layer-spec.xml`.
+
+Layers may depend on other layers. If a configuration includes a layer that depends on another layer, that other layer will be included (unless explicitly excluded by the user) into the configuration as well (prior to the layer declaring the dependency on it).
+
+IMPORTANT: While layers may be associated with both configuration model and a name, *they are always referenced in configuration by simple name*. The reason for that is that a layer can be referenced only from a configuration model or another layer and, ultimately, it still goes down to the configuration model that includes the layers. So it is the configuration model that determines which model to use for the layers it includes.
+

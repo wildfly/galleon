@@ -46,13 +46,13 @@ public class FeatureOptionalPackageDependenciesTestCase extends PmInstallFeature
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addPackageDep("p2")
                     .addPackageDep("p3", true)
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -63,6 +63,7 @@ public class FeatureOptionalPackageDependenciesTestCase extends PmInstallFeature
                     .addPackageDep("p4", true)
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty("prop1", "value1")
                     .setProperty("prop2", "value2")
                     .addFeature(
@@ -98,6 +99,7 @@ public class FeatureOptionalPackageDependenciesTestCase extends PmInstallFeature
                         .addPackage("p2")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty("prop1", "value1")
                         .setProperty("prop2", "value2")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a")).build())

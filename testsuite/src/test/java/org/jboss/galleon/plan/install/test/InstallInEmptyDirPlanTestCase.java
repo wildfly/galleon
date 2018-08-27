@@ -59,7 +59,7 @@ public class InstallInEmptyDirPlanTestCase extends ProvisioningPlanTestBase {
         a100 = newFpl("a", "1", "1.0.0.Final");
         creator.newFeaturePack()
         .setFPID(a100.getFPID())
-        .addSpec(FeatureSpec.builder("specA")
+        .addFeatureSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")
@@ -70,7 +70,7 @@ public class InstallInEmptyDirPlanTestCase extends ProvisioningPlanTestBase {
         b100 = newFpl("b", "1", "1.0.0.Final");
         creator.newFeaturePack()
         .setFPID(b100.getFPID())
-        .addSpec(FeatureSpec.builder("specB")
+        .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")
@@ -81,7 +81,7 @@ public class InstallInEmptyDirPlanTestCase extends ProvisioningPlanTestBase {
         c100 = newFpl("c", "1", "1.0.0.Final");
         creator.newFeaturePack()
         .setFPID(c100.getFPID())
-        .addSpec(FeatureSpec.builder("specC")
+        .addFeatureSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")

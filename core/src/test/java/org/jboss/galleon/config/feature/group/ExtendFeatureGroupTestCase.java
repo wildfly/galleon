@@ -46,11 +46,11 @@ public class ExtendFeatureGroupTestCase extends PmInstallFeaturePackTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("b", false))
                     .build())
@@ -69,6 +69,7 @@ public class ExtendFeatureGroupTestCase extends PmInstallFeaturePackTestBase {
                             .setParam("b", "b2"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("fg1")
                             .addFeature(
                                     new FeatureConfig("specA")
@@ -97,6 +98,7 @@ public class ExtendFeatureGroupTestCase extends PmInstallFeaturePackTestBase {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "aOne"))
                                 .setConfigParam("a", "a1")
                                 .build())

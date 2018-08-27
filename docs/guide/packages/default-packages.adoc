@@ -1,6 +1,6 @@
 ### Feature-pack default packages
 
-Feature pack may define a set of default packages. This set of default packages is installed when the user does not provide explicit instructions about which packages from the feature-pack to install.
+Feature-pack may define a set of default packages. This set of default packages is installed when the user does not provide explicit instructions about which packages from the feature-pack to install.
 
 Default packages are explicitly listed in `feature-pack.xml` file which is a part of the feature-pack archive. For example:
 

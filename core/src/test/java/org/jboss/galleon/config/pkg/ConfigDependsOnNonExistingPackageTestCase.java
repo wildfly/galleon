@@ -42,11 +42,12 @@ public class ConfigDependsOnNonExistingPackageTestCase extends PmInstallFeatureP
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(new FeatureConfig("specA")
                             .setParam("name", "config1"))
                     .addPackageDep("config1.pkg2")
@@ -69,7 +70,7 @@ public class ConfigDependsOnNonExistingPackageTestCase extends PmInstallFeatureP
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getLocalizedMessage());
         Throwable t = e.getCause();
         Assert.assertNotNull(t);
         Assert.assertEquals(Errors.packageNotFound(FP_GAV, "config1.pkg2"), t.getLocalizedMessage());

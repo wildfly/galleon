@@ -42,11 +42,12 @@ public class UnknownFeatureParameterTestCase extends PmInstallFeaturePackTestBas
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1", "def1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("name", "a1")
@@ -69,7 +70,7 @@ public class UnknownFeatureParameterTestCase extends PmInstallFeaturePackTestBas
 
     @Override
     protected void pmFailure(Throwable e) throws ProvisioningDescriptionException {
-        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getLocalizedMessage());
         Throwable t = e.getCause();
         Assert.assertNotNull(t);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV,

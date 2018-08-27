@@ -48,15 +48,15 @@ public class AddFeatureGroupExtendedSubsetAndBranchPerSpecTestCase extends PmPro
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-        .addSpec(FeatureSpec.builder("specA")
+        .addFeatureSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .addParam(FeatureParameterSpec.create("p1", true))
                 .build())
-        .addSpec(FeatureSpec.builder("specB")
+        .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .addParam(FeatureParameterSpec.create("p1", true))
                 .build())
-        .addSpec(FeatureSpec.builder("specC")
+        .addFeatureSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("name"))
                 .addParam(FeatureParameterSpec.create("p1", true))
                 .build())

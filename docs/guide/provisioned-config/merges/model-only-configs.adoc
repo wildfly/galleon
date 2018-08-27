@@ -1,8 +1,8 @@
 #### Model-only configurations
 
-Model-only configurations are the ones associated with a specific model using `model` attribute of `config` element but are not associated with any name.
+Model-only configurations are associated with a specific model using `model` attribute of `config` element but are not associated with any name.
 
-IMPORTANT: Model-only configurations are meant to be merged into other configurations. The provisioned installation will contain only anonymous or named configs but not the model-only ones.
+IMPORTANT: Model-only configurations are meant to be merged into named configurations. The provisioned installation will contain only named configurations but not the model-only ones.
 
 IMPORTANT: A model-only configuration is merged into *all* the named configurations of the installation associated with the same model as the model-only configuration.
 
@@ -268,7 +268,7 @@ With `inherit="false"` attribute of `default-configs` element we indicated that 
 
 IMPORTANT: `inherit-unnamed-models` attributes of `default-configs` element controls whether the model-only configs are inherited or not. The attribute is optional and if not present, its value is assumed to be `true`.
 
-Here is an example that disables the inheritance of all the anonymous, named and model-only configs:
+Here is an example that disables the inheritance of all the named and model-only configs:
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"

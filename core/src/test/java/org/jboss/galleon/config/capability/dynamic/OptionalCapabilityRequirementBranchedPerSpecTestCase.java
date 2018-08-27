@@ -44,16 +44,17 @@ public class OptionalCapabilityRequirementBranchedPerSpecTestCase extends PmInst
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .providesCapability("cap.$a")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .requiresCapability("cap.$c", true)
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.create("c", true))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                     .addFeature(
                             new FeatureConfig("specB")
@@ -83,6 +84,7 @@ public class OptionalCapabilityRequirementBranchedPerSpecTestCase extends PmInst
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "a", "a1")).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "a", "a2")).build())

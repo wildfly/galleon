@@ -53,7 +53,7 @@ public class InstallLocalAndInstallInUniverseTestCase extends InstallLocalTestBa
 
         creator.newFeaturePack()
         .setFPID(fp1.getFPID())
-        .addSpec(FeatureSpec.builder("specA")
+        .addFeatureSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")

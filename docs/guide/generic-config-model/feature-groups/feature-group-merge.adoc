@@ -99,7 +99,7 @@ and these feature groups
 Now this configuration
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group2"/>
   <feature-group name="group3"/>
 </config>

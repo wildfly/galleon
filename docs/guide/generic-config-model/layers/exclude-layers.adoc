@@ -1,0 +1,20 @@
+#### Excluding layers from configuration models
+
+Layers that have been included into the configuration can later be excluded from it. The example above demonstrated how to include a layer into the configuration, here is an example of how a layer can be excluded:
+
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+    <config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+        <layers>
+            <exclude name="layer2"/>
+            <include name="layer3"/>
+        </layers>
+        <!-- the rest of the configuration -->
+    </config>
+</installation>
+----
+
+Assuming feature-pack `prod1` included `layer1` and `layer2` into its `model1:name1` configuration (as in the previous example), the resulting `model1:name1` configuration will include only `layer1` and `layer3` (and their dependencies if any).
+

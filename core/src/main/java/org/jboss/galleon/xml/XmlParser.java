@@ -20,11 +20,13 @@ import java.io.Reader;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.ProvisioningDescriptionException;
+
 /**
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
  * @param <T> the type of the object returned by the parse method
  */
 public interface XmlParser<T> {
-    T parse(Reader input) throws XMLStreamException;
+    T parse(Reader input) throws XMLStreamException, ProvisioningDescriptionException;
 }
