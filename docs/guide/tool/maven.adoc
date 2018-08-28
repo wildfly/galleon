@@ -17,17 +17,25 @@ NB: If no local repository is set in settings file, the local repository (defaul
 
 ### Adding new remote repositories
 Use the following command to add new remote repositories: +
-_mvn add-repository --name=myrepo --url=http://foorepo [--release-update-policy=<policy>] [--snapshot-update-policy=<policy>] [--type=<type>]_ +
+_mvn add-repository --name=myrepo --url=http://foorepo [--release-update-policy=<policy>] 
+[--snapshot-update-policy=<policy>] [--type=<type>] [--enable-release=[true|false] [--enable-snapshot=[true|false]_ +
 
-NB: The type, release update policy and snapshot update policy are optional and have default values.
+NB: The type, release update policy, snapshot update policy and enable/disable of snapshot/release are optional and have default values.
 
 ### Default Repository policies
 Daily update for releases, never update for snapshots. +
 Warn if checksum differs.
 
+Snapshots are not resolved from remote repositories. + 
+Releases are resolved from remote repositories.
+
 Update polices can be changed by calling: +
-_mvn set-release-update-policy <always|daily|interval:|never>_ +
-_mvn set-snapshot-update-policy <always|daily|interval:|never>_
+_mvn set-release-update-policy [<always|daily|interval:|never>]_ +
+_mvn set-snapshot-update-policy [<always|daily|interval:|never>]_
+
+Activation of snapshot/release resolution can be changed by calling: +
+_mvn enable-snapshot [<true|false>]_ +
+_mvn enable-release [<true|false>]_
 
 NB: Calling one of these commands without any argument will reset to the default value.
 

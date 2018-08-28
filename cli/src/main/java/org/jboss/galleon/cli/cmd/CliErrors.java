@@ -78,6 +78,10 @@ public interface CliErrors {
         return failed("Get history limit");
     }
 
+    static String invalidBoolean(String value) {
+        return "Invalid boolean value " + value;
+    }
+
     static String invalidHistoryLimit(String limit) {
         return "Invalid history limit " + limit;
     }

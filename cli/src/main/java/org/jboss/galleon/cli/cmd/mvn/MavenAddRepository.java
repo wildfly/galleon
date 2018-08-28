@@ -65,12 +65,18 @@ public class MavenAddRepository extends PmSessionCommand {
             description = "Maven snapshot update policy. NB: Interval is expressed in minutes", required = false)
     private String snapshotUpdatePolicy;
 
+    @Option(hasValue = true, name = "enable-snapshot", description = "Enable snapshot")
+    private Boolean enableSnapshot;
+
+    @Option(hasValue = true, name = "enable-release", description = "Enable release")
+    private Boolean enableRelease;
+
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         try {
             session.getPmSession().getPmConfiguration().getMavenConfig().
                     addRemoteRepository(new MavenRemoteRepository(name, type,
-                            releaseUpdatePolicy, snapshotUpdatePolicy, url));
+                            releaseUpdatePolicy, snapshotUpdatePolicy, enableRelease, enableSnapshot, url));
         } catch (ProvisioningException | XMLStreamException | IOException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.addRepositoryFailed(), ex);
         }

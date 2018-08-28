@@ -28,7 +28,8 @@ public class MavenRemoteRepository {
     private final String type;
     private final String releaseUpdatePolicy;
     private final String snapshotUpdatePolicy;
-
+    private final Boolean enableSnapshot;
+    private final Boolean enableRelease;
     MavenRemoteRepository(String name, String type, String url) {
         this.name = name;
         this.url = url;
@@ -36,10 +37,13 @@ public class MavenRemoteRepository {
         // Will be set with default configured policies.
         this.releaseUpdatePolicy = null;
         this.snapshotUpdatePolicy = null;
+        this.enableRelease = null;
+        this.enableSnapshot = null;
     }
 
     public MavenRemoteRepository(String name, String type, String releaseUpdatePolicy,
-            String snapshotUpdatePolicy, String url) throws ProvisioningException {
+            String snapshotUpdatePolicy, Boolean enableRelease,
+            Boolean enableSnapshot, String url) throws ProvisioningException {
         this.name = name;
         this.url = url;
         this.type = type;
@@ -47,6 +51,8 @@ public class MavenRemoteRepository {
         this.releaseUpdatePolicy = releaseUpdatePolicy;
         MavenConfig.validatePolicy(snapshotUpdatePolicy);
         this.snapshotUpdatePolicy = snapshotUpdatePolicy;
+        this.enableRelease = enableRelease;
+        this.enableSnapshot = enableSnapshot;
     }
 
     /**
@@ -82,6 +88,20 @@ public class MavenRemoteRepository {
      */
     public String getSnapshotUpdatePolicy() {
         return snapshotUpdatePolicy;
+    }
+
+    /**
+     * @return the enableSnapshot
+     */
+    public Boolean getEnableSnapshot() {
+        return enableSnapshot;
+    }
+
+    /**
+     * @return the enableRelease
+     */
+    public Boolean getEnableRelease() {
+        return enableRelease;
     }
 
 }

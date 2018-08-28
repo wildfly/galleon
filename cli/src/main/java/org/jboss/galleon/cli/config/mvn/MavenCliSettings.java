@@ -58,10 +58,10 @@ class MavenCliSettings implements MavenSettings {
         for (MavenRemoteRepository repo : config.getRemoteRepositories()) {
             RemoteRepository.Builder builder = new RemoteRepository.Builder(repo.getName(),
                     repo.getType(), repo.getUrl());
-            builder.setSnapshotPolicy(new RepositoryPolicy(true,
+            builder.setSnapshotPolicy(new RepositoryPolicy(repo.getEnableSnapshot() == null ? config.isSnapshotEnabled() : repo.getEnableSnapshot(),
                     repo.getSnapshotUpdatePolicy() == null ? config.getDefaultSnapshotPolicy() : repo.getSnapshotUpdatePolicy(),
                     CHECKSUM_POLICY_WARN));
-            builder.setReleasePolicy(new RepositoryPolicy(true,
+            builder.setReleasePolicy(new RepositoryPolicy(repo.getEnableRelease() == null ? config.isReleaseEnabled() : repo.getEnableRelease(),
                     repo.getReleaseUpdatePolicy() == null ? config.getDefaultReleasePolicy() : repo.getReleaseUpdatePolicy(),
                     CHECKSUM_POLICY_WARN));
             repos.add(builder.build());
