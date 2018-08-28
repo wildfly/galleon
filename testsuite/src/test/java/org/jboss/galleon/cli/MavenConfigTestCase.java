@@ -65,7 +65,8 @@ public class MavenConfigTestCase {
             // XXX OK
         }
         cli.execute("mvn add-repository --name=" + name + " --url=" + url);
-        cli.execute("mvn add-repository --name=" + name2 + " --url=" + url + " --snapshot-update-policy=always --release-update-policy=never");
+        cli.execute("mvn add-repository --name=" + name2 + " --url=" + url + " --snapshot-update-policy=always "
+                + "--release-update-policy=never --enable-snapshot=true --enable-release=false");
         checkRepositories(config, url, name, name2);
         checkRepositories(Configuration.parse().getMavenConfig(), url, name, name2);
 
@@ -167,6 +168,42 @@ public class MavenConfigTestCase {
         Assert.assertEquals(defaultRelease, Configuration.parse().getMavenConfig().getDefaultReleasePolicy());
     }
 
+    @Test
+    public void testEnable() throws Exception {
+        MavenConfig config = cli.getSession().getPmConfiguration().getMavenConfig();
+        boolean enableSnapshot = config.isSnapshotEnabled();
+        boolean enableRelease = config.isReleaseEnabled();
+        try {
+            cli.execute("mvn enable-snapshot foo");
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // XXX OK
+        }
+
+        try {
+            cli.execute("mvn enable-release bar");
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // XXX OK
+        }
+
+        cli.execute("mvn enable-snapshot " + !enableSnapshot);
+        cli.execute("mvn enable-release " + !enableRelease);
+
+        Assert.assertEquals(!enableSnapshot, config.isSnapshotEnabled());
+        Assert.assertEquals(!enableRelease, config.isReleaseEnabled());
+
+        cli.execute("mvn info");
+        Assert.assertTrue(cli.getOutput().contains("release=" + !enableRelease));
+        Assert.assertTrue(cli.getOutput().contains("snapshot=" + !enableSnapshot));
+
+        cli.execute("mvn enable-snapshot");
+        cli.execute("mvn enable-release");
+
+        Assert.assertEquals(enableSnapshot, config.isSnapshotEnabled());
+        Assert.assertEquals(enableRelease, config.isReleaseEnabled());
+
+    }
 
     private static void checkNoRepositories(MavenConfig config, String... names) throws Exception {
         for (String s : names) {
@@ -179,6 +216,8 @@ public class MavenConfigTestCase {
         Assert.assertNotNull(repo);
         Assert.assertNull(repo.getReleaseUpdatePolicy());
         Assert.assertNull(repo.getSnapshotUpdatePolicy());
+        Assert.assertNull(repo.getEnableRelease());
+        Assert.assertNull(repo.getEnableSnapshot());
         Assert.assertEquals("default", repo.getType());
         Assert.assertEquals(url, repo.getUrl());
 
@@ -186,6 +225,8 @@ public class MavenConfigTestCase {
         Assert.assertNotNull(repo);
         Assert.assertEquals("always", repo.getSnapshotUpdatePolicy());
         Assert.assertEquals("never", repo.getReleaseUpdatePolicy());
+        Assert.assertTrue(repo.getEnableSnapshot());
+        Assert.assertFalse(repo.getEnableRelease());
         Assert.assertEquals(url, repo.getUrl());
 
     }

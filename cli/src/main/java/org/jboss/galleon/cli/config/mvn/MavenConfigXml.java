@@ -36,6 +36,8 @@ public class MavenConfigXml {
     public static final String NAME = "name";
     public static final String SNAPSHOT_UPDATE_POLICY = "snapshotUpdatePolicy";
     public static final String RELEASE_UPDATE_POLICY = "releaseUpdatePolicy";
+    public static final String ENABLE_SNAPSHOT = "enableSnapshot";
+    public static final String ENABLE_RELEASE = "enableRelease";
     public static final String TYPE = "type";
     public static final String REPOSITORY = "repository";
     public static final String MAVEN = "maven";
@@ -70,6 +72,14 @@ public class MavenConfigXml {
                             config.setDefaultReleasePolicy(reader.getElementText());
                             break;
                         }
+                        case ENABLE_SNAPSHOT: {
+                            config.enableSnapshot(Boolean.parseBoolean(reader.getElementText()));
+                            break;
+                        }
+                        case ENABLE_RELEASE: {
+                            config.enableRelease(Boolean.parseBoolean(reader.getElementText()));
+                            break;
+                        }
                         default: {
                             throw ParsingUtils.unexpectedContent(reader);
                         }
@@ -96,9 +106,14 @@ public class MavenConfigXml {
                 case XMLStreamConstants.START_ELEMENT: {
                     switch (reader.getLocalName()) {
                         case REPOSITORY: {
+                            String snapshot = reader.getAttributeValue(null, ENABLE_SNAPSHOT);
+                            String release = reader.getAttributeValue(null, ENABLE_RELEASE);
                             MavenRemoteRepository repo = new MavenRemoteRepository(reader.getAttributeValue(null, NAME),
                                     reader.getAttributeValue(null, TYPE), reader.getAttributeValue(null, RELEASE_UPDATE_POLICY),
-                                    reader.getAttributeValue(null, SNAPSHOT_UPDATE_POLICY), reader.getElementText());
+                                    reader.getAttributeValue(null, SNAPSHOT_UPDATE_POLICY),
+                                    release == null ? null : Boolean.parseBoolean(release),
+                                    snapshot == null ? null : Boolean.parseBoolean(snapshot),
+                                    reader.getElementText());
                             config.addRemoteRepository(repo);
                             break;
                         }

@@ -42,6 +42,8 @@ public class MavenInfo extends PmSessionCommand {
         t.addLine("Local repository", config.getLocalRepository().normalize().toString());
         t.addLine("Default release policy", config.getDefaultReleasePolicy());
         t.addLine("Default snapshot policy", config.getDefaultSnapshotPolicy());
+        t.addLine("Enable release", "" + config.isReleaseEnabled());
+        t.addLine("Enable snapshot", "" + config.isSnapshotEnabled());
         Cell repositories = new Cell();
         Cell title = new Cell("Remote repositories");
         if (config.getRemoteRepositories().isEmpty()) {
@@ -52,8 +54,10 @@ public class MavenInfo extends PmSessionCommand {
                 repositories.addLine(rep.getName());
                 repositories.addLine(" url=" + rep.getUrl());
                 repositories.addLine(" type=" + rep.getType());
+                repositories.addLine(" release=" + (rep.getEnableRelease() == null ? config.isReleaseEnabled() : rep.getEnableRelease()));
                 repositories.addLine(" releaseUpdatePolicy=" + (rep.getReleaseUpdatePolicy() == null
                         ? config.getDefaultReleasePolicy() : rep.getReleaseUpdatePolicy()));
+                repositories.addLine(" snapshot=" + (rep.getEnableSnapshot() == null ? config.isSnapshotEnabled() : rep.getEnableSnapshot()));
                 repositories.addLine(" snapshotUpdatePolicy=" + (rep.getSnapshotUpdatePolicy() == null
                         ? config.getDefaultSnapshotPolicy() : rep.getSnapshotUpdatePolicy()));
             }
