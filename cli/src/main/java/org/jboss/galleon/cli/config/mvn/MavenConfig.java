@@ -50,6 +50,9 @@ public class MavenConfig {
     static final String DEFAULT_SNAPSHOT_UPDATE_POLICY = UPDATE_POLICY_NEVER;
     static final String DEFAULT_RELEASE_UPDATE_POLICY = UPDATE_POLICY_DAILY;
 
+    static final boolean DEFAULT_ENABLE_SNAPSHOT = false;
+    static final boolean DEFAULT_ENABLE_RELEASE = true;
+
     private static final List<String> VALID_UPDATE_POLICIES;
 
     static {
@@ -78,6 +81,35 @@ public class MavenConfig {
     private Path settings;
     private String defaultSnapshotPolicy = DEFAULT_SNAPSHOT_UPDATE_POLICY;
     private String defaultReleasePolicy = DEFAULT_RELEASE_UPDATE_POLICY;
+
+    private boolean defaultEnableSnapshot = DEFAULT_ENABLE_SNAPSHOT;
+    private boolean defaultEnableRelease = DEFAULT_ENABLE_RELEASE;
+
+    public boolean isSnapshotEnabled() {
+        return defaultEnableSnapshot;
+    }
+
+    public boolean isReleaseEnabled() {
+        return defaultEnableRelease;
+    }
+
+    public void enableSnapshot(Boolean enable) throws XMLStreamException, IOException {
+        if (enable == null) {
+            defaultEnableSnapshot = DEFAULT_ENABLE_SNAPSHOT;
+        } else {
+            defaultEnableSnapshot = enable;
+        }
+        advertise();
+    }
+
+    public void enableRelease(Boolean enable) throws XMLStreamException, IOException {
+        if (enable == null) {
+            defaultEnableRelease = DEFAULT_ENABLE_RELEASE;
+        } else {
+            defaultEnableRelease = enable;
+        }
+        advertise();
+    }
 
     public String getDefaultSnapshotPolicy() {
         return defaultSnapshotPolicy;
@@ -179,6 +211,16 @@ public class MavenConfig {
             writer.writeCharacters(defaultSnapshotPolicy);
             writer.writeEndElement();
         }
+        if (defaultEnableSnapshot != DEFAULT_ENABLE_SNAPSHOT) {
+            writer.writeStartElement(MavenConfigXml.ENABLE_SNAPSHOT);
+            writer.writeCharacters(Boolean.toString(defaultEnableSnapshot));
+            writer.writeEndElement();
+        }
+        if (defaultEnableRelease != DEFAULT_ENABLE_RELEASE) {
+            writer.writeStartElement(MavenConfigXml.ENABLE_RELEASE);
+            writer.writeCharacters(Boolean.toString(defaultEnableRelease));
+            writer.writeEndElement();
+        }
         if (settings != null) {
             writer.writeStartElement(MavenConfigXml.SETTINGS);
             writer.writeCharacters(settings.toAbsolutePath().toString());
@@ -198,6 +240,12 @@ public class MavenConfig {
                 }
                 if (repo.getSnapshotUpdatePolicy() != null) {
                     writer.writeAttribute(MavenConfigXml.SNAPSHOT_UPDATE_POLICY, repo.getSnapshotUpdatePolicy());
+                }
+                if (repo.getEnableRelease() != null) {
+                    writer.writeAttribute(MavenConfigXml.ENABLE_RELEASE, Boolean.toString(repo.getEnableRelease()));
+                }
+                if (repo.getEnableSnapshot() != null) {
+                    writer.writeAttribute(MavenConfigXml.ENABLE_SNAPSHOT, Boolean.toString(repo.getEnableSnapshot()));
                 }
                 writer.writeCharacters(repo.getUrl());
                 writer.writeEndElement();

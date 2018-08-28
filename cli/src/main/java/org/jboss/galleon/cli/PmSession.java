@@ -113,34 +113,44 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
 
         @Override
         public void artifactResolving(RepositoryEvent re) {
-            //session.println("artifactResolving " + re);
+//            if (active && re != null) {
+//                println("artifactResolving " + re);
+//            }
         }
 
         @Override
         public void artifactResolved(RepositoryEvent re) {
-            //session.println("artifactResolved " + re);
+//            if (active && re != null) {
+//                println("artifactResolved " + re);
+//            }
         }
 
         @Override
         public void metadataResolving(RepositoryEvent re) {
-            //session.println("metadataResolving " + re);
-
+//            if (active && re != null) {
+//                println("metadataResolving " + re);
+//            }
         }
 
         @Override
         public void metadataResolved(RepositoryEvent re) {
-            //session.println("metadataResolved " + re);
-
+//            if (active && re != null) {
+//                println("metadataResolved " + re);
+//            }
         }
 
         @Override
         public void metadataDownloading(RepositoryEvent re) {
-            //session.println("metadataDownloading " + re);
+//            if (active && re != null) {
+//                println("metadataDownloading " + re);
+//            }
         }
 
         @Override
         public void metadataDownloaded(RepositoryEvent re) {
-            //session.println("metadataDownloaded " + re);
+//            if (active && re != null) {
+//                println("metadataDownloaded " + re);
+//            }
         }
 
         @Override
