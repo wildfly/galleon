@@ -49,7 +49,7 @@ public class CliWrapper {
         System.setProperty("user.home", testUserHome.getAbsolutePath());
         // This is the default repository if no repository has been set.
         mvnRepo = new File(testUserHome, ".m2" + File.separator + "repository");
-        mvnRepo.mkdir();
+        mvnRepo.mkdirs();
         session = new PmSession(Configuration.parse());
         runtime = CliMain.newRuntime(session, new PrintStream(out));
         session.getUniverse().disableBackgroundResolution();
