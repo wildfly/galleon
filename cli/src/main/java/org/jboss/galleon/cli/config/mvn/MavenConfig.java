@@ -84,6 +84,16 @@ public class MavenConfig {
     private boolean defaultEnableSnapshot = DEFAULT_ENABLE_SNAPSHOT;
     private boolean defaultEnableRelease = DEFAULT_ENABLE_RELEASE;
 
+    private boolean disableAdvertise;
+
+    void disableAdvertise() {
+        disableAdvertise = true;
+    }
+
+    void enableAdvertise() {
+        disableAdvertise = false;
+    }
+
     public boolean isSnapshotEnabled() {
         return defaultEnableSnapshot;
     }
@@ -165,8 +175,10 @@ public class MavenConfig {
     }
 
     private void advertise() throws XMLStreamException, IOException {
-        for (MavenChangeListener listener : listeners) {
-            listener.configurationChanged(this);
+        if (!disableAdvertise) {
+            for (MavenChangeListener listener : listeners) {
+                listener.configurationChanged(this);
+            }
         }
     }
 

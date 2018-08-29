@@ -44,52 +44,57 @@ public class MavenConfigXml {
 
     public static void read(XMLExtendedStreamReader reader, MavenConfig config)
             throws ProvisioningException, XMLStreamException, IOException {
-        while (reader.hasNext()) {
-            switch (reader.nextTag()) {
-                case XMLStreamConstants.END_ELEMENT: {
-                    // DONE.
-                    return;
-                }
-                case XMLStreamConstants.START_ELEMENT: {
-                    switch (reader.getLocalName()) {
-                        case REPOSITORIES: {
-                            readRepositories(reader, config);
-                            break;
-                        }
-                        case LOCAL_REPOSITORY: {
-                            config.setLocalRepository(Paths.get(reader.getElementText()));
-                            break;
-                        }
-                        case SETTINGS: {
-                            config.setSettings(Paths.get(reader.getElementText()));
-                            break;
-                        }
-                        case SNAPSHOT_UPDATE_POLICY: {
-                            config.setDefaultSnapshotPolicy(reader.getElementText());
-                            break;
-                        }
-                        case RELEASE_UPDATE_POLICY: {
-                            config.setDefaultReleasePolicy(reader.getElementText());
-                            break;
-                        }
-                        case ENABLE_SNAPSHOT: {
-                            config.enableSnapshot(Boolean.parseBoolean(reader.getElementText()));
-                            break;
-                        }
-                        case ENABLE_RELEASE: {
-                            config.enableRelease(Boolean.parseBoolean(reader.getElementText()));
-                            break;
-                        }
-                        default: {
-                            throw ParsingUtils.unexpectedContent(reader);
-                        }
+        config.disableAdvertise();
+        try {
+            while (reader.hasNext()) {
+                switch (reader.nextTag()) {
+                    case XMLStreamConstants.END_ELEMENT: {
+                        // DONE.
+                        return;
                     }
-                    break;
-                }
-                default: {
-                    throw ParsingUtils.unexpectedContent(reader);
+                    case XMLStreamConstants.START_ELEMENT: {
+                        switch (reader.getLocalName()) {
+                            case REPOSITORIES: {
+                                readRepositories(reader, config);
+                                break;
+                            }
+                            case LOCAL_REPOSITORY: {
+                                config.setLocalRepository(Paths.get(reader.getElementText()));
+                                break;
+                            }
+                            case SETTINGS: {
+                                config.setSettings(Paths.get(reader.getElementText()));
+                                break;
+                            }
+                            case SNAPSHOT_UPDATE_POLICY: {
+                                config.setDefaultSnapshotPolicy(reader.getElementText());
+                                break;
+                            }
+                            case RELEASE_UPDATE_POLICY: {
+                                config.setDefaultReleasePolicy(reader.getElementText());
+                                break;
+                            }
+                            case ENABLE_SNAPSHOT: {
+                                config.enableSnapshot(Boolean.parseBoolean(reader.getElementText()));
+                                break;
+                            }
+                            case ENABLE_RELEASE: {
+                                config.enableRelease(Boolean.parseBoolean(reader.getElementText()));
+                                break;
+                            }
+                            default: {
+                                throw ParsingUtils.unexpectedContent(reader);
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        throw ParsingUtils.unexpectedContent(reader);
+                    }
                 }
             }
+        } finally {
+            config.enableAdvertise();
         }
     }
 
