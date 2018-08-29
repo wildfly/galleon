@@ -48,7 +48,7 @@ import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.model.state.State;
 
 /**
- * Dynamic command that retrieves options based on the argument value.
+ * Dynamic command support.
  *
  * @author jdenise@redhat.com
  */
@@ -98,7 +98,6 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         }
     }
 
-    private final Map<String, List<ProcessedOption>> dynamicOptions = new HashMap<>();
     private final Map<String, String> renamedOptions = new HashMap<>();
 
     private class DynamicOptionsProvider implements MapProcessedCommandBuilder.ProcessedOptionProvider {
@@ -109,53 +108,39 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 return Collections.emptyList();
             }
             try {
-                List<ProcessedOption> options = null;
-                String id = null;
-                if (requireId) {
-                    id = getId(pmSession);
-                    if (id != null) {
-                        // We can retrieve options
-                        options = dynamicOptions.get(id);
-                    }
-                }
-                if (options == null) {
-                    options = new ArrayList<>();
-                    List<DynamicOption> parameters = getDynamicOptions(pmSession.getState(), id);
-                    for (DynamicOption opt : parameters) {
-                        // There is no caching, if current options already contains it, do not add it.
-                        if (!requireId && currentOptions != null) {
-                            ProcessedOption found = null;
-                            for (ProcessedOption option : currentOptions) {
-                                if (option.name().equals(opt.getName())) {
-                                    found = option;
-                                    break;
-                                }
-                            }
-                            if (found != null) {
-                                options.add(found);
-                                continue;
+                List<ProcessedOption> options = new ArrayList<>();
+                List<DynamicOption> parameters = getDynamicOptions(pmSession.getState());
+                for (DynamicOption opt : parameters) {
+                    // There is no caching, if current options already contains it, do not add it.
+                    if (currentOptions != null) {
+                        ProcessedOption found = null;
+                        for (ProcessedOption option : currentOptions) {
+                            if (option.name().equals(opt.getName())) {
+                                found = option;
+                                break;
                             }
                         }
-                        ProcessedOptionBuilder builder = ProcessedOptionBuilder.builder();
-                        if (staticOptions.contains(opt.getName())) {
-                            renamedOptions.put(rename(opt.getName(), parameters), opt.getName());
+                        if (found != null) {
+                            options.add(found);
+                            continue;
                         }
-                        builder.name(opt.getName());
-                        builder.type(String.class);
-                        if (!opt.hasValue()) {
-                            noValuesOptions.add(opt.getName());
-                        }
-                        builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
-                        builder.hasValue(opt.hasValue());
-                        builder.required(opt.isRequired());
-                        if (opt.getDefaultValue() != null) {
-                            builder.addDefaultValue(opt.getDefaultValue());
-                        }
-                        options.add(builder.build());
                     }
-                    if (requireId) {
-                        dynamicOptions.put(id, options);
+                    ProcessedOptionBuilder builder = ProcessedOptionBuilder.builder();
+                    if (staticOptions.contains(opt.getName())) {
+                        renamedOptions.put(rename(opt.getName(), parameters), opt.getName());
                     }
+                    builder.name(opt.getName());
+                    builder.type(String.class);
+                    if (!opt.hasValue()) {
+                        noValuesOptions.add(opt.getName());
+                    }
+                    builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
+                    builder.hasValue(opt.hasValue());
+                    builder.required(opt.isRequired());
+                    if (opt.getDefaultValue() != null) {
+                        builder.addDefaultValue(opt.getDefaultValue());
+                    }
+                    options.add(builder.build());
                 }
                 return options;
             } catch (Exception ex) {
@@ -173,26 +158,22 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     private final boolean onlyAtCompletion;
     private final boolean checkForRequired;
     private final boolean optimizeRetrieval;
-    private final boolean requireId;
     /**
      *
      * @param pmSession The session
      * @param optimizeRetrieval True, optimize retrieval.
-     * @param requireId  whether the id is required
      */
-    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval, boolean requireId) {
+    public AbstractDynamicCommand(PmSession pmSession, boolean optimizeRetrieval) {
         this.pmSession = pmSession;
         this.onlyAtCompletion = optimizeRetrieval;
         this.checkForRequired = !optimizeRetrieval;
         this.optimizeRetrieval = optimizeRetrieval;
-        this.requireId = requireId;
     }
 
-    protected abstract String getId(PmSession session) throws CommandExecutionException;
     protected abstract String getName();
     protected abstract String getDescription();
 
-    protected abstract List<DynamicOption> getDynamicOptions(State state, String id) throws Exception;
+    protected abstract List<DynamicOption> getDynamicOptions(State state) throws Exception;
     protected abstract void runCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException;
     protected abstract List<ProcessedOption> getStaticOptions() throws OptionParserException;
 

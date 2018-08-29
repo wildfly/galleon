@@ -50,7 +50,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     public AbstractPluginsCommand(PmSession pmSession) {
-        super(pmSession, true, true);
+        super(pmSession, true);
     }
 
     protected boolean isVerbose() {
@@ -116,9 +116,9 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     }
 
     @Override
-    protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
+    protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
-        FeaturePackLocation fpl = pmSession.getResolvedLocation(id);
+        FeaturePackLocation fpl = pmSession.getResolvedLocation(getId(pmSession));
         Set<PluginOption> pluginOptions = getPluginOptions(fpl);
         for (PluginOption opt : pluginOptions) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
@@ -135,7 +135,6 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         return session.getPmSession().newProvisioningManager(getInstallationHome(session.getAeshContext()), isVerbose());
     }
 
-    @Override
     protected String getId(PmSession session) throws CommandExecutionException {
         String streamName = (String) getValue(ARGUMENT_NAME);
         if (streamName == null) {

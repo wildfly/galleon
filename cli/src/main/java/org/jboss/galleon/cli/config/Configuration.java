@@ -20,15 +20,20 @@ import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Properties;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
+import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.xml.XmlParsers;
 import org.jboss.galleon.xml.util.FormattingXmlStreamWriter;
 
@@ -42,13 +47,32 @@ public class Configuration implements MavenChangeListener {
         new ConfigXmlParser10().plugin(XmlParsers.getInstance());
     }
 
-    private static final String CONFIG_FILE_NAME = ".galleon-cli";
+    // Monthly cleanup, could be made configurable.
+    public static final long CACHE_PERIOD = 1000 * 60 * 43200L;
 
-    private static final File DEFAULT_HISTORY_FILE = new File(System.getProperty("user.home"), ".galleon-history");
-    private File historyFile = DEFAULT_HISTORY_FILE;
+    private static final String GALLON_DIR_NAME = ".galleon-cli";
+    private static final String CONFIG_FILE_NAME = "cli-config";
+    private static final String LAYOUT_DIR_NAME = "layout";
+    private static final String LAYOUT_CONTENT_FILE_NAME = LAYOUT_DIR_NAME + ".properties";
+    private static final String CACHE_DIR_NAME = "cache";
+
+    private static final String HISTORY_FILE_NAME = "cli-history";
+
+    private final Path cacheDir;
+    private final Path layoutCacheDir;
+    private final Path layoutContentFile;
+    private final File historyFile;
     private final MavenConfig maven;
 
-    private Configuration() {
+    private Configuration() throws ProvisioningException {
+        Path galleonDir = getConfigDirectory();
+        if (Files.exists(galleonDir) && !Files.isDirectory(galleonDir)) {
+            throw new ProvisioningException(CliErrors.invalidConfigDirectory(galleonDir));
+        }
+        historyFile = galleonDir.resolve(HISTORY_FILE_NAME).toFile();
+        cacheDir = galleonDir.resolve(CACHE_DIR_NAME);
+        layoutCacheDir = cacheDir.resolve(LAYOUT_DIR_NAME);
+        layoutContentFile = cacheDir.resolve(LAYOUT_CONTENT_FILE_NAME);
         maven = new MavenConfig();
         maven.addListener(this);
     }
@@ -57,15 +81,42 @@ public class Configuration implements MavenChangeListener {
         return maven;
     }
 
+    public Path getLayoutCache() {
+        return layoutCacheDir;
+    }
+
+    public Properties getLayoutCacheContent() throws IOException {
+        Properties props = new Properties();
+        if (Files.exists(layoutContentFile)) {
+            try (FileInputStream stream = new FileInputStream(layoutContentFile.toFile())) {
+                props.load(stream);
+            }
+        }
+        return props;
+    }
+
+    public void storeLayoutCacheContent(Properties props) throws IOException {
+        if (props.isEmpty()) {
+            Files.deleteIfExists(layoutContentFile);
+            return;
+        }
+        if (!Files.exists(layoutContentFile)) {
+            Files.createFile(layoutContentFile);
+        }
+        try (FileOutputStream stream = new FileOutputStream(layoutContentFile.toFile())) {
+            props.store(stream, null);
+        }
+    }
+
     @Override
     public void configurationChanged(MavenConfig config) throws XMLStreamException, IOException {
         needRewrite();
     }
 
     public void needRewrite() throws XMLStreamException, IOException {
-        Path path = getStoragePath();
-        Files.deleteIfExists(path);
-        try (BufferedWriter bw = Files.newBufferedWriter(path,
+        Path configFile = getConfigFile();
+        Files.deleteIfExists(configFile);
+        try (BufferedWriter bw = Files.newBufferedWriter(configFile,
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
             try (FormattingXmlStreamWriter writer = new FormattingXmlStreamWriter(XMLOutputFactory.newInstance()
                     .createXMLStreamWriter(bw))) {
@@ -85,7 +136,7 @@ public class Configuration implements MavenChangeListener {
 
     public static Configuration parse() throws ProvisioningException {
         Configuration config = new Configuration();
-        Path configFile = getStoragePath();
+        Path configFile = getConfigFile();
         if (Files.exists(configFile)) {
             try (BufferedReader reader = Files.newBufferedReader(configFile)) {
                 XmlParsers.parse(reader, config);
@@ -96,7 +147,24 @@ public class Configuration implements MavenChangeListener {
         return config;
     }
 
-    private static Path getStoragePath() {
-        return new File(System.getProperty("user.home") + File.separator + CONFIG_FILE_NAME).toPath();
+    private static Path getConfigDirectory() {
+        Path galleonDir = new File(System.getProperty("user.home")
+                + File.separator + GALLON_DIR_NAME).toPath();
+        if (!Files.exists(galleonDir)) {
+            galleonDir.toFile().mkdir();
+        }
+        return galleonDir;
+    }
+
+    private static Path getConfigFile() {
+        return getConfigDirectory().resolve(CONFIG_FILE_NAME);
+    }
+
+    public void clearLayoutCache() throws IOException {
+        try {
+            IoUtils.recursiveDelete(getLayoutCache());
+        } finally {
+            Files.delete(layoutContentFile);
+        }
     }
 }

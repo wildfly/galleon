@@ -16,9 +16,15 @@
  */
 package org.jboss.galleon.cli;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.aesh.command.activator.CommandActivator;
 import org.aesh.command.activator.CommandActivatorProvider;
 import org.aesh.command.activator.OptionActivator;
@@ -43,6 +49,8 @@ import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.ResourceResolver;
 import org.jboss.galleon.cli.tracking.ProgressTrackers;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
+import org.jboss.galleon.cache.FeaturePackCacheManager;
+import org.jboss.galleon.cache.FeaturePackCacheManager.OverwritePolicy;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Producer;
@@ -56,6 +64,52 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
  */
 public class PmSession implements CommandInvocationProvider<PmCommandInvocation>, CompleterInvocationProvider<PmCompleterInvocation>,
         CommandActivatorProvider, OptionActivatorProvider<OptionActivator> {
+
+    private class CliOverwritePolicy implements OverwritePolicy {
+
+        // The same FPID can be seen during the execution of a single command.
+        // Re-use it if already seen (and un-packed).
+        // This set is also used to record what has been cached.
+        private final Set<FPID> seen = new HashSet<>();
+
+        void commandStart() {
+            seen.clear();
+        }
+
+        void commandEnd() {
+            if (seen.isEmpty()) {
+                return;
+            }
+            try {
+                Properties props = config.getLayoutCacheContent();
+                long time = System.currentTimeMillis();
+                for (FPID id : seen) {
+                    props.setProperty(id.toString(), "" + time);
+                }
+                config.storeLayoutCacheContent(props);
+            } catch (IOException ex) {
+                Logger.getLogger(PmSession.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        @Override
+        public boolean hasExpired(Path fpDir, FeaturePackLocation.FPID fpid) {
+            try {
+                boolean devBuild = universe.getUniverse(fpid.getUniverse()).
+                        getProducer(fpid.getProducer().getName()).getChannel(fpid.getChannel().getName()).
+                        isDevBuild(fpid);
+                return devBuild && !seen.contains(fpid);
+            } catch (ProvisioningException ex) {
+                Logger.getLogger(PmSession.class.getName()).log(Level.SEVERE, null, ex);
+                return true;
+            }
+        }
+
+        @Override
+        public void cached(FPID fpid) {
+            seen.add(fpid);
+        }
+    }
 
     private class MavenListener implements RepositoryListener {
 
@@ -201,26 +255,71 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     private String currentPath;
     private final CliMavenArtifactRepositoryManager maven;
     private final MavenListener mavenListener;
-    private UniverseManager universe;
+    private final UniverseManager universe;
     private final ResourceResolver resolver;
     private final ProvisioningLayoutFactory layoutFactory;
     private AeshContext ctx;
     private boolean rethrow = false;
     private boolean enableTrackers = true;
-
+    private final CliOverwritePolicy policy = new CliOverwritePolicy();
+    private final boolean interactive;
+    private final FeaturePackCacheManager cacheManager;
     public PmSession(Configuration config) throws Exception {
+        this(config, true);
+    }
+
+    public PmSession(Configuration config, boolean interactive) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
         this.maven = new CliMavenArtifactRepositoryManager(config.getMavenConfig(),
                 mavenListener);
         UniverseResolver universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
         universe = new UniverseManager(this, config, maven, universeResolver);
-        layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver);
+        this.interactive = interactive;
+        cacheManager = new FeaturePackCacheManager(config.getLayoutCache(), policy);
+        if (interactive) {
+            layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver, cacheManager);
+        } else {
+            layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver);
+        }
         resolver = new ResourceResolver(this);
         // Abort running universe resolution if any.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             close();
         }));
+    }
+
+    public void clearLayoutCache() throws IOException {
+        config.clearLayoutCache();
+    }
+
+    public void cleanupLayoutCache() {
+        try {
+            Properties props = config.getLayoutCacheContent();
+            long now = System.currentTimeMillis();
+            Set<String> toRemove = new HashSet<>();
+            for (String k : props.stringPropertyNames()) {
+                String time = props.getProperty(k);
+                long lastUsage = Long.decode(time);
+                if ((now - lastUsage) > Configuration.CACHE_PERIOD) {
+                    toRemove.add(k);
+                    try {
+                        cacheManager.remove(FeaturePackLocation.fromString(k).getFPID());
+                    } catch (ProvisioningException ex) {
+                        Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+            if (!toRemove.isEmpty()) {
+                for (String k : toRemove) {
+                    props.remove(k);
+                }
+                config.storeLayoutCacheContent(props);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     public void enableTrackers(boolean enable) {
@@ -258,7 +357,11 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
             try {
                 universe.close();
             } finally {
-                layoutFactory.close();
+                if (interactive) {
+                    layoutFactory.checkOpenLayouts();
+                } else {
+                    layoutFactory.close();
+                }
             }
         }
     }
@@ -329,11 +432,17 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
 
 
     public void commandStart(PmCommandInvocation session) {
+        if (interactive) {
+            policy.commandStart();
+        }
         maven.commandStart();
         ProgressTrackers.commandStart(session);
     }
 
     public void commandEnd(PmCommandInvocation session) {
+        if (interactive) {
+            policy.commandEnd();
+        }
         maven.commandEnd();
         ProgressTrackers.commandEnd(session);
     }

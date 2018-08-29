@@ -78,7 +78,7 @@ public class StateProvisionCommand extends AbstractProvisionWithPlugins {
     }
 
     @Override
-    protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
+    protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
         ProvisioningRuntime rt;
         Set<PluginOption> opts;
@@ -91,7 +91,7 @@ public class StateProvisionCommand extends AbstractProvisionWithPlugins {
                 return Collections.emptyList();
             }
             ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, pmSession.getAeshContext()));
-            opts = pmSession.getResolver().get(id, PluginResolver.newResolver(pmSession, config)).getInstall();
+            opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getInstall();
         }
         for (PluginOption opt : opts) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());

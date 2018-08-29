@@ -142,6 +142,21 @@ _[my-dir]$ feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --typ
 Display the FPID of a feature-pack. In addition can display dependencies, configurations 
 and options usable when installing/provisioning/upgrading.
 
+### Managing the local cache of feature-packs
+
+When a feature-pack is internally resolved (at install time, to expose information, 
+to retrieve plugin options, ...). The feature-pack is added to a local cache. 
+This cache is re-used to speed-up future resolutions. The CLI cleanup un-used feature-pack from the cache
+that are older than one month. 
+
+You can import (and optionally install in the universe for later resolution) a feature-pack zip file in the cache.
+
+_[my-dir]$ feature-pack import <path to fp zip file> [--install-in-universe=<true|false>]_
+
+You can clear the cache fully (NB: this will have a performance impact for future resolution).
+
+_[my-dir]$ feature-pack clear-cache_
+
 ### Exporting an installation to xml
 
 _[my-dir]$ state export <new generated xml file> --dir=<installation>_

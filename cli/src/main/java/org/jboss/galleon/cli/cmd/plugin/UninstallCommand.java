@@ -106,7 +106,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
     }
 
     @Override
-    protected List<DynamicOption> getDynamicOptions(State state, String id) throws Exception {
+    protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         String fpid = getFPID();
         Path dir = getAbsolutePath(getUninstallDir(), pmSession.getAeshContext());
         // Build layout from this directory.

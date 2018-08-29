@@ -16,24 +16,26 @@
  */
 package org.jboss.galleon.cli.cmd.featurepack;
 
-import org.aesh.command.Command;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
-import org.aesh.command.GroupCommandDefinition;
-import org.aesh.command.invocation.CommandInvocation;
+import java.io.IOException;
+import org.aesh.command.CommandDefinition;
+import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSessionCommand;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@GroupCommandDefinition(description = "", name = "feature-pack", groupCommands = {ImportCommand.class,
-    InfoCommand.class, ExploreCommand.class, ClearCacheCommand.class})
-public class FeaturePackCommand implements Command<CommandInvocation> {
+@CommandDefinition(name = "clear-cache", description = "Clear the cache of feature-packs.")
+public class ClearCacheCommand extends PmSessionCommand {
 
     @Override
-    public CommandResult execute(CommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println("subcommand missing");
-        return CommandResult.FAILURE;
+    protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
+        try {
+            session.getPmSession().clearLayoutCache();
+        } catch (IOException ex) {
+            throw new CommandExecutionException(ex.getMessage());
+        }
     }
 
 }

@@ -65,6 +65,11 @@ public class LegacyGalleon1Channel implements Channel {
 
     @Override
     public String getLatestBuild(FeaturePackLocation.FPID fpid) throws ProvisioningException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isDevBuild(FeaturePackLocation.FPID fpid) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

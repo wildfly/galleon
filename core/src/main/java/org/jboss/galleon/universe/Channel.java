@@ -53,4 +53,6 @@ public interface Channel {
         }
         return updateRequest.buildPlan();
     }
+
+    boolean isDevBuild(FPID fpid);
 }
