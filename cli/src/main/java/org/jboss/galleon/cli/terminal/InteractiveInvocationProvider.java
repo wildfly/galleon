@@ -14,23 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli;
+package org.jboss.galleon.cli.terminal;
 
 import org.aesh.command.invocation.CommandInvocation;
+import org.aesh.command.invocation.CommandInvocationProvider;
+import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSession;
 
 /**
- * A CommandInvocation instance base class that provides access to a PmSession.
  *
- * @author Alexey Loubyansky
+ * @author jdenise@redhat.com
  */
-public abstract class PmCommandInvocation implements CommandInvocation {
+public class InteractiveInvocationProvider implements CommandInvocationProvider<PmCommandInvocation> {
 
     private final PmSession session;
-    protected PmCommandInvocation(PmSession session) {
+
+    public InteractiveInvocationProvider(PmSession session) {
         this.session = session;
     }
 
-    public PmSession getPmSession() {
-        return session;
+    @Override
+    public PmCommandInvocation enhanceCommandInvocation(CommandInvocation commandInvocation) {
+        return new InteractivePmCommandInvocation(session, commandInvocation);
     }
 }

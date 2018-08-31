@@ -22,20 +22,6 @@ DEBUG_MODE="${DEBUG:-false}"
 DEBUG_PORT="${DEBUG_PORT:-8787}"
 GREP="grep"
 
-while [ "$#" -gt 0 ]
-do
-    case "$1" in
-      --debug)
-          DEBUG_MODE=true
-          if [ -n "$2" ] && [ "$2" = `echo "$2" | sed 's/-//'` ]; then
-              DEBUG_PORT=$2
-              shift
-          fi
-          ;;
-    esac
-    shift
-done
-
 # Set debug settings if not already set
 if [ "$DEBUG_MODE" = "true" ]; then
     DEBUG_OPT=`echo $JAVA_OPTS | $GREP "\-agentlib:jdwp"`
@@ -54,5 +40,4 @@ if [ "x$JAVA" = "x" ]; then
         JAVA="java"
     fi
 fi
-
 exec "$JAVA" $JAVA_OPTS -jar "$DIRNAME"/galleon-cli.jar "$@"
