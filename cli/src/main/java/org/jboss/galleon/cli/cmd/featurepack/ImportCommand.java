@@ -22,6 +22,7 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -31,13 +32,13 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "import", description = "import a feature-pack")
+@CommandDefinition(name = "import", description = HelpDescriptions.IMPORT_FP)
 public class ImportCommand extends PmSessionCommand {
 
-    @Argument(required = true)
+    @Argument(required = true, description = HelpDescriptions.FP_FILE_IMPORT)
     private File path;
 
-    @Option(name = "install-in-universe", hasValue = true, required = false, description = "Add feature-pack to universe. Optional, it is installed by default.")
+    @Option(name = "install-in-universe", hasValue = true, required = false, description = HelpDescriptions.INSTALL_IN_UNIVERSE)
     private Boolean install;
 
     @Override

@@ -1,0 +1,11 @@
+
+Galleon provisioning tool.
+
+Available commands
+------------------
+TO DO, organize commands into domains and rework command scoping.
+
+$AVAILABLE_COMMANDS
+
+For more information on each available commands read documentation located in docs 
+directory or execute 'help <command name>'.

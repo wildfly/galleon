@@ -18,6 +18,8 @@ package org.jboss.galleon.cli;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
+import org.aesh.readline.util.Parser;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -68,5 +70,11 @@ public class Util {
         locator.addService(TransporterFactory.class, FileTransporterFactory.class);
         locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
         return locator.getService(RepositorySystem.class);
+    }
+
+    public static String formatColumns(List<String> lst, int width, int height) {
+        String[] array = new String[lst.size()];
+        lst.toArray(array);
+        return Parser.formatDisplayList(array, width, height);
     }
 }

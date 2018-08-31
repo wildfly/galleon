@@ -25,6 +25,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -34,7 +35,7 @@ import org.jboss.galleon.cli.model.state.State;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "undo", description = "Undo the last provisioning command")
+@CommandDefinition(name = "undo", description = HelpDescriptions.UNDO)
 public class StateUndoCommand extends org.jboss.galleon.cli.AbstractStateCommand {
 
     public static class VerboseActivator extends PmOptionActivator {
@@ -45,7 +46,8 @@ public class StateUndoCommand extends org.jboss.galleon.cli.AbstractStateCommand
         }
     }
 
-    @Option(name = VERBOSE_OPTION_NAME, required = false, hasValue = false, activator = VerboseActivator.class)
+    @Option(name = VERBOSE_OPTION_NAME, required = false, hasValue = false,
+            activator = VerboseActivator.class, description = HelpDescriptions.VERBOSE)
     private boolean verbose;
 
     @Override

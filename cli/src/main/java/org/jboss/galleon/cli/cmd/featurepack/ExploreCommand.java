@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.cmd.featurepack;
 
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -32,7 +33,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "explore", description = "Explore a feature-pack", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "explore", description = HelpDescriptions.EXPLORE_FP, activator = NoStateCommandActivator.class)
 public class ExploreCommand extends AbstractFeaturePackCommand {
 
     @Override

@@ -29,6 +29,7 @@ import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import static org.jboss.galleon.cli.cmd.AbstractDynamicCommand.ARGUMENT_NAME;
@@ -58,7 +59,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
         List<ProcessedOption> options = new ArrayList<>();
         options.add(ProcessedOptionBuilder.builder().name(ARGUMENT_NAME).
                 hasValue(true).
-                description("FPID of the feature-pack to remove").
+                description(HelpDescriptions.FP_TO_REMOVE).
                 type(String.class).
                 optionType(OptionType.ARGUMENT).
                 completer(InstalledFPLCompleter.class).
@@ -102,7 +103,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
 
     @Override
     protected String getDescription() {
-        return "Un-install a FP from an installation. Plugin options to re-apply to remaining FP can be provided.";
+        return HelpDescriptions.UNINSTALL;
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -38,7 +39,7 @@ import org.jboss.galleon.cli.path.PathParser;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove", description = "Remove a feature", activator = StateEditCommandActivator.class)
+@CommandDefinition(name = "remove", description = HelpDescriptions.REMOVE_FEATURE, activator = StateEditCommandActivator.class)
 public class StateRemoveFeatureCommand extends AbstractStateCommand {
 
     public static class FeatureCompleter extends StateFullPathCompleter {
@@ -49,7 +50,7 @@ public class StateRemoveFeatureCommand extends AbstractStateCommand {
         }
     }
 
-    @Argument(required = true, completer = FeatureCompleter.class)
+    @Argument(required = true, completer = FeatureCompleter.class, description = HelpDescriptions.FEATURE_PATH)
     private String feature;
 
     @Override

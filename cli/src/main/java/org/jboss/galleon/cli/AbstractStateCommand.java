@@ -50,7 +50,7 @@ public abstract class AbstractStateCommand extends PmSessionCommand implements C
     public static final String VERBOSE_OPTION_NAME = "verbose";
 
     @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
-            activator = DirActivator.class, description = "Installation directory.")
+            activator = DirActivator.class, description = HelpDescriptions.INSTALLATION_DIRECTORY)
     protected String targetDirArg;
 
     protected ProvisioningManager getManager(PmSession session) throws ProvisioningException {

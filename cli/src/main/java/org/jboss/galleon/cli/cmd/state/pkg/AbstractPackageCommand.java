@@ -24,6 +24,7 @@ import org.aesh.command.option.Argument;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
@@ -94,7 +95,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
         }
     }
 
-    @Argument(required = true, description = "Package name",
+    @Argument(required = true, description = HelpDescriptions.PACKAGE_NAME,
             completer = PackageCompleter.class)
     private String pkg;
 

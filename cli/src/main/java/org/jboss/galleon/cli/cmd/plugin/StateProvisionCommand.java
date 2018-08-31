@@ -34,6 +34,7 @@ import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
@@ -74,7 +75,7 @@ public class StateProvisionCommand extends AbstractProvisionWithPlugins {
 
     @Override
     protected String getDescription() {
-        return "Install from a provisioning file or the current state";
+        return HelpDescriptions.PROVISION;
     }
 
     @Override
@@ -125,7 +126,7 @@ public class StateProvisionCommand extends AbstractProvisionWithPlugins {
         List<ProcessedOption> options = new ArrayList<>();
         options.add(ProcessedOptionBuilder.builder().name(ARGUMENT_NAME).
                 hasValue(true).
-                description("File describing the desired provisioned state.").
+                description(HelpDescriptions.PROVISION_FILE).
                 type(String.class).
                 optionType(OptionType.ARGUMENT).
                 completer(FileOptionCompleter.class).

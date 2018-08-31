@@ -30,6 +30,7 @@ import org.aesh.command.map.MapCommand;
 import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
@@ -173,7 +174,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
     @Override
     protected String getDescription() {
-        return "Add a new feature";
+        return HelpDescriptions.ADD_FEATURE;
     }
 
     private String getId() {
@@ -224,7 +225,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
         List<ProcessedOption> options = new ArrayList<>();
         options.add(ProcessedOptionBuilder.builder().name(ARGUMENT_NAME).
                 hasValue(true).
-                description("config followed by feature id").
+                description(HelpDescriptions.FEATURE_PATH).
                 type(String.class).
                 required(true).
                 hasMultipleValues(true).

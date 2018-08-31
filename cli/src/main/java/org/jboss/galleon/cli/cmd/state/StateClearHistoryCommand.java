@@ -20,6 +20,7 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 
@@ -27,7 +28,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "clear-history", description = "Clear the history.", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "clear-history", description = HelpDescriptions.CLEAR_HISTORY, activator = NoStateCommandActivator.class)
 public class StateClearHistoryCommand extends org.jboss.galleon.cli.AbstractStateCommand {
 
     @Override

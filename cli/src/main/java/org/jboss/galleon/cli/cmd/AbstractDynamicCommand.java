@@ -54,7 +54,7 @@ import org.jboss.galleon.cli.model.state.State;
  */
 public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocation> {
 
-    public static final String ARGUMENT_NAME = "org.jboss.pm.tool.arg";
+    public static final String ARGUMENT_NAME = "";
 
     public class DynamicOption {
 
@@ -317,18 +317,10 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     protected abstract boolean canComplete(PmSession pmSession);
 
-    private void println(PmCommandInvocation session, Throwable t) {
-        if (t.getLocalizedMessage() == null) {
-            session.println(t.getClass().getName());
-        } else {
-            session.println(t.getLocalizedMessage());
-        }
-    }
-
     private Map<String, String> getOptions() throws CommandException {
         Map<String, String> options = new HashMap<>();
         for (String m : getValues().keySet()) {
-            if (m == null || m.isEmpty()) {
+            if (m == null) {
                 throw new CommandException("Invalid null option");
             }
             if (!staticOptions.contains(m)) {

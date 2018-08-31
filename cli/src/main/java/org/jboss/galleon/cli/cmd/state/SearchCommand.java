@@ -28,6 +28,7 @@ import org.aesh.command.option.Option;
 import org.aesh.utils.Config;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -49,7 +50,7 @@ import org.jboss.galleon.runtime.ResolvedSpecId;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "search", description = "search the state for the provided content", activator = StateCommandActivator.class)
+@CommandDefinition(name = "search", description = HelpDescriptions.SEARCH_STATE, activator = StateCommandActivator.class)
 public class SearchCommand extends PmSessionCommand {
 
     public static class QueryActivator implements OptionActivator {
@@ -70,13 +71,15 @@ public class SearchCommand extends PmSessionCommand {
         }
     }
 
-    @Option(required = false, activator = QueryActivator.class)
+    @Option(required = false, activator = QueryActivator.class, description = HelpDescriptions.SEARCH_QUERY)
     private String query;
 
-    @Option(required = false, name = "package", completer = PackageCompleter.class, activator = PackageActivator.class)
+    @Option(required = false, name = "package", completer = PackageCompleter.class,
+            activator = PackageActivator.class, description = HelpDescriptions.PACKAGE_PATH)
     private String pkg;
 
-    @Option(required = false, name = "include-dependencies", hasValue = false)
+    @Option(required = false, name = "include-dependencies", hasValue = false,
+            description = HelpDescriptions.SEARCH_IN_DEPENDENCIES)
     private Boolean inDependencies;
 
     @Override

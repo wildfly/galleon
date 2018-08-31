@@ -36,6 +36,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -128,7 +129,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     @Override
     protected String getDescription() {
-        return "Installs specified feature-pack";
+        return HelpDescriptions.INSTALL;
     }
 
     @Override
@@ -138,7 +139,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                description("Target installation directory.").
+                description(HelpDescriptions.INSTALLATION_DIRECTORY).
                 completer(FileOptionCompleter.class).
                 build();
         options.add(dir);
@@ -147,7 +148,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                 type(String.class).
                 optionType(OptionType.NORMAL).
                 activator(new FileOptionActivator()).
-                description("Path to a Feature-pack.").
+                description(HelpDescriptions.FP_FILE_PATH).
                 completer(FileOptionCompleter.class).
                 build();
         options.add(file);

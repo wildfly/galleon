@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamException;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -32,10 +33,10 @@ import org.jboss.galleon.cli.cmd.CliErrors;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "set-local-repository", description = "Set or reset path to local repository path")
+@CommandDefinition(name = "set-local-repository", description = HelpDescriptions.MVN_SET_LOCAL_PATH)
 public class MavenSetLocalRepository extends PmSessionCommand {
 
-    @Argument(description = "Path to local maven repository. no value to reset to default value", required = false)
+    @Argument(description = HelpDescriptions.MVN_LOCAL_REPO_PATH, required = false)
     private File path;
 
     @Override

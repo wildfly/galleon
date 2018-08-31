@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.FPDependentCommandActivator;
@@ -30,7 +31,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "exclude", description = "Exclude a package", activator = FPDependentCommandActivator.class)
+@CommandDefinition(name = "exclude", description = HelpDescriptions.EXCLUDE_PACKAGE, activator = FPDependentCommandActivator.class)
 public class StateExcludePackageCommand extends AbstractPackageCommand {
 
     @Override

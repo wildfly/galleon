@@ -205,6 +205,10 @@ public interface CliErrors {
         return failed("State Command");
     }
 
+    static String subCommandMissing() {
+        return "Sub command is missing";
+    }
+
     static String undoFailed() {
         return failed("Undo");
     }

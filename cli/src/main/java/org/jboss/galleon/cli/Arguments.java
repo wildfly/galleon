@@ -34,6 +34,17 @@ public class Arguments {
     private String command;
     private String scriptFile;
 
+    private static final Map<String, String> OPTIONS = new HashMap<>();
+
+    static {
+        OPTIONS.put(HELP, HelpDescriptions.TOOL_HELP_OPTION);
+        OPTIONS.put(SCRIPT_FILE, HelpDescriptions.TOOL_FILE_OPTION);
+    }
+
+    public static Map<String, String> getToolOptions() {
+        return Collections.unmodifiableMap(OPTIONS);
+    }
+
     private Arguments() {
     }
 
@@ -59,7 +70,7 @@ public class Arguments {
             return arguments;
         }
         Map<String, String> opts = new HashMap<>();
-        int i = 0;
+        int i;
         for (i = 0; i < args.length; i++) {
             String arg = args[i];
             if (arg.startsWith("--")) {

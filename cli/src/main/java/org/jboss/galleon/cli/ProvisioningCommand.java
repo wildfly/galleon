@@ -33,11 +33,11 @@ import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 public abstract class ProvisioningCommand extends PmSessionCommand implements CommandWithInstallationDirectory {
 
     @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
-            description="Target installation directory.")
+            description = HelpDescriptions.INSTALLATION_DIRECTORY)
     protected String targetDirArg;
 
     @Option(name = VERBOSE_OPTION_NAME, shortName = 'v', hasValue = false,
-            description = "Whether or not the output should be verbose")
+            description = HelpDescriptions.VERBOSE)
     boolean verbose;
 
     @Override

@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -59,13 +60,13 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                description("Target installation directory.").
+                description(HelpDescriptions.INSTALLATION_DIRECTORY).
                 completer(FileOptionCompleter.class).
                 build());
         options.add(ProcessedOptionBuilder.builder().name(VERBOSE_OPTION_NAME).
                 hasValue(false).
                 type(Boolean.class).
-                description("Whether or not the output should be verbose").
+                description(HelpDescriptions.VERBOSE).
                 optionType(OptionType.BOOLEAN).
                 build());
         options.addAll(getOtherOptions());

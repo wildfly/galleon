@@ -26,6 +26,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -49,7 +50,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "info", description = "info on a feature-pack")
+@CommandDefinition(name = "info", description = HelpDescriptions.DISPLAY_FP_INFO)
 public class InfoCommand extends AbstractFeaturePackCommand {
 
     public static final String PATCH_FOR = "Patch for ";
@@ -63,7 +64,7 @@ public class InfoCommand extends AbstractFeaturePackCommand {
         }
 
     }
-    @Option(completer = InfoTypeCompleter.class)
+    @Option(completer = InfoTypeCompleter.class, description = HelpDescriptions.FP_INFO_TYPE)
     private String type;
 
     @Override

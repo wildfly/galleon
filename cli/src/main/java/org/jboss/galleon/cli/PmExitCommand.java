@@ -24,7 +24,7 @@ import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "exit", description = "exit the program.", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "exit", description = HelpDescriptions.EXIT, activator = NoStateCommandActivator.class)
 public class PmExitCommand extends Exit {
 
 }

@@ -34,6 +34,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
@@ -94,7 +95,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         List<ProcessedOption> options = new ArrayList<>();
         options.add(ProcessedOptionBuilder.builder().name(ARGUMENT_NAME).
                 hasValue(true).
-                description("FP Location").
+                description(HelpDescriptions.FP_LOCATION).
                 type(String.class).
                 required(true).
                 optionType(OptionType.ARGUMENT).
@@ -104,7 +105,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         options.add(ProcessedOptionBuilder.builder().name(VERBOSE_OPTION_NAME).
                 hasValue(false).
                 type(Boolean.class).
-                description("Whether or not the output should be verbose").
+                description(HelpDescriptions.VERBOSE).
                 optionType(OptionType.BOOLEAN).
                 build());
         options.addAll(getOtherOptions());

@@ -24,6 +24,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
@@ -33,7 +34,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove", description = "remove a universe, without --name, removes the default universe")
+@CommandDefinition(name = "remove", description = HelpDescriptions.REMOVE_UNIVERSE)
 public class UniverseRemoveCommand extends PmSessionCommand {
     public static class UniverseCompleter extends AbstractCompleter {
 
@@ -44,7 +45,7 @@ public class UniverseRemoveCommand extends PmSessionCommand {
             return names;
         }
     }
-    @Option(completer = UniverseCompleter.class, required = false)
+    @Option(completer = UniverseCompleter.class, required = false, description = HelpDescriptions.UNIVERSE_NAME)
     private String name;
 
     @Override

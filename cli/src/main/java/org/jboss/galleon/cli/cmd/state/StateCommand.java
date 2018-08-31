@@ -29,6 +29,7 @@ import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.parser.CommandLineParserException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.configuration.ConfigCommand;
 import org.jboss.galleon.cli.cmd.state.fp.FPCommand;
 import org.jboss.galleon.cli.cmd.state.pkg.PackageCommand;
@@ -51,7 +52,7 @@ public class StateCommand implements GroupCommand<PmCommandInvocation, Command> 
 
     @Override
     public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println("subcommand missing");
+        commandInvocation.println(CliErrors.subCommandMissing());
         return CommandResult.FAILURE;
     }
 

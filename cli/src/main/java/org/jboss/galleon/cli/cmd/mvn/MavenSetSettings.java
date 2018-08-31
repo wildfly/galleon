@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamException;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -32,10 +33,10 @@ import org.jboss.galleon.cli.cmd.CliErrors;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "set-settings-file", description = "Set (or unset) a path to maven settings.xml file")
+@CommandDefinition(name = "set-settings-file", description = HelpDescriptions.MVN_SET_SETTINGS_PATH)
 public class MavenSetSettings extends PmSessionCommand {
 
-    @Argument(description = "Path to maven seetings file", required = false)
+    @Argument(description = HelpDescriptions.MVN_SETTINGS_PATH, required = false)
     private File path;
 
     @Override

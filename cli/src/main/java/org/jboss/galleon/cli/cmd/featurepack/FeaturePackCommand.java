@@ -21,6 +21,7 @@ import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
 import org.aesh.command.GroupCommandDefinition;
 import org.aesh.command.invocation.CommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
@@ -32,7 +33,7 @@ public class FeaturePackCommand implements Command<CommandInvocation> {
 
     @Override
     public CommandResult execute(CommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println("subcommand missing");
+        commandInvocation.println(CliErrors.subCommandMissing());
         return CommandResult.FAILURE;
     }
 

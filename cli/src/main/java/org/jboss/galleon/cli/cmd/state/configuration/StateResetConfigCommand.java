@@ -21,6 +21,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
@@ -34,9 +35,9 @@ import org.jboss.galleon.cli.path.PathParserException;
 /**
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "reset", description = "Reset a configuration to its default state", activator = ResetConfigCommandActivator.class)
+@CommandDefinition(name = "reset", description = HelpDescriptions.RESET_CONFIG, activator = ResetConfigCommandActivator.class)
 public class StateResetConfigCommand extends AbstractStateCommand {
-    @Option(required = true, description = "Configuration name",
+    @Option(required = true, description = HelpDescriptions.CONFIGURATION_NAME,
             completer = ProvisionedConfigurationCompleter.class)
     private String configuration;
 

@@ -429,6 +429,7 @@ limitations under the License.</inlineHeader>
             <exclude>**/.idea/**/*</exclude>
             <exclude>mvnw</exclude>
             <exclude>mvnw.cmd</exclude>
+            <exclude>**/help/*.txt</exclude>
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>

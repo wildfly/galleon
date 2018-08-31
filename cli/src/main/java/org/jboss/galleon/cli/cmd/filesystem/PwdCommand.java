@@ -18,10 +18,11 @@ package org.jboss.galleon.cli.cmd.filesystem;
 
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 
-@CommandDefinition(name = "pwd", description = "show the current [dir] or [fp]")
+@CommandDefinition(name = "pwd", description = HelpDescriptions.PWD)
 public class PwdCommand extends PmSessionCommand {
 
     @Override

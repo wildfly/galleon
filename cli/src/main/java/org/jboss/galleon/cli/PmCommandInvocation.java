@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli;
 
+import java.util.List;
 import org.aesh.command.invocation.CommandInvocation;
 
 /**
@@ -32,5 +33,11 @@ public abstract class PmCommandInvocation implements CommandInvocation {
 
     public PmSession getPmSession() {
         return session;
+    }
+
+    public String formatColumns(List<String> lst) {
+        return Util.formatColumns(lst,
+                getShell().size().getHeight(),
+                getShell().size().getWidth());
     }
 }

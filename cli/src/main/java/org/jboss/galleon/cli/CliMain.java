@@ -24,9 +24,11 @@ import org.jboss.galleon.cli.cmd.universe.UniverseCommand;
 import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
 import org.aesh.command.AeshCommandRuntimeBuilder;
+import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandRuntime;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
+import org.aesh.command.invocation.CommandInvocation;
 import org.aesh.command.invocation.CommandInvocationProvider;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.registry.CommandRegistry;
@@ -36,6 +38,7 @@ import org.aesh.extensions.clear.Clear;
 import org.aesh.readline.ReadlineConsole;
 import org.aesh.utils.Config;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.HelpCommand;
 import org.jboss.galleon.cli.cmd.mvn.MavenCommand;
 import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
 import org.jboss.galleon.cli.cmd.filesystem.LsCommand;
@@ -62,20 +65,20 @@ public class CliMain {
 
     public static void main(String[] args) {
         Arguments arguments = Arguments.parseArguments(args);
+        boolean interactive = arguments.getCommand() == null && arguments.getScriptFile() == null;
         PmSession pmSession = null;
         try {
+            pmSession = new PmSession(Configuration.parse(arguments.getOptions()), interactive);
             CliTerminalConnection connection = new CliTerminalConnection();
             if (arguments.isHelp()) {
                 try {
-                    connection.getOutput().println("No help yet");
+                    CommandRuntime runtime = newRuntime(pmSession, connection);
+                    connection.getOutput().println(HelpSupport.getToolHelp(runtime.getCommandRegistry(), connection.getShell()));
                 } finally {
                     connection.close();
                 }
                 return;
             }
-
-            boolean interactive = arguments.getCommand() == null && arguments.getScriptFile() == null;
-            pmSession = new PmSession(Configuration.parse(arguments.getOptions()), interactive);
             if (interactive) {
                 startInteractive(pmSession, connection);
             } else {
@@ -197,9 +200,11 @@ public class CliMain {
         //ProvisionedSpecCommand state = new ProvisionedSpecCommand(pmSession);
         FeatureCommand feature = new FeatureCommand(pmSession);
         StateCommand state = new StateCommand(pmSession);
+        HelpCommand help = new HelpCommand();
         AeshCommandRegistryBuilder builder = new AeshCommandRegistryBuilder()
                 .command(Clear.class)
                 .command(FeaturePackCommand.class)
+                .command(help)
                 .command(MavenCommand.class)
                 .command(feature)
                 .command(state)
@@ -219,7 +224,9 @@ public class CliMain {
 
         StateCommand.addActionCommands(builder);
 
-        return builder.create();
+        CommandRegistry<? extends Command, ? extends CommandInvocation> registry = builder.create();
+        help.setRegistry(registry);
+        return registry;
     }
 
     // A runtime attached to cli terminal connection to execute a single command.
@@ -228,11 +235,13 @@ public class CliMain {
     }
 
     // Used by tests. Tests don't rely on advanced output/input.
-    public static CommandRuntime newRuntime(PmSession session, PrintStream out) throws CommandLineParserException {
+    public static CommandRuntime<? extends Command, ? extends CommandInvocation> newRuntime(PmSession session,
+            PrintStream out) throws CommandLineParserException {
         return newRuntime(session, null, out, new OutputInvocationProvider(session));
     }
 
-    private static CommandRuntime newRuntime(PmSession session, CliTerminalConnection connection, PrintStream out,
+    private static CommandRuntime<? extends Command, ? extends CommandInvocation> newRuntime(PmSession session,
+            CliTerminalConnection connection, PrintStream out,
             CommandInvocationProvider<PmCommandInvocation> provider) throws CommandLineParserException {
         AeshCommandRuntimeBuilder builder = AeshCommandRuntimeBuilder.builder();
         builder.settings(buildSettings(session, connection, provider));

@@ -21,6 +21,7 @@ import javax.xml.stream.XMLStreamException;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.BooleanCompleter;
@@ -31,10 +32,10 @@ import org.jboss.galleon.cli.cmd.BooleanCompleter;
  */
 
 
-@CommandDefinition(name = "enable-snapshot", description = "Enable snapshot by default")
+@CommandDefinition(name = "enable-snapshot", description = HelpDescriptions.MVN_ENABLE_SNAPSHOT)
 public class MavenEnableSnapshot extends PmSessionCommand {
 
-    @Argument(completer = BooleanCompleter.class)
+    @Argument(completer = BooleanCompleter.class, description = HelpDescriptions.BOOLEAN_OPT)
     private String enable;
 
     @Override
