@@ -86,15 +86,21 @@ public class IoUtils {
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                    throws IOException {
-                    Files.delete(file);
+                        throws IOException {
+                    try {
+                        Files.delete(file);
+                    } catch (IOException ex) {
+                    }
                     return FileVisitResult.CONTINUE;
                 }
                 @Override
                 public FileVisitResult postVisitDirectory(Path dir, IOException e)
                     throws IOException {
                     if (e == null) {
-                        Files.delete(dir);
+                        try {
+                            Files.delete(dir);
+                        } catch (IOException ex) {
+                        }
                         return FileVisitResult.CONTINUE;
                     } else {
                         // directory iteration failed
