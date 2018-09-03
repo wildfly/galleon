@@ -28,6 +28,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -100,11 +101,11 @@ public abstract class AbstractProvisionedPackageCommand extends AbstractFPProvis
         }
 
     }
-    @Argument(required = true, description = "Package name",
+    @Argument(required = true, description = HelpDescriptions.PACKAGE_NAME,
             completer = ProvisionedPackageCompleter.class)
     private String pkg;
 
-    @Option(completer = TargetedFPCompleter.class)
+    @Option(completer = TargetedFPCompleter.class, description = HelpDescriptions.PACKAGE_ORIGIN)
     protected String origin;
 
     @Override

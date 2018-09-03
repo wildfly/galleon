@@ -26,6 +26,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
@@ -124,11 +125,11 @@ public abstract class AbstractDefaultConfigCommand extends AbstractFPProvisioned
 
     }
 
-    @Argument(required = true, description = "Configuration name",
+    @Argument(required = true, description = HelpDescriptions.CONFIGURATION_NAME,
             completer = ConfigCompleter.class)
     private String configuration;
 
-    @Option(completer = TargetedFPCompleter.class, description = "configuration origin")
+    @Option(completer = TargetedFPCompleter.class, description = HelpDescriptions.CONFIGURATION_ORIGIN)
     protected String origin;
 
     protected String getConfiguration() {

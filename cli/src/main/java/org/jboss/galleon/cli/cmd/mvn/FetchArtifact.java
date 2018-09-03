@@ -21,6 +21,7 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -30,13 +31,13 @@ import org.jboss.galleon.cli.cmd.FPLocationCompleter;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "fetch-feature-pack", description = "download a feature-pack to the local repository")
+@CommandDefinition(name = "fetch-feature-pack", description = HelpDescriptions.FETCH_FP)
 public class FetchArtifact extends PmSessionCommand {
 
-    @Argument(completer = FPLocationCompleter.class)
+    @Argument(completer = FPLocationCompleter.class, description = HelpDescriptions.LOCATION_FP_FETCH)
     protected String fpl;
 
-    @Option(hasValue = false)
+    @Option(hasValue = false, description = HelpDescriptions.VERBOSE)
     private boolean verbose;
 
     @Override

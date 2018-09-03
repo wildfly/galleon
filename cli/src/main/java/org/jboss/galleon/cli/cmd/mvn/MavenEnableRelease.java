@@ -21,6 +21,7 @@ import javax.xml.stream.XMLStreamException;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.BooleanCompleter;
@@ -31,9 +32,9 @@ import org.jboss.galleon.cli.cmd.BooleanCompleter;
  */
 
 
-@CommandDefinition(name = "enable-release", description = "Enable release by default")
+@CommandDefinition(name = "enable-release", description = HelpDescriptions.MVN_ENABLE_RELEASE)
 public class MavenEnableRelease extends PmSessionCommand {
-    @Argument(completer = BooleanCompleter.class)
+    @Argument(completer = BooleanCompleter.class, description = HelpDescriptions.BOOLEAN_OPT)
     private String enable;
 
     @Override

@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -67,7 +68,7 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
                 hasValue(false).
                 type(Boolean.class).
                 optionType(OptionType.BOOLEAN).
-                description("Include all dependencies.").
+                description(HelpDescriptions.UPDATE_DEPENDENCIES).
                 completer(FileOptionCompleter.class).
                 required(false).
                 build();
@@ -76,7 +77,7 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
                 hasValue(false).
                 type(Boolean.class).
                 optionType(OptionType.BOOLEAN).
-                description("No confirmation required.").
+                description(HelpDescriptions.UPDATE_NO_CONFIRMATION).
                 completer(FileOptionCompleter.class).
                 required(false).
                 shortName('y').
@@ -86,7 +87,7 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                description("The fp to update").
+                description(HelpDescriptions.UPDATE_FP).
                 required(false).
                 completer(InstalledProducerCompleter.class).
                 build();
@@ -173,6 +174,6 @@ public class StateUpdateCommand extends AbstractProvisionWithPlugins {
 
     @Override
     protected String getDescription() {
-        return "Update the installation to latest available updates and patches";
+        return HelpDescriptions.UPDATE;
     }
 }

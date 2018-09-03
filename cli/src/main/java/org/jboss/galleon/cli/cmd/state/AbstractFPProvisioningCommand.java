@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import org.jboss.galleon.cli.model.state.State;
@@ -32,18 +33,18 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  */
 public abstract class AbstractFPProvisioningCommand extends AbstractStateCommand {
 
-    @Argument(completer = FPLocationCompleter.class, required = true)
-    protected String streamName;
+    @Argument(completer = FPLocationCompleter.class, required = true, description = HelpDescriptions.FP_LOCATION)
+    protected String fpl;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
-        FeaturePackLocation fpl = invoc.getPmSession().getResolvedLocation(streamName);
+        FeaturePackLocation fpl = invoc.getPmSession().getResolvedLocation(this.fpl);
         runCommand(invoc, session, fpl);
     }
 
     protected abstract void runCommand(PmCommandInvocation invoc, State session, FeaturePackLocation fpl) throws IOException, ProvisioningException, CommandExecutionException;
 
     public String getName() {
-        return streamName;
+        return fpl;
     }
 }

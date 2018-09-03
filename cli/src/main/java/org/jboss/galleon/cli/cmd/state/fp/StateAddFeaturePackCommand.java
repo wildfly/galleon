@@ -22,6 +22,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.state.AbstractFPProvisioningCommand;
 import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
@@ -31,18 +32,18 @@ import org.jboss.galleon.cli.model.state.State;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "add", description = "Add a feature-pack", activator = StateEditCommandActivator.class)
+@CommandDefinition(name = "add", description = HelpDescriptions.ADD_FEATURE_PACK, activator = StateEditCommandActivator.class)
 public class StateAddFeaturePackCommand extends AbstractFPProvisioningCommand {
 
-    @Option(name = "default-configs-inherit", required = false, hasValue = false)
+    @Option(name = "default-configs-inherit", required = false, hasValue = false, description = HelpDescriptions.INCLUDE_DEFAULT_CONFIGS)
     Boolean inheritConfigs;
 
-    @Option(name = "packages-inherit", required = false, hasValue = false)
+    @Option(name = "packages-inherit", required = false, hasValue = false, description = HelpDescriptions.INCLUDE_DEFAULT_PACKAGES)
     Boolean inheritPackages;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session,
             FeaturePackLocation fpl) throws IOException, ProvisioningException, CommandExecutionException {
-        session.addDependency(invoc.getPmSession(), streamName, fpl, inheritConfigs, inheritPackages);
+        session.addDependency(invoc.getPmSession(), this.fpl, fpl, inheritConfigs, inheritPackages);
     }
 }

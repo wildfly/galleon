@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -27,7 +28,7 @@ import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathParser;
 
-@CommandDefinition(name = "explore", description = "Explore an installation", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "explore", description = HelpDescriptions.EXPLORE_INSTALLATION, activator = NoStateCommandActivator.class)
 public class StateExploreCommand extends AbstractStateCommand {
 
     @Override

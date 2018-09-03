@@ -24,6 +24,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
@@ -34,7 +35,7 @@ import org.jboss.galleon.universe.UniverseFactoryLoader;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "add", description = "Add a universe, without a name, set the default universe.")
+@CommandDefinition(name = "add", description = HelpDescriptions.ADD_UNIVERSE)
 public class UniverseAddCommand extends PmSessionCommand {
 
     public static class UniverseFactoryCompleter extends AbstractCompleter {
@@ -46,13 +47,13 @@ public class UniverseAddCommand extends PmSessionCommand {
             return names;
         }
     }
-    @Option(completer = UniverseFactoryCompleter.class, required = true)
+    @Option(completer = UniverseFactoryCompleter.class, required = true, description = HelpDescriptions.UNIVERSE_FACTORY)
     private String factory;
 
-    @Option(required = false)
+    @Option(required = false, description = HelpDescriptions.UNIVERSE_NAME)
     private String name;
 
-    @Option(required = true)
+    @Option(required = true, description = HelpDescriptions.UNIVERSE_LOCATION)
     private String location;
 
     @Override

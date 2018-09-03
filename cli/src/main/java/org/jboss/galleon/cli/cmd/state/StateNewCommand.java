@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.cmd.state;
 
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
@@ -28,7 +29,7 @@ import org.jboss.galleon.cli.model.state.State;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "new", description = "New provisioning state", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "new", description = HelpDescriptions.NEW_STATE, activator = NoStateCommandActivator.class)
 public class StateNewCommand extends PmSessionCommand {
 
     @Override

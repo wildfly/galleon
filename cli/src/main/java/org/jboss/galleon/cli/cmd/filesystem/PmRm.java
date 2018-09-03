@@ -18,13 +18,14 @@ package org.jboss.galleon.cli.cmd.filesystem;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.extensions.rm.Rm;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "rm", description = "remove files or directories.", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "rm", description = HelpDescriptions.RM, activator = NoStateCommandActivator.class)
 public class PmRm extends Rm {
 
 }

@@ -21,6 +21,7 @@ import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
 import org.aesh.command.GroupCommandDefinition;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
@@ -34,7 +35,7 @@ public class MavenCommand implements Command<PmCommandInvocation> {
 
     @Override
     public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println("subcommand missing");
+        commandInvocation.println(CliErrors.subCommandMissing());
         return CommandResult.FAILURE;
     }
 

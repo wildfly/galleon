@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.cmd.mvn;
 
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.Headers;
@@ -30,7 +31,7 @@ import org.jboss.galleon.cli.config.mvn.MavenRemoteRepository;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "info", description = "Display maven config")
+@CommandDefinition(name = "info", description = HelpDescriptions.MVN_DISPLAY_CONFIG)
 public class MavenInfo extends PmSessionCommand {
 
     @Override

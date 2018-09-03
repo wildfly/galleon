@@ -18,13 +18,14 @@ package org.jboss.galleon.cli.cmd.filesystem;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.extensions.mkdir.Mkdir;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "mkdir", description = "create directory(ies), if they do not already exist.", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "mkdir", description = HelpDescriptions.MKDIR, activator = NoStateCommandActivator.class)
 public class PmMkdir extends Mkdir {
 
 }

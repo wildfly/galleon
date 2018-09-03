@@ -26,6 +26,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -43,7 +44,7 @@ import org.jboss.galleon.util.PathsUtils;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "check-updates", description = "Get available updates for an installation or an identified feature-pack")
+@CommandDefinition(name = "check-updates", description = HelpDescriptions.CHECK_UPDATES)
 public class StateCheckUpdatesCommand extends AbstractStateCommand {
 
     public static final String UP_TO_DATE = "Up to date. No available updates nor patches.";
@@ -58,10 +59,12 @@ public class StateCheckUpdatesCommand extends AbstractStateCommand {
     private static final String NONE = "none";
     static final String ALL_DEPENDENCIES_OPTION_NAME = "include-all-dependencies";
 
-    @Option(name = ALL_DEPENDENCIES_OPTION_NAME, hasValue = false, required = false)
+    @Option(name = ALL_DEPENDENCIES_OPTION_NAME, hasValue = false, required = false,
+            description = HelpDescriptions.CHECK_UPDATES_DEPENDENCIES)
     boolean includeAll;
 
-    @Option(name = PRODUCTS_OPTION_NAME, hasValue = true, required = false, completer = InstalledProducerCompleter.class)
+    @Option(name = PRODUCTS_OPTION_NAME, hasValue = true, required = false,
+            completer = InstalledProducerCompleter.class, description = HelpDescriptions.CHECK_UPDATES_FP)
     String fp;
 
     @Override

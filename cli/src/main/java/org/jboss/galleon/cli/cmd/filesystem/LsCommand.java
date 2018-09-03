@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -30,10 +31,10 @@ import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.path.PathParser;
 
-@CommandDefinition(name = "ls", description = "show the current [dir] or [fp node]")
+@CommandDefinition(name = "ls", description = HelpDescriptions.LS)
 public class LsCommand extends PmSessionCommand {
 
-    @Argument(completer = FileAndNodeCompleter.class)
+    @Argument(completer = FileAndNodeCompleter.class, description = HelpDescriptions.DIR_OR_FP_PATH)
     private String path;
 
     @Override

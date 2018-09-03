@@ -24,6 +24,7 @@ import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
@@ -34,7 +35,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove", description = "Remove a feature-pack", activator = RemoveFeaturePackCommandActivator.class)
+@CommandDefinition(name = "remove", description = HelpDescriptions.REMOVE_FEATURE_PACK, activator = RemoveFeaturePackCommandActivator.class)
 public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
 
     public static class ProvisionedFPCompleter extends AbstractCompleter {
@@ -54,12 +55,12 @@ public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
         }
 
     }
-    @Argument(completer = ProvisionedFPCompleter.class)
-    protected String coords;
+    @Argument(completer = ProvisionedFPCompleter.class, description = HelpDescriptions.FP_TO_REMOVE)
+    protected String fpl;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
-        session.removeDependency(invoc.getPmSession(), invoc.getPmSession().getResolvedLocation(coords));
+        session.removeDependency(invoc.getPmSession(), invoc.getPmSession().getResolvedLocation(fpl));
     }
 
 }

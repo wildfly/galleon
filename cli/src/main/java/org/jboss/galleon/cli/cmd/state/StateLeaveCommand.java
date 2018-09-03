@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.cmd.state;
 
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
@@ -26,7 +27,7 @@ import org.jboss.galleon.cli.PmSessionCommand;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "leave", description = "Leave provisioning state", activator = StateCommandActivator.class)
+@CommandDefinition(name = "leave", description = HelpDescriptions.LEAVE_STATE, activator = StateCommandActivator.class)
 public class StateLeaveCommand extends PmSessionCommand {
 
     @Override

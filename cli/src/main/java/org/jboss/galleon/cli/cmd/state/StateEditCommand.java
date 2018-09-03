@@ -22,6 +22,7 @@ import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Argument;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
@@ -33,10 +34,10 @@ import org.jboss.galleon.cli.path.PathParser;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "edit", description = "Edit an installation or a provisioning xml file", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "edit", description = HelpDescriptions.EDIT_STATE, activator = NoStateCommandActivator.class)
 public class StateEditCommand extends PmSessionCommand {
     @Argument(completer = FileOptionCompleter.class, required = false,
-            description = "Installation directory or provisionng file.")
+            description = HelpDescriptions.EDIT_STATE_ARG)
     protected String dir;
 
     @Override

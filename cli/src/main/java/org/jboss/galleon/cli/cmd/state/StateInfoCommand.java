@@ -28,6 +28,7 @@ import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractStateCommand;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
@@ -46,10 +47,10 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "info", description = "Display information for an installation directory or editing state")
+@CommandDefinition(name = "info", description = HelpDescriptions.INFO)
 public class StateInfoCommand extends AbstractStateCommand {
 
-    @Option(completer = InfoTypeCompleter.class)
+    @Option(completer = InfoTypeCompleter.class, description = HelpDescriptions.INFO_TYPE)
     private String type;
 
     @Override

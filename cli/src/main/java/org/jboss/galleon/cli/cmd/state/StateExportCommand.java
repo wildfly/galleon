@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSession;
@@ -45,7 +46,7 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "export", description = "Generate provisioning config file from an installation or new state.",
+@CommandDefinition(name = "export", description = HelpDescriptions.EXPORT,
         activator = StateNoExplorationActivator.class)
 public class StateExportCommand extends PmSessionCommand {
 
@@ -58,11 +59,11 @@ public class StateExportCommand extends PmSessionCommand {
     }
 
     @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false, activator = DirActivator.class,
-            description = "Installation directory.")
+            description = HelpDescriptions.INSTALLATION_DIRECTORY)
     private String installationDir;
 
     @Argument(completer = FileOptionCompleter.class, required = false,
-            description = "Xml to generate the provisioning config to.")
+            description = HelpDescriptions.EXPORT_FILE)
     private Resource file;
 
     @Override

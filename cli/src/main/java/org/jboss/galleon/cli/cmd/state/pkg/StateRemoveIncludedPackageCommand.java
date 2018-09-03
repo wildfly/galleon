@@ -22,6 +22,7 @@ import java.util.Set;
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.model.state.State;
@@ -32,7 +33,7 @@ import org.jboss.galleon.config.PackageConfig;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove-included", description = "Remove an already included package", activator = ProvisionedPackageCommandActivator.class)
+@CommandDefinition(name = "remove-included", description = HelpDescriptions.REMOVE_INCLUDED_PACKAGE, activator = ProvisionedPackageCommandActivator.class)
 public class StateRemoveIncludedPackageCommand extends AbstractProvisionedPackageCommand {
 
     @Override

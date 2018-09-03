@@ -21,6 +21,7 @@ import org.aesh.command.impl.internal.ParsedCommand;
 import org.aesh.command.impl.internal.ParsedOption;
 import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
@@ -62,9 +63,10 @@ public abstract class AbstractFeaturePackCommand extends PmSessionCommand {
         }
     }
     @Option(name = FILE_OPTION_NAME, required = false, activator = FileActivator.class,
-            description = "Feature Pack file")
+            description = HelpDescriptions.FP_FILE_PATH)
     protected File file;
 
-    @Argument(completer = FPLocationCompleter.class, activator = FeaturePackLocationActivator.class, required = false)
+    @Argument(completer = FPLocationCompleter.class, activator = FeaturePackLocationActivator.class,
+            required = false, description = HelpDescriptions.FP_LOCATION)
     protected String fpl;
 }

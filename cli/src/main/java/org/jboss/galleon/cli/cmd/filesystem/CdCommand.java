@@ -23,6 +23,7 @@ import org.aesh.io.FileResource;
 import org.aesh.io.Resource;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
@@ -37,10 +38,10 @@ import org.jboss.galleon.cli.path.PathParserException;
  *
  * @author Alexey Loubyansky
  */
-@CommandDefinition(name = "cd", description = "Changes the current work dir or FP node to the specified location")
+@CommandDefinition(name = "cd", description = HelpDescriptions.CD)
 public class CdCommand extends PmSessionCommand {
 
-    @Argument(completer = FileAndNodeCompleter.class)
+    @Argument(completer = FileAndNodeCompleter.class, description = HelpDescriptions.DIR_OR_FP_PATH)
     private String path;
 
     @Override

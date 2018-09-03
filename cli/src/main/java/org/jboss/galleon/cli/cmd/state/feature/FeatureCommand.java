@@ -27,6 +27,7 @@ import org.aesh.command.container.CommandContainer;
 import org.aesh.command.parser.CommandLineParserException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.cmd.CliErrors;
 
 /**
  *
@@ -41,7 +42,7 @@ public class FeatureCommand implements GroupCommand<PmCommandInvocation, Command
     }
     @Override
     public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println("subcommand missing");
+        commandInvocation.println(CliErrors.subCommandMissing());
         return CommandResult.FAILURE;
     }
 

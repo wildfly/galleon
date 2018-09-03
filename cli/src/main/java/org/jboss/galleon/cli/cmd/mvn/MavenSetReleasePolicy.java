@@ -22,6 +22,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 
@@ -29,10 +30,10 @@ import org.jboss.galleon.cli.PmSessionCommand;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "set-release-update-policy", description = "Set the default release update policy")
+@CommandDefinition(name = "set-release-update-policy", description = HelpDescriptions.MVN_SET_DEFAULT_RELEASE_POLICY)
 public class MavenSetReleasePolicy extends PmSessionCommand {
 
-    @Argument(completer = MavenAddRepository.UpdatePolicyCompleter.class)
+    @Argument(completer = MavenAddRepository.UpdatePolicyCompleter.class, description = HelpDescriptions.MVN_UPDATE_POLICY)
     private String policy;
 
     @Override

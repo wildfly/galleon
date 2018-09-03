@@ -31,6 +31,7 @@ import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -87,7 +88,7 @@ public class DiffCommand extends AbstractPluginsCommand {
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                description("Customized source installation directory.").
+                description(HelpDescriptions.DIFF_SRC_DIR).
                 completer(FileOptionCompleter.class).
                 build();
         options.add(srcDir);
@@ -95,7 +96,7 @@ public class DiffCommand extends AbstractPluginsCommand {
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                description("Directory to save the feature pack to.").
+                description(HelpDescriptions.DIFF_TARGET_DIR).
                 completer(FileOptionCompleter.class).
                 build();
         options.add(targetDir);
@@ -113,7 +114,7 @@ public class DiffCommand extends AbstractPluginsCommand {
 
     @Override
     protected String getDescription() {
-        return "Saves current provisioned configuration changes into a feature pack.";
+        return HelpDescriptions.DIFF;
     }
 
     @Override

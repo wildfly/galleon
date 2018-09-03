@@ -21,6 +21,7 @@ import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
 
@@ -28,20 +29,20 @@ import org.jboss.galleon.cli.cmd.CliErrors;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "set-history-limit", description = "Set the history limit.", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "set-history-limit", description = HelpDescriptions.SET_HISTORY_LIMIT, activator = NoStateCommandActivator.class)
 public class StateSetHistoryLimitCommand extends org.jboss.galleon.cli.AbstractStateCommand {
     // We can't rely on Integer injection due to AESH-479.
-    @Argument(required = true)
-    private String size;
+    @Argument(required = true, description = HelpDescriptions.HISTORY_LIMIT)
+    private String limit;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
             int s;
             try {
-                s = Integer.parseInt(size);
+                s = Integer.parseInt(limit);
             } catch (NumberFormatException ex) {
-                throw new CommandExecutionException(CliErrors.invalidHistoryLimit(size));
+                throw new CommandExecutionException(CliErrors.invalidHistoryLimit(limit));
             }
             ProvisioningManager mgr = invoc.getPmSession().
                     newProvisioningManager(getInstallationDirectory(invoc.getAeshContext()), false);

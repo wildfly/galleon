@@ -24,6 +24,7 @@ import org.aesh.command.option.Option;
 import org.aesh.utils.Config;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
+import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.UniverseManager;
@@ -42,13 +43,13 @@ import org.jboss.galleon.universe.maven.MavenProducer;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "list", description = "List universes and products")
+@CommandDefinition(name = "list", description = HelpDescriptions.UNIVERSE_LIST)
 public class UniverseListCommand extends PmSessionCommand {
 
-    @Option(required = false, name = "product", description = "Select products that match the provided pattern.")
+    @Option(required = false, name = "product", description = HelpDescriptions.UNIVERSE_LIST_PRODUCT)
     private String product;
 
-    @Option(required = false, name = "universe", description = "References a not installed universe")
+    @Option(required = false, name = "universe", description = HelpDescriptions.UNIVERSE_LIST_UNIVERSE)
     private String universe;
 
     @Override
