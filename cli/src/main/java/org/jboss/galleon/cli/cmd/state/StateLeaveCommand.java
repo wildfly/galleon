@@ -20,29 +20,24 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "leave", description = HelpDescriptions.LEAVE_STATE, activator = StateCommandActivator.class)
+@CommandDefinition(name = "leave-state", description = HelpDescriptions.LEAVE_STATE)
 public class StateLeaveCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        if (invoc.getPmSession().getContainer() == null) {
-            throw new CommandExecutionException("Nothing to leave.");
-        }
-        if (invoc.getPmSession().getState() != null) {
-            invoc.getPmSession().getState().close();
-            invoc.getPmSession().setState(null);
-        } else if (invoc.getPmSession().getExploredContainer() != null) {
-            invoc.getPmSession().setExploredContainer(null);
-        }
-        invoc.getPmSession().setCurrentPath(null);
-        invoc.setPrompt(PmSession.buildPrompt(invoc.getAeshContext()));
+        invoc.getPmSession().setState(null);
+        invoc.setPrompt(invoc.getPmSession().buildPrompt());
     }
 
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
+    }
 }

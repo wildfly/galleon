@@ -53,5 +53,4 @@ public class MavenSetLocalRepository extends PmSessionCommand {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.setLocalRepositoryFailed(), ex);
         }
     }
-
 }

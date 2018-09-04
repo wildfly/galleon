@@ -29,16 +29,15 @@ import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
-import static org.jboss.galleon.cli.AbstractStateCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
-import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
+import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.util.PathsUtils;
 
 /**
@@ -111,7 +110,7 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
 
     @Override
     protected PmCommandActivator getActivator() {
-        return new NoStateCommandActivator();
+        return null;
     }
 
     @Override

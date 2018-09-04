@@ -38,7 +38,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.AbstractPathCompleter;
 import org.jboss.galleon.cli.cmd.CliErrors;
-import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.state.configuration.ProvisionedConfigurationCompleter;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -169,7 +169,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
     @Override
     protected String getName() {
-        return "add";
+        return "add-feature";
     }
 
     @Override
@@ -237,6 +237,11 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
     @Override
     protected PmCommandActivator getActivator() {
-        return new StateEditCommandActivator();
+        return new FeatureCommandActivator();
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 }

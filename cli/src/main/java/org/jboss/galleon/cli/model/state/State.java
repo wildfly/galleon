@@ -70,6 +70,7 @@ public class State {
     private final ConfigProvisioning configProvisioning = new ConfigProvisioning();
     private final Deque<Action> stack = new ArrayDeque<>();
     private ProvisioningRuntime runtime;
+    private String name;
 
     public State(PmSession pmSession) throws ProvisioningException, IOException {
         init(pmSession);
@@ -94,7 +95,12 @@ public class State {
         }
         builder = conf.getBuilder();
         config = buildNewConfig(pmSession);
-        path = installation.getFileName().toString() + PathParser.PATH_SEPARATOR;
+        path = "" + PathParser.PATH_SEPARATOR;
+        name = installation.getFileName().toString();
+    }
+
+    public String getName() {
+        return name;
     }
 
     public ProvisioningRuntime getRuntime() {

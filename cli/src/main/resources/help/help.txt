@@ -8,16 +8,10 @@ eg: galleon.sh install wildfly:current --dir=../latest-wildfly
 
 To enter interactive console: <galleon.sh|.bat>
 
-Available options
------------------
-
+Options
+-------
 $AVAILABLE_OPTIONS
-
-Available commands
-------------------
-TO DO, organize commands into domains and rework command scoping.
-
+Commands
+--------
 $AVAILABLE_COMMANDS
-
-For more information on each available commands read documentation located in docs 
-directory or execute 'help <command name>'.
+More information on each command is available in docs directory.

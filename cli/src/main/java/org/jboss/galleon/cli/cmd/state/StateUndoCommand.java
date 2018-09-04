@@ -17,57 +17,41 @@
 package org.jboss.galleon.cli.cmd.state;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.impl.internal.ParsedCommand;
-import org.aesh.command.option.Option;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmOptionActivator;
+import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.model.state.State;
 
 /**
+ * Dual command, applies in case of edit mode or not.
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "undo", description = HelpDescriptions.UNDO)
-public class StateUndoCommand extends org.jboss.galleon.cli.AbstractStateCommand {
-
-    public static class VerboseActivator extends PmOptionActivator {
-
-        @Override
-        public boolean isActivated(ParsedCommand parsedCommand) {
-            return getPmSession().getContainer() == null;
-        }
-    }
-
-    @Option(name = VERBOSE_OPTION_NAME, required = false, hasValue = false,
-            activator = VerboseActivator.class, description = HelpDescriptions.VERBOSE)
-    private boolean verbose;
+@CommandDefinition(name = "undo", description = HelpDescriptions.UNDO_STATE)
+public class StateUndoCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
-            if (invoc.getPmSession().getState() == null) {
-                Path p = getInstallationDirectory(invoc.getAeshContext());
-                ProvisioningManager mgr = invoc.getPmSession().newProvisioningManager(p, verbose);
-                mgr.undo();
-            } else {
-                State state = invoc.getPmSession().getState();
-                if (!state.hasActions()) {
-                    throw new ProvisioningException(Errors.historyIsEmpty());
-                }
-                state.pop(invoc.getPmSession());
-
+            State state = invoc.getPmSession().getState();
+            if (!state.hasActions()) {
+                throw new ProvisioningException(Errors.historyIsEmpty());
             }
+            state.pop(invoc.getPmSession());
         } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.undoFailed(), ex);
         }
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 
 }

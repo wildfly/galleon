@@ -5,7 +5,8 @@ Possible actions that you can operate from the tool: install, uninstall, check f
 
 Launching the tool without any argument starts an interactive shell. Type _exit_ to exit the tool. +
 Launching the tool with a command as argument will execute the command and exit, eg: _galleon.sh install wildfly-core:current --dir=myinstallation_ +
-Launching the tool with _--file=<path to script file>_ will execute the set of commands and exit.
+Launching the tool with _--file=<path to script file>_ will execute the set of commands and exit. +
+Launching the tool with _--help_ will display the descriptions of all available options and commands.
 
 ### Feature-pack
 A key concept in galleon system is the notion of feature-pack. A feature-pack is a content container. It can be a full product (eg: wildfly) 
@@ -46,7 +47,7 @@ If a final release is available then it will be installed when upgrading.
 NB: Products being unique inside an installation, some commands (eg: _state update_) 
 only require the product part (_<product>[@universe]_) of an FPL. For example:
 
-_state update --products=wildfly_
+_update --feature-packs=wildfly_
 
 ### Universe feature-pack id (FPID)
 A feature-pack id (FPID) is the way to identify a product inside a universe by expressing a build number. 
@@ -66,8 +67,19 @@ The things to notice:
  
 For example, to retrieve the informations of alpha1 build:
 
-_feature-pack info wildfly:current#1.0.0-Alpha1_ 
+_feature-pack get-info wildfly:current#1.0.0-Alpha1_ 
 
+### Listing latest available feature-packs
+
+_[/]$ list-feature-packs_ + 
+
+This command lists all the latest feature packs present in all the installed universes.
+
+You can search for feature-packs that match a given pattern using _--filter-pattern=<pattern>_. +
+For example: +
+_[/]$ list-feature-packs --filter-pattern=wildfly*_
+
+TIPS: The information displayed by this command can be re-used when installing, updating features-packs.
 
 ### Installing a feature-pack
 
@@ -81,7 +93,7 @@ a feature-pack this can take some time (a matter of few seconds up to minutes
 if the feature-pack needs to be downloaded from a remote location).
 
 You can retrieve the set of feature-pack specific options without relying on completion, to do so call: +
-_feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=options_ +
+_feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=options_ +
 You can then use the listed options (if any) to customize your install command.
 
 ### Un-installing a feature-pack
@@ -96,7 +108,7 @@ of feature-pack specific options are handled the same way as in the install comm
 
 ### Un-doing the last provisioning command
 
-_state undo [--dir=<installation dir>] [--verbose]_
+_undo [--dir=<installation dir>] [--verbose]_
 
 This will revert the installation to the previous installed state.
 
@@ -112,13 +124,13 @@ Use the _uninstall_ command to remove a given patch or use _state undo_ if the l
 
 ### Checking for updates
 
-_state check-updates [--dir=<installation dir>] [--include-all-dependencies] [--products=<list of products>]_
+_check-updates [--dir=<installation dir>] [--include-all-dependencies] [--products=<list of products>]_
 
 If no directory is provided, the current directory is used. If no products are provided, all installed products are checked for updates.
 
 ### Updating an installation
 
-_state update [--dir=<installation dir>] [--include-all-dependencies] [--yes] [--products=<list of products>] [feature-pack specific options]_
+_update [--dir=<installation dir>] [--include-all-dependencies] [--yes] [--products=<list of products>] [feature-pack specific options]_
 
 Display the list of available updates/patches then update. If no directory is provided, the current directory is used. 
 If _--yes_ is provided, the command will proceed without asking for confirmation.
@@ -129,19 +141,19 @@ this can take some time (a matter of few seconds up to minutes if the feature-pa
 needs to be downloaded from a remote location).
 
 You can retrieve the set of feature-pack specific options without relying on completion, to do so call: +
-_state info [--dir=<installation dir>] --type=options_ +
+_installation get-info [--dir=<installation dir>] --type=options_ +
 You can then use the listed options (if any) to customize your update command.
 
 ### Observing an installation
 
-_[my-dir]$ state info [--dir=installation] --type=[all|configs|dependencies|patches]_
+_[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|patches]_
 
 Display the set of installed feature-packs FPID. In addition can display configurations, dependencies and patches. + 
 NB: If some patches are applied, the applied patches information is displayed.
 
 ### Observing a feature-pack
 
-_[my-dir]$ feature-pack info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|options]_
+_[my-dir]$ feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|options]_
 
 Display the FPID of a feature-pack. In addition can display dependencies, configurations 
 and options usable when installing/provisioning/upgrading.
@@ -163,11 +175,11 @@ _[my-dir]$ feature-pack clear-cache_
 
 ### Exporting an installation to xml
 
-_[my-dir]$ state export <new generated xml file> --dir=<installation>_
+_[my-dir]$ installation export <new generated xml file> --dir=<installation>_
 
 ###  Provisioning an installation from xml
 
-_[my-dir]$ state provision <xml file> --dir=<target installation directory> [feature-pack specific options]_
+_[my-dir]$ provision <xml file> --dir=<target installation directory> [feature-pack specific options]_
 
 NB: Using completion, when an installation directory has been identified, the options that
 are specific to the feature-pack(s) located in the XML configuration file are proposed. 
@@ -178,29 +190,48 @@ When provisioning an installation for the first time this can take some time
 
 By default the history keeps the state of the last 100 provisioning operations. This should be enough to cover 
 simple undo of provisioned state. Nevertheless you can increase/decrease this
-value by using the following command:
-_state set-history-limit <history size limit> [--dir=<installation dir>]_
+value by using the following command: +
+
+_installation set-history-limit <history size limit> [--dir=<installation dir>]_
 
 To retrieve the history size limit do:
 
-_state get-history-limit [--dir=<installation dir>]_ +
+_installation get-history-limit [--dir=<installation dir>]_ +
 
+### Managing installation universes
+A universe can be added/removed to/from an existing installation. +
+ 
+Add a named or default (without using the --name option) universe to an installation. +
+_[/]$ installation add-universe [--dir=<installation dir>] [--name=<universe name>] --factory=<universe factory> --location=<universe location>_
+
+Remove a named or default (without using the --name option) universe from an installation. + 
+_[/]$ installation remove-universe [--dir=<installation dir>] [--name=<universe name>]_
 
 ### Exploring an installation or a feature-pack.
 
+The tool allows you to switch to a state edit mode in which you can observe and 
+edit a provisioning state in memory (without actually impacting the installation files).
+
 To explore an installation: +
-_[my-dir]$ state explore --dir=installation_ +
+_[my-dir]$ state edit [<installation dir>]_ +
+_[!edit!my-dir!/]$_ +
+After this point, the tool switched to edit mode with a set of new commands available. +
+
+TIP: Type _help_ to list the set of available commands in this mode.
 
 To explore a feature-pack: +
-_[my-dir]$ feature-pack explore <[FPL|FPID] | [--file=<path to fp zip file>]_ +
+_[my-dir]$ state new_ +
+_[!edit!/]$ add-dependency <[FPL|FPID] --default-configs-inherit --packages-inherit_ +
 
 Once exploring, prompt, ls, cd and pwd commands are bound to the feature-pack (or installation) exposed file-system. +
+Use _leave-state_ to switch the tool back to its nominal mode.
 
-_[/]$ ls +
+_[!edit!/]$ ls +
 configs +
+dependencies +
 feature-specs +
 packages +
-[/]$ state leave +
+[!edit!/]$ leave-state +
 [my-dir]$_ +
 
 The fs is composed of: +
@@ -208,16 +239,14 @@ The fs is composed of: +
 /feature-specs/<origin>/<feature-specs> +
 /packages/<origin>/<packages> + 
 Features and feature-specs are organized as a file system with containment. +
-The set of available commands is limited when in “navigation mode”. 
-Only “cd, ls, pwd and state info|leave” are available. Use state leave to exit this mode.
 
 TIP: Use ‘ls’ to visualize any item. Use ‘cd’ to navigate to a given node.
 
 ### Searching the current state
 
-When exploring, editing or composing a new state, one can search the packages and features.
+When in edit mode, one can search for packages and features.
 
-_[/]$search [--query=<some text> | --package=<package name>]_
+_[!edit!/]$ search [--query=<some text> | --package=<package name>]_
 
 When searching with _--query_ all packages and features are looked-up for a match. If packages are matched, the features
 that depend directly or indirectly on these packages will be shown in the result.
@@ -229,98 +258,74 @@ indirectly on this package will be shown in the result.
 
 This allow to start from an empty installation or re-use an installation and iteratively add/suppress content. +
 
-_[my-dir]$ state new  | state edit <path to installation | path to provisioning XML file> +
-[/]$ <TAB> +
-cd feature-pack ls pwd state +
-[/]$ ls +
+_[my-dir]$ state new  | state edit <path to installation dir | path to provisioning XML file> +
+[!edit!/]$ ls +
 configs +
 dependencies +
 feature-specs +
 packages_
 
-The filesystem is similar to explore, with the addition of dependencies that contains full content of all added feature-packs. 
-
 NB: Each action as the effect to build a runtime with the current state. The filesystem reflects the current state.
 
-NB: Each action applied to a state in edition can be undone: _state undo_. Use _state leave_ to exit the composition mode.
+NB: Each action applied to a state in edition can be undone: _undo_. 
 
-NB: The set of exposed commands by completer is dynamic and is adjusted according to the current state.
+NB: Use _leave-state_ to leave the edit mode.
 
-### Managing universes
-A universe can be added/removed to/from an existing installation or to a new/edited state. +
-NB: In order to add/remove a universe to/from an installation you must first _cd_ in the directory of the installation. +
- 
-Add a named or default (without using the --name option) universe to the current provisioning state or installation. +
-_[/]$ universe add [--name=<universe name>] --factory=<universe factory> --location=<universe location>_
-
-Remove a named or default (without using the --name option) universe from the current provisioning state or installation. + 
-_[/]$ universe remove [--name=<universe name>]_
-
-### Listing products of universes
-
-_[/]$ universe list_ + 
-
-This command lists all the products and available builds present in all the installed universes.
-
-You can search for products that match a given pattern using _--product=<pattern>_. +
-For example: +
-_[/]$ universe list --product=wildfly*_
+NB: The set of completer exposed commands is dynamic and is adjusted according to the current state.
 
 ### Exporting or provisioning the current state
 
-At any time, one can export the provisioning XML file or directly provision from the current state:
+In edit mode, one can export the provisioning XML file or directly provision from the current state:
 
-_[/]$ state export <path to generated xml file> | state provision <dir of new installation>_
+_[!edit!/]$ export [<path to generated xml file>]_ +
+_[!edit!/]$ provision <dir of new installation>_
 
-TIP: Use state export to validate that what you get in the XML is in sync with the expose state. In case you find something wrong, shout to me ;-)!
+TIP: Use _export_ to validate that what you get in the XML is in sync with the expose state.
 
 TIP: Exporting a state without any XML target file will display the XML content in the CLI console.
 
-TIP: The command state info can be used to get high level information.
+TIP: The command 'get-info' can be used to get high level information.
 
 ### Adding a feature-pack
 
-_[/]$ fp add <FPL|FPID> [--default-configs-inherit] [--packages-inherit]_ +
+_[!edit!/]$ add-dependency <FPL|FPID> [--default-configs-inherit] [--packages-inherit]_ +
 
 By default nothing is inherited. Once at least one feature-pack has been added, configurations or packages can be handled. 
 
-NB: A runtime based on the added full feature-pack is built in order to retrieve dependencies content and some completion content. This structure is cached for re-use.
-
 ### Removing a feature-pack
 
-_[/]$ fp remove <FPL|FPID>_
+_[!edit!/]$ remove-dependency <FPL|FPID>_
 
 ### Including a default configuration
 
-_[/]$ config include <model>/<name> [--origin=<fp origin>]_
+_[!edit!/]$ include-config <model>/<name> [--origin=<fp origin>]_
 
 Origin is optional, by default will be included from all fp that expose it.
 
 ### Removing an included default configuration
 
-_[/]$ config remove-included <model>/<name> [--origin=<fp origin>]_
+_[!edit!/]$ remove-included-config <model>/<name> [--origin=<fp origin>]_
 
-The completer only proposes the set of configurations that have been previously included. Same for fp.
+The completer only proposes the set of configurations that have been previously included.
 Origin is optional, by default will be remove from all fp that include it.
-
 
 ### Excluding a default configuration
 
-_[/]$ config exclude <model>/<name> [--origin=<fp origin>]_
+_[!edit!/]$ exclude-config <model>/<name> [--origin=<fp origin>]_
 
-Origin is optional, by default will be excluded from all fp that expose it.
+Origin is optional, by default will be excluded from all feature-packs that expose it.
 
 ### Removing an excluded default configuration
 
-_[/]$ config remove-excluded <model>/<name> [--origin=<fp origin>]_
+_[!edit!/]$ remove-excluded-config <model>/<name> [--origin=<fp origin>]_
 
-The completer only proposes the set of configurations that have been previously excluded. Same for fp.
-Origin is optional, by default will be remove from all fp that exclude it.
+The completer only proposes the set of configurations that have been previously excluded.
+Origin is optional, by default will be removed from all feature-packs that exclude it.
 
 
 ### Reseting a configuration
 
-_[/]$ config reset <model>/<name>_
+_[!edit!/]$ reset-config <model>/<name>_
 
 The custom content of this configuration is removed.
 
@@ -328,32 +333,32 @@ NB: This has no effect on included/excluded configurations.
 
 ### Including a default package
 
-_[/]$ packages include <fp origin>/<package name>_
+_[!edit!/]$ include-package <fp origin>/<package name>_
 
 ### Removing an included default package
 
-_[/]$ packages remove-included <package name> [--origin=<fp origin>]_
+_[!edit!/]$ remove-included-package <package name> [--origin=<fp origin>]_
 
 The completer only proposes the set of packages that have been previously included.
-The origin is optional, the package will be removed from all fp that exclude it.
+The origin is optional, the package will be removed from all feature-packs that exclude it.
 
 ### Excluding a default package
 
-_[/]$ packages exclude <fp origin>/<package name>_
+_[!edit!/]$ exclude-package <fp origin>/<package name>_
 
 ### Removing an excluded default package
 
-_[/]$ packages remove-excluded <package name> [--origin=<fp origin>]_
+_[!edit!/]$ remove-excluded-package <package name> [--origin=<fp origin>]_
 
 The completer only proposes the set of packages that have been previously excluded.
-The origin is optional, the package will be removed from all fp that exclude it.
+The origin is optional, the package will be removed from all feature-packs that exclude it.
 
 ### Adding a new feature
 
-_[/]$ feature add <config model/name> <path to feature-spec>  <dynamic set of feature param=<value>>_
+_[!edit!/]$ add-feature <config model/name> <path to feature-spec>  <dynamic set of feature param=<value>>_
 
 For example: +
-_feature add standalone/standalone.xml org.wildfly.core:wildfly-core-galleon-pack/interface --interface=toto --inet-address=127.0.0.1_
+_add-feature standalone/standalone.xml org.wildfly.core:wildfly-core-galleon-pack/interface --interface=toto --inet-address=127.0.0.1_
 
 NB: All parameters are exposed as command option.
  
@@ -366,11 +371,17 @@ NB: The current location (thanks to cd) is not yet taken into account when compl
 NB: A feature with the same feature-id can’t exist. A single feature with the given feature-id per config.
 
 ### Removing a feature
-_[/]$ feature remove <full path to feature inside a configuration>_
+_[!edit!/]$ remove-feature <full path to feature inside a configuration>_
 
 For example: +
-_feature remove standalone/standalone.xml/interface/toto_
+_remove-feature standalone/standalone.xml/interface/toto_
 
+### Managing universes
+A universe can be added/removed to/from a state. +
+ 
+Add a named or default (without using the --name option) universe to the state. +
+_[!edit!/]$ add-universe [--name=<universe name>] --factory=<universe factory> --location=<universe location>_
 
-
+Remove a named or default (without using the --name option) universe from the state. + 
+_[!edit!/]$ remove-universe [--name=<universe name>]_
 

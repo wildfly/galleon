@@ -44,5 +44,4 @@ public class MavenSetReleasePolicy extends PmSessionCommand {
             throw new CommandExecutionException(ex.getLocalizedMessage());
         }
     }
-
 }

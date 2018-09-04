@@ -60,5 +60,4 @@ public class MavenRemoveRepository extends PmSessionCommand {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.removeRepositoryFailed(), ex);
         }
     }
-
 }

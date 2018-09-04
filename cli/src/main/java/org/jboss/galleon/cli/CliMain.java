@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.List;
-import org.jboss.galleon.cli.cmd.universe.UniverseCommand;
 import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
 import org.aesh.command.AeshCommandRuntimeBuilder;
@@ -32,25 +31,12 @@ import org.aesh.command.invocation.CommandInvocation;
 import org.aesh.command.invocation.CommandInvocationProvider;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.registry.CommandRegistry;
+import org.aesh.command.registry.MutableCommandRegistry;
 import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
-import org.aesh.extensions.clear.Clear;
 import org.aesh.readline.ReadlineConsole;
 import org.aesh.utils.Config;
 import org.jboss.galleon.cli.cmd.CliErrors;
-import org.jboss.galleon.cli.cmd.HelpCommand;
-import org.jboss.galleon.cli.cmd.mvn.MavenCommand;
-import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
-import org.jboss.galleon.cli.cmd.filesystem.LsCommand;
-import org.jboss.galleon.cli.cmd.filesystem.PmMkdir;
-import org.jboss.galleon.cli.cmd.filesystem.PmRm;
-import org.jboss.galleon.cli.cmd.filesystem.PwdCommand;
-import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
-import org.jboss.galleon.cli.cmd.plugin.InstallCommand;
-import org.jboss.galleon.cli.cmd.plugin.UninstallCommand;
-import org.jboss.galleon.cli.cmd.state.StateCommand;
-import org.jboss.galleon.cli.cmd.state.SearchCommand;
-import org.jboss.galleon.cli.cmd.state.feature.FeatureCommand;
 import org.jboss.galleon.cli.terminal.CliShellInvocationProvider;
 import org.jboss.galleon.cli.terminal.CliTerminalConnection;
 import org.jboss.galleon.cli.terminal.InteractiveInvocationProvider;
@@ -73,7 +59,7 @@ public class CliMain {
             if (arguments.isHelp()) {
                 try {
                     CommandRuntime runtime = newRuntime(pmSession, connection);
-                    connection.getOutput().println(HelpSupport.getToolHelp(runtime.getCommandRegistry(), connection.getShell()));
+                    connection.getOutput().println(HelpSupport.getToolHelp(pmSession, runtime.getCommandRegistry(), connection.getShell()));
                 } finally {
                     connection.close();
                 }
@@ -156,7 +142,7 @@ public class CliMain {
         ReadlineConsole console = new ReadlineConsole(settings);
 
         pmSession.setAeshContext(console.context());
-        console.setPrompt(PmSession.buildPrompt(settings.aeshContext()));
+        console.setPrompt(pmSession.buildPrompt());
 
         // connection is automatically closed when exit command or Ctrl-D
         console.start();
@@ -193,39 +179,9 @@ public class CliMain {
     }
 
     private static CommandRegistry buildRegistry(PmSession pmSession) throws CommandLineParserException {
-        // Create commands that are dynamic (or contain dynamic sub commands).
-        // Options are discovered at execution time
-        InstallCommand install = new InstallCommand(pmSession);
-        UninstallCommand uninstall = new UninstallCommand(pmSession);
-        //ProvisionedSpecCommand state = new ProvisionedSpecCommand(pmSession);
-        FeatureCommand feature = new FeatureCommand(pmSession);
-        StateCommand state = new StateCommand(pmSession);
-        HelpCommand help = new HelpCommand();
-        AeshCommandRegistryBuilder builder = new AeshCommandRegistryBuilder()
-                .command(Clear.class)
-                .command(FeaturePackCommand.class)
-                .command(help)
-                .command(MavenCommand.class)
-                .command(feature)
-                .command(state)
-                .command(install.createCommand())
-                //.command(ProvisionSpecCommand.class)
-                //.command(ChangesCommand.class)
-                //.command(UpgradeCommand.class)
-                .command(uninstall.createCommand())
-                .command(CdCommand.class)
-                .command(PmExitCommand.class)
-                .command(LsCommand.class)
-                .command(PmMkdir.class)
-                .command(PmRm.class)
-                .command(PwdCommand.class)
-                .command(SearchCommand.class)
-                .command(UniverseCommand.class);
-
-        StateCommand.addActionCommands(builder);
-
-        CommandRegistry<? extends Command, ? extends CommandInvocation> registry = builder.create();
-        help.setRegistry(registry);
+        MutableCommandRegistry registry = (MutableCommandRegistry) new AeshCommandRegistryBuilder().create();
+        ToolModes modes = ToolModes.getModes(pmSession, registry);
+        pmSession.setModes(modes);
         return registry;
     }
 

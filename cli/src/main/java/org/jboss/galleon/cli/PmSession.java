@@ -245,11 +245,11 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
             //session.println("metadataDeployed " + re);
         }
     }
+    private static final String EDIT_MODE_PROMPT = "!edit!";
     private PrintStream out;
     private PrintStream err;
     private final Configuration config;
     private State state;
-    private FeatureContainer exploredContainer;
     private String currentPath;
     private final CliMavenArtifactRepositoryManager maven;
     private final MavenListener mavenListener;
@@ -262,6 +262,8 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     private final CliOverwritePolicy policy = new CliOverwritePolicy();
     private final boolean interactive;
     private final FeaturePackCacheManager cacheManager;
+    private ToolModes toolModes;
+    private String promptRoot;
 
     public PmSession(Configuration config) throws Exception {
         this(config, true);
@@ -286,6 +288,14 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             close();
         }));
+    }
+
+    void setModes(ToolModes toolModes) {
+        this.toolModes = toolModes;
+    }
+
+    ToolModes getToolModes() {
+        return toolModes;
     }
 
     public void clearLayoutCache() throws IOException {
@@ -446,28 +456,30 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         ProgressTrackers.commandEnd(session);
     }
 
-    public void setState(State session) {
-        this.state = session;
+    public void setState(State state) {
+        if (state == null) {
+            if (this.state != null) {
+                this.state.close();
+            }
+            setCurrentPath(null);
+            // back to nominal
+            toolModes.setMode(ToolModes.Mode.NOMINAL);
+            promptRoot = null;
+        } else {
+            toolModes.setMode(ToolModes.Mode.EDIT);
+            promptRoot = EDIT_MODE_PROMPT + (state.getName() == null ? ""
+                    : state.getName() + "!");
+        }
+        this.state = state;
     }
 
     public State getState() {
         return state;
     }
 
-    public void setExploredContainer(FeatureContainer exploredContainer) {
-        this.exploredContainer = exploredContainer;
-    }
-
-    public FeatureContainer getExploredContainer() {
-        return exploredContainer;
-    }
-
     public FeatureContainer getContainer() {
         if (state != null) {
             return state.getContainer();
-        }
-        if (exploredContainer != null) {
-            return exploredContainer;
         }
         return null;
     }
@@ -498,12 +510,25 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         return config;
     }
 
-    public static Prompt buildPrompt(AeshContext aeshCtx) {
-        return buildPrompt(aeshCtx.getCurrentWorkingDirectory().getName());
+    public Prompt buildPrompt() {
+        ToolModes.Mode mode = toolModes.getActiveMode();
+        Prompt prompt = null;
+        switch (mode) {
+            case NOMINAL: {
+                prompt = buildPrompt(ctx.getCurrentWorkingDirectory().getName());
+                break;
+            }
+            case EDIT: {
+                prompt = buildPrompt("");
+                break;
+            }
+        }
+        return prompt;
     }
 
-    public static Prompt buildPrompt(String name) {
+    public Prompt buildPrompt(String name) {
         return new Prompt(new StringBuilder().append('[')
+                .append(promptRoot == null ? "" : promptRoot)
                 .append(name)
                 .append("]$ ").toString());
     }

@@ -20,14 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
-
+import org.jboss.galleon.cli.cmd.CommandDomain;
 /**
  * @deprecated
  *
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-@CommandDefinition(name = "upgrade", description = "Saves current provisioned configuration into the specified file.", activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "upgrade", description = "Saves current provisioned configuration into the specified file.")
 public class UpgradeCommand extends FromInstallationCommand {
 
     @Option(name = "username", required = true,
@@ -80,5 +79,10 @@ public class UpgradeCommand extends FromInstallationCommand {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.exportProvisionedFailed(), e);
         }
         */
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

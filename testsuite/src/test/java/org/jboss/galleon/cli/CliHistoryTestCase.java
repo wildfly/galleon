@@ -53,28 +53,28 @@ public class CliHistoryTestCase {
     @Test
     public void noDirectoryTest() throws Exception {
         try {
-            cli.execute("state set-history-limit 99");
+            cli.execute("installation set-history-limit 99");
             throw new Exception("set-history-limit should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.
         }
 
         try {
-            cli.execute("state get-history-limit");
+            cli.execute("installation get-history-limit");
             throw new Exception("set-history-limit should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.
         }
 
         try {
-            cli.execute("state undo");
+            cli.execute("undo");
             throw new Exception("undo should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.
         }
 
         try {
-            cli.execute("state clear-history");
+            cli.execute("installation clear-history");
             throw new Exception("clear-history should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.
@@ -90,22 +90,22 @@ public class CliHistoryTestCase {
         cli.execute("install " + CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1") + " --dir=" + p);
 
         try {
-            cli.execute("state set-history-limit rt --dir=" + p);
+            cli.execute("installation set-history-limit rt --dir=" + p);
             throw new Exception("set-history-limit should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.
         }
 
-        cli.execute("state set-history-limit 66 --dir=" + p);
-        cli.execute("state get-history-limit --dir=" + p);
+        cli.execute("installation set-history-limit 66 --dir=" + p);
+        cli.execute("installation get-history-limit --dir=" + p);
         Assert.assertTrue(cli.getOutput().contains("66"));
 
-        cli.execute("state undo --dir=" + p);
+        cli.execute("undo --dir=" + p);
 
-        cli.execute("state clear-history --dir=" + p);
+        cli.execute("installation clear-history --dir=" + p);
 
         try {
-            cli.execute("state undo --dir=" + p);
+            cli.execute("undo --dir=" + p);
             throw new Exception("undo should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.

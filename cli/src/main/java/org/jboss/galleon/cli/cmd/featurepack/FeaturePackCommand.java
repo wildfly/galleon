@@ -16,25 +16,22 @@
  */
 package org.jboss.galleon.cli.cmd.featurepack;
 
-import org.aesh.command.Command;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
 import org.aesh.command.GroupCommandDefinition;
-import org.aesh.command.invocation.CommandInvocation;
-import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.HelpDescriptions;
+import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.cmd.PmGroupCommand;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@GroupCommandDefinition(description = "", name = "feature-pack", groupCommands = {ImportCommand.class,
-    InfoCommand.class, ExploreCommand.class, ClearCacheCommand.class})
-public class FeaturePackCommand implements Command<CommandInvocation> {
+@GroupCommandDefinition(description = HelpDescriptions.FEATURE_PACK, name = "feature-pack", groupCommands = {ImportCommand.class,
+    GetInfoCommand.class, ClearCacheCommand.class})
+public class FeaturePackCommand implements PmGroupCommand {
 
     @Override
-    public CommandResult execute(CommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println(CliErrors.subCommandMissing());
-        return CommandResult.FAILURE;
+    public CommandDomain getDomain() {
+        return CommandDomain.FEATURE_PACK;
     }
 
 }

@@ -58,7 +58,7 @@ public class HelpCommand extends PmSessionCommand {
                 mainCommand = cmd.command.get(0);
             }
             String buff = completerInvocation.getGivenCompleteValue();
-            List<String> allAvailable = HelpSupport.getAvailableCommands(cmd.registry, false);
+            List<String> allAvailable = HelpSupport.getAvailableCommands(cmd.registry, false, true);
             List<String> candidates = new ArrayList<>();
             if (mainCommand == null) {
                 if (buff == null || buff.isEmpty()) {
@@ -120,5 +120,10 @@ public class HelpCommand extends PmSessionCommand {
             }
             session.println(session.getHelpInfo(builder.toString()));
         }
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.OTHERS;
     }
 }

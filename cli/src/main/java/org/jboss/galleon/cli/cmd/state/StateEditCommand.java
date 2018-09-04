@@ -16,25 +16,27 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Argument;
 import org.aesh.readline.AeshContext;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import static org.jboss.galleon.cli.cmd.state.StateCommand.WELCOME_STATE_MSG;
 import org.jboss.galleon.cli.model.state.State;
-import org.jboss.galleon.cli.path.PathParser;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "edit", description = HelpDescriptions.EDIT_STATE, activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "edit", description = HelpDescriptions.EDIT_STATE)
 public class StateEditCommand extends PmSessionCommand {
     @Argument(completer = FileOptionCompleter.class, required = false,
             description = HelpDescriptions.EDIT_STATE_ARG)
@@ -42,18 +44,15 @@ public class StateEditCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        if (invoc.getPmSession().getContainer() != null) {
-            throw new CommandExecutionException("Provisioning session already set");
-        }
-        State session;
+        State state;
         try {
-            session = new State(invoc.getPmSession(), getInstallationHome(invoc.getAeshContext()));
-        } catch (Exception ex) {
+            state = new State(invoc.getPmSession(), getInstallationHome(invoc.getAeshContext()));
+        } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.readContentFailed(), ex);
         }
-        invoc.getPmSession().setState(session);
-        invoc.setPrompt(PmSession.buildPrompt("" + PathParser.PATH_SEPARATOR));
-        invoc.println("Entering provisioning composition mode. Use 'fp add' command to add content. Call 'state leave' to leave this mode.");
+        invoc.getPmSession().setState(state);
+        invoc.setPrompt(invoc.getPmSession().buildPrompt(state.getPath()));
+        invoc.println(WELCOME_STATE_MSG);
     }
 
     protected Path getInstallationHome(AeshContext context) {

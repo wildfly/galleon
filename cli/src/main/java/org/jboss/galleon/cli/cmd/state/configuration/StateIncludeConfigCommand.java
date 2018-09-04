@@ -23,7 +23,8 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
-import org.jboss.galleon.cli.cmd.state.FPDependentCommandActivator;
+import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.cmd.state.StateActivators.FPDependentCommandActivator;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
 
@@ -31,7 +32,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "include", description = HelpDescriptions.INCLUDE_CONFIG, activator = FPDependentCommandActivator.class)
+@CommandDefinition(name = "include-config", description = HelpDescriptions.INCLUDE_CONFIG, activator = FPDependentCommandActivator.class)
 public class StateIncludeConfigCommand extends AbstractDefaultConfigCommand {
 
     @Override
@@ -43,5 +44,10 @@ public class StateIncludeConfigCommand extends AbstractDefaultConfigCommand {
         } catch (Exception ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.includeFailed(), ex);
         }
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 }

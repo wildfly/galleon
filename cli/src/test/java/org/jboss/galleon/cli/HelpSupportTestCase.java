@@ -25,7 +25,10 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.parser.CommandLineParser;
 import org.aesh.command.invocation.CommandInvocation;
 import org.aesh.command.registry.CommandRegistry;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.config.Configuration;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
@@ -50,10 +53,10 @@ public class HelpSupportTestCase {
             if (isExtension(cmdParser)) {
                 continue;
             }
-            checkCommand(cmdParser.getProcessedCommand(), true);
+            checkCommand(cmdParser.getProcessedCommand(), false);
             if (cmdParser.isGroupCommand()) {
                 for (CommandLineParser child : cmdParser.getAllChildParsers()) {
-                    checkCommand(child.getProcessedCommand(), false);
+                    checkCommand(child.getProcessedCommand(), true);
                 }
             }
         }
@@ -63,10 +66,15 @@ public class HelpSupportTestCase {
         return cmdParser.getProcessedCommand().getCommand().getClass().getPackage().getName().startsWith("org.jboss.galleon.cli.cmd.filesystem");
     }
 
-    private void checkCommand(ProcessedCommand<? extends Command> processedCommand, boolean parent) {
-        if (!parent) {
-            assertTrue(processedCommand.name(), processedCommand.description() != null && !processedCommand.description().isEmpty());
+    private void checkCommand(ProcessedCommand<? extends Command> processedCommand, boolean child) {
+        CommandDomain domain = CommandDomain.getDomain(processedCommand.getCommand());
+        assertTrue(processedCommand.name(), processedCommand.description() != null && !processedCommand.description().isEmpty());
+        if (child) {
+            assertNull(processedCommand.name(), domain);
+        } else {
+            assertNotNull(processedCommand.name(), domain);
         }
+
         ProcessedOption arg = processedCommand.getArgument();
         if (arg != null) {
             assertTrue("Argument for " + processedCommand.name(), arg.description() != null && !arg.description().isEmpty());

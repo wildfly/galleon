@@ -60,23 +60,23 @@ public class PatchTransitiveDepTestCase {
     public void test() throws Exception {
         install();
         Path p = CliTestUtils.installAndCheck(cli, "install", fp2, fp2);
-        cli.execute("state info --dir=" + p);
+        cli.execute("get-info --dir=" + p);
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
-        cli.execute("state info --dir=" + p + " --type=all");
+        cli.execute("get-info --dir=" + p + " --type=all");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
         cli.execute("install " + fp1Patch + " --dir=" + p);
 
-        cli.execute("state info --dir=" + p);
+        cli.execute("get-info --dir=" + p);
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("1.0.0.Patch.Final"));
 
-        cli.execute("state info --dir=" + p + " --type=dependencies");
+        cli.execute("get-info --dir=" + p + " --type=dependencies");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Patch.Final"));
 
-        cli.execute("state info --dir=" + p + " --type=patches");
+        cli.execute("get-info --dir=" + p + " --type=patches");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Patch.Final"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH_FOR));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH));

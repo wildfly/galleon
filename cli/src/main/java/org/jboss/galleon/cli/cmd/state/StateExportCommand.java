@@ -17,27 +17,19 @@
 package org.jboss.galleon.cli.cmd.state;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.impl.completer.FileOptionCompleter;
-import org.aesh.command.impl.internal.ParsedCommand;
 import org.aesh.command.option.Argument;
-import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
-import org.aesh.readline.AeshContext;
-import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.AbstractStateCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmOptionActivator;
-import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
@@ -46,21 +38,8 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "export", description = HelpDescriptions.EXPORT,
-        activator = StateNoExplorationActivator.class)
+@CommandDefinition(name = "export", description = HelpDescriptions.EXPORT_STATE)
 public class StateExportCommand extends PmSessionCommand {
-
-    public static class DirActivator extends PmOptionActivator {
-
-        @Override
-        public boolean isActivated(ParsedCommand parsedCommand) {
-            return getPmSession().getState() == null;
-        }
-    }
-
-    @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false, activator = DirActivator.class,
-            description = HelpDescriptions.INSTALLATION_DIRECTORY)
-    private String installationDir;
 
     @Argument(completer = FileOptionCompleter.class, required = false,
             description = HelpDescriptions.EXPORT_FILE)
@@ -71,27 +50,17 @@ public class StateExportCommand extends PmSessionCommand {
         if (file != null) {
             final Resource specResource = file.resolve(invoc.getAeshContext().getCurrentWorkingDirectory()).get(0);
             final Path targetFile = Paths.get(specResource.getAbsolutePath());
-            if (invoc.getPmSession().getState() != null) {
-                State session = invoc.getPmSession().getState();
-                try {
-                    session.export(targetFile);
-                } catch (Exception ex) {
-                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), ex);
-                }
-            } else {
-                try {
-                    getManager(invoc).exportProvisioningConfig(targetFile);
-                } catch (ProvisioningException | IOException e) {
-                    throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), e);
-                }
+            State session = invoc.getPmSession().getState();
+            try {
+                session.export(targetFile);
+            } catch (Exception ex) {
+                throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), ex);
             }
-
             invoc.println("Provisioning file generated in " + targetFile);
         } else {
             ByteArrayOutputStream output = null;
             try {
-                ProvisioningConfig config = invoc.getPmSession().getState() != null
-                        ? invoc.getPmSession().getState().getConfig() : getManager(invoc).getProvisioningConfig();
+                ProvisioningConfig config = invoc.getPmSession().getState().getConfig();
                 output = new ByteArrayOutputStream();
                 PrintWriter writer = new PrintWriter(output);
                 ProvisioningXmlWriter.getInstance().write(config, writer);
@@ -102,13 +71,9 @@ public class StateExportCommand extends PmSessionCommand {
         }
     }
 
-    private ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getTargetDir(session.getAeshContext()), false);
-    }
-
-    private Path getTargetDir(AeshContext context) {
-        Path workDir = PmSession.getWorkDir(context);
-        return installationDir == null ? PmSession.getWorkDir(context) : workDir.resolve(installationDir);
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 
 }

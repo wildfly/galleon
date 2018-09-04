@@ -22,7 +22,7 @@ import org.aesh.command.CommandException;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.cli.cmd.Headers;
-import org.jboss.galleon.cli.cmd.featurepack.InfoCommand;
+import org.jboss.galleon.cli.cmd.featurepack.GetInfoCommand;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -87,17 +87,17 @@ public class PatchTestCase {
         Assert.assertTrue(cf1.getPatches().contains(patchID));
 
         //Get info from the patch
-        cli.execute("feature-pack info --file=" + patchFile);
-        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(InfoCommand.PATCH_FOR
+        cli.execute("feature-pack get-info --file=" + patchFile);
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(GetInfoCommand.PATCH_FOR
                 + CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, "1.0.0.Alpha1")));
 
         //Check that output contains the patch.
-        cli.execute("state info --dir=" + install1);
+        cli.execute("get-info --dir=" + install1);
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCHES));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(patchID.getBuild()));
 
         //Check that output contains the patch.
-        cli.execute("state info --dir=" + install1 + " --type=patches");
+        cli.execute("get-info --dir=" + install1 + " --type=patches");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH_FOR));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(Headers.PATCH));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(patchID.getBuild()));
