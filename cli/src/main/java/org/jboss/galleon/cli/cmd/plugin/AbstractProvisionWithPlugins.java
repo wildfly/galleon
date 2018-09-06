@@ -34,6 +34,7 @@ import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
@@ -76,7 +77,7 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
         return contains(VERBOSE_OPTION_NAME);
     }
 
-    protected String getDir() {
+    private String getDir() {
         return (String) getValue(DIR_OPTION_NAME);
     }
 
@@ -90,8 +91,7 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
     }
 
     protected Path getAbsolutePath(String path, AeshContext context) {
-        Path workDir = PmSession.getWorkDir(context);
-        return path == null ? PmSession.getWorkDir(context) : workDir.resolve(path);
+        return path == null ? PmSession.getWorkDir(context) : Util.resolvePath(context, path);
     }
 
     protected abstract void doRunCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException;

@@ -17,14 +17,12 @@
 package org.jboss.galleon.cli.cmd.installation;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Argument;
-import org.aesh.io.Resource;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
@@ -40,15 +38,14 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 @CommandDefinition(name = "export", description = HelpDescriptions.EXPORT)
 public class ExportCommand extends AbstractInstallationCommand {
 
-    @Argument(completer = FileOptionCompleter.class, required = false,
+    @Argument(required = false,
             description = HelpDescriptions.EXPORT_FILE)
-    private Resource file;
+    private File file;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         if (file != null) {
-            final Resource specResource = file.resolve(invoc.getAeshContext().getCurrentWorkingDirectory()).get(0);
-            final Path targetFile = Paths.get(specResource.getAbsolutePath());
+            final Path targetFile = file.toPath();
             try {
                 getManager(invoc.getPmSession()).exportProvisioningConfig(targetFile);
             } catch (ProvisioningException | IOException e) {

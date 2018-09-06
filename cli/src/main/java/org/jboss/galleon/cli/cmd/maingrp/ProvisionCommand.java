@@ -18,7 +18,6 @@ package org.jboss.galleon.cli.cmd.maingrp;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -102,7 +101,7 @@ public class ProvisionCommand extends AbstractProvisionCommand {
     protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         String filePath = getFile();
         if (filePath != null) {
-            if (!Files.exists(Paths.get(filePath))) {
+            if (!Files.exists(getAbsolutePath(filePath, invoc.getAeshContext()))) {
                 throw new CommandExecutionException(filePath + " doesn't exist");
             }
         }

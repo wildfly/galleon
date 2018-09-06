@@ -16,9 +16,9 @@
  */
 package org.jboss.galleon.cli.cmd.installation;
 
+import java.io.File;
 import java.io.IOException;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -36,9 +36,9 @@ import org.jboss.galleon.cli.cmd.state.StateAddUniverseCommand;
 @CommandDefinition(name = "add-universe", description = HelpDescriptions.ADD_UNIVERSE)
 public class AddUniverseCommand extends StateAddUniverseCommand {
 
-    @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
+    @Option(name = DIR_OPTION_NAME, required = false,
             description = HelpDescriptions.INSTALLATION_DIRECTORY)
-    protected String targetDirArg;
+    protected File targetDirArg;
 
     @Override
     protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {

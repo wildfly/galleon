@@ -18,7 +18,10 @@ package org.jboss.galleon.cli;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import org.aesh.command.impl.converter.FileConverter;
+import org.aesh.readline.AeshContext;
 import org.aesh.readline.util.Parser;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -76,5 +79,10 @@ public class Util {
         String[] array = new String[lst.size()];
         lst.toArray(array);
         return Parser.formatDisplayList(array, width, height);
+    }
+
+    public static Path resolvePath(AeshContext ctx, String path) {
+        Path workDir = PmSession.getWorkDir(ctx);
+        return Paths.get(FileConverter.translatePath(workDir.toString(), path));
     }
 }

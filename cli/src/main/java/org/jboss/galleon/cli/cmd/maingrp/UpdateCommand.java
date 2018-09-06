@@ -109,8 +109,7 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
             // Check in argument or option, that is the option completion case.
             targetDirArg = getOptionValue(DIR_OPTION_NAME);
         }
-        Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
-        Path installation = targetDirArg == null ? workDir : workDir.resolve(targetDirArg);
+        Path installation = getAbsolutePath(targetDirArg, pmSession.getAeshContext());
         ProvisioningConfig config = pmSession.newProvisioningManager(installation, false).getProvisioningConfig();
         Set<PluginOption> opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getDiff();
         List<DynamicOption> options = new ArrayList<>();

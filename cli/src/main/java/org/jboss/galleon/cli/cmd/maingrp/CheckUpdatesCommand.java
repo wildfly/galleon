@@ -70,7 +70,7 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         try {
-            ProvisioningManager mgr = getManager(session.getPmSession());
+            ProvisioningManager mgr = getManager(session.getPmSession(), false);
 
             Updates updates = getUpdatesTable(mgr, session, includeAll, fp);
             if (updates.plan.isEmpty()) {

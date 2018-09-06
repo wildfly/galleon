@@ -16,10 +16,10 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Argument;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
@@ -38,9 +38,9 @@ import org.jboss.galleon.cli.model.state.State;
  */
 @CommandDefinition(name = "edit", description = HelpDescriptions.EDIT_STATE)
 public class StateEditCommand extends PmSessionCommand {
-    @Argument(completer = FileOptionCompleter.class, required = false,
+    @Argument(required = false,
             description = HelpDescriptions.EDIT_STATE_ARG)
-    protected String dir;
+    protected File dir;
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
@@ -56,8 +56,7 @@ public class StateEditCommand extends PmSessionCommand {
     }
 
     protected Path getInstallationHome(AeshContext context) {
-        Path workDir = PmSession.getWorkDir(context);
-        return dir == null ? PmSession.getWorkDir(context) : workDir.resolve(dir);
+        return dir == null ? PmSession.getWorkDir(context) : dir.toPath();
     }
 
 }
