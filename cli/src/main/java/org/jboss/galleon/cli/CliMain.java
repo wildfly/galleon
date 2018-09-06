@@ -16,9 +16,9 @@
  */
 package org.jboss.galleon.cli;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.jboss.galleon.cli.config.Configuration;
 import java.util.logging.LogManager;
@@ -100,17 +100,13 @@ public class CliMain {
                 if (file.isEmpty()) {
                     throw new Exception(CliErrors.emptyOption(Arguments.SCRIPT_FILE));
                 }
-                File f = new File(file);
-                if (!f.isAbsolute()) {
-                    String parent = runtime.getAeshContext().getCurrentWorkingDirectory().getAbsolutePath();
-                    f = new File(parent, file);
+                Path f = Util.resolvePath(pmSession.getAeshContext(), file);
+                if (!Files.exists(f)) {
+                    throw new Exception(CliErrors.unknownFile(f.toString()));
+                } else if (!Files.isRegularFile(f)) {
+                    throw new Exception(CliErrors.notFile(f.toString()));
                 }
-                if (!f.exists()) {
-                    throw new Exception(CliErrors.unknownFile(f.getAbsolutePath()));
-                } else if (!f.isFile()) {
-                    throw new Exception(CliErrors.notFile(f.getAbsolutePath()));
-                }
-                List<String> commands = Files.readAllLines(f.toPath());
+                List<String> commands = Files.readAllLines(f);
                 for (String cmd : commands) {
                     if (cmd.startsWith("#")) {
                         continue;

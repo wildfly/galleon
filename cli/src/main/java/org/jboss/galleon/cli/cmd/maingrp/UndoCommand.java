@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
-import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
@@ -41,9 +40,7 @@ public class UndoCommand extends AbstractProvisioningCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
-
-            Path p = getInstallationDirectory(invoc.getAeshContext());
-            ProvisioningManager mgr = invoc.getPmSession().newProvisioningManager(p, verbose);
+            ProvisioningManager mgr = getManager(invoc.getPmSession(), verbose);
             mgr.undo();
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.undoFailed(), ex);

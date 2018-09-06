@@ -34,7 +34,7 @@ public class ClearHistoryCommand extends AbstractInstallationCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
-            ProvisioningManager mgr = invoc.getPmSession().newProvisioningManager(getInstallationDirectory(invoc.getAeshContext()), false);
+            ProvisioningManager mgr = getManager(invoc.getPmSession());
             mgr.clearStateHistory();
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.clearHistoryFailed(), ex);

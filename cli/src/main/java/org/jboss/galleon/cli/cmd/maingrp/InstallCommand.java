@@ -40,6 +40,7 @@ import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand;
@@ -86,8 +87,7 @@ public class InstallCommand extends AbstractPluginsCommand {
             String filePath = (String) getValue(FILE_OPTION_NAME);
             final ProvisioningManager manager = getManager(session);
             if (filePath != null) {
-                Path workDir = PmSession.getWorkDir(session.getAeshContext());
-                Path p = workDir.resolve(filePath);
+                Path p = Util.resolvePath(session.getAeshContext(), filePath);
                 // always install for future use.
                 manager.install(p, true);
             } else {
@@ -162,8 +162,7 @@ public class InstallCommand extends AbstractPluginsCommand {
         if (filePath == null) {
             return super.getId(session);
         }
-        Path workDir = PmSession.getWorkDir(session.getAeshContext());
-        Path path = workDir.resolve(filePath);
+        Path path = Util.resolvePath(session.getAeshContext(), filePath);
         if (!Files.exists(path)) {
             return null;
         }
@@ -190,8 +189,7 @@ public class InstallCommand extends AbstractPluginsCommand {
         if (arg != null) {
             throw new CommandExecutionException("Only one of file or Feature-pack location is allowed.");
         }
-        Path workDir = PmSession.getWorkDir(invoc.getAeshContext());
-        Path p = workDir.resolve(filePath);
+        Path p = Util.resolvePath(invoc.getAeshContext(), filePath);
         if (!Files.exists(p)) {
             throw new CommandExecutionException(p + " doesn't exist.");
         }
@@ -217,7 +215,7 @@ public class InstallCommand extends AbstractPluginsCommand {
     protected Path getInstallationHome(AeshContext context) {
         String targetDirArg = (String) getValue(DIR_OPTION_NAME);
         Path workDir = PmSession.getWorkDir(context);
-        return targetDirArg == null ? workDir : workDir.resolve(targetDirArg);
+        return targetDirArg == null ? workDir : Util.resolvePath(context, targetDirArg);
     }
 
     @Override

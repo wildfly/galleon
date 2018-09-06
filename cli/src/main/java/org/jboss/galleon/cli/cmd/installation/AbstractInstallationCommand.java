@@ -16,12 +16,14 @@
  */
 package org.jboss.galleon.cli.cmd.installation;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import org.aesh.command.impl.completer.FileOptionCompleter;
 import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -43,18 +45,22 @@ import org.jboss.galleon.runtime.ProvisioningRuntime;
  */
 public abstract class AbstractInstallationCommand extends PmSessionCommand implements CommandWithInstallationDirectory {
 
-    @Option(name = DIR_OPTION_NAME, completer = FileOptionCompleter.class, required = false,
+    @Option(name = DIR_OPTION_NAME, required = false,
             description = HelpDescriptions.INSTALLATION_DIRECTORY)
-    protected String targetDirArg;
+    protected File targetDirArg;
 
     protected ProvisioningManager getManager(PmSession session) throws ProvisioningException {
-        return session.newProvisioningManager(getInstallationDirectory(session.getAeshContext()), false);
+        Path install = getInstallationDirectory(session.getAeshContext());
+        if (!Files.exists(install)) {
+            throw new ProvisioningException(Errors.homeDirNotUsable(install));
+        }
+        return session.newProvisioningManager(install, false);
     }
 
     @Override
     public Path getInstallationDirectory(AeshContext context) {
-        Path workDir = PmSession.getWorkDir(context);
-        return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
+        return targetDirArg == null ? PmSession.getWorkDir(context)
+                : targetDirArg.toPath();
     }
 
     public FeatureContainer getFeatureContainer(PmSession session, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException,
