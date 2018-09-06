@@ -82,7 +82,8 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
     }
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getInstallationDirectory(session.getAeshContext()), isVerbose());
+        return session.getPmSession().newProvisioningManager(getInstallationDirectory(session.
+                getConfiguration().getAeshContext()), isVerbose());
     }
 
     @Override

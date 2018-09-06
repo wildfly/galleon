@@ -38,9 +38,9 @@ abstract class FromInstallationCommand extends PmSessionCommand {
     boolean verbose;
 
     protected Path getTargetDir(PmCommandInvocation session) {
-        Path workDir = PmSession.getWorkDir(session.getAeshContext());
+        Path workDir = PmSession.getWorkDir(session.getConfiguration().getAeshContext());
         return srcDirArg == null ? workDir
-                : workDir.resolve(srcDirArg.resolve(session.getAeshContext().
+                : workDir.resolve(srcDirArg.resolve(session.getConfiguration().getAeshContext().
                         getCurrentWorkingDirectory()).get(0).getAbsolutePath());
     }
 

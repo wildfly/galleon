@@ -57,7 +57,7 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
 
         @Override
         public Map<String, Group> getPackages() {
-            Map<String, Group> map = new HashMap();
+            Map<String, Group> map = new HashMap<>();
             for (FeatureContainer dep : container.getFullDependencies().values()) {
                 for (String orig : dep.getPackages().keySet()) {
                     Group root = map.get(orig);

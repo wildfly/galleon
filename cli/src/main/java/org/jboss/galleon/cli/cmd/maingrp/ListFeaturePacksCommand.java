@@ -36,9 +36,9 @@ import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.Producer;
+import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
-import org.jboss.galleon.universe.maven.MavenProducer;
 
 /**
  *
@@ -121,10 +121,10 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
 
     private static void printUniverse(Pattern cPattern, UniverseSpec spec, PmCommandInvocation invoc) throws ProvisioningException {
         UniverseManager resolver = invoc.getPmSession().getUniverse();
-        org.jboss.galleon.universe.Universe universe = resolver.getUniverse(spec);
+        Universe<? extends Producer> universe = resolver.getUniverse(spec);
         invoc.println(spec.toString() + (spec.getLocation().equals(universe.getLocation()) ? ""
                 : ", actual location " + universe.getLocation()));
-        Collection<MavenProducer> producers = universe.getProducers();
+        Collection<? extends Producer> producers = universe.getProducers();
         if (producers.isEmpty()) {
             invoc.println(" No product available");
         } else {

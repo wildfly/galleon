@@ -41,6 +41,7 @@ import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -119,7 +120,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
             // Silent resolution.
             pmSession.unregisterTrackers();
             try {
-                try (ProvisioningLayout layout = pmSession.getLayoutFactory().newConfigLayout(config)) {
+                try (ProvisioningLayout<FeaturePackLayout> layout = pmSession.getLayoutFactory().newConfigLayout(config)) {
                     layout.uninstall(pmSession.getResolvedLocation(fpid).getFPID());
                     Set<PluginOption> opts = PluginResolver.newResolver(pmSession, layout).resolve().getInstall();
                     List<DynamicOption> options = new ArrayList<>();

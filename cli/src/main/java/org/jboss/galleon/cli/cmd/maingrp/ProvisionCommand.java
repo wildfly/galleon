@@ -101,7 +101,7 @@ public class ProvisionCommand extends AbstractProvisionCommand {
     protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         String filePath = getFile();
         if (filePath != null) {
-            if (!Files.exists(getAbsolutePath(filePath, invoc.getAeshContext()))) {
+            if (!Files.exists(getAbsolutePath(filePath, invoc.getConfiguration().getAeshContext()))) {
                 throw new CommandExecutionException(filePath + " doesn't exist");
             }
         }
@@ -122,7 +122,7 @@ public class ProvisionCommand extends AbstractProvisionCommand {
         if (file == null) {
             throw new CommandExecutionException("No provisioning file provided.");
         }
-        final Path provisioningFile = getAbsolutePath(file, invoc.getAeshContext());
+        final Path provisioningFile = getAbsolutePath(file, invoc.getConfiguration().getAeshContext());
         if (!Files.exists(provisioningFile)) {
             throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
         }

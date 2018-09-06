@@ -184,7 +184,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
     }
 
     private void displayOptions(PmCommandInvocation commandInvocation,
-            ProvisioningLayout layout) throws ProvisioningException {
+            ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = StateInfoUtil.buildOptions(PluginResolver.resolvePlugins(layout));
         if (str != null) {
             commandInvocation.println(str);

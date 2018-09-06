@@ -133,7 +133,8 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     protected abstract Path getInstallationHome(AeshContext ctx);
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getInstallationHome(session.getAeshContext()), isVerbose());
+        return session.getPmSession().newProvisioningManager(getInstallationHome(session.
+                getConfiguration().getAeshContext()), isVerbose());
     }
 
     protected String getId(PmSession session) throws CommandExecutionException {

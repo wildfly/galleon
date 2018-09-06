@@ -36,6 +36,7 @@ import org.jboss.galleon.cli.PmSession;
  *
  * @author jdenise@redhat.com
  */
+@SuppressWarnings("deprecation")
 class InteractivePmCommandInvocation extends PmCommandInvocation {
 
     private final CommandInvocation delegate;
@@ -70,9 +71,10 @@ class InteractivePmCommandInvocation extends PmCommandInvocation {
         delegate.stop();
     }
 
+    @Deprecated
     @Override
     public AeshContext getAeshContext() {
-        return delegate.getAeshContext();
+        return delegate.getConfiguration().getAeshContext();
     }
 
     @Override

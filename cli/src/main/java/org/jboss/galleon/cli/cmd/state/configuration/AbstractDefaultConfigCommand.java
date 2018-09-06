@@ -56,7 +56,7 @@ public abstract class AbstractDefaultConfigCommand extends AbstractFPProvisioned
 
         @Override
         public Map<String, List<ConfigInfo>> getFinalConfigs() {
-            Map<String, List<ConfigInfo>> map = new HashMap();
+            Map<String, List<ConfigInfo>> map = new HashMap<>();
             for (FeatureContainer dep : container.getFullDependencies().values()) {
                 for (String model : dep.getFinalConfigs().keySet()) {
                     List<ConfigInfo> lst = map.get(model);
