@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.filesystem;
 
+import java.io.File;
 import java.util.List;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
@@ -25,14 +26,7 @@ import org.aesh.readline.AeshContext;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
-import org.jboss.galleon.cli.cmd.CliErrors;
-import org.jboss.galleon.cli.model.Group;
-import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
-import org.jboss.galleon.cli.path.PathConsumerException;
-import org.jboss.galleon.cli.path.PathParser;
-import org.jboss.galleon.cli.path.PathParserException;
 
 /**
  *
@@ -41,24 +35,15 @@ import org.jboss.galleon.cli.path.PathParserException;
 @CommandDefinition(name = "cd", description = HelpDescriptions.CD)
 public class CdCommand extends PmSessionCommand {
 
-    @Argument(completer = FileAndNodeCompleter.class, description = HelpDescriptions.DIR_OR_FP_PATH)
-    private String path;
+    @Argument()
+    private File path;
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
-        if (path == null || path.isEmpty()) {
+        if (path == null) {
             return;
         }
-        String currentPath = session.getPmSession().getCurrentPath();
-        if (currentPath == null) {
-            cdDir(session);
-        } else {
-            try {
-                cdFp(session);
-            } catch (PathParserException | PathConsumerException ex) {
-                throw new CommandExecutionException(session.getPmSession(), CliErrors.enterFPFailed(), ex);
-            }
-        }
+        cdDir(session);
     }
 
     private void cdDir(PmCommandInvocation session) {
@@ -68,53 +53,6 @@ public class CdCommand extends PmSessionCommand {
         if (files.get(0).isDirectory()) {
             aeshCtx.setCurrentWorkingDirectory(files.get(0));
         }
-        session.setPrompt(PmSession.buildPrompt(aeshCtx));
-    }
-
-    private void cdFp(PmCommandInvocation session) throws CommandExecutionException, PathParserException, PathConsumerException {
-        PmSession pm = session.getPmSession();
-        String currentPath = pm.getCurrentPath();
-        FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(pm.getContainer(), true);
-        if (path.startsWith("" + PathParser.PATH_SEPARATOR)) {
-            pm.setCurrentPath(null);
-        } else if (path.equals("..")) {
-            if (currentPath == null) {
-                throw new CommandExecutionException("No path entered");
-            }
-            if (currentPath.equals("" + PathParser.PATH_SEPARATOR)) {
-                return;
-            }
-            currentPath = currentPath.substring(0, currentPath.length() - 1);
-            int i = currentPath.lastIndexOf("" + PathParser.PATH_SEPARATOR);
-            if (i < 0) {
-                path = "" + PathParser.PATH_SEPARATOR;
-            } else {
-                path = currentPath.substring(0, i);
-            }
-            if (path.isEmpty()) {
-                path = "" + PathParser.PATH_SEPARATOR;
-            }
-            pm.setCurrentPath(null);
-        } else {
-            path = currentPath + path;
-        }
-        PathParser.parse(path, consumer);
-        Group grp = consumer.getCurrentNode(path);
-        if (grp == null) {
-            return;
-        } else {
-            if (!path.endsWith("" + PathParser.PATH_SEPARATOR)) {
-                path += PathParser.PATH_SEPARATOR;
-            }
-            pm.setCurrentPath(path);
-        }
-        String prompt;
-        if (FeatureContainerPathConsumer.ROOT.equals(grp.getIdentity().getName())) {
-            prompt = (pm.getContainer().getName() == null ? ""
-                    : pm.getContainer().getName()) + PathParser.PATH_SEPARATOR;
-        } else {
-            prompt = grp.getIdentity().getName() + PathParser.PATH_SEPARATOR;
-        }
-        session.setPrompt(PmSession.buildPrompt(prompt));
+        session.setPrompt(session.getPmSession().buildPrompt());
     }
 }

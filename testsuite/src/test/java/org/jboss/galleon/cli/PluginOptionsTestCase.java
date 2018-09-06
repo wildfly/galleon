@@ -111,7 +111,7 @@ public class PluginOptionsTestCase {
         Path target = cli.newDir("target", false);
         // Invalid option
         try {
-            cli.execute("state provision " + p + File.separator + ".galleon" + File.separator
+            cli.execute("provision " + p + File.separator + ".galleon" + File.separator
                     + "provisioning.xml --dir=" + target + " --foo");
             throw new Exception("Should have failed, --foo beeing unknown");
         } catch (CommandException ex) {
@@ -119,14 +119,14 @@ public class PluginOptionsTestCase {
         }
         // missing required option
         try {
-            cli.execute("state provision " + p + File.separator + ".galleon" + File.separator
+            cli.execute("provision " + p + File.separator + ".galleon" + File.separator
                     + "provisioning.xml --dir=" + target);
             throw new Exception("Should have failed, --opt1-req is required.");
         } catch (CommandException ex) {
             // XXX OK.
         }
         // successfull provisioning
-        cli.execute("state provision " + p + File.separator + ".galleon" + File.separator
+        cli.execute("provision " + p + File.separator + ".galleon" + File.separator
                 + "provisioning.xml --dir=" + target + " --" + PluginTest.OPT1_REQUIRED + "=XXX");
 
         // UNINSTALL command, remaining PRODUCER2 expects some options.

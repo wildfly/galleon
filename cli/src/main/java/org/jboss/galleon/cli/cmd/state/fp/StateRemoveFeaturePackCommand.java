@@ -27,6 +27,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -35,7 +36,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove", description = HelpDescriptions.REMOVE_FEATURE_PACK, activator = RemoveFeaturePackCommandActivator.class)
+@CommandDefinition(name = "remove-dependency", description = HelpDescriptions.REMOVE_DEPENDENCY, activator = RemoveFeaturePackCommandActivator.class)
 public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
 
     public static class ProvisionedFPCompleter extends AbstractCompleter {
@@ -61,6 +62,11 @@ public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
         session.removeDependency(invoc.getPmSession(), invoc.getPmSession().getResolvedLocation(fpl));
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 
 }

@@ -53,5 +53,4 @@ public class MavenSetSettings extends PmSessionCommand {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.setSettingsFailed(), ex);
         }
     }
-
 }

@@ -47,5 +47,4 @@ public class MavenEnableSnapshot extends PmSessionCommand {
             throw new CommandExecutionException(ex.getLocalizedMessage());
         }
     }
-
 }

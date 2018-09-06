@@ -36,7 +36,7 @@ import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
-import org.jboss.galleon.cli.cmd.state.NoStateCommandActivator;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
@@ -130,7 +130,7 @@ public class DiffCommand extends AbstractPluginsCommand {
 
     @Override
     protected PmCommandActivator getActivator() {
-        return new NoStateCommandActivator();
+        return null;
     }
 
     @Override
@@ -155,5 +155,10 @@ public class DiffCommand extends AbstractPluginsCommand {
         }
         Path workDir = PmSession.getWorkDir(pmSession.getAeshContext());
         return path == null ? workDir : workDir.resolve(path);
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

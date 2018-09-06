@@ -25,9 +25,9 @@ import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.StateFullPathCompleter;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
-import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureInfo;
 import org.jboss.galleon.cli.model.Group;
@@ -39,7 +39,7 @@ import org.jboss.galleon.cli.path.PathParser;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove", description = HelpDescriptions.REMOVE_FEATURE, activator = StateEditCommandActivator.class)
+@CommandDefinition(name = "remove-feature", description = HelpDescriptions.REMOVE_FEATURE, activator = FeatureCommandActivator.class)
 public class StateRemoveFeatureCommand extends AbstractStateCommand {
 
     public static class FeatureCompleter extends StateFullPathCompleter {
@@ -77,5 +77,10 @@ public class StateRemoveFeatureCommand extends AbstractStateCommand {
         } catch (Exception ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.removeFeatureFailed(), ex);
         }
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 }

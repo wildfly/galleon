@@ -19,6 +19,7 @@ package org.jboss.galleon.cli;
 import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 
@@ -95,4 +96,10 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
     }
 
     protected abstract void runCommand(PmCommandInvocation session) throws CommandExecutionException;
+
+    public CommandDomain getDomain() {
+        // null is the default value for child commands.
+        // Unit test check that top level and parent commands have a proper domain set.
+        return null;
+    }
 }

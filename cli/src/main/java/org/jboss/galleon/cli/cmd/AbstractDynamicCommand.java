@@ -178,6 +178,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     protected abstract List<ProcessedOption> getStaticOptions() throws OptionParserException;
 
     protected abstract PmCommandActivator getActivator();
+    public abstract CommandDomain getDomain();
 
     public CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation> createCommand() throws CommandLineParserException {
         cmd = buildCommand();

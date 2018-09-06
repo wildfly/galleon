@@ -52,36 +52,36 @@ public class MavenConfigTestCase {
         String name2 = "barbar";
         String url = "http://foo";
         try {
-            cli.execute("mvn add-repository --name=" + name + " --url=" + url + " --release-update-policy=foo");
+            cli.execute("maven add-repository --name=" + name + " --url=" + url + " --release-update-policy=foo");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
 
         try {
-            cli.execute("mvn add-repository --name=" + name + " --url=" + url + " --snapshot-update-policy=foo");
+            cli.execute("maven add-repository --name=" + name + " --url=" + url + " --snapshot-update-policy=foo");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
-        cli.execute("mvn add-repository --name=" + name + " --url=" + url);
-        cli.execute("mvn add-repository --name=" + name2 + " --url=" + url + " --snapshot-update-policy=always "
+        cli.execute("maven add-repository --name=" + name + " --url=" + url);
+        cli.execute("maven add-repository --name=" + name2 + " --url=" + url + " --snapshot-update-policy=always "
                 + "--release-update-policy=never --enable-snapshot=true --enable-release=false");
         checkRepositories(config, url, name, name2);
         checkRepositories(Configuration.parse().getMavenConfig(), url, name, name2);
 
         try {
-            cli.execute("mvn remove-repository XXX");
+            cli.execute("maven remove-repository XXX");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
-        cli.execute("mvn info");
+        cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains(name));
         Assert.assertTrue(cli.getOutput().contains(name2));
 
-        cli.execute("mvn remove-repository " + name);
-        cli.execute("mvn remove-repository " + name2);
+        cli.execute("maven remove-repository " + name);
+        cli.execute("maven remove-repository " + name2);
         checkNoRepositories(config, name, name2);
         checkNoRepositories(Configuration.parse().getMavenConfig(), name, name2);
     }
@@ -92,14 +92,14 @@ public class MavenConfigTestCase {
         Path defaultOriginalPath = config.getLocalRepository();
         Path foo = cli.newDir("foo", true);
         Assert.assertFalse(config.getLocalRepository().endsWith("foo"));
-        cli.execute("mvn set-local-repository " + foo.toFile().getAbsolutePath());
+        cli.execute("maven set-local-repository " + foo.toFile().getAbsolutePath());
         Assert.assertEquals(foo, config.getLocalRepository());
         Assert.assertEquals(foo, Configuration.parse().getMavenConfig().getLocalRepository());
 
-        cli.execute("mvn info");
+        cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains(foo.toFile().getAbsolutePath()));
 
-        cli.execute("mvn set-local-repository");
+        cli.execute("maven set-local-repository");
         Assert.assertEquals(defaultOriginalPath, config.getLocalRepository());
         Assert.assertEquals(defaultOriginalPath, Configuration.parse().getMavenConfig().getLocalRepository());
     }
@@ -112,14 +112,14 @@ public class MavenConfigTestCase {
         Files.createFile(settings);
         Path existingSettings = config.getSettings();
         Assert.assertNull(existingSettings);
-        cli.execute("mvn set-settings-file " + settings.toFile().getAbsolutePath());
+        cli.execute("maven set-settings-file " + settings.toFile().getAbsolutePath());
         Assert.assertEquals(settings, config.getSettings());
         Assert.assertEquals(settings, Configuration.parse().getMavenConfig().getSettings());
 
-        cli.execute("mvn info");
+        cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains(settings.toFile().getAbsolutePath()));
 
-        cli.execute("mvn set-settings-file");
+        cli.execute("maven set-settings-file");
         Assert.assertNull(config.getSettings());
         Assert.assertNull(Configuration.parse().getMavenConfig().getSettings());
     }
@@ -132,23 +132,23 @@ public class MavenConfigTestCase {
         String snapshotPolicy = "interval:700";
         String releasePolicy = "never";
         try {
-            cli.execute("mvn set-release-update-policy interval:");
+            cli.execute("maven set-release-update-policy interval:");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
 
         try {
-            cli.execute("mvn set-snapshot-update-policy interval:");
+            cli.execute("maven set-snapshot-update-policy interval:");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
 
-        cli.execute("mvn set-snapshot-update-policy " + snapshotPolicy);
-        cli.execute("mvn set-release-update-policy " + releasePolicy);
+        cli.execute("maven set-snapshot-update-policy " + snapshotPolicy);
+        cli.execute("maven set-release-update-policy " + releasePolicy);
 
-        cli.execute("mvn info");
+        cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains("snapshotUpdatePolicy=" + snapshotPolicy));
         Assert.assertTrue(cli.getOutput().contains("releaseUpdatePolicy=" + releasePolicy));
 
@@ -158,8 +158,8 @@ public class MavenConfigTestCase {
         Assert.assertEquals(snapshotPolicy, Configuration.parse().getMavenConfig().getDefaultSnapshotPolicy());
         Assert.assertEquals(releasePolicy, Configuration.parse().getMavenConfig().getDefaultReleasePolicy());
 
-        cli.execute("mvn set-snapshot-update-policy");
-        cli.execute("mvn set-release-update-policy");
+        cli.execute("maven set-snapshot-update-policy");
+        cli.execute("maven set-release-update-policy");
 
         Assert.assertEquals(defaultSnapshot, config.getDefaultSnapshotPolicy());
         Assert.assertEquals(defaultRelease, config.getDefaultReleasePolicy());
@@ -174,31 +174,31 @@ public class MavenConfigTestCase {
         boolean enableSnapshot = config.isSnapshotEnabled();
         boolean enableRelease = config.isReleaseEnabled();
         try {
-            cli.execute("mvn enable-snapshot foo");
+            cli.execute("maven enable-snapshot foo");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
 
         try {
-            cli.execute("mvn enable-release bar");
+            cli.execute("maven enable-release bar");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
 
-        cli.execute("mvn enable-snapshot " + !enableSnapshot);
-        cli.execute("mvn enable-release " + !enableRelease);
+        cli.execute("maven enable-snapshot " + !enableSnapshot);
+        cli.execute("maven enable-release " + !enableRelease);
 
         Assert.assertEquals(!enableSnapshot, config.isSnapshotEnabled());
         Assert.assertEquals(!enableRelease, config.isReleaseEnabled());
 
-        cli.execute("mvn info");
+        cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains("release=" + !enableRelease));
         Assert.assertTrue(cli.getOutput().contains("snapshot=" + !enableSnapshot));
 
-        cli.execute("mvn enable-snapshot");
-        cli.execute("mvn enable-release");
+        cli.execute("maven enable-snapshot");
+        cli.execute("maven enable-release");
 
         Assert.assertEquals(enableSnapshot, config.isSnapshotEnabled());
         Assert.assertEquals(enableRelease, config.isReleaseEnabled());

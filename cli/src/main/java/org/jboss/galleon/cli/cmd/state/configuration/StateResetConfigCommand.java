@@ -24,6 +24,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.state.State;
@@ -35,7 +36,7 @@ import org.jboss.galleon.cli.path.PathParserException;
 /**
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "reset", description = HelpDescriptions.RESET_CONFIG, activator = ResetConfigCommandActivator.class)
+@CommandDefinition(name = "reset-config", description = HelpDescriptions.RESET_CONFIG, activator = ResetConfigCommandActivator.class)
 public class StateResetConfigCommand extends AbstractStateCommand {
     @Option(required = true, description = HelpDescriptions.CONFIGURATION_NAME,
             completer = ProvisionedConfigurationCompleter.class)
@@ -59,5 +60,10 @@ public class StateResetConfigCommand extends AbstractStateCommand {
             throw new ProvisioningException("Not a valid config " + configuration);
         }
         return ci;
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 }

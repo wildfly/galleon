@@ -17,20 +17,17 @@
 package org.jboss.galleon.cli.cmd.state.configuration;
 
 import org.aesh.command.impl.internal.ParsedCommand;
-import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
+import org.jboss.galleon.cli.AbstractCommandActivator;
 import org.jboss.galleon.config.FeaturePackConfig;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-public class ProvisionedDefaultConfigCommandActivator extends StateEditCommandActivator {
+public class ProvisionedDefaultConfigCommandActivator extends AbstractCommandActivator {
 
     @Override
     public boolean isActivated(ParsedCommand command) {
-        if (!super.isActivated(command)) {
-            return false;
-        }
         AbstractProvisionedDefaultConfigCommand cmd = (AbstractProvisionedDefaultConfigCommand) command.command();
         for (FeaturePackConfig cf : getSession().getState().getConfig().getFeaturePackDeps()) {
             if (!cmd.getTargetedConfigs(cf).isEmpty()) {

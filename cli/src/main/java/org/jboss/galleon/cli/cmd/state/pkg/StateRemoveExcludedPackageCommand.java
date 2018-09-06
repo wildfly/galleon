@@ -24,6 +24,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
 
@@ -31,7 +32,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "remove-excluded", description = HelpDescriptions.REMOVE_EXCLUDED_PACKAGE, activator = ProvisionedPackageCommandActivator.class)
+@CommandDefinition(name = "remove-excluded-package", description = HelpDescriptions.REMOVE_EXCLUDED_PACKAGE, activator = ProvisionedPackageCommandActivator.class)
 public class StateRemoveExcludedPackageCommand extends AbstractProvisionedPackageCommand {
 
     @Override
@@ -46,5 +47,10 @@ public class StateRemoveExcludedPackageCommand extends AbstractProvisionedPackag
     @Override
     protected Set<String> getTargetedPackages(FeaturePackConfig cf) {
         return cf.getExcludedPackages();
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
     }
 }

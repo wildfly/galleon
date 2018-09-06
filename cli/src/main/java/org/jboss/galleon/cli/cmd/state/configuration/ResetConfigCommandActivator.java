@@ -17,19 +17,16 @@
 package org.jboss.galleon.cli.cmd.state.configuration;
 
 import org.aesh.command.impl.internal.ParsedCommand;
-import org.jboss.galleon.cli.cmd.state.StateEditCommandActivator;
+import org.jboss.galleon.cli.AbstractCommandActivator;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-public class ResetConfigCommandActivator extends StateEditCommandActivator {
+public class ResetConfigCommandActivator extends AbstractCommandActivator {
 
     @Override
     public boolean isActivated(ParsedCommand command) {
-        if (!super.isActivated(command)) {
-            return false;
-        }
         return !getSession().getState().getConfig().getDefinedConfigs().isEmpty();
     }
 }

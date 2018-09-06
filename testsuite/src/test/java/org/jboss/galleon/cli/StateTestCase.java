@@ -65,14 +65,14 @@ public class StateTestCase {
         Path dir = cli.newDir("installEdit", false);
         cli.execute("install " + loc + " --dir=" + dir.toString());
 
-        cli.execute("cd " + dir.toFile().getAbsolutePath());
+        cli.execute("filesystem cd " + dir.toFile().getAbsolutePath());
 
         cli.execute("state edit");
         try {
             doNavigationTest();
             doEditionTest();
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
     }
 
@@ -82,10 +82,10 @@ public class StateTestCase {
         Path provFile = dir.resolve(".galleon").resolve("provisioning.xml");
         cli.execute("install " + loc + " --dir=" + dir.toString());
 
-        cli.execute("cd " + dir.toFile().getAbsolutePath());
+        cli.execute("filesystem cd " + dir.toFile().getAbsolutePath());
 
         Path target = cli.newDir("provisioned", false);
-        cli.execute("state provision " + provFile.toFile().getAbsolutePath()
+        cli.execute("provision " + provFile.toFile().getAbsolutePath()
                 + " --dir=" + target.toFile().getAbsolutePath());
 
         cli.execute("state edit " + target.toFile().getAbsolutePath());
@@ -93,7 +93,7 @@ public class StateTestCase {
             doNavigationTest();
             doEditionTest();
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
 
         // Edit the provisioned state.
@@ -101,9 +101,9 @@ public class StateTestCase {
         cli.execute("state edit " + target.toFile().getAbsolutePath());
         try {
             // Re-provision from it
-            cli.execute("state provision --dir=" + target2.toFile().getAbsolutePath());
+            cli.execute("provision --dir=" + target2.toFile().getAbsolutePath());
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
         // Edit and check the re-provisioned state
         cli.execute("state edit " + target2.toFile().getAbsolutePath());
@@ -111,7 +111,7 @@ public class StateTestCase {
             doNavigationTest();
             doEditionTest();
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
     }
 
@@ -120,17 +120,17 @@ public class StateTestCase {
         Path dir = cli.newDir("installExport", false);
         cli.execute("install " + loc + " --dir=" + dir.toString());
 
-        cli.execute("cd " + dir.toFile().getAbsolutePath());
+        cli.execute("filesystem cd " + dir.toFile().getAbsolutePath());
 
         Path provFile = cli.newDir("xml", true).resolve("prov.xml");
-        cli.execute("state export " + provFile.toFile().getAbsolutePath());
+        cli.execute("installation export " + provFile.toFile().getAbsolutePath());
 
         cli.execute("state edit " + provFile.toFile().getAbsolutePath());
         try {
             doNavigationTest();
             doEditionTest();
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
 
         // Edit the export state file.
@@ -138,9 +138,9 @@ public class StateTestCase {
         cli.execute("state edit " + provFile.toFile().getAbsolutePath());
         try {
             // Re-export from it
-            cli.execute("state export " + provFile2.toFile().getAbsolutePath());
+            cli.execute("export " + provFile2.toFile().getAbsolutePath());
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
         // Edit and check the re-exported state
         cli.execute("state edit " + provFile2.toFile().getAbsolutePath());
@@ -148,22 +148,7 @@ public class StateTestCase {
             doNavigationTest();
             doEditionTest();
         } finally {
-            cli.execute("state leave");
-        }
-    }
-
-    @Test
-    public void testExplore() throws Exception {
-        Path dir = cli.newDir("installExplore", false);
-        cli.execute("install " + loc + " --dir=" + dir.toString());
-
-        cli.execute("cd " + dir.toFile().getAbsolutePath());
-
-        cli.execute("state explore");
-        try {
-            doNavigationTest();
-        } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
     }
 
@@ -171,14 +156,14 @@ public class StateTestCase {
     public void testNew() throws Exception {
         cli.execute("state new");
         try {
-            cli.execute("state info --type=all");
+            cli.execute("get-info --type=all");
             Assert.assertTrue(cli.getOutput(), cli.getOutput().isEmpty());
 
-            cli.execute("fp add " + loc + " --default-configs-inherit --packages-inherit");
+            cli.execute("add-dependency " + loc + " --default-configs-inherit --packages-inherit");
             doNavigationTest();
             doEditionTest();
         } finally {
-            cli.execute("state leave");
+            cli.execute("leave-state");
         }
     }
 
@@ -216,26 +201,26 @@ public class StateTestCase {
         cli.execute("ls dependencies");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(loc.getProducer().toString()));
 
-        cli.execute("packages exclude " + loc.getProducer() + PathParser.PATH_SEPARATOR + "p1");
+        cli.execute("exclude-package " + loc.getProducer() + PathParser.PATH_SEPARATOR + "p1");
         cli.execute("ls /packages/" + loc.getProducer());
         Assert.assertTrue(cli.getOutput(), cli.getOutput().isEmpty());
 
-        cli.execute("state undo");
+        cli.execute("undo");
         cli.execute("ls /packages/" + loc.getProducer());
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("p1"));
 
-        cli.execute("config exclude model1/name1");
+        cli.execute("exclude-config model1/name1");
         cli.execute("ls /configs/final");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().isEmpty());
 
-        cli.execute("state undo");
+        cli.execute("undo");
         cli.execute("ls /configs/final");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("model1"));
         cli.execute("cd /configs/final/model1");
         cli.execute("ls");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("name1"));
 
-        cli.execute("state info --type=configs");
+        cli.execute("get-info --type=configs");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Final"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("model1"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("name1"));

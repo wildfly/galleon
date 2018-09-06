@@ -16,76 +16,24 @@
  */
 package org.jboss.galleon.cli.cmd.state;
 
-import org.jboss.galleon.cli.cmd.plugin.StateProvisionCommand;
-import java.util.ArrayList;
-import java.util.List;
-import org.aesh.command.Command;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
-import org.aesh.command.GroupCommand;
 import org.aesh.command.GroupCommandDefinition;
-import org.aesh.command.container.CommandContainer;
-import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
-import org.aesh.command.parser.CommandLineParserException;
-import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmSession;
-import org.jboss.galleon.cli.cmd.CliErrors;
-import org.jboss.galleon.cli.cmd.state.configuration.ConfigCommand;
-import org.jboss.galleon.cli.cmd.state.fp.FPCommand;
-import org.jboss.galleon.cli.cmd.state.pkg.PackageCommand;
+import org.jboss.galleon.cli.HelpDescriptions;
+import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.cmd.PmGroupCommand;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@GroupCommandDefinition(description = "", name = "state")
-public class StateCommand implements GroupCommand<PmCommandInvocation, Command> {
+@GroupCommandDefinition(description = HelpDescriptions.STATE, name = "state", groupCommands = {StateEditCommand.class, StateNewCommand.class})
+public class StateCommand implements PmGroupCommand {
 
-    private final StateUpdateCommand updateCommand;
-    //private final DiffCommand diffCommand;
-    private final StateProvisionCommand provisionCommand;
-    public StateCommand(PmSession pmSession) {
-        //this.diffCommand = new DiffCommand(pmSession);
-        this.provisionCommand = new StateProvisionCommand(pmSession);
-        this.updateCommand = new StateUpdateCommand(pmSession);
-    }
+    static final String WELCOME_STATE_MSG = "Entering provisioning edit mode."
+            + "Use 'add-dependency' command to add feature packs. Call 'leave-state' to leave this state.";
 
     @Override
-    public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println(CliErrors.subCommandMissing());
-        return CommandResult.FAILURE;
-    }
-
-    @Override
-    public List<CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation>> getParsedCommands() throws CommandLineParserException {
-        List<CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation>> commands = new ArrayList<>();
-        commands.add(updateCommand.createCommand());
-        //commands.add(diffCommand.createCommand());
-        commands.add(provisionCommand.createCommand());
-        return commands;
-    }
-
-    public static void addActionCommands(AeshCommandRegistryBuilder builder) throws CommandLineParserException {
-        builder.command(ConfigCommand.class);
-        builder.command(FPCommand.class);
-        builder.command(PackageCommand.class);
-    }
-
-    @Override
-    public List<Command> getCommands() {
-        List<Command> commands = new ArrayList<>();
-        commands.add(new StateCheckUpdatesCommand());
-        commands.add(new StateClearHistoryCommand());
-        commands.add(new StateEditCommand());
-        commands.add(new StateGetHistoryLimitCommand());
-        commands.add(new StateInfoCommand());
-        commands.add(new StateNewCommand());
-        commands.add(new StateExploreCommand());
-        commands.add(new StateExportCommand());
-        commands.add(new StateLeaveCommand());
-        commands.add(new StateSetHistoryLimitCommand());
-        commands.add(new StateUndoCommand());
-        return commands;
+    public CommandDomain getDomain() {
+        return CommandDomain.STATE_MODE;
     }
 
 }

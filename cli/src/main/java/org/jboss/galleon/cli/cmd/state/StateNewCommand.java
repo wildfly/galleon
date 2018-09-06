@@ -20,32 +20,29 @@ import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import static org.jboss.galleon.cli.cmd.state.StateCommand.WELCOME_STATE_MSG;
 import org.jboss.galleon.cli.model.state.State;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "new", description = HelpDescriptions.NEW_STATE, activator = NoStateCommandActivator.class)
+@CommandDefinition(name = "new", description = HelpDescriptions.NEW_STATE)
 public class StateNewCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        if (invoc.getPmSession().getState() != null) {
-            throw new CommandExecutionException("Provisioning session already set");
-        }
-        State session;
+        State state;
         try {
-            session = new State(invoc.getPmSession());
+            state = new State(invoc.getPmSession());
         } catch (Exception ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.newStateFailed(), ex);
         }
-        invoc.getPmSession().setState(session);
-        invoc.setPrompt(PmSession.buildPrompt(invoc.getPmSession().getState().getPath()));
-        invoc.println("Entering provisioning composition mode. Use 'fp add' command to add content. Call 'leave' to leave this mode.");
+        invoc.getPmSession().setState(state);
+        invoc.setPrompt(invoc.getPmSession().buildPrompt(state.getPath()));
+        invoc.println(WELCOME_STATE_MSG);
     }
 
 }

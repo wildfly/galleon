@@ -21,7 +21,7 @@ import java.util.Arrays;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
-import org.jboss.galleon.cli.cmd.state.StateCheckUpdatesCommand;
+import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -71,8 +71,8 @@ public class InstallUpdateTestCase {
                 CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "snapshot", "1.0.0.Alpha1-SNAPSHOT"));
 
         // no update available
-        cli.execute("state check-updates --dir=" + install1);
-        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+        cli.execute("check-updates --dir=" + install1);
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(CheckUpdatesCommand.UP_TO_DATE));
 
         // Add an alpha1 release.
         CliTestUtils.install(cli, universeSpec, PRODUCER1, "1.0.0.Alpha1");
@@ -84,32 +84,32 @@ public class InstallUpdateTestCase {
                 CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1"));
 
         // no update available
-        cli.execute("state check-updates --dir=" + install2);
-        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+        cli.execute("check-updates --dir=" + install2);
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(CheckUpdatesCommand.UP_TO_DATE));
 
         //Install an alpha-SNAPSHOT for producer2 in same directory
         CliTestUtils.installAndCheck(cli, "install1", CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", "snapshot", null),
                 CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", "snapshot", "1.0.0.Alpha1-SNAPSHOT"));
 
         // update available for the first installation, only producer1 has update.
-        cli.execute("state check-updates --dir=" + install1);
-        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+        cli.execute("check-updates --dir=" + install1);
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(CheckUpdatesCommand.UP_TO_DATE));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(universeSpec.toString()));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
-        cli.execute("state check-updates --dir=" + install1 + " --products=" + CliTestUtils.buildFPL(universeSpec, PRODUCER1, null, null, null));
-        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+        cli.execute("check-updates --dir=" + install1 + " --feature-packs=" + CliTestUtils.buildFPL(universeSpec, PRODUCER1, null, null, null));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(CheckUpdatesCommand.UP_TO_DATE));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
-        cli.execute("state check-updates --dir=" + install1 + " --products=" + CliTestUtils.buildFPL(universeSpec, PRODUCER2, null, null, null));
-        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(StateCheckUpdatesCommand.UP_TO_DATE));
+        cli.execute("check-updates --dir=" + install1 + " --feature-packs=" + CliTestUtils.buildFPL(universeSpec, PRODUCER2, null, null, null));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(CheckUpdatesCommand.UP_TO_DATE));
 
         // upgrade to Alpha1, only producer1 upgraded.
-        cli.execute("state update --yes --dir=" + install1);
+        cli.execute("update --yes --dir=" + install1);
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
@@ -124,7 +124,7 @@ public class InstallUpdateTestCase {
         CliTestUtils.install(cli, universeSpec, PRODUCER2, "1.0.0.Alpha1");
 
         // Then upgrade producer2
-        cli.execute("state update --yes --dir=" + install1 + " --products=" + CliTestUtils.buildFPL(universeSpec, PRODUCER2, null, null, null));
+        cli.execute("update --yes --dir=" + install1 + " --feature-packs=" + CliTestUtils.buildFPL(universeSpec, PRODUCER2, null, null, null));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1"));
         Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));

@@ -44,5 +44,4 @@ public class MavenSetSnapshotPolicy extends PmSessionCommand {
             throw new CommandExecutionException(ex.getLocalizedMessage());
         }
     }
-
 }

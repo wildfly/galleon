@@ -19,17 +19,23 @@ package org.jboss.galleon.cli.cmd.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import org.aesh.utils.Config;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.PATCHES;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureInfo;
@@ -38,11 +44,16 @@ import org.jboss.galleon.cli.model.Group;
 import org.jboss.galleon.cli.model.Identity;
 import org.jboss.galleon.cli.model.PackageInfo;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
+import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
+import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.DEPENDENCIES;
+import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.OPTIONS;
 import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
+import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.resolver.ResolvedPlugins;
 import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.plugin.PluginOption;
@@ -439,4 +450,132 @@ public class StateInfoUtil {
         t.sort(Table.SortType.ASCENDANT);
         return t.build();
     }
+
+    public static void displayInfo(PmCommandInvocation invoc,
+            ProvisioningConfig config, String type, Function<ProvisioningLayout<FeaturePackLayout>, FeatureContainer> supplier) throws CommandExecutionException {
+        try {
+            if (!config.hasFeaturePackDeps()) {
+                return;
+            }
+            if (type == null) {
+                displayFeaturePacks(invoc, config);
+            } else {
+                try (ProvisioningLayout<FeaturePackLayout> layout = invoc.getPmSession().getLayoutFactory().newConfigLayout(config)) {
+                    switch (type) {
+                        case ALL: {
+                            FeatureContainer container = supplier.apply(layout);
+                            displayFeaturePacks(invoc, config);
+                            displayDependencies(invoc, layout);
+                            displayPatches(invoc, layout);
+                            displayConfigs(invoc, container);
+                            displayOptions(invoc, layout);
+                            break;
+                        }
+                        case CONFIGS: {
+                            FeatureContainer container = supplier.apply(layout);
+                            String configs = buildConfigs(invoc, container);
+                            if (configs != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(configs);
+                            }
+                            break;
+                        }
+                        case DEPENDENCIES: {
+                            String deps = buildDependencies(invoc, layout);
+                            if (deps != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(deps);
+                            }
+                            break;
+                        }
+                        case OPTIONS: {
+                            String options = buildOptions(layout);
+                            if (options != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(options);
+                            }
+                            break;
+                        }
+                        case PATCHES: {
+                            String patches = buildPatches(invoc, layout);
+                            if (patches != null) {
+                                displayFeaturePacks(invoc, config);
+                                invoc.println(patches);
+                            }
+                            break;
+                        }
+                        default: {
+                            throw new CommandExecutionException(CliErrors.invalidInfoType());
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
+        }
+    }
+
+    private static void displayConfigs(PmCommandInvocation invoc, FeatureContainer container) {
+        String str = buildConfigs(invoc, container);
+        if (str != null) {
+            invoc.println(str);
+        }
+    }
+
+    private static String buildConfigs(PmCommandInvocation invoc, FeatureContainer container) {
+        return buildConfigs(container.getFinalConfigs());
+    }
+
+    private static void displayFeaturePacks(PmCommandInvocation invoc, ProvisioningConfig config) {
+        printFeaturePacks(invoc, config.getFeaturePackDeps());
+    }
+
+    private static void displayDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        String str = buildDependencies(invoc, layout);
+        if (str != null) {
+            invoc.println(str);
+        }
+    }
+
+    private static String buildDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        Map<FPID, FeaturePackConfig> configs = new HashMap<>();
+        List<FeaturePackLocation> dependencies = new ArrayList<>();
+        for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
+            boolean isProduct = true;
+            for (FeaturePackLayout fpLayout2 : layout.getOrderedFeaturePacks()) {
+                if (fpLayout2.getSpec().hasTransitiveDep(fpLayout.getFPID().getProducer())
+                        || fpLayout2.getSpec().getFeaturePackDep(fpLayout.getFPID().getProducer()) != null) {
+                    isProduct = false;
+                    break;
+                }
+            }
+            if (!isProduct) {
+                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(fpLayout.getFPID().getLocation());
+                dependencies.add(loc);
+                FeaturePackConfig transitiveConfig = layout.getConfig().getTransitiveDep(fpLayout.getFPID().getProducer());
+                configs.put(loc.getFPID(), transitiveConfig);
+            }
+        }
+        return buildDependencies(dependencies, configs);
+    }
+
+    private static void displayPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        String str = buildPatches(invoc, layout);
+        if (str != null) {
+            invoc.println(str);
+        }
+    }
+
+    private static String buildOptions(ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+        return buildOptions(PluginResolver.resolvePlugins(layout));
+    }
+
+    private static void displayOptions(PmCommandInvocation commandInvocation,
+            ProvisioningLayout layout) throws ProvisioningException {
+        String str = buildOptions(layout);
+        if (str != null) {
+            commandInvocation.println(str);
+        }
+    }
+
 }

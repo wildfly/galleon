@@ -16,27 +16,24 @@
  */
 package org.jboss.galleon.cli.cmd.mvn;
 
-import org.aesh.command.Command;
-import org.aesh.command.CommandException;
-import org.aesh.command.CommandResult;
 import org.aesh.command.GroupCommandDefinition;
-import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.HelpDescriptions;
+import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.cmd.PmGroupCommand;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@GroupCommandDefinition(description = "", name = "mvn", groupCommands = {MavenAddRepository.class,
-    MavenRemoveRepository.class, MavenInfo.class, MavenSetLocalRepository.class, FetchArtifact.class,
+@GroupCommandDefinition(description = HelpDescriptions.MAVEN, name = "maven", groupCommands = {MavenAddRepository.class,
+    MavenRemoveRepository.class, MavenGetInfo.class, MavenSetLocalRepository.class, MavenResolveFeaturePack.class,
     MavenSetSettings.class, MavenSetReleasePolicy.class, MavenSetSnapshotPolicy.class,
     MavenEnableRelease.class, MavenEnableSnapshot.class})
-public class MavenCommand implements Command<PmCommandInvocation> {
+public class MavenCommand implements PmGroupCommand {
 
     @Override
-    public CommandResult execute(PmCommandInvocation commandInvocation) throws CommandException, InterruptedException {
-        commandInvocation.println(CliErrors.subCommandMissing());
-        return CommandResult.FAILURE;
+    public CommandDomain getDomain() {
+        return CommandDomain.CONFIGURATION;
     }
 
 }

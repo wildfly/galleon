@@ -66,10 +66,10 @@ public class MavenAddRepository extends PmSessionCommand {
             description = HelpDescriptions.MVN_SNAPSHOT_UPDATE_POLICY, required = false)
     private String snapshotUpdatePolicy;
 
-    @Option(hasValue = true, name = "enable-snapshot", description = HelpDescriptions.MVN_ENABLE_SNAPSHOT)
+    @Option(hasValue = true, name = "enable-snapshot", description = HelpDescriptions.MVN_REPO_ENABLE_SNAPSHOT)
     private Boolean enableSnapshot;
 
-    @Option(hasValue = true, name = "enable-release", description = HelpDescriptions.MVN_ENABLE_RELEASE)
+    @Option(hasValue = true, name = "enable-release", description = HelpDescriptions.MVN_REPO_ENABLE_RELEASE)
     private Boolean enableRelease;
 
     @Override
@@ -82,5 +82,4 @@ public class MavenAddRepository extends PmSessionCommand {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.addRepositoryFailed(), ex);
         }
     }
-
 }

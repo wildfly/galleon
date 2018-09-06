@@ -46,5 +46,4 @@ public class MavenEnableRelease extends PmSessionCommand {
             throw new CommandExecutionException(ex.getLocalizedMessage());
         }
     }
-
 }

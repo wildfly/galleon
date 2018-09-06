@@ -192,12 +192,14 @@ public class UniverseManager implements MavenChangeListener {
 
     public void addUniverse(String name, String factory, String location) throws ProvisioningException, IOException {
         UniverseSpec u = new UniverseSpec(factory, location);
-        if (pmSession.getState() != null) {
-            pmSession.getState().addUniverse(pmSession, name, factory, location);
-            resolveUniverse(u);
-            return;
-        }
-        Path workDir = getWorkDir(pmSession.getAeshContext());
+        pmSession.getState().addUniverse(pmSession, name, factory, location);
+        resolveUniverse(u);
+    }
+
+    public void addUniverse(String installation, String name, String factory, String location) throws ProvisioningException, IOException {
+        UniverseSpec u = new UniverseSpec(factory, location);
+        Path workDir = installation == null ? getWorkDir(pmSession.getAeshContext())
+                : getWorkDir(pmSession.getAeshContext()).resolve(installation);
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException("Local directory is not an installation directory");
         }
@@ -219,13 +221,13 @@ public class UniverseManager implements MavenChangeListener {
             }
         }
     }
-
     public void removeUniverse(String name) throws ProvisioningException, IOException {
-        if (pmSession.getState() != null) {
-            pmSession.getState().removeUniverse(pmSession, name);
-            return;
-        }
-        Path workDir = getWorkDir(pmSession.getAeshContext());
+        pmSession.getState().removeUniverse(pmSession, name);
+    }
+
+    public void removeUniverse(String installation, String name) throws ProvisioningException, IOException {
+        Path workDir = installation == null ? getWorkDir(pmSession.getAeshContext())
+                : getWorkDir(pmSession.getAeshContext()).resolve(installation);
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException("Local directory is not an installation directory");
         }

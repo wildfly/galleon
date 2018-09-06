@@ -76,8 +76,8 @@ public interface CliErrors {
         return action + " failed.";
     }
 
-    static String fetchFeaturePackFailed() {
-        return failed("Fetch feature-pack");
+    static String resolveFeaturePackFailed() {
+        return failed("Resolve feature pack");
     }
 
     static String getHistoryLimitFailed() {
