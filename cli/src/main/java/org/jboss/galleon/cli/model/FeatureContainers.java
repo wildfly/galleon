@@ -158,7 +158,8 @@ public abstract class FeatureContainers {
             fp.setPackagesRoot(Identity.buildOrigin(rt.getFPID().getProducer()), pkgBuilder.getPackagesRoot());
             // Attach the full set, this targets the container dependency that expose them all.
             if (allSpecs) {
-                Group specsRoot = specsBuilder.buildTree(session, rt.getFPID(), fp.getFPID(), pkgBuilder.getPackages(), allSpecs, null);
+                Group specsRoot = specsBuilder.buildTree(runtime.getLayout(), session,
+                        rt.getFPID(), fp.getFPID(), pkgBuilder.getPackages(), allSpecs, null);
                 fp.setFeatureSpecRoot(Identity.buildOrigin(rt.getFPID().getProducer()), specsRoot);
             }
         }
@@ -204,7 +205,8 @@ public abstract class FeatureContainers {
             // Build the set of FeatureSpecInfo, side effect is to connect
             // packages and feature-specs.
             for (Entry<ProducerSpec, Set<ResolvedSpecId>> entry : actualSet.entrySet()) {
-                Group specsRoot = specsBuilder.buildTree(session, entry.getKey().getLocation().getFPID(), fp.getFPID(),
+                Group specsRoot = specsBuilder.buildTree(runtime.getLayout(),
+                        session, entry.getKey().getLocation().getFPID(), fp.getFPID(),
                         pkgBuilder.getPackages(), false, entry.getValue());
                 for (ResolvedSpecId rs : entry.getValue()) {
                     List<FeatureInfo> lst = features.get(rs);
