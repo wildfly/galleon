@@ -52,6 +52,10 @@ public interface CliErrors {
         return failed("Display content");
     }
 
+    static String editCommandFailed() {
+        return failed("Edit Command");
+    }
+
     static String emptyOption(String opt) {
         return "Empty option " + opt;
     }
