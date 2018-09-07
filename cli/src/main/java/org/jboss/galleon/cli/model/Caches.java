@@ -16,10 +16,8 @@
  */
 package org.jboss.galleon.cli.model;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -30,22 +28,13 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 public class Caches {
 
     private static final Map<FPID, FeatureContainer> FP_CACHE = new HashMap<>();
-    private static final Map<FPID, Set<FeatureSpecInfo>> SPEC_CACHE = new HashMap<>();
 
     public static FeatureContainer getFeaturePackInfo(FPID fpid) {
         return FP_CACHE.get(fpid);
     }
 
-    public static Map<FPID, Set<FeatureSpecInfo>> getSpecs() throws IOException {
-        return SPEC_CACHE;
-    }
-
     public static void addFeaturePackInfo(FPID fpid, FeatureContainer info) {
         FP_CACHE.put(fpid, info);
-    }
-
-    public static void addSpecs(Map<FPID, Set<FeatureSpecInfo>> specs) throws IOException {
-        SPEC_CACHE.putAll(specs);
     }
 
 }

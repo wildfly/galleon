@@ -16,33 +16,23 @@
  */
 package org.jboss.galleon.cli.model;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.FileSystem;
-import java.nio.file.FileVisitResult;
-import static java.nio.file.FileVisitResult.CONTINUE;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.runtime.FeaturePackRuntime;
+import org.jboss.galleon.runtime.ResolvedFeatureSpec;
 import org.jboss.galleon.runtime.ResolvedSpecId;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.util.ZipUtils;
-import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
  *
@@ -56,120 +46,56 @@ public class FeatureSpecsBuilder {
         return allspecs;
     }
 
-    public Group buildTree(PmSession session, FPID fpid, FPID id,
+    public Group buildTree(ProvisioningLayout<FeaturePackRuntime> layout, PmSession session, FPID fpid, FPID id,
             Map<Identity, Group> allPackages, boolean useCache, Set<ResolvedSpecId> wantedSpecs) throws IOException, ProvisioningException {
         // Build the tree of specs located in all feature-packs
         FeatureGroupsBuilder grpBuilder = new FeatureGroupsBuilder();
-
-        // Do we have feature-specs in cache?
-        Set<FeatureSpecInfo> specs = null;
-        Map<FPID, Set<FeatureSpecInfo>> allSpecs = null;
-        if (useCache) {
-            allSpecs = Caches.getSpecs();
-            if (allSpecs != null) {
-                specs = allSpecs.get(fpid);
-            }
-        }
-        if (specs == null) {
-            specs = new HashSet<>();
-            final Set<FeatureSpecInfo> fSpecs = specs;
-            try (FileSystem fs = ZipUtils.newFileSystem(session.getUniverse().resolve(fpid.getLocation()))) {
-                final Path path = fs.getPath("features/");
-                Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-
-                    @Override
-                    public FileVisitResult visitFile(Path file,
-                            BasicFileAttributes attr) {
-                        return CONTINUE;
+        Set<FeatureSpecInfo> specs = new HashSet<>();
+        for (ResolvedFeatureSpec resolvedSpec : layout.getFeaturePack(fpid.getProducer()).getFeatureSpecs()) {
+            ResolvedSpecId resolved = resolvedSpec.getId();
+            if (wantedSpecs == null || wantedSpecs.contains(resolved)) {
+                FeatureSpecInfo specInfo = allspecs.get(resolved);
+                if (specInfo == null) {
+                    Set<Identity> missingPackages = new HashSet<>();
+                    FeatureSpec spec = resolvedSpec.getSpec();
+                    specInfo = new FeatureSpecInfo(resolved, id, spec);
+                    Identity specId = Identity.fromChannel(resolved.getProducer(), resolved.getName());
+                    boolean featureEnabled = true;
+                    for (PackageDependencySpec p : spec.getLocalPackageDeps()) {
+                        Identity identity = Identity.fromChannel(resolved.getProducer(), p.getName());
+                        Group grp = allPackages.get(identity);
+                        // Group can be null if the modules have not been installed.
+                        if (grp != null) {
+                            specInfo.addPackage(grp.getPackage());
+                            attachProvider(specId, grp, new HashSet<>());
+                        } else {
+                            featureEnabled = false;
+                            missingPackages.add(identity);
+                        }
                     }
-
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                        return CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir,
-                            IOException exc) throws IOException {
-                        if (!dir.equals(path)) {
-                            // Can't use relativize with zip FS.
-                            String r = path.toString();
-                            String child = dir.toString().substring(0, dir.toString().length() - 1);
-                            String name = child.substring(r.length() + 1);
-                            ResolvedSpecId resolved = new ResolvedSpecId(fpid.getProducer(), name);
-                            if (wantedSpecs == null || wantedSpecs.contains(resolved)) {
-                                FeatureSpecInfo specInfo = allspecs.get(resolved);
-                                if (specInfo == null) {
-                                    try {
-                                        Set<Identity> missingPackages = new HashSet<>();
-                                        FeatureSpec spec = getFeatureSpec(fs, name);
-                                        specInfo = new FeatureSpecInfo(resolved, id, spec);
-                                        Identity specId = Identity.fromChannel(resolved.getProducer(), resolved.getName());
-                                        boolean featureEnabled = true;
-                                        for (PackageDependencySpec p : spec.getLocalPackageDeps()) {
-                                            Identity id = Identity.fromChannel(resolved.getProducer(), p.getName());
-                                            Group grp = allPackages.get(id);
-                                            // Group can be null if the modules have not been installed.
-                                            if (grp != null) {
-                                                specInfo.addPackage(grp.getPackage());
-                                                attachProvider(specId, grp, new HashSet<>());
-                                            } else {
-                                                featureEnabled = false;
-                                                missingPackages.add(id);
-                                            }
-                                        }
-                                        for (String o : spec.getPackageOrigins()) {
-                                            for (PackageDependencySpec p : spec.getExternalPackageDeps(o)) {
-                                                Identity id = Identity.fromString(o, p.getName());
-                                                Group grp = allPackages.get(id);
-                                                if (grp != null) {
-                                                    specInfo.addPackage(grp.getPackage());
-                                                    attachProvider(specId, grp, new HashSet<>());
-                                                } else {
-                                                    featureEnabled = false;
-                                                    missingPackages.add(id);
-                                                }
-                                            }
-                                        }
-                                        specInfo.setEnabled(featureEnabled);
-                                        specInfo.setMissingPackages(missingPackages);
-                                        allspecs.put(resolved, specInfo);
-                                        fSpecs.add(specInfo);
-                                    } catch (XMLStreamException ex) {
-                                        throw new RuntimeException(ex);
-                                    }
-                                }
-
-                                String fullSpecName = resolved.getName();
-                                List<String> path = new ArrayList<>();
-                                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, specInfo, path);
-                                parent.setFeatureSpec(specInfo);
+                    for (String o : spec.getPackageOrigins()) {
+                        for (PackageDependencySpec p : spec.getExternalPackageDeps(o)) {
+                            Identity identity = Identity.fromString(o, p.getName());
+                            Group grp = allPackages.get(identity);
+                            if (grp != null) {
+                                specInfo.addPackage(grp.getPackage());
+                                attachProvider(specId, grp, new HashSet<>());
+                            } else {
+                                featureEnabled = false;
+                                missingPackages.add(identity);
                             }
                         }
-                        return CONTINUE;
                     }
-
-                    @Override
-                    public FileVisitResult visitFileFailed(Path file,
-                            IOException exc) {
-                        return CONTINUE;
-                    }
-                });
-            }
-            if (useCache) {
-                if (allSpecs == null) {
-                    allSpecs = new HashMap<>();
-                    Caches.addSpecs(allSpecs);
+                    specInfo.setEnabled(featureEnabled);
+                    specInfo.setMissingPackages(missingPackages);
+                    allspecs.put(resolved, specInfo);
+                    specs.add(specInfo);
                 }
-                allSpecs.put(fpid, specs);
-            }
-        } else {
-            for (FeatureSpecInfo spec : specs) {
-                allspecs.put(spec.getSpecId(), spec);
-                String fullSpecName = spec.getSpecId().getName();
+
+                String fullSpecName = resolved.getName();
                 List<String> path = new ArrayList<>();
-                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, spec, path);
-                parent.setFeatureSpec(spec);
+                Group parent = grpBuilder.buildFeatureSpecGroups(fullSpecName, specInfo, path);
+                parent.setFeatureSpec(specInfo);
             }
         }
         return grpBuilder.getRoot();
@@ -183,15 +109,6 @@ public class FeatureSpecsBuilder {
         seen.add(grp);
         for (Group dep : grp.getGroups()) {
             attachProvider(provider, dep, seen);
-        }
-    }
-
-    private static FeatureSpec getFeatureSpec(FileSystem fs, String name) throws IOException, XMLStreamException {
-        final Path path = fs.getPath("features/" + name + "/spec.xml");
-        byte[] content = Files.readAllBytes(path);
-        ByteArrayInputStream stream = new ByteArrayInputStream(content);
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-            return FeatureSpecXmlParser.getInstance().parse(reader);
         }
     }
 }
