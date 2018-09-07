@@ -40,7 +40,7 @@ public abstract class AbstractStateCommand extends PmSessionCommand {
         try {
             runCommand(invoc, session);
         } catch (IOException | ProvisioningException ex) {
-            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.setLocalRepositoryFailed(), ex);
+            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.editCommandFailed(), ex);
         }
     }
 
