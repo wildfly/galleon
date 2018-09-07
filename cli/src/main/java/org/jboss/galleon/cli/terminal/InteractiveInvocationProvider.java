@@ -28,13 +28,15 @@ import org.jboss.galleon.cli.PmSession;
 public class InteractiveInvocationProvider implements CommandInvocationProvider<PmCommandInvocation> {
 
     private final PmSession session;
+    private final boolean paging;
 
-    public InteractiveInvocationProvider(PmSession session) {
+    public InteractiveInvocationProvider(PmSession session, boolean paging) {
         this.session = session;
+        this.paging = paging;
     }
 
     @Override
     public PmCommandInvocation enhanceCommandInvocation(CommandInvocation commandInvocation) {
-        return new InteractivePmCommandInvocation(session, commandInvocation);
+        return new InteractivePmCommandInvocation(session, commandInvocation, paging);
     }
 }

@@ -79,7 +79,8 @@ public class CliMain {
                 return;
             }
             if (interactive) {
-                startInteractive(pmSession, connection);
+                // XXX jfdenise, paging could be made configurable with an option.
+                startInteractive(pmSession, connection, true);
             } else {
                 try {
                     runCommands(pmSession, connection, arguments);
@@ -145,7 +146,8 @@ public class CliMain {
         }
     }
 
-    private static void startInteractive(PmSession pmSession, CliTerminalConnection connection) throws Throwable {
+    private static void startInteractive(PmSession pmSession,
+            CliTerminalConnection connection, boolean paging) throws Throwable {
         pmSession.setOut(connection.getOutput());
         pmSession.setErr(connection.getOutput());
         pmSession.cleanupLayoutCache();
@@ -158,7 +160,7 @@ public class CliMain {
                 ? extends ValidatorInvocation,
                 ? extends OptionActivator,
                 ? extends CommandActivator> settings = buildSettings(pmSession,
-                        connection, new InteractiveInvocationProvider(pmSession));
+                connection, new InteractiveInvocationProvider(pmSession, paging));
 
         ReadlineConsole console = new ReadlineConsole(settings);
 
@@ -203,6 +205,7 @@ public class CliMain {
                 optionActivatorProvider(pmSession).
                 commandInvocationProvider(provider).
                 connection(connection == null ? null : connection.getConnection()).
+                enableSearchInPaging(true).
                 build();
         return settings;
     }
