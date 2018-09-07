@@ -167,7 +167,7 @@ public class UniverseManager implements MavenChangeListener {
         return builtinUniverseSpec;
     }
 
-    public synchronized Universe getUniverse(UniverseSpec spec) throws ProvisioningException {
+    public synchronized Universe<?> getUniverse(UniverseSpec spec) throws ProvisioningException {
         return universeResolver.getUniverse(spec);
     }
 

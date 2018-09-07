@@ -46,7 +46,8 @@ public class StateEditCommand extends PmSessionCommand {
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         State state;
         try {
-            state = new State(invoc.getPmSession(), getInstallationHome(invoc.getAeshContext()));
+            state = new State(invoc.getPmSession(),
+                    getInstallationHome(invoc.getConfiguration().getAeshContext()));
         } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.readContentFailed(), ex);
         }

@@ -97,7 +97,7 @@ public class StateProvisionCommand extends AbstractProvisionCommand {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), ex);
         }
 
-        Path home = getInstallationDirectory(invoc.getAeshContext());
+        Path home = getInstallationDirectory(invoc.getConfiguration().getAeshContext());
         if (Files.exists(home)) {
             try {
                 invoc.println("Installation done in " + home.toFile().getCanonicalPath());

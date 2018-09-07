@@ -47,7 +47,7 @@ public class CdCommand extends PmSessionCommand {
     }
 
     private void cdDir(PmCommandInvocation session) {
-        final AeshContext aeshCtx = session.getAeshContext();
+        final AeshContext aeshCtx = session.getConfiguration().getAeshContext();
         Resource res = new FileResource(path);
         final List<Resource> files = res.resolve(aeshCtx.getCurrentWorkingDirectory());
         if (files.get(0).isDirectory()) {

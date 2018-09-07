@@ -43,8 +43,9 @@ public class HelpSupportTestCase {
     public void test() throws Exception {
         PmSession session = new PmSession(Configuration.parse());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CommandRuntime<? extends Command, ? extends CommandInvocation> runtime
+        CommandRuntime runtime
                 = CliMain.newRuntime(session, new PrintStream(out));
+        @SuppressWarnings("unchecked")
         CommandRegistry<? extends Command, ? extends CommandInvocation> registry
                 = runtime.getCommandRegistry();
         for (String c : registry.getAllCommandNames()) {
@@ -55,7 +56,7 @@ public class HelpSupportTestCase {
             }
             checkCommand(cmdParser.getProcessedCommand(), false);
             if (cmdParser.isGroupCommand()) {
-                for (CommandLineParser child : cmdParser.getAllChildParsers()) {
+                for (CommandLineParser<? extends Command> child : cmdParser.getAllChildParsers()) {
                     checkCommand(child.getProcessedCommand(), true);
                 }
             }

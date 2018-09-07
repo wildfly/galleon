@@ -26,6 +26,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.resolver.ResourceResolver.Resolver;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.plugin.DiffPlugin;
@@ -42,7 +43,7 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
     private ProvisioningConfig config;
     private Path file;
     private final PmSession session;
-    private ProvisioningLayout layout;
+    private ProvisioningLayout<FeaturePackLayout> layout;
 
     private PluginResolver(PmSession session, ProvisioningConfig config) {
         Objects.requireNonNull(session);
@@ -58,14 +59,15 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
         this.file = file;
     }
 
-    private PluginResolver(PmSession session, ProvisioningLayout layout) {
+    private PluginResolver(PmSession session, ProvisioningLayout<FeaturePackLayout> layout) {
         Objects.requireNonNull(session);
         Objects.requireNonNull(layout);
         this.session = session;
         this.layout = layout;
     }
 
-    public static PluginResolver newResolver(PmSession session, ProvisioningLayout layout) {
+    public static PluginResolver newResolver(PmSession session,
+            ProvisioningLayout<FeaturePackLayout> layout) {
         return new PluginResolver(session, layout);
     }
 
@@ -85,7 +87,7 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
     @Override
     public ResolvedPlugins resolve() throws ResolutionException {
         boolean closeLayout = layout == null;
-        ProvisioningLayout pLayout = layout;
+        ProvisioningLayout<FeaturePackLayout> pLayout = layout;
         // Silent resolution.
         session.unregisterTrackers();
         try {
@@ -112,7 +114,7 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
         }
     }
 
-    public static ResolvedPlugins resolvePlugins(ProvisioningLayout layout) throws ProvisioningException {
+    public static ResolvedPlugins resolvePlugins(ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         ResolvedPlugins plugins = null;
         if (layout.hasPlugins()) {
             Set<PluginOption> installOptions = new HashSet<>();

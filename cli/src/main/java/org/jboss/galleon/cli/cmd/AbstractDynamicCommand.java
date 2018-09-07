@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
 import org.aesh.command.container.CommandContainer;
@@ -180,10 +179,11 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     protected abstract PmCommandActivator getActivator();
     public abstract CommandDomain getDomain();
 
-    public CommandContainer<Command<PmCommandInvocation>, PmCommandInvocation> createCommand() throws CommandLineParserException {
+    public CommandContainer createCommand() throws CommandLineParserException {
         cmd = buildCommand();
-        AeshCommandContainer container = new AeshCommandContainer(
-                new AeshCommandLineParser<>(cmd));
+        @SuppressWarnings("unchecked")
+        CommandContainer container =
+                new AeshCommandContainer(new AeshCommandLineParser<>(cmd));
         return container;
     }
 

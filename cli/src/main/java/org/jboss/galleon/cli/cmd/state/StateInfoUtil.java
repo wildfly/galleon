@@ -571,7 +571,7 @@ public class StateInfoUtil {
     }
 
     private static void displayOptions(PmCommandInvocation commandInvocation,
-            ProvisioningLayout layout) throws ProvisioningException {
+            ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = buildOptions(layout);
         if (str != null) {
             commandInvocation.println(str);

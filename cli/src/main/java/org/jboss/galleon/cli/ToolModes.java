@@ -70,6 +70,7 @@ import org.jboss.galleon.cli.cmd.state.pkg.StateRemoveIncludedPackageCommand;
  *
  * @author jdenise@redhat.com
  */
+@SuppressWarnings("unchecked")
 public class ToolModes {
 
     public enum Mode {

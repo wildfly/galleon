@@ -76,7 +76,8 @@ public class ChangesCommand extends FromInstallationCommand {
         if (serverConfig != null) {
             options.put("server-config", serverConfig);
         }
-        final Resource specTargetResource = exportDirArg.resolve(session.getAeshContext().getCurrentWorkingDirectory()).get(0);
+        final Resource specTargetResource = exportDirArg.resolve(session.getConfiguration().
+                getAeshContext().getCurrentWorkingDirectory()).get(0);
         final Path targetFile = Paths.get(specTargetResource.getAbsolutePath());
         /*
         try {

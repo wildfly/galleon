@@ -72,8 +72,8 @@ public class FeatureContainerPathConsumer implements PathConsumer {
     public static final String PACKAGES_PATH = PathParser.PATH_SEPARATOR + PACKAGES + PathParser.PATH_SEPARATOR;
     public static final String FEATURES_PATH = PathParser.PATH_SEPARATOR + FEATURES + PathParser.PATH_SEPARATOR;
 
-    private static final Map<String, Group> EDIT_GROUPS = new HashMap();
-    private static final Map<String, Group> EXPLORE_GROUPS = new HashMap();
+    private static final Map<String, Group> EDIT_GROUPS = new HashMap<>();
+    private static final Map<String, Group> EXPLORE_GROUPS = new HashMap<>();
 
     static {
         EDIT_ROOT_GRP.addGroup(PACKAGES_GRP);

@@ -87,7 +87,7 @@ public class InstallCommand extends AbstractPluginsCommand {
             String filePath = (String) getValue(FILE_OPTION_NAME);
             final ProvisioningManager manager = getManager(session);
             if (filePath != null) {
-                Path p = Util.resolvePath(session.getAeshContext(), filePath);
+                Path p = Util.resolvePath(session.getConfiguration().getAeshContext(), filePath);
                 // always install for future use.
                 manager.install(p, true);
             } else {
@@ -189,7 +189,7 @@ public class InstallCommand extends AbstractPluginsCommand {
         if (arg != null) {
             throw new CommandExecutionException("Only one of file or Feature-pack location is allowed.");
         }
-        Path p = Util.resolvePath(invoc.getAeshContext(), filePath);
+        Path p = Util.resolvePath(invoc.getConfiguration().getAeshContext(), filePath);
         if (!Files.exists(p)) {
             throw new CommandExecutionException(p + " doesn't exist.");
         }

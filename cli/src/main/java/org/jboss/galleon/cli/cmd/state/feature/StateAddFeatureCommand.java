@@ -68,7 +68,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
         @Override
         public Map<String, Group> getFeatureSpecs() {
-            Map<String, Group> map = new HashMap();
+            Map<String, Group> map = new HashMap<>();
             for (FeatureContainer dep : container.getFullDependencies().values()) {
                 for (String orig : dep.getFeatureSpecs().keySet()) {
                     Group root = map.get(orig);
@@ -109,6 +109,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
         @Override
         public void complete(PmCompleterInvocation completerInvocation) {
+            @SuppressWarnings("unchecked")
             MapCommand<PmCommandInvocation> cmd = (MapCommand<PmCommandInvocation>) completerInvocation.getCommand();
             Object value = cmd.getValue(AbstractDynamicCommand.ARGUMENT_NAME);
             if (value == null || !(value instanceof List) || ((List) value).isEmpty()) {
@@ -141,6 +142,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     private ConfigInfo getConfiguration(State state) throws PathParserException, PathConsumerException, ProvisioningException {
+        @SuppressWarnings("unchecked")
         List<String> args = (List<String>) getValue(ARGUMENT_NAME);
         String config = args.get(0);
         String path = FeatureContainerPathConsumer.FINAL_CONFIGS_PATH + config + PathParser.PATH_SEPARATOR;
@@ -178,6 +180,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
     }
 
     private String getId() {
+        @SuppressWarnings("unchecked")
         List<String> args = (List<String>) getValue(ARGUMENT_NAME);
         if (args == null) {
             // Check in argument, that is the option completion case.
@@ -196,6 +199,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
     @Override
     protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
+        @SuppressWarnings("unchecked")
         List<String> args = (List<String>) getValue(ARGUMENT_NAME);
         if (args != null) {
             if (args.size() == 2) {
