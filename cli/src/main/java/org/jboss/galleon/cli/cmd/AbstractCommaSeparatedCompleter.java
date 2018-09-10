@@ -38,7 +38,6 @@ public abstract class AbstractCommaSeparatedCompleter extends AbstractCompleter 
         }
         String buffer = completerInvocation.getGivenCompleteValue();
         candidates.addAll(all);
-        int offset = 0;
         if (!buffer.isEmpty()) {
             List<String> specified = Arrays.asList(buffer.split(",+"));
 
@@ -62,7 +61,6 @@ public abstract class AbstractCommaSeparatedCompleter extends AbstractCompleter 
                     if (needsComma) {
                         candidates.add(chunk + ",");
                     }
-                    offset = buffer.length() - chunk.length();
                     completerInvocation.setOffset(chunk.length());
                     completerInvocation.setAppendSpace(!hasMore);
                 }
