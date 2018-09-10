@@ -37,7 +37,7 @@ public abstract class PmCommandInvocation implements CommandInvocation {
 
     public String formatColumns(List<String> lst) {
         return Util.formatColumns(lst,
-                getShell().size().getHeight(),
-                getShell().size().getWidth());
+                getShell().size().getWidth(),
+                getShell().size().getHeight());
     }
 }

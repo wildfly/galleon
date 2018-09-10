@@ -78,7 +78,7 @@ public class Util {
     public static String formatColumns(List<String> lst, int width, int height) {
         String[] array = new String[lst.size()];
         lst.toArray(array);
-        return Parser.formatDisplayList(array, width, height);
+        return Parser.formatDisplayList(array, height, width);
     }
 
     public static Path resolvePath(AeshContext ctx, String path) {
