@@ -123,7 +123,7 @@ public class FileSystemDiff {
         private List<String> extractUnifiedDiff(Path revised, Path original) throws IOException {
             final List<String> revisedLines = Files.readAllLines(revised, StandardCharsets.UTF_8);
             final List<String> originalLines = Files.readAllLines(original, StandardCharsets.UTF_8);
-            Patch<String> patch = DiffUtils.diff(revisedLines, originalLines);
+            Patch<String> patch = DiffUtils.diff(originalLines, revisedLines);
             return DiffUtils.generateUnifiedDiff(revised.toString(), original.toString(), revisedLines, patch, 0);
         }
 

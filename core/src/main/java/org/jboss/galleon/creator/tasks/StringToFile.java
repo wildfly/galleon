@@ -31,7 +31,7 @@ class StringToFile extends RelativeTargetTask {
     private final boolean isContent;
 
      protected StringToFile(String content, String relativeTarget) {
-        this(relativeTarget, content, true);
+        this(content, relativeTarget, true);
     }
 
     protected StringToFile(String content, String relativeTarget, boolean isContent) {
