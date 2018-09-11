@@ -83,12 +83,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
         protected void cleanup() {
             if(closePluginsCl) {
-                if(closePluginsCl) {
-                    try {
-                        ((java.net.URLClassLoader)pluginsCl).close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    ((java.net.URLClassLoader)pluginsCl).close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
             if(pluginsDir != null) {
