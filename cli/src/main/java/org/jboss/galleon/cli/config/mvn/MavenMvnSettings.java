@@ -68,7 +68,7 @@ class MavenMvnSettings implements MavenSettings {
             builder.setPassword(proxy.getPassword());
             builder.setUserName(proxy.getUsername());
             if (proxy.getNonProxyHosts() != null) {
-                String[] hosts = proxy.getNonProxyHosts().split("|");
+                String[] hosts = proxy.getNonProxyHosts().split("\\|");
                 builder.addNonProxyHosts(Arrays.asList(hosts));
             }
             proxySelector = builder.build();
