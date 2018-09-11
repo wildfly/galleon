@@ -32,7 +32,7 @@ public class FormatExprTypeParamParsingFormat extends ParsingFormatBase {
 
     public static FormatExprTypeParamParsingFormat getInstance() {
         if(INSTANCE == null) {
-            return new FormatExprTypeParamParsingFormat();
+            INSTANCE = new FormatExprTypeParamParsingFormat();
         }
         return INSTANCE;
     }
