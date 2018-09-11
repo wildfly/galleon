@@ -18,11 +18,14 @@ package org.jboss.galleon.cli;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.aesh.command.activator.CommandActivator;
@@ -39,6 +42,7 @@ import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.config.Configuration;
@@ -55,6 +59,8 @@ import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
+import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.LayoutUtils;
 
 /**
  *
@@ -304,19 +310,34 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
 
     public void cleanupLayoutCache() {
         try {
+            if (!Files.exists(cacheManager.getHome())) {
+                return;
+            }
             Properties props = config.getLayoutCacheContent();
             long now = System.currentTimeMillis();
             Set<String> toRemove = new HashSet<>();
+            Set<Path> fpPaths = new HashSet<>();
             for (String k : props.stringPropertyNames()) {
                 String time = props.getProperty(k);
                 long lastUsage = Long.decode(time);
-                if ((now - lastUsage) > Configuration.CACHE_PERIOD) {
+                Path p = LayoutUtils.getFeaturePackDir(config.getLayoutCache(),
+                        FeaturePackLocation.fromString(k).getFPID());
+                if (!Files.exists(p)) {
+                    toRemove.add(k);
+                } else if ((now - lastUsage) > Configuration.CACHE_PERIOD) {
                     toRemove.add(k);
                     try {
                         cacheManager.remove(FeaturePackLocation.fromString(k).getFPID());
                     } catch (ProvisioningException ex) {
                         Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                }
+                // keep root dir to check that the dirs located in cache are valid
+                // feature packs paths. On JDK8 and earlier due to JDK-8013099
+                // we can have layout dir that can't be deleted.
+                Iterator<Path> it = cacheManager.getHome().relativize(p).iterator();
+                if (it.hasNext()) {
+                    fpPaths.add(it.next());
                 }
             }
             if (!toRemove.isEmpty()) {
@@ -325,7 +346,17 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
                 }
                 config.storeLayoutCacheContent(props);
             }
-        } catch (IOException ex) {
+
+            // Cleanup directories that are leftovers from previous executions
+            Files.list(cacheManager.getHome()).forEach(new Consumer<Path>() {
+                @Override
+                public void accept(Path t) {
+                    if (!fpPaths.contains(t.getFileName())) {
+                        IoUtils.recursiveDelete(t);
+                    }
+                }
+            });
+        } catch (ProvisioningDescriptionException | IOException ex) {
             Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
         }
 
