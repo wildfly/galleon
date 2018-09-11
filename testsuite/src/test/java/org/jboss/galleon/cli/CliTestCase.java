@@ -95,5 +95,19 @@ public class CliTestCase {
         String time2 = cli.getSession().getPmConfiguration().getLayoutCacheContent().getProperty(fplSnapshot.getFPID().toString());
         assertNotNull(time2);
         assertFalse(time1.equals(time2));
+        Path path = LayoutUtils.getFeaturePackDir(cache, fplSnapshot.getFPID());
+        assertTrue(Files.exists(path));
+        cli.getSession().cleanupLayoutCache();
+        assertTrue(Files.exists(path));
+    }
+
+    @Test
+    public void testCleanupCache() throws Exception {
+        Path root = cli.getSession().getPmConfiguration().getLayoutCache();
+        Path useless = root.resolve("useless");
+        Files.createDirectory(useless);
+        assertTrue(Files.exists(useless));
+        cli.getSession().cleanupLayoutCache();
+        assertFalse(Files.exists(useless));
     }
 }
