@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -170,7 +171,7 @@ public class HelpSupport {
     private static String getHelp(String path) throws IOException {
         InputStream helpInput = CliMain.class.getResourceAsStream(path);
         if (helpInput != null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(helpInput))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(helpInput, StandardCharsets.UTF_8))) {
                 try {
                     StringBuilder builder = new StringBuilder();
                     String helpLine = reader.readLine();

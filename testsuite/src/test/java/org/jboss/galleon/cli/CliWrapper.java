@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.aesh.command.CommandException;
@@ -51,7 +52,7 @@ public class CliWrapper {
         mvnRepo = new File(testUserHome, ".m2" + File.separator + "repository");
         mvnRepo.mkdirs();
         session = new PmSession(Configuration.parse());
-        runtime = CliMain.newRuntime(session, new PrintStream(out));
+        runtime = CliMain.newRuntime(session, new PrintStream(out, false, StandardCharsets.UTF_8.name()));
         session.getUniverse().disableBackgroundResolution();
         session.throwException();
         session.enableTrackers(false);

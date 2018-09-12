@@ -18,6 +18,8 @@ package org.jboss.galleon.cli;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 import org.aesh.command.Command;
 import org.aesh.command.CommandRuntime;
 import org.aesh.command.impl.internal.ProcessedCommand;
@@ -44,7 +46,7 @@ public class HelpSupportTestCase {
         PmSession session = new PmSession(Configuration.parse());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         CommandRuntime runtime
-                = CliMain.newRuntime(session, new PrintStream(out));
+                = CliMain.newRuntime(session, new PrintStream(out, false, StandardCharsets.UTF_8.name()));
         @SuppressWarnings("unchecked")
         CommandRegistry<? extends Command, ? extends CommandInvocation> registry
                 = runtime.getCommandRegistry();

@@ -19,7 +19,10 @@ package org.jboss.galleon.cli.cmd.installation;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
@@ -57,12 +60,16 @@ public class ExportCommand extends AbstractInstallationCommand {
             try {
                 ProvisioningConfig config = getManager(invoc.getPmSession()).getProvisioningConfig();
                 output = new ByteArrayOutputStream();
-                PrintWriter writer = new PrintWriter(output);
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8));
                 ProvisioningXmlWriter.getInstance().write(config, writer);
             } catch (Exception e) {
                 throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), e);
             }
-            invoc.println(output.toString());
+            try {
+                invoc.println(output.toString(StandardCharsets.UTF_8.name()));
+            } catch (UnsupportedEncodingException e) {
+                throw new CommandExecutionException(invoc.getPmSession(), CliErrors.exportProvisionedFailed(), e);
+            }
         }
     }
 
