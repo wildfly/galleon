@@ -19,6 +19,8 @@ package org.jboss.galleon.cli.terminal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 import org.aesh.command.shell.Shell;
 import org.aesh.readline.tty.terminal.TerminalConnection;
 import org.aesh.terminal.Connection;
@@ -43,7 +45,7 @@ public class CliTerminalConnection {
 
     public CliTerminalConnection() throws IOException {
         connection = new TerminalConnection();
-        out = new PrintStream(new CliOutputStream());
+        out = new PrintStream(new CliOutputStream(), false, StandardCharsets.UTF_8.name());
         shell = new CliShell(connection);
     }
 
