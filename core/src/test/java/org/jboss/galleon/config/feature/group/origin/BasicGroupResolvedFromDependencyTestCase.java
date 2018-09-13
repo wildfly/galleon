@@ -47,7 +47,7 @@ public class BasicGroupResolvedFromDependencyTestCase extends PmInstallFeaturePa
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP1_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "spec"))
                     .build())
@@ -64,6 +64,7 @@ public class BasicGroupResolvedFromDependencyTestCase extends PmInstallFeaturePa
         .newFeaturePack(FP3_GAV)
             .addDependency(FP2_GAV.getLocation())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .build())
             .getCreator()
@@ -82,6 +83,7 @@ public class BasicGroupResolvedFromDependencyTestCase extends PmInstallFeaturePa
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP3_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "id", "1"))
                                 .setConfigParam("p1", "fp1.fg1")
                                 .build())

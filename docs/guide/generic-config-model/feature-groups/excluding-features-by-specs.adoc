@@ -27,7 +27,7 @@ Suppose, we have the following group spec:
 Here is how all the feature of spec `feature1` can be excluded:
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group1">
     <exclude spec="feature1"/>
   </feature-group>

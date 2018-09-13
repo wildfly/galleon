@@ -42,11 +42,12 @@ public class IncompleteListFeatureParameterTestCase extends PmInstallFeaturePack
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.builder("my-list").setType("List").build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("name", "a1")
@@ -63,7 +64,7 @@ public class IncompleteListFeatureParameterTestCase extends PmInstallFeaturePack
 
     @Override
     protected String[] pmErrors() throws ProvisioningException {
-        return new String[] {Errors.failedToResolveConfigSpec(null, null),
+        return new String[] {Errors.failedToResolveConfigSpec(null, "main"),
                 Errors.failedToProcess(FP_GAV, new FeatureConfig("specA").setParam("name", "a1").setParam("my-list", "[c,d")),
                 Errors.failedToResolveParameter(new ResolvedSpecId(FP_GAV.getProducer(), "specA"), "my-list", "[c,d"),
                 "Failed to parse List parameter value",

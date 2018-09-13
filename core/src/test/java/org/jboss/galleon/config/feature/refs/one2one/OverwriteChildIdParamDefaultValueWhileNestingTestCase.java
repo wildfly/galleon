@@ -48,11 +48,11 @@ public class OverwriteChildIdParamDefaultValueWhileNestingTestCase extends PmIns
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "spec"))
                     .build())
-            .addSpec(FeatureSpec.builder("specC")
+            .addFeatureSpec(FeatureSpec.builder("specC")
                     .addFeatureRef(FeatureReferenceSpec.builder("specA").mapParam("a", "id").build())
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("a", true, false, "def"))
@@ -66,6 +66,7 @@ public class OverwriteChildIdParamDefaultValueWhileNestingTestCase extends PmIns
                             .setParam("id", "c2"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("id", "a1")
@@ -85,6 +86,7 @@ public class OverwriteChildIdParamDefaultValueWhileNestingTestCase extends PmIns
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "id", "a1"))
                                 .setConfigParam("p1", "spec")
                                 .build())

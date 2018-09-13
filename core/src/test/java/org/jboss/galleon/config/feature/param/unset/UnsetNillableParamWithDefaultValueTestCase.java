@@ -46,7 +46,7 @@ public class UnsetNillableParamWithDefaultValueTestCase extends PmInstallFeature
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.builder("p1").setNillable().setDefaultValue("spec").build())
                     .build())
@@ -56,6 +56,7 @@ public class UnsetNillableParamWithDefaultValueTestCase extends PmInstallFeature
                             .setParam("name", "a1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig().unsetParam("p1"))
@@ -75,6 +76,7 @@ public class UnsetNillableParamWithDefaultValueTestCase extends PmInstallFeature
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1")).build())
                         .build())
                 .build();

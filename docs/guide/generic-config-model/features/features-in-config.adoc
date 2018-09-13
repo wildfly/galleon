@@ -6,7 +6,7 @@ Here is an example of how features can be used in a configuration.
 ----
  <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
                 location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0">
-   <config>
+   <config name="main">
      <feature spec="feature1">
        <param name="a" value="a1"/>
        <param name="b" value="b1"/>

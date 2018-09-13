@@ -36,7 +36,7 @@ Now if another feature-pack provides a configuration with the same name, e.g.
 </feature-pack>
 ----
 
-And we include both of these feature packs into the same installation
+And we include both of these feature-packs into the same installation
 [source,xml]
 ----
 <installation xmlns="urn:jboss:galleon:provisioning:1.0">

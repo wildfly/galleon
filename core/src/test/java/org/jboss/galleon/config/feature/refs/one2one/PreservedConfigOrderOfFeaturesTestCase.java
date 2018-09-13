@@ -45,15 +45,16 @@ public class PreservedConfigOrderOfFeaturesTestCase extends PmInstallFeaturePack
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specX")
+            .addFeatureSpec(FeatureSpec.builder("specX")
                     .addParam(FeatureParameterSpec.createId("x"))
                     .addParam(FeatureParameterSpec.create("y", true))
                     .addFeatureRef(FeatureReferenceSpec.create("specY", true))
                     .build())
-            .addSpec(FeatureSpec.builder("specY")
+            .addFeatureSpec(FeatureSpec.builder("specY")
                     .addParam(FeatureParameterSpec.createId("y"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specX")
                             .setParam("x", "x1")
@@ -89,6 +90,7 @@ public class PreservedConfigOrderOfFeaturesTestCase extends PmInstallFeaturePack
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specY", "y", "y3"))
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specX", "x", "x1"))

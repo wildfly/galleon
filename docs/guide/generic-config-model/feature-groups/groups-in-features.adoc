@@ -57,7 +57,7 @@ Now let's suppose that there is a group which includes features of `featureA` an
 This group can be nested under any instance of `featureP` and parameter `parent` of the features in the group will implicitly be initialized to the value of parameter `parent` of the outer `featureP` instance.
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature spec="featureP">
     <param name="parent" value="p1"/>
     <feature-group name="group1"/>

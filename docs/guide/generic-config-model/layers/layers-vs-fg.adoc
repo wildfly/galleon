@@ -1,0 +1,33 @@
+#### Layers vs feature groups
+
+Layers and feature groups have the following in common:
+
+* both are meant to define a certain (specialized) part of the final configuration;
+
+* both may define package dependencies.
+
+But they also have quite a few significant differences.
+
+##### Origin
+
+The content of a feature group (including its package dependencies, if any) is fully defined in a single file - the feature group spec XML. And so, a feature group has a specific origin - the feature-pack containing the definition of the feature group.
+
+Layers, on the other hand, are a product of merging layer specs with the same identity (configuration model + layer name combination) from all the feature-packs that make up the installation. From this perspective, layers are closer to configuration models than feature groups. And so, a layer might not have a single origin.
+
+##### Dependencies
+
+Feature groups don't really have the notion of dependencies on other feature groups. A feature group may include other feature groups (their content) into its body.
+
+A layer may define dependencies on other layers, which is not the same as including content of those layers into the layer declaring the dependency. The content of layers is merged directly into the configuration model which includes the layers.
+
+##### Exclusion from configuration
+
+There is no way to exclude feature groups that have been earlier included into the configuration. When a feature group is added to a configuration, its content (features) is merged immediately into the configuration model. In a way, feature groups dissolve in the configuration and there is no way to identify the set of features previously forming the group with the goal to exclude them altogether from the configuration.
+
+Layers, on the other hand, can be excluded from the configuration. When a configuration is resolved, the complete set of layers it includes is determined and then merged into the configuration. A user may provide instructions though to filter certain (or all the) layers out of the configuration.
+
+##### Nesting
+
+Feature groups can be nested under a feature which would serve as a parent feature for all the features included into the nested group directly and initialize the corresponding ID parameters of all the features contained in the group.
+
+Layers can't be nested under a feature. They are meant to define a complete configuration or a part of it starting from the very top of it.

@@ -46,7 +46,7 @@ public class ResetParameterTestCase extends PmInstallFeaturePackTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1", "def1"))
                     .addParam(FeatureParameterSpec.create("p2", "def2"))
@@ -62,6 +62,7 @@ public class ResetParameterTestCase extends PmInstallFeaturePackTestBase {
                             .setParam("p3", "group3"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig("specA")
@@ -88,6 +89,7 @@ public class ResetParameterTestCase extends PmInstallFeaturePackTestBase {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p1", "def1")
                                 .setConfigParam("p2", "def2")

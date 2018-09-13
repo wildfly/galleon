@@ -1,0 +1,66 @@
+#### Adjusting layer configuration
+
+Once layers have been included into the configuration, the set of features, as well as packages, they brought in can be manipulated, i.e. configuration of some or all of those features can be modified or completely excluded.
+
+Here is an example. Let's suppose `prod1` feature-pack defines `layer1` as
+
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layer1">
+    <feature spec="specA">
+        <param name="id" value="1"/>
+    </feature>
+    <feature spec="specA">
+        <param name="id" value="2"/>
+    </feature>
+    <feature spec="specB">
+        <param name="id" value="1"/>
+    </feature>
+    <feature spec="specB">
+        <param name="id" value="2"/>
+    </feature>
+    <packages>
+        <package name="package1"/>
+        <package name="package2" optional="true"/>
+        <package name="package3"/>
+    </packages>
+</layer-spec>
+----
+
+The user wants to include this layer into its installation but also adjust its configuration. It could look like this
+
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+        <packages>
+            <exclude name="package2"/> <!--1-->
+        </packages>
+    </feature-pack>
+    <config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+        <layers>
+            <include name="layer1"/>
+        </layers>
+        <exclude feature-id="specA:id=2"/> <!--2-->
+        <exclude spec="specB"/> <!--3-->
+        <feature spec="specB">
+            <param name="id" value="3"/>
+        </feature>
+    </config>
+</installation>
+----
+<1> `package2` `layer1` depends on is excluded from the installation
+<2> `specA:id=2` inherited from `layer1` is excluded from the configuration
+<3> All the features of `specB` inherited from `layer1` are excluded from the configuration
+
+The resulting installation will consist of:
+
+* `model1:name1` configuration including features:
+
+** `specA:id=1`
+
+** `specB:id=3`
+
+* `package1` plus its dependencies, if any;
+
+* `package3` plus its dependencies, if any.

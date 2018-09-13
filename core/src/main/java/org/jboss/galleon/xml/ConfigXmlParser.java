@@ -39,13 +39,9 @@ public class ConfigXmlParser implements XmlParser<ConfigModel> {
     }
 
     @Override
-    public ConfigModel parse(final Reader input) throws XMLStreamException {
+    public ConfigModel parse(final Reader input) throws XMLStreamException, ProvisioningDescriptionException {
         final ConfigModel.Builder builder = ConfigModel.builder();
         XmlParsers.parse(input, builder);
-        try {
-            return builder.build();
-        } catch (ProvisioningDescriptionException e) {
-            throw new XMLStreamException("Failed to create configuration model", e);
-        }
+        return builder.build();
     }
 }

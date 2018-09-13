@@ -42,7 +42,7 @@ public class UnsatisfiedConfigDepTestCase extends ConfigOrderTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
             .newFeaturePack(FP1_GAV)
-                .addSpec(FeatureSpec.builder("specA")
+                .addFeatureSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("id"))
                         .build())
                 .addConfig(ConfigModel.builder("model1", "config1")

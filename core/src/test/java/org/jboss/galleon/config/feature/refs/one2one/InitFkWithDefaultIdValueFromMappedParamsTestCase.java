@@ -45,11 +45,11 @@ public class InitFkWithDefaultIdValueFromMappedParamsTestCase extends PmInstallF
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.create("name", true, false, "defaultA"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.create("name", true, false, "defaultB"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -57,6 +57,7 @@ public class InitFkWithDefaultIdValueFromMappedParamsTestCase extends PmInstallF
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                                 .addFeature(
@@ -76,6 +77,7 @@ public class InitFkWithDefaultIdValueFromMappedParamsTestCase extends PmInstallF
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "defaultA")).build())
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.builder(FP_GAV.getProducer(), "specB").setParam("a", "defaultA").setParam("name", "defaultB").build()).build())
                         .build())

@@ -1,6 +1,8 @@
 In addition to provisioning various filesystem content as packages, the mechanism also allows generation of the configuration files for the target installation taking into account the customizations applied by the user to the feature-pack defaults.
 
-Feature-pack metadata (`feature-pack.xml`) may include one or more `config` elements each of which describes a specific type of configuration supported by the resulting installation. In a simple (and perhaps the most common) case, the configuration described under `config` element will represent a specific configuration file in the provisioned installation.
+Feature-pack may include predefined configurations for the installation. They are stored in feature-pack's `configs` directory. Every configuration is described in an XML file and in a simple (and perhaps the most common) case, every configuration will represent a specific configuration file in the provisioned installation.
+
+Feature-pack metadata (`feature-pack.xml`) may define which of the predefined configurations should be provisioned by default by referencing them using `config` elements .
 
 Installation configuration is described using a generic configuration model. The generic configuration model is based on an abstract schema that describes configurable units and relationships between them. The model allows a user to manipulate the confguration in a generic way by adding to and/or removing parts from it, and/or overwriting some parameter values. The responsibilities of the core provisioning mechanism with regards to the configuration are:
 

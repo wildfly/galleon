@@ -43,11 +43,11 @@ public class ExcludedFeatureDependencyIncludedFeatureTestCase extends PmInstallF
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("b", true))
                     .build())
@@ -57,6 +57,7 @@ public class ExcludedFeatureDependencyIncludedFeatureTestCase extends PmInstallF
                             .addFeatureDep(FeatureDependencySpec.create(FeatureId.create("specA", "id", "a"), true)))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("fg1")
                             .excludeFeature(FeatureId.create("specA", "id", "a"))
                             .build())
@@ -77,7 +78,7 @@ public class ExcludedFeatureDependencyIncludedFeatureTestCase extends PmInstallF
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals("Failed to build config", e.getMessage());
+        Assert.assertEquals("Failed to build config named main", e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals("{org.jboss.pm.test:fp1@galleon1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@galleon1}specA:id=a", e.getMessage());

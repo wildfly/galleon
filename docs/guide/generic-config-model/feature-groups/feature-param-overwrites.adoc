@@ -28,7 +28,7 @@ This is our feature group spec:
 And this is our config:
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group1">
     <include feature-id="feature1:a=a1">
       <param name="d" value="config"/>
@@ -87,7 +87,7 @@ The group is defined as
 And we want to customize the child feature when including `group1` into the config.
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group1">
     <include feature-id="featureC:parent=p1,child=c1">
       <param name="b" value="config"/>

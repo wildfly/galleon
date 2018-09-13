@@ -46,7 +46,7 @@ public class FeatureGroupOptionalPackageDependenciesTestCase extends PmInstallFe
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())
@@ -66,6 +66,7 @@ public class FeatureGroupOptionalPackageDependenciesTestCase extends PmInstallFe
                     .addPackageDep("fg2.pkg3", true)
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty("prop1", "value1")
                     .setProperty("prop2", "value2")
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
@@ -104,6 +105,7 @@ public class FeatureGroupOptionalPackageDependenciesTestCase extends PmInstallFe
                         .addPackage("fg2.pkg2")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty("prop1", "value1")
                         .setProperty("prop2", "value2")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "afg1")).build())

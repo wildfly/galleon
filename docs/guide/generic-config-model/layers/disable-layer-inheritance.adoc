@@ -1,0 +1,19 @@
+#### Disabling inheritance of layers
+
+If at some point it is necessary to reset the configuration in terms of layers it consists of and possibly re-define the configuration explicitly, it can be done like this
+
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+    <config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+        <layers inherit="false">
+            <include name="layer3"/>
+        </layers>
+        <!-- the rest of the configuration -->
+    </config>
+</installation>
+----
+
+`inherit="false"` attribute indicates to the provisioning mechanism to not inherit any layers for the configuration from any of the feature-packs included up to that point. The resulting `model1:name1` configuration will include only `layer3` (plus its dependencies) even if `prod1` included more layers into `model1:name1`.
+

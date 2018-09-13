@@ -57,7 +57,7 @@ This means that stream resolution stays in sync with maven configuration.
 ### Resolving feature-packs
 When remote repositories are set, feature-packs are automatically downloaded at install time. 
 You can download feature-pack explicitly to the local repository by using the 
-command: _maven resolve-feature-pack <feature pack location> [--verbose]_
+command: _maven resolve-feature-pack <feature-pack location> [--verbose]_
 
 ### Maven tracing
 When enabling "verbose" at installation and provisioning time, any artifact retrieved 

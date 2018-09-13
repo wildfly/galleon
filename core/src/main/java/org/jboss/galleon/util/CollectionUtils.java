@@ -235,6 +235,22 @@ public class CollectionUtils {
         return s;
     }
 
+    public static <T> Set<T> addAllLinked(Set<T> dest, Set<T> src) {
+        if(dest.isEmpty()) {
+            return src;
+        }
+        if(src.isEmpty()) {
+            return dest;
+        }
+        if(dest.size() == 1) {
+            final T first = dest.iterator().next();
+            dest = new LinkedHashSet<>(src.size() + 1);
+            dest.add(first);
+        }
+        dest.addAll(src);
+        return dest;
+    }
+
     public static <T> Set<T> clone(Set<T> s) {
         return s.size() > 1 ? new HashSet<>(s) : s;
     }

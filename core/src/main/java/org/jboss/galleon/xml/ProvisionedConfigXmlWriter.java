@@ -21,13 +21,14 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.runtime.ResolvedFeatureSpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Attribute;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser20.Element;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser30.Attribute;
+import org.jboss.galleon.xml.ProvisionedStateXmlParser30.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -98,6 +99,17 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
                 final ElementNode propE = addElement(propsE, Element.PROP);
                 addAttribute(propE, Attribute.NAME, entry.getKey());
                 addAttribute(propE, Attribute.VALUE, entry.getValue());
+            }
+        }
+
+        if(config.hasLayers()) {
+            final ElementNode propsE = addElement(configE, Element.LAYERS);
+            for(ConfigId layerId : config.getLayers()) {
+                final ElementNode propE = addElement(propsE, Element.LAYER);
+                if(layerId.getModel() != null) {
+                    addAttribute(propE, Attribute.MODEL, layerId.getModel());
+                }
+                addAttribute(propE, Attribute.NAME, layerId.getName());
             }
         }
 

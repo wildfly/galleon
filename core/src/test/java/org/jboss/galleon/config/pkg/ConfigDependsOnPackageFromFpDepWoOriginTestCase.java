@@ -57,7 +57,7 @@ public class ConfigDependsOnPackageFromFpDepWoOriginTestCase extends PmInstallFe
             .getCreator()
         .newFeaturePack(FP2_GAV)
             .addDependency(FP3_GAV.getLocation())
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())

@@ -16,11 +16,18 @@
  */
 package org.jboss.galleon.xml;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
@@ -41,16 +48,30 @@ public class ConfigXml {
 
     public enum Element implements XmlNameProvider {
 
-        CONFIG("config"),
+        CONFIG("config", false),
+        CONFIG_DEP("config-dep", false),
+        CONFIG_DEPS("config-deps", true),
+        EXCLUDE("exclude", false),
+        INCLUDE("include", false),
+        LAYERS("layers", true),
+        PROP("prop", false),
+        PROPS("props", true),
 
         // default unknown element
-        UNKNOWN(null);
+        UNKNOWN(null, false);
 
         private static final Map<String, Element> elementsByLocal;
 
         static {
-            elementsByLocal = new HashMap<String, Element>(2);
+            elementsByLocal = new HashMap<String, Element>(8);
             elementsByLocal.put(CONFIG.name, CONFIG);
+            elementsByLocal.put(CONFIG_DEP.name, CONFIG_DEP);
+            elementsByLocal.put(CONFIG_DEPS.name, CONFIG_DEPS);
+            elementsByLocal.put(EXCLUDE.name, EXCLUDE);
+            elementsByLocal.put(INCLUDE.name, INCLUDE);
+            elementsByLocal.put(LAYERS.name, LAYERS);
+            elementsByLocal.put(PROP.name, PROP);
+            elementsByLocal.put(PROPS.name, PROPS);
             elementsByLocal.put(null, UNKNOWN);
         }
 
@@ -61,9 +82,11 @@ public class ConfigXml {
 
         private final String name;
         private final String namespace = NAMESPACE_1_0;
+        private final boolean firstChild;
 
-        Element(final String name) {
+        Element(final String name, boolean firstChild) {
             this.name = name;
+            this.firstChild = firstChild;
         }
 
         /**
@@ -84,9 +107,12 @@ public class ConfigXml {
 
     protected enum Attribute implements XmlNameProvider {
 
+        ID("id"),
+        INHERIT("inherit"),
         INHERIT_FEATURES("inherit-features"),
         NAME("name"),
         MODEL("model"),
+        VALUE("value"),
 
         // default unknown attribute
         UNKNOWN(null);
@@ -94,10 +120,13 @@ public class ConfigXml {
         private static final Map<QName, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(4);
+            attributes = new HashMap<>(7);
+            attributes.put(new QName(ID.name), ID);
+            attributes.put(new QName(INHERIT.getLocalName()), INHERIT);
             attributes.put(new QName(INHERIT_FEATURES.getLocalName()), INHERIT_FEATURES);
             attributes.put(new QName(NAME.getLocalName()), NAME);
             attributes.put(new QName(MODEL.getLocalName()), MODEL);
+            attributes.put(new QName(VALUE.name), VALUE);
             attributes.put(null, UNKNOWN);
         }
 
@@ -157,6 +186,212 @@ public class ConfigXml {
         if (name == null && inheritFeatures != null) {
             throw new XMLStreamException(Attribute.INHERIT_FEATURES + " attribute can't be used w/o attribute " + Attribute.NAME);
         }
-        FeatureGroupXml.readFeatureGroupConfigBody(reader, configBuilder);
+        while (reader.hasNext()) {
+            switch (reader.nextTag()) {
+                case XMLStreamConstants.END_ELEMENT:
+                    return;
+                case XMLStreamConstants.START_ELEMENT:
+                    Element e = Element.elementsByLocal.get(reader.getName().getLocalPart());
+                    if(e != null && e.firstChild) {
+                        switch(e) {
+                            case CONFIG_DEPS:
+                                readConfigDeps(reader, configBuilder);
+                                break;
+                            case PROPS:
+                                readProps(reader, configBuilder);
+                                break;
+                            case LAYERS:
+                                readLayers(reader, configBuilder);
+                                break;
+                            default:
+                                throw ParsingUtils.unexpectedContent(reader);
+                        }
+                    } else if (!FeatureGroupXml.handleFeatureGroupBodyElement(reader, configBuilder)) {
+                        throw ParsingUtils.unexpectedContent(reader);
+                    }
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static void readProps(XMLExtendedStreamReader reader, ConfigModel.Builder builder) throws XMLStreamException {
+        ParsingUtils.parseNoAttributes(reader);
+        while (reader.hasNext()) {
+            switch (reader.nextTag()) {
+                case XMLStreamConstants.END_ELEMENT: {
+                    return;
+                }
+                case XMLStreamConstants.START_ELEMENT: {
+                    final Element element = Element.of(reader.getName().getLocalPart());
+                    switch (element) {
+                        case PROP:
+                            readProp(reader, builder);
+                            break;
+                        default:
+                            throw ParsingUtils.unexpectedContent(reader);
+                    }
+                    break;
+                }
+                default: {
+                    throw ParsingUtils.unexpectedContent(reader);
+                }
+            }
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static void readProp(XMLExtendedStreamReader reader, ConfigModel.Builder builder) throws XMLStreamException {
+        String name = null;
+        String value = null;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
+            switch (attribute) {
+                case NAME:
+                    name = reader.getAttributeValue(i);
+                    break;
+                case VALUE:
+                    value = reader.getAttributeValue(i);
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        if(name == null) {
+            if(value == null) {
+                final Set<Attribute> attrs = new HashSet<>();
+                attrs.add(Attribute.NAME);
+                attrs.add(Attribute.VALUE);
+                throw ParsingUtils.missingAttributes(reader.getLocation(), attrs);
+            }
+            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
+        } else if(value == null) {
+            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.VALUE));
+        }
+        builder.setProperty(name, value);
+        ParsingUtils.parseNoContent(reader);
+    }
+
+    private static void readConfigDeps(XMLExtendedStreamReader reader, ConfigModel.Builder builder) throws XMLStreamException {
+        ParsingUtils.parseNoAttributes(reader);
+        while (reader.hasNext()) {
+            switch (reader.nextTag()) {
+                case XMLStreamConstants.END_ELEMENT: {
+                    return;
+                }
+                case XMLStreamConstants.START_ELEMENT: {
+                    final Element element = Element.of(reader.getName().getLocalPart());
+                    switch (element) {
+                        case CONFIG_DEP:
+                            readConfigDep(reader, builder);
+                            break;
+                        default:
+                            throw ParsingUtils.unexpectedContent(reader);
+                    }
+                    break;
+                }
+                default: {
+                    throw ParsingUtils.unexpectedContent(reader);
+                }
+            }
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static void readConfigDep(XMLExtendedStreamReader reader, ConfigModel.Builder builder) throws XMLStreamException {
+        String id = null;
+        String name = null;
+        String model = null;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
+            switch (attribute) {
+                case ID:
+                    id = reader.getAttributeValue(i);
+                    break;
+                case NAME:
+                    name = reader.getAttributeValue(i);
+                    break;
+                case MODEL:
+                    model = reader.getAttributeValue(i);
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        if(id == null || name == null && model == null) {
+            if(id == null) {
+                throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.ID));
+            }
+            throw ParsingUtils.missingOneOfAttributes(reader.getLocation(), Attribute.NAME, Attribute.MODEL);
+        }
+        builder.setConfigDep(id, new ConfigId(model, name));
+        ParsingUtils.parseNoContent(reader);
+    }
+
+    private static void readLayers(XMLExtendedStreamReader reader, ConfigModel.Builder builder) throws XMLStreamException {
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
+            switch (attribute) {
+                case INHERIT:
+                    builder.setInheritLayers(Boolean.parseBoolean(reader.getAttributeValue(i)));
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        try {
+            while (reader.hasNext()) {
+                switch (reader.nextTag()) {
+                    case XMLStreamConstants.END_ELEMENT: {
+                        return;
+                    }
+                    case XMLStreamConstants.START_ELEMENT: {
+                        final Element element = Element.of(reader.getName().getLocalPart());
+                        switch (element) {
+                            case INCLUDE:
+                                builder.includeLayer(readLayer(reader, builder));
+                                break;
+                            case EXCLUDE:
+                                builder.excludeLayer(readLayer(reader, builder));
+                                break;
+                            default:
+                                throw ParsingUtils.unexpectedContent(reader);
+                        }
+                        break;
+                    }
+                    default: {
+                        throw ParsingUtils.unexpectedContent(reader);
+                    }
+                }
+            }
+        } catch (ProvisioningDescriptionException e) {
+            throw new XMLStreamException("Failed to parse layers configuration: " + e.getMessage(), reader.getLocation());
+        }
+        throw ParsingUtils.endOfDocument(reader.getLocation());
+    }
+
+    private static String readLayer(XMLExtendedStreamReader reader, ConfigModel.Builder builder) throws XMLStreamException {
+        String name = null;
+        final int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            final Attribute attribute = Attribute.of(reader.getAttributeName(i));
+            switch (attribute) {
+                case NAME:
+                    name = reader.getAttributeValue(i);
+                    break;
+                default:
+                    throw ParsingUtils.unexpectedContent(reader);
+            }
+        }
+        if(name == null) {
+            throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
+        }
+        ParsingUtils.parseNoContent(reader);
+        return name;
     }
 }

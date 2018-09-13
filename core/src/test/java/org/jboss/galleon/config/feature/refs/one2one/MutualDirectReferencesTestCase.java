@@ -72,7 +72,7 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addParam(FeatureParameterSpec.create("b"))
@@ -80,7 +80,7 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
                             .mapParam("b", "name")
                             .build())
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -90,6 +90,7 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty("prop1", "value1")
                     .setProperty("prop2", "value2")
                     // this is also a test for the order in which the features appear in the config
@@ -126,6 +127,7 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty("prop1", "value1")
                         .setProperty("prop2", "value2")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specB", "name", "b"))

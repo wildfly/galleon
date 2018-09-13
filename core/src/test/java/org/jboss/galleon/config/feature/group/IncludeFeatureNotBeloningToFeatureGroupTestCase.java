@@ -45,7 +45,7 @@ public class IncludeFeatureNotBeloningToFeatureGroupTestCase extends PmInstallFe
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specP")
+            .addFeatureSpec(FeatureSpec.builder("specP")
                     .addParam(FeatureParameterSpec.createId("parent"))
                     .build())
             .addFeatureGroup(FeatureGroup.builder("group1")
@@ -54,6 +54,7 @@ public class IncludeFeatureNotBeloningToFeatureGroupTestCase extends PmInstallFe
                             .setParam("parent", "p1"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specP", "parent", "p2"))
                             .build())
@@ -74,7 +75,7 @@ public class IncludeFeatureNotBeloningToFeatureGroupTestCase extends PmInstallFe
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getLocalizedMessage());
         Assert.assertNotNull(e.getCause());
         Throwable t = e.getCause();
         Assert.assertEquals(Errors.failedToProcess(FP_GAV, "group1"), t.getLocalizedMessage());

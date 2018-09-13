@@ -47,7 +47,7 @@ public class ConfigModelMergedFromIndependentFeaturePacksTestCase extends PmProv
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP1_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1"))
                     .addParam(FeatureParameterSpec.create("p2"))
@@ -80,7 +80,7 @@ public class ConfigModelMergedFromIndependentFeaturePacksTestCase extends PmProv
                     .build())
             .getCreator()
         .newFeaturePack(FP2_GAV)
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1"))
                     .addParam(FeatureParameterSpec.create("p2"))

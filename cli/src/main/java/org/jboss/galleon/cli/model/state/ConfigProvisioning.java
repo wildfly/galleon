@@ -17,7 +17,9 @@
 package org.jboss.galleon.cli.model.state;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jboss.galleon.Constants;
@@ -42,8 +44,9 @@ public class ConfigProvisioning {
     private class ResetConfigurationAction implements State.Action {
 
         private final ConfigId id;
-        private int index;
         private ConfigModel config;
+        private List<ConfigModel> originalList;
+
         ResetConfigurationAction(ConfigId id) {
             this.id = id;
         }
@@ -59,15 +62,17 @@ public class ConfigProvisioning {
             if (config == null) {
                 throw new ProvisioningException("Config " + id + " doesn't exist");
             }
-            index = builder.getDefinedConfigIndex(id);
+            originalList = new ArrayList<>(builder.getDefinedConfigs());
             builder.removeConfig(id);
         }
 
         @Override
         public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
-            builder.addConfig(index, config);
+            builder.removeAllConfigs();
+            for(ConfigModel config : originalList) {
+                builder.addConfig(config);
+            }
         }
-
     }
 
     private class AddFeatureAction implements State.Action {

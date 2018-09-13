@@ -234,7 +234,7 @@ public class StateTestCase {
                 .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1").
                 getFeaturePack().
-                addSpec(FeatureSpec.builder("specA")
+                addFeatureSpec(FeatureSpec.builder("specA")
                         .addParam(FeatureParameterSpec.createId("p1"))
                         .build()).
                 addConfig(ConfigModel.builder().setModel("model1").

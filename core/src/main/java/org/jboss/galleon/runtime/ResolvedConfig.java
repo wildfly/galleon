@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.runtime;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 import org.jboss.galleon.state.ProvisionedConfig;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
@@ -37,14 +39,16 @@ public class ResolvedConfig implements ProvisionedConfig {
 
     final ConfigId id;
     private final Map<String, String> props;
-    private Map<String, ConfigId> configDeps;
+    private final Map<String, ConfigId> configDeps;
+    private final List<ConfigId> layers;
     private final List<ResolvedFeature> features;
 
     private ResolvedConfig(ConfigModelStack configStack) throws ProvisioningException {
         this.id = configStack.id;
-        this.props = configStack.props.isEmpty() ? configStack.props : Collections.unmodifiableMap(configStack.props);
-        this.configDeps = configStack.configDeps.isEmpty() ? configStack.configDeps : Collections.unmodifiableMap(configStack.configDeps);
-        this.features = Collections.unmodifiableList(configStack.orderFeatures());
+        this.props = CollectionUtils.unmodifiable(configStack.props);
+        this.configDeps = CollectionUtils.unmodifiable(configStack.configDeps);
+        this.features = CollectionUtils.unmodifiable(configStack.orderFeatures());
+        layers = Collections.unmodifiableList(configStack.getIncludedLayers());
     }
 
     /* (non-Javadoc)
@@ -93,6 +97,16 @@ public class ResolvedConfig implements ProvisionedConfig {
 
     public Map<String, ConfigId> getConfigDeps() {
         return configDeps;
+    }
+
+    @Override
+    public boolean hasLayers() {
+        return !layers.isEmpty();
+    }
+
+    @Override
+    public Collection<ConfigId> getLayers() {
+        return layers;
     }
 
     /* (non-Javadoc)

@@ -32,8 +32,11 @@ import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.type.ParameterTypeProvider;
@@ -42,9 +45,11 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.xml.ConfigXmlParser;
 import org.jboss.galleon.xml.FeatureGroupXmlParser;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 import org.jboss.galleon.xml.PackageXmlParser;
+import org.jboss.galleon.xml.XmlParsers;
 
 /**
  *
@@ -58,6 +63,8 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
     final FeaturePackSpec spec;
     Map<String, ResolvedFeatureSpec> featureSpecs = null;
     private Map<String, FeatureGroup> fgSpecs = null;
+    private Map<ConfigId, ConfigModel> configs = null;
+    private Map<ConfigId, ConfigLayerSpec> layers = null;
 
     Map<String, PackageRuntime.Builder> pkgBuilders = Collections.emptyMap();
     List<String> pkgOrder = new ArrayList<>();
@@ -111,6 +118,9 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
         } catch (IOException | XMLStreamException e) {
             throw new ProvisioningException(Errors.parseXml(pkgXml), e);
         }
+        if(!pkgBuilder.spec.getName().equals(pkgName)) {
+            throw new ProvisioningDescriptionException("Feature-pack " + getFPID() + " package spec name " + pkgBuilder.spec.getName() + " does not match the requested package name " + pkgName);
+        }
         pkgBuilders = CollectionUtils.put(pkgBuilders, pkgName, pkgBuilder);
 
         if(pkgBuilder.spec.hasPackageDeps()) {
@@ -141,6 +151,9 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
         }
         try (BufferedReader reader = Files.newBufferedReader(specXml)) {
             final FeatureGroup fgSpec = FeatureGroupXmlParser.getInstance().parse(reader);
+            if(!fgSpec.getName().equals(name)) {
+                throw new ProvisioningDescriptionException("Feature-pack " + getFPID() + " feature group " + fgSpec.getName() + " does not match the requested feature group name " + name);
+            }
             if (fgSpecs == null) {
                 fgSpecs = new HashMap<>();
             }
@@ -149,6 +162,48 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
         } catch (Exception e) {
             throw new ProvisioningException(Errors.parseXml(specXml), e);
         }
+    }
+
+    ConfigModel getConfig(ConfigId configId) throws ProvisioningException {
+        if(configs != null) {
+            final ConfigModel config = configs.get(configId);
+            if(config != null) {
+                return config;
+            }
+        }
+        final Path p = LayoutUtils.getConfigXml(dir, configId, false);
+        if (!Files.exists(p)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(p)) {
+            final ConfigModel config = ConfigXmlParser.getInstance().parse(reader);
+            if (configs == null) {
+                configs = new HashMap<>();
+            }
+            configs.put(config.getId(), config);
+            return config;
+        } catch (Exception e) {
+            throw new ProvisioningException(Errors.parseXml(p), e);
+        }
+    }
+
+    ConfigLayerSpec getConfigLayer(ConfigId configId) throws ProvisioningException {
+        if(layers != null) {
+            final ConfigLayerSpec layer = layers.get(configId);
+            if(layer != null) {
+                return layer;
+            }
+        }
+        final Path p = LayoutUtils.getLayerSpecXml(dir, configId.getModel(), configId.getName(), false);
+        if (!Files.exists(p)) {
+            return null;
+        }
+        final ConfigLayerSpec layer = XmlParsers.parseConfigLayerSpec(p, configId.getModel());
+        if (layers == null) {
+            layers = new HashMap<>();
+        }
+        layers.put(configId, layer);
+        return layer;
     }
 
     ResolvedFeatureSpec getFeatureSpec(String name) throws ProvisioningException {
@@ -164,6 +219,9 @@ public class FeaturePackRuntimeBuilder implements FeaturePackLayout {
         }
         try (BufferedReader reader = Files.newBufferedReader(specXml)) {
             final FeatureSpec xmlSpec = FeatureSpecXmlParser.getInstance().parse(reader);
+            if(!xmlSpec.getName().equals(name)) {
+                throw new ProvisioningDescriptionException("Feature-pack " + getFPID() + " feature spec " + xmlSpec.getName() + " does not match the requested feature spec name " + name);
+            }
             final ResolvedFeatureSpec resolvedSpec = new ResolvedFeatureSpec(new ResolvedSpecId(producer, xmlSpec.getName()),
                     featureParamTypeProvider, xmlSpec);
             if (featureSpecs == null) {

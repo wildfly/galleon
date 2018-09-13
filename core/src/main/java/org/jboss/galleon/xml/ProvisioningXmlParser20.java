@@ -212,7 +212,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                             try {
                                 builder.addConfig(config.build());
                             } catch (ProvisioningDescriptionException e) {
-                                throw new XMLStreamException("Failed to parse " + Element.CONFIG, reader.getLocation(), e);
+                                throw new XMLStreamException("Failed to parse config element", reader.getLocation(), e);
                             }
                             break;
                         case TRANSITIVE:
@@ -353,7 +353,7 @@ public class ProvisioningXmlParser20 implements PlugableXmlParser<ProvisioningCo
                             try {
                                 depBuilder.addConfig(config.build());
                             } catch (ProvisioningDescriptionException e) {
-                                throw new XMLStreamException("Failed to parse " + Element.CONFIG, reader.getLocation(), e);
+                                throw new XMLStreamException("Failed to parse config element", reader.getLocation(), e);
                             }
                             break;
                         case PATCHES:

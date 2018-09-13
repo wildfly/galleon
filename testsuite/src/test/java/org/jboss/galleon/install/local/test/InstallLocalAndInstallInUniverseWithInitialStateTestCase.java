@@ -57,7 +57,7 @@ public class InstallLocalAndInstallInUniverseWithInitialStateTestCase extends In
 
         creator.newFeaturePack()
         .setFPID(fp1.getFPID())
-        .addSpec(FeatureSpec.builder("specA")
+        .addFeatureSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")
@@ -68,7 +68,7 @@ public class InstallLocalAndInstallInUniverseWithInitialStateTestCase extends In
         fp2 = newFpl("prod2", "1", "1.0.0.Final");
         creator.newFeaturePack()
         .setFPID(fp2.getFPID())
-        .addSpec(FeatureSpec.builder("specB")
+        .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")

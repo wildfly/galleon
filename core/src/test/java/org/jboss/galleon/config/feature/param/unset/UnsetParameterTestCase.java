@@ -46,7 +46,7 @@ public class UnsetParameterTestCase extends PmInstallFeaturePackTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.builder("p1").setDefaultValue("def1").setNillable().build())
                     .addParam(FeatureParameterSpec.builder("p2").setDefaultValue("def2").setNillable().build())
@@ -62,6 +62,7 @@ public class UnsetParameterTestCase extends PmInstallFeaturePackTestBase {
                             .setParam("p3", "group3"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig("specA")
@@ -88,6 +89,7 @@ public class UnsetParameterTestCase extends PmInstallFeaturePackTestBase {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP_GAV.getProducer(), "specA", "name", "a1"))
                                 .setConfigParam("p3", "group3")
                                 .setConfigParam("p4", "def4")

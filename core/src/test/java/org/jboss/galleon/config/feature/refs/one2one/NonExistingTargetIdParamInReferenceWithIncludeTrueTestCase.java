@@ -44,11 +44,11 @@ public class NonExistingTargetIdParamInReferenceWithIncludeTrueTestCase extends 
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", "aOne"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("b", false))
                     .addParam(FeatureParameterSpec.create("a", true))
@@ -59,6 +59,7 @@ public class NonExistingTargetIdParamInReferenceWithIncludeTrueTestCase extends 
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("id", "b")
@@ -80,7 +81,7 @@ public class NonExistingTargetIdParamInReferenceWithIncludeTrueTestCase extends 
 
     @Override
     protected void pmFailure(Throwable e) throws ProvisioningDescriptionException {
-        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getLocalizedMessage());
         Throwable t = e.getCause();
         Assert.assertNotNull(t);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV,

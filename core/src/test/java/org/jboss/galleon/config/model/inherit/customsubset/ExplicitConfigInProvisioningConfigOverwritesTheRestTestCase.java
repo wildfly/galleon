@@ -18,6 +18,7 @@ package org.jboss.galleon.config.model.inherit.customsubset;
 
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
@@ -48,7 +49,7 @@ public class ExplicitConfigInProvisioningConfigOverwritesTheRestTestCase extends
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP1_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("p1", true))
                     .build())
@@ -64,12 +65,11 @@ public class ExplicitConfigInProvisioningConfigOverwritesTheRestTestCase extends
                     .build())
             .getCreator()
         .newFeaturePack(FP2_GAV)
-            .addDependency("fp1", FeaturePackConfig.forLocation(FP1_GAV.getLocation()))
+            .addDependency(FeaturePackConfig.forLocation(FP1_GAV.getLocation()))
             .addConfig(ConfigModel.builder("model1", "config1")
-                    .includeFeature("fp1", FeatureId.create("specA", "name", "a3"))
-                    .includeSpec("fp1", "specA")
+                    .includeFeature(FeatureId.create("specA", "name", "a3"))
+                    .includeSpec("specA")
                     .addFeature(new FeatureConfig("specA")
-                            .setOrigin("fp1")
                             .setParam("name", "a5"))
                     .build())
             .getCreator()

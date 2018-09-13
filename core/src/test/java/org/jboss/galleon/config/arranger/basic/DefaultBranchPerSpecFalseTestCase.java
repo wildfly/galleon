@@ -85,16 +85,17 @@ public class DefaultBranchPerSpecFalseTestCase extends PmInstallFeaturePackTestB
         creator
         .newFeaturePack(FP1_GAV)
 
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .build())
-            .addSpec(FeatureSpec.builder("specC")
+            .addFeatureSpec(FeatureSpec.builder("specC")
                     .addParam(FeatureParameterSpec.createId("c"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .setProperty(ConfigModel.BRANCH_PER_SPEC, "false")
                     .addFeature(new FeatureConfig("specA").setParam("a", "1"))
                     .addFeature(new FeatureConfig("specB").setParam("b", "1"))
@@ -126,6 +127,7 @@ public class DefaultBranchPerSpecFalseTestCase extends PmInstallFeaturePackTestB
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV)
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .setProperty(ConfigModel.BRANCH_PER_SPEC, "false")
 
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "a", "1")).build())

@@ -19,7 +19,9 @@ package org.jboss.galleon.config;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.util.CollectionUtils;
@@ -42,6 +44,9 @@ public class ConfigModel extends FeatureGroupSupport {
         private String model;
         private Map<String, String> props = Collections.emptyMap();
         private Map<String, ConfigId> configDeps = Collections.emptyMap();
+        private boolean inheritLayers = true;
+        private Set<String> includedLayers = Collections.emptySet();
+        private Set<String> excludedLayers = Collections.emptySet();
 
         protected Builder() {
             super();
@@ -57,14 +62,34 @@ public class ConfigModel extends FeatureGroupSupport {
             return this;
         }
 
-        @Override
         public Builder setProperty(String name, String value) {
             props = CollectionUtils.put(props, name, value);
             return this;
         }
 
         public Builder setConfigDep(String depName, ConfigId configId) {
-            configDeps = CollectionUtils.put(configDeps, depName, configId);
+            configDeps = CollectionUtils.putLinked(configDeps, depName, configId);
+            return this;
+        }
+
+        public Builder setInheritLayers(boolean inheritLayers) {
+            this.inheritLayers = inheritLayers;
+            return this;
+        }
+
+        public Builder includeLayer(String layerName) throws ProvisioningDescriptionException {
+            if(excludedLayers.contains(layerName)) {
+                throw new ProvisioningDescriptionException(Errors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));
+            }
+            includedLayers = CollectionUtils.addLinked(includedLayers, layerName);
+            return this;
+        }
+
+        public Builder excludeLayer(String layerName) throws ProvisioningDescriptionException {
+            if(includedLayers.contains(layerName)) {
+                throw new ProvisioningDescriptionException(Errors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));
+            }
+            excludedLayers = CollectionUtils.addLinked(excludedLayers, layerName);
             return this;
         }
 
@@ -84,6 +109,9 @@ public class ConfigModel extends FeatureGroupSupport {
     final ConfigId id;
     final Map<String, String> props;
     final Map<String, ConfigId> configDeps;
+    final boolean inheritLayers;
+    final Set<String> includedLayers;
+    final Set<String> excludedLayers;
     private final Builder builder;
 
     protected ConfigModel(Builder builder) throws ProvisioningDescriptionException {
@@ -91,6 +119,9 @@ public class ConfigModel extends FeatureGroupSupport {
         this.id = new ConfigId(builder.model, builder.name);
         this.props = CollectionUtils.unmodifiable(builder.props);
         this.configDeps = CollectionUtils.unmodifiable(builder.configDeps);
+        this.inheritLayers = builder.inheritLayers;
+        this.includedLayers = CollectionUtils.unmodifiable(builder.includedLayers);
+        this.excludedLayers = CollectionUtils.unmodifiable(builder.excludedLayers);
         this.builder = builder;
     }
 
@@ -106,12 +137,10 @@ public class ConfigModel extends FeatureGroupSupport {
         return id.getModel();
     }
 
-    @Override
     public boolean hasProperties() {
         return !props.isEmpty();
     }
 
-    @Override
     public Map<String, String> getProperties() {
         return props;
     }
@@ -129,12 +158,43 @@ public class ConfigModel extends FeatureGroupSupport {
         return configDeps;
     }
 
+    public boolean isInheritLayers() {
+        return inheritLayers;
+    }
+
+    public boolean hasIncludedLayers() {
+        return !includedLayers.isEmpty();
+    }
+
+    public Set<String> getIncludedLayers() {
+        return includedLayers;
+    }
+
+    public boolean isLayerIncluded(String layerName) {
+        return includedLayers.contains(layerName);
+    }
+
+    public boolean hasExcludedLayers() {
+        return !excludedLayers.isEmpty();
+    }
+
+    public Set<String> getExcludedLayers() {
+        return excludedLayers;
+    }
+
+    public boolean isLayerExcluded(String layerName) {
+        return excludedLayers.contains(layerName);
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((configDeps == null) ? 0 : configDeps.hashCode());
+        result = prime * result + ((excludedLayers == null) ? 0 : excludedLayers.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((includedLayers == null) ? 0 : includedLayers.hashCode());
+        result = prime * result + (inheritLayers ? 1231 : 1237);
         result = prime * result + ((props == null) ? 0 : props.hashCode());
         return result;
     }
@@ -153,10 +213,22 @@ public class ConfigModel extends FeatureGroupSupport {
                 return false;
         } else if (!configDeps.equals(other.configDeps))
             return false;
+        if (excludedLayers == null) {
+            if (other.excludedLayers != null)
+                return false;
+        } else if (!excludedLayers.equals(other.excludedLayers))
+            return false;
         if (id == null) {
             if (other.id != null)
                 return false;
         } else if (!id.equals(other.id))
+            return false;
+        if (includedLayers == null) {
+            if (other.includedLayers != null)
+                return false;
+        } else if (!includedLayers.equals(other.includedLayers))
+            return false;
+        if (inheritLayers != other.inheritLayers)
             return false;
         if (props == null) {
             if (other.props != null)
@@ -165,7 +237,6 @@ public class ConfigModel extends FeatureGroupSupport {
             return false;
         return true;
     }
-
 
     @Override
     public String toString() {
@@ -181,6 +252,17 @@ public class ConfigModel extends FeatureGroupSupport {
         if(!configDeps.isEmpty()) {
             buf.append(" config-deps=");
             StringUtils.append(buf, configDeps.entrySet());
+        }
+        if(!inheritLayers) {
+            buf.append(" inherit-layers=false");
+        }
+        if(!includedLayers.isEmpty()) {
+            buf.append(" included-layers=");
+            StringUtils.append(buf, includedLayers);
+        }
+        if(!excludedLayers.isEmpty()) {
+            buf.append(" excluded-layers=");
+            StringUtils.append(buf, excludedLayers);
         }
         if(!inheritFeatures) {
             buf.append(" inherit-features=false");

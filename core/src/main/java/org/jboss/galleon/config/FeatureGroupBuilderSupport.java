@@ -70,11 +70,9 @@ public abstract class FeatureGroupBuilderSupport<B extends FeatureGroupBuilderSu
         return (B) this;
     }
 
-    public B setProperty(String name, String value) {
-        throw new UnsupportedOperationException();
+    public String getName() {
+        return name;
     }
-
-    public abstract B setConfigDep(String depName, ConfigId configId);
 
     @SuppressWarnings("unchecked")
     public B setInheritFeatures(boolean inheritFeatures) {

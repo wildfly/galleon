@@ -16,9 +16,11 @@
  */
 package org.jboss.galleon.state;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.plugin.ProvisionedConfigHandler;
 
 /**
@@ -36,6 +38,10 @@ public interface ProvisionedConfig {
     String getProperty(String name);
 
     Map<String, String> getProperties();
+
+    boolean hasLayers();
+
+    Collection<ConfigId> getLayers();
 
     boolean hasFeatures();
 

@@ -200,49 +200,8 @@ public class FeaturePackXmlParserTestCase  {
 
     @Test
     public void readUnnamedConfigs() throws Exception {
-        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-unnamed-config.xml", null, null);
-        FeaturePackSpec expected = FeaturePackSpec.builder()
-                .setFPID(LegacyGalleon1Universe.newFPID("org.jboss.fp.group1:fp1", "1", "1.0.0"))
-                .addConfig(ConfigModel.builder()
-                        .setProperty("prop1", "value1")
-                        .setProperty("prop1", "value1")
-                        .setProperty("prop2", "value2")
-                        .addFeatureGroup(FeatureGroup.builder("dep1").build())
-                        .addFeatureGroup(FeatureGroup.builder("dep2").setInheritFeatures(false).build())
-                        .addFeatureGroup(FeatureGroup.builder("dep3")
-                                .setInheritFeatures(false)
-                                .includeSpec("spec1")
-                                .includeFeature(FeatureId.fromString("spec2:p1=v1,p2=v2"))
-                                .includeFeature(FeatureId.fromString("spec3:p1=v1"), new FeatureConfig("spec3")
-                                .addFeatureDep(FeatureId.fromString("spec4:p1=v1,p2=v2"))
-                                .addFeatureDep(FeatureId.fromString("spec5:p1=v1,p2=v2"))
-                                .setParam("p1", "v1")
-                                .setParam("p2", "v2"))
-                                .excludeSpec("spec6")
-                                .excludeSpec("spec7")
-                                .excludeFeature(FeatureId.fromString("spec8:p1=v1"))
-                                .excludeFeature(FeatureId.fromString("spec8:p1=v2"))
-                                .build())
-                        .addFeatureGroup(FeatureGroup.builder("dep4").setOrigin("source4").build())
-                        .addFeature(new FeatureConfig("spec1")
-                                .addFeatureDep(FeatureId.fromString("spec2:p1=v1,p2=v2"))
-                                .addFeatureDep(FeatureId.fromString("spec3:p3=v3"))
-                                .setParam("p1", "v1")
-                                .setParam("p2", "v2"))
-                        .addFeature(new FeatureConfig("spec4")
-                                .setParam("p1", "v1")
-                                .addFeature(new FeatureConfig("spec5")
-                                        .addFeature(new FeatureConfig("spec6")
-                                                .setParentRef("spec5-ref")
-                                                .setParam("p1", "v1"))))
-                        .addPackageDep("p1")
-                        .addPackageDep("p2", true)
-                        .addPackageDep("fp1", "p2")
-                        .addPackageDep("fp1", "p3", true)
-                        .build())
-                .addDefaultPackage("package1")
-                .addDefaultPackage("package2")
-                .build();
-        Assert.assertEquals(expected, found);
+        validator.validateAndParse("xml/feature-pack/feature-pack-unnamed-config.xml",
+                null,
+                "Failed to parse config element");
     }
 }

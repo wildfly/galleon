@@ -51,11 +51,11 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "spec"))
                     .build())
-            .addSpec(FeatureSpec.builder("specC")
+            .addFeatureSpec(FeatureSpec.builder("specC")
                     .addFeatureRef(FeatureReferenceSpec.builder("specA").mapParam("a", "id").build())
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("a", true, false, "def"))
@@ -70,6 +70,7 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
                             .setParam("id", "c2"))
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("id", "a1")
@@ -91,7 +92,7 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
 
     @Override
     protected void pmFailure(Throwable e) throws ProvisioningDescriptionException {
-        Assert.assertEquals("Failed to resolve config", e.getMessage());
+        Assert.assertEquals("Failed to resolve config named main", e.getMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV,

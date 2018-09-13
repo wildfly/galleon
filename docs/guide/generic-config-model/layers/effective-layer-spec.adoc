@@ -1,0 +1,125 @@
+#### Effective layer spec
+
+In the simplest case, when only one feature-pack among all of the feature-packs that make up the installation defines a layer with a specific identity in the corresponding `layer-spec.xml`, whatever is defined in that `layer-spec.xml` is the effective layer spec in the installation.
+
+However, in case an installation includes multiple feature-packs that happen to define a layer with the same identity (model and layer name combination) then the effective layer spec with that identity will be the result of merging all the layer specs from all the  feature-packs that make up the installation into one. Merging happens in the order the feature-packs are installed and follow the same principle used for merging configuration models.
+
+For example, let's supposed we have three feature-packs: `fpA`, `fpB` and `fpC` and `fpB` depends on `fpA`. Every one of those feature-packs defines `layer1`.
+
+.fpA layer1
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p1" value="fpA"/>
+        <param name="p2" value="fpA"/>
+        <param name="p3" value="fpA"/>
+    </feature>
+    <packages>
+        <package name="package-fpA"/>
+    </packages>
+</layer-spec>
+----
+
+.fpB layer1
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p2" value="fpB"/>
+        <param name="p3" value="fpB"/>
+    </feature>
+    <packages>
+        <package name="package-fpB"/>
+    </packages>
+</layer-spec>
+----
+
+.fpC layer1
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p3" value="fpC"/>
+    </feature>
+    <packages>
+        <package name="package-fpC"/>
+    </packages>
+</layer-spec>
+----
+
+Now if we provision an installation using the feature-packs above as
+
+.Provisioning configuration
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="fpB@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/> <!--1-->
+    <feature-pack location="fpC@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+</installation>
+----
+<1> `fpB` installs `fpA` as its transitive dependency
+
+The effective layer spec of `layerA` will be resolved as
+
+.Effective `layer1` spec
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p1" value="fpA"/>
+        <param name="p2" value="fpB"/>
+        <param name="p3" value="fpC"/>
+    </feature>
+    <packages>
+        <package name="package-fpA"/>
+        <package name="package-fpB"/>
+        <package name="package-fpC"/>
+    </packages>
+</layer-spec>
+----
+
+NOTE: There won't actually be an XML file generated for the effective layer spec. The XML above is used only for illustration of the effective layer content and its dependencies.
+
+As in case of configuration model merging, feature-packs that appear higher in the feature-pack dependency hierarchy are allowed to use `include` and/or `exclude` elements in their layer specs to include and/or exclude features from the corresponding layers inherited from their feature-pack dependencies. In our example above, `include` and/or `exclude` elements could be used in `layer1` of `fpB` to manipulate the content of `layer1` inherited from `fpA`. E.g.
+
+.fpB layer1
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <exclude spec="specA"/>
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p2" value="fpB"/>
+        <param name="p3" value="fpB"/>
+    </feature>
+    <packages>
+        <package name="package-fpB"/>
+    </packages>
+</layer-spec>
+----
+
+With the rest of the configs unchanged the effective `layer1` spec will become
+
+.Effective `layer1` spec
+[source,xml]
+----
+<layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="layerA">
+    <feature spec="specA">
+        <param name="id" value="1"/>
+        <param name="p2" value="fpB"/>
+        <param name="p3" value="fpC"/>
+    </feature>
+    <packages>
+        <package name="package-fpA"/>
+        <package name="package-fpB"/>
+        <package name="package-fpC"/>
+    </packages>
+</layer-spec>
+----
+
+In case of `fpC` which doesn't declare any dependency on neither `fpA` nor `fpB`, using `include` and/or `exclude` in its `layer1` spec won't make any sense because other `layer1` specs are not 'visible' from `fpC`.

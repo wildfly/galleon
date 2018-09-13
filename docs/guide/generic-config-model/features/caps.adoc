@@ -73,7 +73,7 @@ Let's see how it will look like in an actual configuration
 ----
  <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
                 location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0">
-   <config>
+   <config name="main">
      <feature spec="interface">
        <param name="name" value="public"/>
      </feature>

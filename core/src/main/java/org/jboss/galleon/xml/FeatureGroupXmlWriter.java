@@ -105,14 +105,6 @@ public class FeatureGroupXmlWriter extends BaseXmlWriter<FeatureGroup> {
         if(!dep.isInheritFeatures()) {
             addAttribute(depE, Attribute.INHERIT_FEATURES, FALSE);
         }
-        if(dep.hasProperties()) {
-            final ElementNode propsE = addElement(depE, Element.PROPS.getLocalName(), ns);
-            for(Map.Entry<String, String> prop : dep.getProperties().entrySet()) {
-                final ElementNode propE = addElement(propsE, Element.PROP.getLocalName(), ns);
-                addAttribute(propE, Attribute.NAME, prop.getKey());
-                addAttribute(propE, Attribute.VALUE, prop.getValue());
-            }
-        }
         addFeatureGroupIncludeExclude(dep, ns, depE);
         writeFeatureGroupSpecBody(depE, dep, ns);
         if(dep.hasExternalFeatureGroups()) {

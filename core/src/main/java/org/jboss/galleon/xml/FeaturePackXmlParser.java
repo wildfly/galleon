@@ -20,7 +20,6 @@ import java.io.Reader;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.spec.FeaturePackSpec;
 
@@ -45,13 +44,9 @@ public class FeaturePackXmlParser implements XmlParser<FeaturePackSpec>{
     }
 
     @Override
-    public FeaturePackSpec parse(Reader input) throws XMLStreamException {
+    public FeaturePackSpec parse(Reader input) throws XMLStreamException, ProvisioningDescriptionException {
         final FeaturePackSpec.Builder fpBuilder = FeaturePackSpec.builder();
         parse(input, fpBuilder);
-        try {
-            return fpBuilder.build();
-        } catch (ProvisioningDescriptionException e) {
-            throw new XMLStreamException(Errors.parseXml(), e);
-        }
+        return fpBuilder.build();
     }
 }

@@ -43,7 +43,7 @@ public class FeatureGroupDependsOnExcludedRequiredPackageTestCase extends PmInst
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .build())
@@ -59,6 +59,7 @@ public class FeatureGroupDependsOnExcludedRequiredPackageTestCase extends PmInst
                     .addPackageDep("fg2.pkg1")
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
                     .build())
             .newPackage("fg1.pkg1")
@@ -83,7 +84,7 @@ public class FeatureGroupDependsOnExcludedRequiredPackageTestCase extends PmInst
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getLocalizedMessage());
         Throwable t = e.getCause();
         Assert.assertNotNull(t);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV, "fg2"), t.getLocalizedMessage());

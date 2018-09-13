@@ -41,16 +41,17 @@ public class ParamMissingCollectionTypeTestCase extends PmInstallFeaturePackTest
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .providesCapability("cap.$a")
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .requiresCapability("cap.$col")
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("col").setDefaultValue("[1,2 , 3 ]").build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "3"))
@@ -76,7 +77,7 @@ public class ParamMissingCollectionTypeTestCase extends PmInstallFeaturePackTest
     @Override
     protected String[] pmErrors() {
         return new String[] {
-                Errors.failedToBuildConfigSpec(null, null),
+                Errors.failedToBuildConfigSpec(null, "main"),
                 "No provider found for capability cap.[1,2 , 3 ] required by {org.jboss.pm.test:fp1@galleon1}specB:b=b1 as cap.$col"
         };
     }

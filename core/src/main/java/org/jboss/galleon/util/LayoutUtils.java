@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
@@ -69,5 +70,37 @@ public class LayoutUtils {
 
     public static Path getPackageContentDir(Path fpDir, String packageName) {
         return fpDir.resolve(Constants.PACKAGES).resolve(packageName).resolve(Constants.CONTENT);
+    }
+
+    public static Path getLayerSpecXml(Path fpDir, String model, String name, boolean existing) throws ProvisioningDescriptionException {
+        Path p = fpDir.resolve(Constants.LAYERS);
+        if(model != null) {
+            p = p.resolve(model);
+        }
+        p = p.resolve(name).resolve(Constants.LAYER_SPEC_XML);
+        if(existing && !Files.exists(p)) {
+            throw new ProvisioningDescriptionException("Failed to locate XML file describing configuration layer " + name + " at " + p);
+        }
+        return p;
+    }
+
+    public static Path getConfigXml(Path fpDir, ConfigId configId, boolean existing) throws ProvisioningDescriptionException {
+        final String model = configId.getModel();
+        final String name = configId.getName();
+        final Path p;
+        if(name == null) {
+            if(model == null) {
+                throw new ProvisioningDescriptionException("Anonymous configs are included in feature-pack.xml");
+            }
+            p = fpDir.resolve(Constants.CONFIGS).resolve(model).resolve(Constants.MODEL_XML);
+        } else if(model == null) {
+            p = fpDir.resolve(Constants.CONFIGS).resolve(name).resolve(Constants.CONFIG_XML);
+        } else {
+            p = fpDir.resolve(Constants.CONFIGS).resolve(model).resolve(name).resolve(Constants.CONFIG_XML);
+        }
+        if(existing && !Files.exists(p)) {
+            throw new ProvisioningDescriptionException("Failed to locate XML file describing configuration " + configId + " at " + p);
+        }
+        return p;
     }
 }

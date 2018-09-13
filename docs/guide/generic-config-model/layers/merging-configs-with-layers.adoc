@@ -1,0 +1,41 @@
+#### Merging configurations with layers
+
+Layers are merged into configuration at the point where they are included into it with `include` element. It is important to keep that in mind.
+
+Let's consider the following example. Suppose `prod1` feature-pack defines this configuration:
+
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+    <layers>
+        <include name="layer1"/>
+        <include name="layer2"/>
+    </layers>
+    <!-- the rest of the configuration -->
+</config>
+----
+
+`prod2` feature-pack depends on `prod1` and defines this configuration:
+
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+    <layers>
+        <include name="layer2"/>
+        <include name="layer3"/>
+    </layers>
+    <!-- the rest of the configuration -->
+</config>
+----
+
+When `prod2` is installed, `layer2` will be included into `model1:name1` twice. Which may or may not create a confusion. First of all, in the given example, all the features added to `model1:name` in `prod1` are inherited by `model1:name1` in `prod2`, meaning `model1:name1` in `prod2` does not start empty. `layer1` and `layer2` have already been added to `model1:name1` in `prod1`. Including `layer2` into `model1:name1` in `prod2` does not make sense any more unless `model1:name1` in `prod1` has excluded and/or modified some feature configurations inherited from `layer2` and in `prod2` we want the original version of `layer2` configuration.
+
+Whether including the same layer more than once into the same configuration creates a problem or not depends on the case. It's important to keep in mind that every include means another merge of the layer.
+
+IMPORTANT: If the content of the layer has not been adjusted in the configuration, the subsequent merge of the same layer will not result in any visible difference *unless the layer includes features that have no identity*. If a layer includes features that have no identity, there will be as many copies of those features in the configuration as the number of times the layer has been included into the configuration.
+
+While the example above can easily be adjusted in case the inclusion of `layer2` actually is redundant by simply removing it from the list of layers in `prod2`, there could be situations where it's more difficult to avoid multiple inclusions of the same layer. For example building up the example above, let's assume that every one of `layer1`, `layer2` and `layer3` depends on layer called `base`.
+
+In that case, `base` will be included once into `model1:name1` in `prod1` (despite the fact that both `layer1` and `layer2` depend on `base`, the provisioning mechanism will recognize that `base` is a common dependency of those layers and include it only once into `model1:name1` in `prod1`). But later, processing `model1:name` in `prod2`, it will include `base` again as a dependency of `layer3`.
+
+CAUTION: THIS CAN CHANGE. The mechanism can recognize that `base` has already been included and avoid including it again. The only possible issue is that if `layer3` really expects the original `base` configuration and the already included `base` has been somehow modified in between.

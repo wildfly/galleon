@@ -43,11 +43,11 @@ public class MappedRefToInvalidTargetTestCase extends PmInstallFeaturePackTestBa
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.createId("a"))
                     .build())
-            .addSpec(FeatureSpec.builder("specB")
+            .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.createId("b"))
                     .addParam(FeatureParameterSpec.builder("afk").setType("List<String>").build())
@@ -57,6 +57,7 @@ public class MappedRefToInvalidTargetTestCase extends PmInstallFeaturePackTestBa
                             .build())
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("id", "1")
@@ -83,7 +84,7 @@ public class MappedRefToInvalidTargetTestCase extends PmInstallFeaturePackTestBa
 
     @Override
     protected void pmFailure(Throwable t) {
-        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, null), t.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, "main"), t.getLocalizedMessage());
     }
 
     @Override

@@ -42,12 +42,13 @@ public class FeatureDependsOnRequiredExcludedPackageTestCase extends PmInstallFe
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
         .newFeaturePack(FP_GAV)
-            .addSpec(FeatureSpec.builder("specA")
+            .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addPackageDep("specA.pkg")
                     .build())
             .addConfig(ConfigModel.builder()
+                    .setName("main")
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("name", "a"))
@@ -72,7 +73,7 @@ public class FeatureDependsOnRequiredExcludedPackageTestCase extends PmInstallFe
 
     @Override
     protected void pmFailure(Throwable e) throws ProvisioningDescriptionException {
-        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, null), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getLocalizedMessage());
         Throwable t = e.getCause();
         Assert.assertNotNull(t);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV, new FeatureConfig("specA").setParam("name", "a")), t.getLocalizedMessage());

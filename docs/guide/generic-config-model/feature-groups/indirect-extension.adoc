@@ -39,7 +39,7 @@ The group definition will now include only parent feature
 And now we will include the child feature as a configuration customization of the parent feature.
 [source,xml]
 ----
-<config>
+<config name="main">
   <feature-group name="group1">
     <include feature-id="featureP:parent=p1">
       <feature spec="featureC">

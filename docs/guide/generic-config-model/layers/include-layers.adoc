@@ -1,0 +1,34 @@
+#### Including layers into configuration models
+
+Layers are included into configuration defined using `config` element under element `layers`, e.g.
+
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+    <layers>
+        <include name="layer1"/>
+        <include name="layer2"/>
+    </layers>
+    <!-- the rest of the configuration -->
+</config>
+----
+
+Let's suppose the configuration above belongs to a feature-pack `prod1`. And `prod1` also predefined another layer - `layer3`, which is not included into the default configuration `model1:name1`. Here is how `layer3` can be added to the final configuration by a user:
+
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+    <config xmlns="urn:jboss:galleon:config:1.0" model="model1" name="name1">
+        <layers>
+            <include name="layer3"/>
+        </layers>
+        <!-- the rest of the configuration -->
+    </config>
+</installation>
+----
+
+The resulting `model1:name1` configuration now will include `layer1`, `layer2` and `layer3` and they will be included into the configuration in exactly that order.
+
+IMPORTANT: The statement above is valid only if the mentioned layers don't depend on each other and/or other layers.
+

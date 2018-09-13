@@ -18,7 +18,7 @@ package org.jboss.galleon.xml.test;
 
 import java.nio.file.Paths;
 
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroup;
@@ -37,20 +37,21 @@ import org.junit.Test;
 public class ProvisioningWithConfigTestCase {
 
     private static final XmlParserValidator<ProvisioningConfig> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioning-2_0.xsd"), ProvisioningXmlParser.getInstance());
 
     @Test
     public void testMain() throws Exception {
         ProvisioningConfig found = validator
                 .validateAndParse("xml/provisioning/provisioning-config.xml", null, null);
         ProvisioningConfig expected = ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
+                .addFeaturePackDep(FeaturePackConfig.builder(FeaturePackLocation.fromString("fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"))
                         .setInheritConfigs(false)
                         .includeConfigModel("model1")
                         .excludeConfigModel("model2")
                         .excludeDefaultConfig("model1", "name1")
                         .includeDefaultConfig("model2", "name2")
                         .addConfig(ConfigModel.builder()
+                                .setName("main")
                                 .addFeatureGroup(FeatureGroup.builder("dep1").setInheritFeatures(true).build())
                                 .addFeatureGroup(FeatureGroup.builder("dep2").setInheritFeatures(false).build())
                                 .addFeatureGroup(FeatureGroup.builder("dep3")

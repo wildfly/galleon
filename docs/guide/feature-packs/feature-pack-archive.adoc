@@ -4,8 +4,10 @@ Feature-packs are distributed as ZIP archives with the following root entries:
 
 [options="nowrap"]
  feature-pack.zip
+ |- configs/
  |- feature_groups/
  |- features/
+ |- layers/
  |- packages/
  |- plugins/
  |- resources/
@@ -13,9 +15,13 @@ Feature-packs are distributed as ZIP archives with the following root entries:
 
 Where
 
+* *configs* - optional directory containing predefined installation configurations;
+
 * *feature_groups* - optional directory containing feature group descriptions;
 
 * *features* - optional directory containing feature specs (units of configuration);
+
+* *layers* - optional directory containing predefined configuration layers that can be used to create custom installation configurations;
 
 * *packages* - optional directory containing packages (units of filesystem content);
 

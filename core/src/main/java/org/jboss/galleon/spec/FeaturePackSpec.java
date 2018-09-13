@@ -172,7 +172,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         }
         if(!definedConfigs.isEmpty()) {
             buf.append("; defaultConfigs: ");
-            StringUtils.append(buf, definedConfigs);
+            StringUtils.append(buf, definedConfigs.values());
         }
         if(!defPackages.isEmpty()) {
             buf.append("; defaultPackages: ");

@@ -46,7 +46,7 @@ public class ReferenceIncludeIncludedExternalTestCase extends PmInstallFeaturePa
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
             .newFeaturePack(FP1_GAV)
-                .addSpec(FeatureSpec.builder("specA")
+                .addFeatureSpec(FeatureSpec.builder("specA")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", "aSpec"))
                     .addParam(FeatureParameterSpec.create("p", true))
@@ -54,7 +54,7 @@ public class ReferenceIncludeIncludedExternalTestCase extends PmInstallFeaturePa
             .getCreator()
             .newFeaturePack(FP2_GAV)
                 .addDependency("fp1", FP1_GAV.getLocation())
-                .addSpec(FeatureSpec.builder("specB")
+                .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("name"))
                     .addParam(FeatureParameterSpec.create("a", true))
                     .addFeatureRef(FeatureReferenceSpec.builder("specA")
@@ -65,6 +65,7 @@ public class ReferenceIncludeIncludedExternalTestCase extends PmInstallFeaturePa
                             .build())
                     .build())
                 .addConfig(ConfigModel.builder()
+                        .setName("main")
                         .addFeature(
                                 new FeatureConfig("specA")
                                 .setOrigin("fp1")
@@ -91,6 +92,7 @@ public class ReferenceIncludeIncludedExternalTestCase extends PmInstallFeaturePa
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP1_GAV))
                 .addFeaturePack(ProvisionedFeaturePack.forFPID(FP2_GAV))
                 .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("main")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(FP1_GAV.getProducer(), "specA", "name", "a"))
                                 .setConfigParam("a", "aConfig")
                                 .setConfigParam("p", "pConfig").build())

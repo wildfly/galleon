@@ -33,12 +33,14 @@ import java.util.Set;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.creator.tasks.FsTaskContext;
 import org.jboss.galleon.creator.tasks.FsTaskList;
 import org.jboss.galleon.plugin.InstallPlugin;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageSpec;
@@ -47,6 +49,8 @@ import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.xml.ConfigLayerXmlWriter;
+import org.jboss.galleon.xml.ConfigXmlWriter;
 import org.jboss.galleon.xml.FeatureGroupXmlWriter;
 import org.jboss.galleon.xml.FeaturePackXmlWriter;
 import org.jboss.galleon.xml.FeatureSpecXmlWriter;
@@ -66,6 +70,8 @@ public class FeaturePackBuilder {
     private List<Path> plugins = Collections.emptyList();
     private Map<String, FeatureSpec> specs = Collections.emptyMap();
     private Map<String, FeatureGroup> featureGroups = Collections.emptyMap();
+    private Map<ConfigId, ConfigModel> configs = Collections.emptyMap();
+    private Map<ConfigId, ConfigLayerSpec> layers = Collections.emptyMap();
     private FsTaskList tasks;
 
     FeaturePackBuilder(FeaturePackCreator creator) {
@@ -140,38 +146,68 @@ public class FeaturePackBuilder {
         return pkg;
     }
 
+    /**
+     * @deprecated in favor of addFeatureSpec(FeatureSpec spec)
+     * @param spec  feature spec
+     * @return  this builder
+     * @throws ProvisioningDescriptionException  in case of duplicate feature spec
+     */
     public FeaturePackBuilder addSpec(FeatureSpec spec) throws ProvisioningDescriptionException {
-        if(specs.isEmpty()) {
-            specs = Collections.singletonMap(spec.getName(), spec);
-        } else {
-            if(specs.containsKey(spec.getName())) {
-                throw new ProvisioningDescriptionException("Duplicate spec name " + spec.getName() + " for " + fpBuilder.getFPID());
-            }
-            if(specs.size() == 1) {
-                specs = new HashMap<>(specs);
-            }
-            specs.put(spec.getName(), spec);
+        return addFeatureSpec(spec);
+    }
+
+    public FeaturePackBuilder addFeatureSpec(FeatureSpec spec) throws ProvisioningDescriptionException {
+        if (specs.isEmpty()) {
+            specs = new HashMap<>();
+        }
+        if (specs.put(spec.getName(), spec) != null) {
+            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": duplicate spec name " + spec.getName());
         }
         return this;
     }
 
     public FeaturePackBuilder addFeatureGroup(FeatureGroup featureGroup) throws ProvisioningDescriptionException {
-        if(featureGroups.isEmpty()) {
-            featureGroups = Collections.singletonMap(featureGroup.getName(), featureGroup);
-        } else {
-            if(featureGroups.containsKey(featureGroup.getName())) {
-                throw new ProvisioningDescriptionException("Duplicate feature-group name " + featureGroup.getName() + " for " + fpBuilder.getFPID());
-            }
-            if(featureGroups.size() == 1) {
-                featureGroups = new HashMap<>(featureGroups);
-            }
-            featureGroups.put(featureGroup.getName(), featureGroup);
+        if (featureGroups.isEmpty()) {
+            featureGroups = new HashMap<>();
+        }
+        if (featureGroups.put(featureGroup.getName(), featureGroup) != null) {
+            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": duplicate feature-group name " + featureGroup.getName());
         }
         return this;
     }
 
     public FeaturePackBuilder addConfig(ConfigModel config) throws ProvisioningDescriptionException {
-        fpBuilder.addConfig(config);
+        return addConfig(config, true);
+    }
+
+    public FeaturePackBuilder addConfig(ConfigModel config, boolean asDefault) throws ProvisioningDescriptionException {
+        final ConfigId id = config.getId();
+        if(id.isAnonymous()) {
+            if(!asDefault) {
+                throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": anonymous config must always be added as the default one");
+            }
+            fpBuilder.addConfig(config);
+            return this;
+        }
+        if (configs.isEmpty()) {
+            configs = new HashMap<>();
+        }
+        if (configs.put(id, config) != null) {
+            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": duplicate config " + id);
+        }
+        if(asDefault) {
+            fpBuilder.addConfig(ConfigModel.builder(id.getModel(), id.getName()).build());
+        }
+        return this;
+    }
+
+    public FeaturePackBuilder addConfigLayer(ConfigLayerSpec layer) throws ProvisioningDescriptionException {
+        if(layers.isEmpty()) {
+            layers = new HashMap<>();
+        }
+        if(layers.put(layer.getId(), layer) != null) {
+            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": duplicate layer " + layer.getId());
+        }
         return this;
     }
 
@@ -280,6 +316,28 @@ public class FeaturePackBuilder {
             if(!classes.isEmpty() || !plugins.isEmpty()) {
                 addPlugins(fpWorkDir);
             }
+
+            if(!layers.isEmpty()) {
+                for(Map.Entry<ConfigId, ConfigLayerSpec> entry : layers.entrySet()) {
+                    final ConfigId id = entry.getKey();
+                    final Path xml = LayoutUtils.getLayerSpecXml(fpWorkDir, id.getModel(), id.getName(), false);
+                    if (Files.exists(xml)) {
+                        throw new ProvisioningException("Failed to create feature-pack: " + xml + " already exists");
+                    }
+                    ConfigLayerXmlWriter.getInstance().write(entry.getValue(), xml);
+                }
+            }
+
+            if(!configs.isEmpty()) {
+                for(ConfigModel config : configs.values()) {
+                    final Path modelXml = LayoutUtils.getConfigXml(fpWorkDir, config.getId(), false);
+                    if (Files.exists(modelXml)) {
+                        throw new ProvisioningException("Failed to create feature-pack: " + modelXml + " already exists");
+                    }
+                    ConfigXmlWriter.getInstance().write(config, modelXml);
+                }
+            }
+
             fpSpec = fpBuilder.build();
             final FeaturePackXmlWriter writer = FeaturePackXmlWriter.getInstance();
             writer.write(fpSpec, fpWorkDir.resolve(Constants.FEATURE_PACK_XML));

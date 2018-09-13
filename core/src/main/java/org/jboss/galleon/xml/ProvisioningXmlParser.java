@@ -56,13 +56,9 @@ public class ProvisioningXmlParser implements XmlParser<ProvisioningConfig> {
     }
 
     @Override
-    public ProvisioningConfig parse(final Reader input) throws XMLStreamException {
+    public ProvisioningConfig parse(final Reader input) throws XMLStreamException, ProvisioningDescriptionException {
         final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
         XmlParsers.parse(input, builder);
-        try {
-            return builder.build();
-        } catch (ProvisioningDescriptionException e) {
-            throw new XMLStreamException("Failed to build provisioning configuration", e);
-        }
+        return builder.build();
     }
 }
