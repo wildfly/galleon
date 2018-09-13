@@ -212,7 +212,7 @@ public class InstallCommand extends AbstractPluginsCommand {
     }
 
     @Override
-    protected Path getInstallationHome(AeshContext context) {
+    public Path getInstallationDirectory(AeshContext context) {
         String targetDirArg = (String) getValue(DIR_OPTION_NAME);
         Path workDir = PmSession.getWorkDir(context);
         return targetDirArg == null ? workDir : Util.resolvePath(context, targetDirArg);

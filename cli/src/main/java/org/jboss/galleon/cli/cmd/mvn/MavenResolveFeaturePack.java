@@ -47,7 +47,7 @@ public class MavenResolveFeaturePack extends PmSessionCommand {
                 session.getPmSession().enableMavenTrace(true);
             }
             try {
-                session.getPmSession().downloadFp(session.getPmSession().getResolvedLocation(fpl).getFPID());
+                session.getPmSession().downloadFp(session.getPmSession().getResolvedLocation(null, fpl).getFPID());
                 session.println("artifact installed in local mvn repository " + session.getPmSession().
                         getPmConfiguration().getMavenConfig().getLocalRepository());
             } finally {

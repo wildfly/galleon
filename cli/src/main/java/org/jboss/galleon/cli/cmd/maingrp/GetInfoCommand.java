@@ -57,7 +57,8 @@ public class GetInfoCommand extends AbstractProvisioningCommand {
                     }
                 }
             };
-            StateInfoUtil.displayInfo(invoc, config, type, supplier);
+            StateInfoUtil.displayInfo(invoc, getInstallationDirectory(invoc.
+                    getConfiguration().getAeshContext()), config, type, supplier);
         } catch (ProvisioningException | CommandExecutionException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
         }

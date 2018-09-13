@@ -86,7 +86,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
             throw new CommandExecutionException("No feature-pack provided");
         }
         try {
-            return session.getResolvedLocation(fpid).getFPID();
+            return session.getResolvedLocation(getInstallationDirectory(session.getAeshContext()), fpid).getFPID();
         } catch (Exception e) {
             throw new CommandExecutionException(session, CliErrors.resolveLocationFailed(), e);
         }
@@ -120,12 +120,17 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
             // Silent resolution.
             pmSession.unregisterTrackers();
             try {
-                try (ProvisioningLayout<FeaturePackLayout> layout = pmSession.getLayoutFactory().newConfigLayout(config)) {
-                    layout.uninstall(pmSession.getResolvedLocation(fpid).getFPID());
-                    Set<PluginOption> opts = PluginResolver.newResolver(pmSession, layout).resolve().getInstall();
+                try (ProvisioningLayout<FeaturePackLayout> layout = pmSession.
+                        getLayoutFactory().newConfigLayout(config)) {
+                    layout.uninstall(pmSession.
+                            getResolvedLocation(getInstallationDirectory(pmSession.
+                                    getAeshContext()), fpid).getFPID());
+                    Set<PluginOption> opts = PluginResolver.newResolver(pmSession,
+                            layout).resolve().getInstall();
                     List<DynamicOption> options = new ArrayList<>();
                     for (PluginOption opt : opts) {
-                        DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
+                        DynamicOption dynOption = new DynamicOption(opt.getName(),
+                                opt.isRequired(), opt.isAcceptsValue());
                         options.add(dynOption);
                     }
                     return options;

@@ -43,7 +43,9 @@ public class AddUniverseCommand extends StateAddUniverseCommand {
     @Override
     protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {
         try {
-            commandInvocation.getPmSession().getUniverse().addUniverse(targetDirArg, name, factory, location);
+            commandInvocation.getPmSession().getUniverse().
+                    addUniverse(targetDirArg == null ? null : targetDirArg.toPath(),
+                            name, factory, location);
         } catch (IOException | ProvisioningException ex) {
             throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.addUniverseFailed(), ex);
         }

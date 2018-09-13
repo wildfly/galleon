@@ -35,7 +35,7 @@ public class UpdatesTracker extends CliProgressTracker<ProducerSpec> {
 
     @Override
     protected String processingContent(ProgressTracker<ProducerSpec> tracker) {
-        return session.getExposedLocation(tracker.getItem().getLocation()).toString();
+        return session.getExposedLocation(null, tracker.getItem().getLocation()).toString();
     }
 
     @Override

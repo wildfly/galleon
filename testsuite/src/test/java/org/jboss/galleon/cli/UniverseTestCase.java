@@ -75,13 +75,20 @@ public class UniverseTestCase {
 
         FeaturePackLocation toInstall2 = CliTestUtils.buildFPL(UniverseSpec.
                 fromString(UNIVERSE_CUSTOM_NAME), PRODUCER2, "1", null, null);
-        // Due to GAL-151, we must cd into the installation
-        cli.execute("filesystem cd " + dir);
+
         cli.execute("install " + toInstall2 + " --dir=" + dir);
 
         cli.execute("get-info --dir=" + dir);
         assertTrue(cli.getOutput(), cli.getOutput().contains(UNIVERSE_CUSTOM_NAME + "@1"));
 
+        FeaturePackLocation toUnInstall = CliTestUtils.buildFPL(UniverseSpec.
+                fromString(UNIVERSE_CUSTOM_NAME), PRODUCER2, "1", null, "1.0.0.Final");
+
+        cli.execute("uninstall " + toUnInstall + " --dir=" + dir);
+
+        cli.execute("undo --dir=" + dir);
+
+        cli.execute("filesystem cd " + dir);
         cli.execute("list-feature-packs");
         assertTrue(cli.getOutput(), cli.getOutput().contains(UNIVERSE_CUSTOM_NAME + "@1"));
 
@@ -102,6 +109,10 @@ public class UniverseTestCase {
         cli.execute("find " + PRODUCER2);
         assertFalse(cli.getOutput(), cli.getOutput().contains(CliTestUtils.buildFPL(UniverseSpec.
                 fromString(UNIVERSE_CUSTOM_NAME), PRODUCER2, "1", null, "1.0.0.Final").toString()));
+
+        // Only spec is now usable to reference universe.
+        FeaturePackLocation toUnInstall2 = CliTestUtils.buildFPL(universeSpec2, PRODUCER2, "1", null, "1.0.0.Final");
+        cli.execute("uninstall " + toUnInstall2 + " --dir=" + dir);
     }
 
 }

@@ -42,7 +42,8 @@ public class RemoveUniverseCommand extends StateRemoveUniverseCommand {
     @Override
     protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {
         try {
-            commandInvocation.getPmSession().getUniverse().removeUniverse(targetDirArg, name);
+            commandInvocation.getPmSession().getUniverse().
+                    removeUniverse(targetDirArg == null ? null : targetDirArg.toPath(), name);
         } catch (IOException | ProvisioningException ex) {
             throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.removeUniverseFailed(), ex);
         }

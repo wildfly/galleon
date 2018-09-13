@@ -98,7 +98,9 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
             String[] split = fp.split(",+");
             ProducerSpec[] resolved = new ProducerSpec[split.length];
             for (int i = 0; i < split.length; i++) {
-                resolved[i] = session.getPmSession().getResolvedLocation(split[i]).getProducer();
+                resolved[i] = session.getPmSession().
+                        getResolvedLocation(mgr.getInstallationHome(),
+                                split[i]).getProducer();
             }
             plan = mgr.getUpdates(resolved);
         }

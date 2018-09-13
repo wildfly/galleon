@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,8 @@ import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
  */
 public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocation> {
 
+    private Path installation;
+
     @Override
     public void complete(PmCompleterInvocation completerInvocation) {
         try {
@@ -54,8 +57,11 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
         // Legacy completer first
         PmSession pmSession = completerInvocation.getPmSession();
         UniverseManager resolver = pmSession.getUniverse();
-        UniverseSpec defaultUniverse = pmSession.getUniverse().getDefaultUniverseSpec();
-        Set<String> aliases = pmSession.getUniverse().getUniverseNames();
+        installation = completerInvocation.getCommand() instanceof CommandWithInstallationDirectory
+                ? ((CommandWithInstallationDirectory) completerInvocation.getCommand()).
+                getInstallationDirectory(completerInvocation.getAeshContext()) : null;
+        UniverseSpec defaultUniverse = pmSession.getUniverse().getDefaultUniverseSpec(installation);
+        Set<String> aliases = pmSession.getUniverse().getUniverseNames(installation);
         //producer[@universe]:channel/frequency#build
         //producer[@factory-id/location]:channel/frequency#build
         String buffer = completerInvocation.getGivenCompleteValue();
@@ -68,7 +74,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                     getAllProducers(null, defaultUniverse, resolver.getUniverse(defaultUniverse), candidates);
                 }
                 for (String name : aliases) {
-                    UniverseSpec u = pmSession.getUniverse().getUniverseSpec(name);
+                    UniverseSpec u = pmSession.getUniverse().getUniverseSpec(installation, name);
                     if (u.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
                         continue;
                     }
@@ -86,7 +92,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
 
                         }
                         for (String name : aliases) {
-                            UniverseSpec u = pmSession.getUniverse().getUniverseSpec(name);
+                            UniverseSpec u = pmSession.getUniverse().getUniverseSpec(installation, name);
                             if (!u.equals(defaultUniverse)) {
                                 getProducers(producer, name, resolver.getUniverse(u), candidates);
 
@@ -97,7 +103,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                     @Override
                     public void completeUniverse(FPLocationParser.ParsedFPLocation parsedLocation, String universe) throws FPLocationParserException, ProvisioningException {
                         for (String name : aliases) {
-                            UniverseSpec spec = pmSession.getUniverse().getUniverseSpec(name);
+                            UniverseSpec spec = pmSession.getUniverse().getUniverseSpec(installation, name);
                             if (spec != null && resolver.getUniverse(spec).hasProducer(parsedLocation.getProducer())) {
                                 if (name.equals(universe)) {
                                     candidates.add(name + FeaturePackLocation.CHANNEL_START);
@@ -111,7 +117,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                     @Override
                     public void completeUniverseLocation(FPLocationParser.ParsedFPLocation parsedLocation, String universeLocation) throws FPLocationParserException, ProvisioningException {
                         for (String name : aliases) {
-                            UniverseSpec spec = pmSession.getUniverse().getUniverseSpec(name);
+                            UniverseSpec spec = pmSession.getUniverse().getUniverseSpec(installation, name);
                             if (spec == null || spec.getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
                                 continue;
                             }
@@ -172,9 +178,9 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                     public void completeBuild(FPLocationParser.ParsedFPLocation parsedLocation, String build) throws FPLocationParserException, ProvisioningException {
                         UniverseSpec spec = null;
                         if (parsedLocation.getUniverseName() != null) {
-                            spec = pmSession.getUniverse().getUniverseSpec(parsedLocation.getUniverseName());
+                            spec = pmSession.getUniverse().getUniverseSpec(installation, parsedLocation.getUniverseName());
                         } else if (parsedLocation.getUniverseFactory() == null) {
-                            spec = pmSession.getUniverse().getDefaultUniverseSpec();
+                            spec = pmSession.getUniverse().getDefaultUniverseSpec(installation);
                         } else {
                             spec = new UniverseSpec(parsedLocation.getUniverseFactory(), parsedLocation.getUniverseLocation());
                         }
@@ -222,10 +228,10 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
         try {
             UniverseSpec spec = null;
             if (parsedLocation.getUniverseName() != null) {
-                spec = pmSession.getUniverse().getUniverseSpec(parsedLocation.getUniverseName());
+                spec = pmSession.getUniverse().getUniverseSpec(installation, parsedLocation.getUniverseName());
             } else if (parsedLocation.getUniverseFactory() == null) {
                 // default universe
-                spec = pmSession.getUniverse().getDefaultUniverseSpec();
+                spec = pmSession.getUniverse().getDefaultUniverseSpec(installation);
             } else {
                 spec = new UniverseSpec(parsedLocation.getUniverseFactory(), parsedLocation.getUniverseLocation());
             }

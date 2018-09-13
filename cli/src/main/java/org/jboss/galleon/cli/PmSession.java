@@ -55,7 +55,6 @@ import org.jboss.galleon.cache.FeaturePackCacheManager;
 import org.jboss.galleon.cache.FeaturePackCacheManager.OverwritePolicy;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
@@ -457,17 +456,17 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         return universe;
     }
 
-    public FeaturePackLocation getResolvedLocation(String location) throws ProvisioningException {
+    public FeaturePackLocation getResolvedLocation(Path installation, String location) throws ProvisioningException {
         if (location.endsWith("" + FeaturePackLocation.FREQUENCY_START)
                 || location.endsWith("" + FeaturePackLocation.BUILD_START)) {
             location = location.substring(0, location.length() - 1);
         }
         // A producer spec without any universe nor channel.
         if (!location.contains("" + FeaturePackLocation.UNIVERSE_START) && !location.contains("" + FeaturePackLocation.CHANNEL_START)) {
-            location = new FeaturePackLocation(universe.getDefaultUniverseSpec(), location, null, null, null).toString();
+            location = new FeaturePackLocation(universe.getDefaultUniverseSpec(installation), location, null, null, null).toString();
         }
         FeaturePackLocation loc = FeaturePackLocation.fromString(location);
-        return getResolvedLocation(loc);
+        return getResolvedLocation(installation, loc);
     }
 
 
@@ -601,49 +600,35 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         return oa;
     }
 
-    public boolean existsInLocalRepository(FPID fpid) throws ProvisioningException {
-        FeaturePackLocation loc = getResolvedLocation(fpid.getLocation());
-        Producer<?> producer = universe.getUniverse(loc.
-                getUniverse()).getProducer(loc.getProducerName());
-        boolean hasFrequency = false;
-        if (producer != null) {
-            hasFrequency = producer.hasFrequencies();
-        }
-        String freq = loc.getFrequency() == null && hasFrequency ? "alpha" : loc.getFrequency();
-        loc = new FeaturePackLocation(loc.getUniverse(),
-                loc.getProducerName(), loc.getChannelName(), freq, loc.getBuild());
-        return universe.isResolved(loc);
-    }
-
     public void downloadFp(FPID fpid) throws ProvisioningException {
-        universe.resolve(getResolvedLocation(fpid.getLocation()));
+        universe.resolve(getResolvedLocation(null, fpid.getLocation()));
     }
 
-    private FeaturePackLocation getResolvedLocation(FeaturePackLocation fplocation) throws ProvisioningException {
+    private FeaturePackLocation getResolvedLocation(Path installation, FeaturePackLocation fplocation) throws ProvisioningException {
         UniverseSpec spec = fplocation.getUniverse();
         if (spec != null) {
             if (spec.getLocation() == null) {
-                spec = universe.getUniverseSpec(spec.getFactory());
+                spec = universe.getUniverseSpec(installation, spec.getFactory());
                 if (spec == null) {
                     throw new ProvisioningException("Unknown universe for " + fplocation);
                 }
             }
         } else {
-            spec = universe.getDefaultUniverseSpec();
+            spec = universe.getDefaultUniverseSpec(installation);
         }
         return new FeaturePackLocation(spec, fplocation.getProducerName(),
                 fplocation.getChannelName(), fplocation.getFrequency(), fplocation.getBuild());
     }
 
-    public FeaturePackLocation getExposedLocation(FeaturePackLocation fplocation) {
+    public FeaturePackLocation getExposedLocation(Path installation, FeaturePackLocation fplocation) {
         // Expose the default or name.
         UniverseSpec spec = fplocation.getUniverse();
         boolean rewrite = false;
-        String name = getUniverse().getUniverseName(spec);
+        String name = getUniverse().getUniverseName(installation, spec);
         if (name != null) {
             rewrite = true;
             spec = new UniverseSpec(name, null);
-        } else if (getUniverse().getDefaultUniverseSpec().equals(spec)) {
+        } else if (getUniverse().getDefaultUniverseSpec(installation).equals(spec)) {
             rewrite = true;
             spec = null;
         }

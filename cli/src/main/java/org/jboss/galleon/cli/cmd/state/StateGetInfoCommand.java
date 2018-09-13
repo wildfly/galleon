@@ -50,7 +50,7 @@ public class StateGetInfoCommand extends PmSessionCommand {
                     return invoc.getPmSession().getState().getContainer();
                 }
             };
-            StateInfoUtil.displayInfo(invoc, config, type, supplier);
+            StateInfoUtil.displayInfo(invoc, null, config, type, supplier);
         } catch (Exception ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
         }

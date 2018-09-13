@@ -69,7 +69,7 @@ public class FindCommand extends PmSessionCommand {
             Integer[] numResults = new Integer[1];
             numResults[0] = 0;
             try {
-                Comparator locComparator = new Comparator<FeaturePackLocation>() {
+                Comparator<FeaturePackLocation> locComparator = new Comparator<FeaturePackLocation>() {
                     @Override
                     public int compare(FeaturePackLocation o1, FeaturePackLocation o2) {
                         return o1.toString().compareTo(o2.toString());
@@ -81,7 +81,7 @@ public class FindCommand extends PmSessionCommand {
                         // Universe could have been set in the pattern, matches on
                         // the canonical and exposed (named universe).
                         FeaturePackLocation exposedLoc = invoc.getPmSession().
-                                getExposedLocation(loc);
+                                getExposedLocation(null, loc);
                         boolean canonicalMatch = compiledPattern.matcher(loc.toString()).matches();
                         boolean exposedMatch = compiledPattern.matcher(exposedLoc.toString()).matches();
                         // Frequency has been set, only matches FPL that contains a frequency.
@@ -125,7 +125,8 @@ public class FindCommand extends PmSessionCommand {
 
                 for (Entry<UniverseSpec, Set<FeaturePackLocation>> entry : results.entrySet()) {
                     UniverseSpec universeSpec = entry.getKey();
-                    String universeName = invoc.getPmSession().getUniverse().getUniverseName(universeSpec);
+                    String universeName = invoc.getPmSession().getUniverse().
+                            getUniverseName(null, universeSpec);
                     universeName = universeName == null ? universeSpec.toString() : universeName;
                     invoc.println(Config.getLineSeparator() + "Universe "
                             + universeName

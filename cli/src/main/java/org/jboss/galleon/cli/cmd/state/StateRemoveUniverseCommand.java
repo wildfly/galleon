@@ -43,7 +43,7 @@ public class StateRemoveUniverseCommand extends PmSessionCommand {
         @Override
         protected List<String> getItems(PmCompleterInvocation completerInvocation) {
             List<String> names = new ArrayList<>();
-            names.addAll(completerInvocation.getPmSession().getUniverse().getUniverseNames());
+            names.addAll(completerInvocation.getPmSession().getUniverse().getUniverseNames(null));
             return names;
         }
     }

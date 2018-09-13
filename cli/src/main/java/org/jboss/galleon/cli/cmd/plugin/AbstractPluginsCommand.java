@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.cli.cmd.plugin;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +26,6 @@ import org.aesh.command.impl.internal.OptionType;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
-import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -36,6 +34,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.model.state.State;
@@ -48,7 +47,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  *
  * @author jdenise@redhat.com
  */
-public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
+public abstract class AbstractPluginsCommand extends AbstractDynamicCommand implements CommandWithInstallationDirectory {
 
     public AbstractPluginsCommand(PmSession pmSession) {
         super(pmSession, true);
@@ -65,7 +64,9 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         }
         try {
             final String id = getId(pmSession);
-            final FeaturePackLocation loc = id == null ? null : pmSession.getResolvedLocation(id);
+            final FeaturePackLocation loc = id == null ? null : pmSession.
+                    getResolvedLocation(getInstallationDirectory(session.
+                            getConfiguration().getAeshContext()), id);
             runCommand(session, options, loc);
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.resolveLocationFailed(), ex);
@@ -119,7 +120,8 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
     @Override
     protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
-        FeaturePackLocation fpl = pmSession.getResolvedLocation(getId(pmSession));
+        FeaturePackLocation fpl = pmSession.getResolvedLocation(getInstallationDirectory(pmSession.getAeshContext()),
+                getId(pmSession));
         Set<PluginOption> pluginOptions = getPluginOptions(fpl);
         for (PluginOption opt : pluginOptions) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
@@ -130,10 +132,8 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
 
     protected abstract Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException;
 
-    protected abstract Path getInstallationHome(AeshContext ctx);
-
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getInstallationHome(session.
+        return session.getPmSession().newProvisioningManager(getInstallationDirectory(session.
                 getConfiguration().getAeshContext()), isVerbose());
     }
 
@@ -145,7 +145,8 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand {
         }
         if (streamName != null) {
             try {
-                return session.getResolvedLocation(streamName).toString();
+                return session.getResolvedLocation(getInstallationDirectory(session.getAeshContext()),
+                        streamName).toString();
             } catch (ProvisioningException ex) {
                 // Ok, no id set.
             }

@@ -84,7 +84,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
             try {
                 if (fpl != null) {
                     FeaturePackLocation loc;
-                    loc = session.getResolvedLocation(fpl);
+                    loc = session.getResolvedLocation(null, fpl);
                     FeaturePackConfig config = FeaturePackConfig.forLocation(loc);
                     provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
                     layout = session.getLayoutFactory().newConfigLayout(provisioning);
@@ -107,14 +107,15 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                 if (isProduct) {
                     product = fpLayout;
                 } else {
-                    dependencies.add(session.getExposedLocation(fpLayout.getFPID().getLocation()));
+                    dependencies.add(session.getExposedLocation(null, fpLayout.getFPID().getLocation()));
                 }
             }
             if (product == null) {
                 throw new CommandExecutionException("No feature-pack found");
             }
 
-            StateInfoUtil.printFeaturePack(commandInvocation, product.getFPID().getLocation());
+            StateInfoUtil.printFeaturePack(commandInvocation,
+                    session.getExposedLocation(null, product.getFPID().getLocation()));
 
             FPID patchFor = product.getSpec().getPatchFor();
             if (patchFor != null) {

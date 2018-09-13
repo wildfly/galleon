@@ -79,7 +79,7 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
                 // Handle default and named universes
                 if (cex.getCause() instanceof LatestVersionNotAvailableException) {
                     LatestVersionNotAvailableException cause = (LatestVersionNotAvailableException) cex.getCause();
-                    FeaturePackLocation fpl = cex.getPmSession().getExposedLocation(cause.getLocation());
+                    FeaturePackLocation fpl = cex.getPmSession().getExposedLocation(null, cause.getLocation());
                     t = new LatestVersionNotAvailableException(fpl);
                 }
             }

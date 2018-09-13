@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.cli;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -190,11 +189,9 @@ public class UniverseManager implements MavenChangeListener {
         return universeResolver.resolveLatestBuild(fpl);
     }
 
-    private ProvisioningManager getProvisioningManager() throws ProvisioningException {
-        return getProvisioningManager(getWorkDir(pmSession.getAeshContext()));
-    }
-
-    private ProvisioningManager getProvisioningManager(Path workDir) throws ProvisioningException {
+    private ProvisioningManager getProvisioningManager(Path installation) throws ProvisioningException {
+        Path workDir = installation == null ? getWorkDir(pmSession.getAeshContext())
+                : installation;
         if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
             throw new ProvisioningException(Errors.homeDirNotUsable(workDir));
         }
@@ -208,11 +205,9 @@ public class UniverseManager implements MavenChangeListener {
         resolveUniverse(u);
     }
 
-    public void addUniverse(File installation, String name, String factory, String location) throws ProvisioningException, IOException {
+    public void addUniverse(Path installation, String name, String factory, String location) throws ProvisioningException, IOException {
         UniverseSpec u = new UniverseSpec(factory, location);
-        Path workDir = installation == null ? getWorkDir(pmSession.getAeshContext())
-                : installation.toPath();
-        ProvisioningManager mgr = getProvisioningManager(workDir);
+        ProvisioningManager mgr = getProvisioningManager(installation);
 
         if (name != null) {
             mgr.addUniverse(name, u);
@@ -235,27 +230,25 @@ public class UniverseManager implements MavenChangeListener {
         pmSession.getState().removeUniverse(pmSession, name);
     }
 
-    public void removeUniverse(File installation, String name) throws ProvisioningException, IOException {
-        Path workDir = installation == null ? getWorkDir(pmSession.getAeshContext())
-                : installation.toPath();
-        ProvisioningManager mgr = getProvisioningManager(workDir);
+    public void removeUniverse(Path installation, String name) throws ProvisioningException, IOException {
+        ProvisioningManager mgr = getProvisioningManager(installation);
         // Remove default if name is null
         mgr.removeUniverse(name);
     }
 
-    public Set<String> getUniverseNames() {
+    public Set<String> getUniverseNames(Path installation) {
         if (pmSession.getState() != null) {
             return pmSession.getState().getConfig().getUniverseNamedSpecs().keySet();
         }
         try {
-            ProvisioningManager mgr = getProvisioningManager();
+            ProvisioningManager mgr = getProvisioningManager(installation);
             return mgr.getProvisioningConfig().getUniverseNamedSpecs().keySet();
         } catch (ProvisioningException ex) {
             return Collections.emptySet();
         }
     }
 
-    public UniverseSpec getDefaultUniverseSpec() {
+    public UniverseSpec getDefaultUniverseSpec(Path installation) {
         UniverseSpec defaultUniverse = null;
         if (pmSession.getState() != null) {
             defaultUniverse = pmSession.getState().getConfig().getDefaultUniverse();
@@ -265,7 +258,7 @@ public class UniverseManager implements MavenChangeListener {
                 return builtinUniverseSpec;
             }
             try {
-                ProvisioningManager mgr = getProvisioningManager();
+                ProvisioningManager mgr = getProvisioningManager(installation);
                 defaultUniverse = mgr.getProvisioningConfig().getDefaultUniverse();
             } catch (ProvisioningException ex) {
                 // OK, not an installation
@@ -274,13 +267,13 @@ public class UniverseManager implements MavenChangeListener {
         return defaultUniverse == null ? builtinUniverseSpec : defaultUniverse;
     }
 
-    public String getUniverseName(UniverseSpec u) {
+    public String getUniverseName(Path installation, UniverseSpec u) {
         ProvisioningConfig config = null;
         if (pmSession.getState() != null) {
             config = pmSession.getState().getConfig();
         } else {
             try {
-                config = getProvisioningManager().getProvisioningConfig();
+                config = getProvisioningManager(installation).getProvisioningConfig();
             } catch (ProvisioningException ex) {
                 return null;
             }
@@ -293,13 +286,13 @@ public class UniverseManager implements MavenChangeListener {
         return null;
     }
 
-    public UniverseSpec getUniverseSpec(String name) {
+    public UniverseSpec getUniverseSpec(Path installation, String name) {
         ProvisioningConfig config = null;
         if (pmSession.getState() != null) {
             config = pmSession.getState().getConfig();
         } else {
             try {
-                config = getProvisioningManager().getProvisioningConfig();
+                config = getProvisioningManager(installation).getProvisioningConfig();
             } catch (ProvisioningException ex) {
                 return null;
             }
@@ -321,7 +314,7 @@ public class UniverseManager implements MavenChangeListener {
         } catch (ProvisioningException ex) {
             visitor.exception(builtinUniverseSpec, ex);
         }
-        UniverseSpec defaultUniverse = getDefaultUniverseSpec();
+        UniverseSpec defaultUniverse = getDefaultUniverseSpec(null);
         try {
             if (defaultUniverse != null && !builtinUniverseSpec.equals(defaultUniverse)) {
                 visit(visitor, getUniverse(defaultUniverse), defaultUniverse, allBuilds);
@@ -329,9 +322,9 @@ public class UniverseManager implements MavenChangeListener {
         } catch (ProvisioningException ex) {
             visitor.exception(defaultUniverse, ex);
         }
-        Set<String> universes = getUniverseNames();
+        Set<String> universes = getUniverseNames(null);
         for (String u : universes) {
-            UniverseSpec universeSpec = getUniverseSpec(u);
+            UniverseSpec universeSpec = getUniverseSpec(null, u);
             try {
                 visit(visitor, getUniverse(universeSpec), universeSpec, allBuilds);
             } catch (ProvisioningException ex) {
