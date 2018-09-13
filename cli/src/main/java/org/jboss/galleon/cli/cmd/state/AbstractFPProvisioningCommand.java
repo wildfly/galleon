@@ -38,7 +38,7 @@ public abstract class AbstractFPProvisioningCommand extends AbstractStateCommand
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
-        FeaturePackLocation fpl = invoc.getPmSession().getResolvedLocation(this.fpl);
+        FeaturePackLocation fpl = invoc.getPmSession().getResolvedLocation(null, this.fpl);
         runCommand(invoc, session, fpl);
     }
 

@@ -35,7 +35,7 @@ public class BuildLayoutTracker extends CliProgressTracker<FPID> {
 
     @Override
     protected String processingContent(ProgressTracker<FPID> tracker) {
-        return session.getExposedLocation(tracker.getItem().getLocation()).toString();
+        return session.getExposedLocation(null, tracker.getItem().getLocation()).toString();
     }
 
     @Override

@@ -61,12 +61,16 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
                 try (ProvisioningLayout<FeaturePackLayout> layout = mgr.getLayoutFactory().newConfigLayout(mgr.getProvisioningConfig())) {
                     for (FeaturePackLayout fp : layout.getOrderedFeaturePacks()) {
                         if (fp.isDirectDep() || (fp.isTransitiveDep() && transitive)) {
-                            items.add(completerInvocation.getPmSession().getExposedLocation(fp.getFPID().getLocation()));
+                            items.add(completerInvocation.getPmSession().
+                                    getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
+                                            getAeshContext()), fp.getFPID().getLocation()));
                         }
                         if (patches) {
                             List<FeaturePackLayout> appliedPatches = layout.getPatches(fp.getFPID());
                             for (FeaturePackLayout patch : appliedPatches) {
-                                items.add(completerInvocation.getPmSession().getExposedLocation(patch.getFPID().getLocation()));
+                                items.add(completerInvocation.getPmSession().
+                                        getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
+                                                getAeshContext()), patch.getFPID().getLocation()));
                             }
                         }
                     }

@@ -69,7 +69,7 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
                         table = new Table(Headers.PRODUCT, Headers.UPDATE_CHANNEL, Headers.LATEST_BUILD);
                         tables.put(loc.getUniverse(), table);
                     }
-                    loc = invoc.getPmSession().getExposedLocation(loc);
+                    loc = invoc.getPmSession().getExposedLocation(null, loc);
                     table.addLine(producer.getName(), StateInfoUtil.formatChannel(loc),
                             (loc.getBuild() == null ? NONE : loc.getBuild()));
                 }
@@ -95,7 +95,7 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
         FindCommand.printExceptions(invoc, exceptions);
         for (Entry<UniverseSpec, Table> entry : tables.entrySet()) {
             UniverseSpec universeSpec = entry.getKey();
-            String universeName = invoc.getPmSession().getUniverse().getUniverseName(universeSpec);
+            String universeName = invoc.getPmSession().getUniverse().getUniverseName(null, universeSpec);
             universeName = universeName == null ? universeSpec.toString() : universeName;
             invoc.println(Config.getLineSeparator() + "Universe " + universeName
                     + Config.getLineSeparator());

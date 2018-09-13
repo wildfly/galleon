@@ -118,7 +118,7 @@ public class DiffCommand extends AbstractPluginsCommand {
     }
 
     @Override
-    protected Path getInstallationHome(AeshContext context) {
+    public Path getInstallationDirectory(AeshContext context) {
         final String srcPath = (String) getValue(SRC_NAME);
         return srcPath == null ? PmSession.getWorkDir(context) : toPath(srcPath, context);
     }

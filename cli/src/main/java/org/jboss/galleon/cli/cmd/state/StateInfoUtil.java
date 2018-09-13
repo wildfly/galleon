@@ -17,6 +17,7 @@
 package org.jboss.galleon.cli.cmd.state;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -347,7 +348,7 @@ public class StateInfoUtil {
         for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
             List<FeaturePackLayout> patches = layout.getPatches(fpLayout.getFPID());
             for (FeaturePackLayout patch : patches) {
-                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(patch.getFPID().getLocation());
+                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(null, patch.getFPID().getLocation());
                 FPID patchFor = patch.getSpec().getPatchFor();
                 table.addLine(patch.getFPID().getBuild(),
                         patchFor.getProducer().getName() + FeaturePackLocation.BUILD_START + patchFor.getBuild(),
@@ -362,14 +363,15 @@ public class StateInfoUtil {
     }
 
     public static void printFeaturePack(PmCommandInvocation commandInvocation, FeaturePackLocation loc) {
-        loc = commandInvocation.getPmSession().getExposedLocation(loc);
+        loc = commandInvocation.getPmSession().getExposedLocation(null, loc);
         Table t = new Table(Headers.PRODUCT, Headers.BUILD, Headers.UPDATE_CHANNEL);
         t.addLine(loc.getProducer().getName(), loc.getBuild(), formatChannel(loc));
         commandInvocation.println("");
         commandInvocation.println(t.build());
     }
 
-    public static void printFeaturePacks(PmCommandInvocation commandInvocation, Collection<FeaturePackConfig> fps) {
+    public static void printFeaturePacks(PmCommandInvocation commandInvocation,
+            Path installation, Collection<FeaturePackConfig> fps) {
         boolean showPatches = showPatches(fps);
         List<String> headers = new ArrayList<>();
         headers.add(Headers.PRODUCT);
@@ -380,7 +382,7 @@ public class StateInfoUtil {
         headers.add(Headers.UPDATE_CHANNEL);
         Table t = new Table(headers);
         for (FeaturePackConfig c : fps) {
-            FeaturePackLocation loc = commandInvocation.getPmSession().getExposedLocation(c.getLocation());
+            FeaturePackLocation loc = commandInvocation.getPmSession().getExposedLocation(installation, c.getLocation());
             List<Cell> line = new ArrayList<>();
             line.add(new Cell(loc.getProducer().getName()));
             line.add(new Cell(loc.getBuild()));
@@ -451,20 +453,20 @@ public class StateInfoUtil {
         return t.build();
     }
 
-    public static void displayInfo(PmCommandInvocation invoc,
+    public static void displayInfo(PmCommandInvocation invoc, Path installation,
             ProvisioningConfig config, String type, Function<ProvisioningLayout<FeaturePackLayout>, FeatureContainer> supplier) throws CommandExecutionException {
         try {
             if (!config.hasFeaturePackDeps()) {
                 return;
             }
             if (type == null) {
-                displayFeaturePacks(invoc, config);
+                displayFeaturePacks(invoc, installation, config);
             } else {
                 try (ProvisioningLayout<FeaturePackLayout> layout = invoc.getPmSession().getLayoutFactory().newConfigLayout(config)) {
                     switch (type) {
                         case ALL: {
                             FeatureContainer container = supplier.apply(layout);
-                            displayFeaturePacks(invoc, config);
+                            displayFeaturePacks(invoc, installation, config);
                             displayDependencies(invoc, layout);
                             displayPatches(invoc, layout);
                             displayConfigs(invoc, container);
@@ -475,7 +477,7 @@ public class StateInfoUtil {
                             FeatureContainer container = supplier.apply(layout);
                             String configs = buildConfigs(invoc, container);
                             if (configs != null) {
-                                displayFeaturePacks(invoc, config);
+                                displayFeaturePacks(invoc, installation, config);
                                 invoc.println(configs);
                             }
                             break;
@@ -483,7 +485,7 @@ public class StateInfoUtil {
                         case DEPENDENCIES: {
                             String deps = buildDependencies(invoc, layout);
                             if (deps != null) {
-                                displayFeaturePacks(invoc, config);
+                                displayFeaturePacks(invoc, installation, config);
                                 invoc.println(deps);
                             }
                             break;
@@ -491,7 +493,7 @@ public class StateInfoUtil {
                         case OPTIONS: {
                             String options = buildOptions(layout);
                             if (options != null) {
-                                displayFeaturePacks(invoc, config);
+                                displayFeaturePacks(invoc, installation, config);
                                 invoc.println(options);
                             }
                             break;
@@ -499,7 +501,7 @@ public class StateInfoUtil {
                         case PATCHES: {
                             String patches = buildPatches(invoc, layout);
                             if (patches != null) {
-                                displayFeaturePacks(invoc, config);
+                                displayFeaturePacks(invoc, installation, config);
                                 invoc.println(patches);
                             }
                             break;
@@ -526,8 +528,9 @@ public class StateInfoUtil {
         return buildConfigs(container.getFinalConfigs());
     }
 
-    private static void displayFeaturePacks(PmCommandInvocation invoc, ProvisioningConfig config) {
-        printFeaturePacks(invoc, config.getFeaturePackDeps());
+    private static void displayFeaturePacks(PmCommandInvocation invoc, Path installation,
+            ProvisioningConfig config) {
+        printFeaturePacks(invoc, installation, config.getFeaturePackDeps());
     }
 
     private static void displayDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
@@ -550,7 +553,7 @@ public class StateInfoUtil {
                 }
             }
             if (!isProduct) {
-                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(fpLayout.getFPID().getLocation());
+                FeaturePackLocation loc = invoc.getPmSession().getExposedLocation(null, fpLayout.getFPID().getLocation());
                 dependencies.add(loc);
                 FeaturePackConfig transitiveConfig = layout.getConfig().getTransitiveDep(fpLayout.getFPID().getProducer());
                 configs.put(loc.getFPID(), transitiveConfig);

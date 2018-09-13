@@ -124,7 +124,7 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
             return null;
         }
         try {
-            return session.getResolvedLocation(origin).getProducer();
+            return session.getResolvedLocation(null, origin).getProducer();
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(session, CliErrors.retrieveProducerFailed(), ex);
         }

@@ -48,7 +48,7 @@ public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
             if (session != null) {
                 for (FeaturePackConfig fp : session.getConfig().getFeaturePackDeps()) {
                     String loc = completerInvocation.getPmSession().
-                            getExposedLocation(fp.getLocation()).toString();
+                            getExposedLocation(null, fp.getLocation()).toString();
                     lst.add(loc);
                 }
             }
@@ -61,7 +61,7 @@ public class StateRemoveFeaturePackCommand extends AbstractStateCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session) throws IOException, ProvisioningException, CommandExecutionException {
-        session.removeDependency(invoc.getPmSession(), invoc.getPmSession().getResolvedLocation(fpl));
+        session.removeDependency(invoc.getPmSession(), invoc.getPmSession().getResolvedLocation(null, fpl));
     }
 
     @Override
