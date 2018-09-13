@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigCustomizations;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -47,13 +46,6 @@ class FpStack {
         private List<FeaturePackConfig> fpConfigs = Collections.emptyList();
         private Map<ProducerSpec, FeaturePackConfig> transitive = Collections.emptyMap();
         private int currentFp = -1;
-
-        Level copy() {
-            final Level copy = new Level();
-            copy.fpConfigs = CollectionUtils.clone(fpConfigs);
-            copy.currentFp = currentFp;
-            return copy;
-        }
 
         void addFpConfig(FeaturePackConfig fpConfig) {
             fpConfigs = CollectionUtils.add(fpConfigs, fpConfig);
@@ -139,8 +131,6 @@ class FpStack {
     private final ProvisioningConfig config;
     private List<Level> levels = new ArrayList<>();
     private Level lastPushed;
-
-    private List<List<Level>> recordedStacks = Collections.emptyList();
 
     FpStack(ProvisioningConfig config) {
         this.config = config;
@@ -343,21 +333,5 @@ class FpStack {
             return true;
         }
         return false;
-    }
-
-    void recordStack() {
-        final List<Level> copy = new ArrayList<>(levels.size());
-        for(int i = 0; i < levels.size(); ++i) {
-            copy.add(levels.get(i).copy());
-        }
-        recordedStacks = CollectionUtils.add(recordedStacks, copy);
-    }
-
-    void activateConfigStack(int i) throws ProvisioningException {
-        if(recordedStacks.size() <= i) {
-            throw new ProvisioningException("Stack index " + i + " is exceeding the current stack size " + recordedStacks.size());
-        }
-        levels = recordedStacks.get(i);
-        lastPushed = levels.isEmpty() ? null : levels.get(levels.size() - 1);
     }
 }

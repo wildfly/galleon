@@ -177,17 +177,16 @@ public class FeaturePackBuilder {
     }
 
     public FeaturePackBuilder addConfig(ConfigModel config) throws ProvisioningDescriptionException {
-        return addConfig(config, true);
+        return addConfig(config, !config.getId().isModelOnly());
     }
 
     public FeaturePackBuilder addConfig(ConfigModel config, boolean asDefault) throws ProvisioningDescriptionException {
         final ConfigId id = config.getId();
         if(id.isAnonymous()) {
-            if(!asDefault) {
-                throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": anonymous config must always be added as the default one");
-            }
-            fpBuilder.addConfig(config);
-            return this;
+            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": attempt to add an anonymous config");
+        }
+        if(asDefault && id.isModelOnly()) {
+            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": model-only config can not be added as the default one");
         }
         if (configs.isEmpty()) {
             configs = new HashMap<>();
