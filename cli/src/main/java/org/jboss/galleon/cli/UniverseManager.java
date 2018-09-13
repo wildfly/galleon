@@ -58,6 +58,13 @@ import org.jboss.galleon.util.PathsUtils;
  */
 public class UniverseManager implements MavenChangeListener {
 
+    public interface UniverseVisitor {
+
+        void visit(Producer<?> producer, FeaturePackLocation loc);
+
+        void exception(UniverseSpec spec, Exception ex);
+    }
+
     public static final String JBOSS_UNIVERSE_GROUP_ID = "org.jboss.universe";
     public static final String JBOSS_UNIVERSE_ARTIFACT_ID = "community-universe";
 
@@ -223,6 +230,7 @@ public class UniverseManager implements MavenChangeListener {
             }
         }
     }
+
     public void removeUniverse(String name) throws ProvisioningException, IOException {
         pmSession.getState().removeUniverse(pmSession, name);
     }
@@ -305,4 +313,81 @@ public class UniverseManager implements MavenChangeListener {
             resolveBuiltinUniverse();
         }
     }
+
+    public void visitAllUniverses(UniverseVisitor visitor,
+            boolean allBuilds) {
+        try {
+            visit(visitor, getUniverse(builtinUniverseSpec), builtinUniverseSpec, allBuilds);
+        } catch (ProvisioningException ex) {
+            visitor.exception(builtinUniverseSpec, ex);
+        }
+        UniverseSpec defaultUniverse = getDefaultUniverseSpec();
+        try {
+            if (defaultUniverse != null && !builtinUniverseSpec.equals(defaultUniverse)) {
+                visit(visitor, getUniverse(defaultUniverse), defaultUniverse, allBuilds);
+            }
+        } catch (ProvisioningException ex) {
+            visitor.exception(defaultUniverse, ex);
+        }
+        Set<String> universes = getUniverseNames();
+        for (String u : universes) {
+            UniverseSpec universeSpec = getUniverseSpec(u);
+            try {
+                visit(visitor, getUniverse(universeSpec), universeSpec, allBuilds);
+            } catch (ProvisioningException ex) {
+                visitor.exception(universeSpec, ex);
+            }
+        }
+    }
+
+    public void visitUniverse(UniverseSpec universeSpec,
+            UniverseVisitor visitor, boolean allBuilds) throws ProvisioningException {
+        visit(visitor, getUniverse(universeSpec), universeSpec, allBuilds);
+    }
+
+    private static void visit(UniverseVisitor visitor, Universe<?> universe,
+            UniverseSpec universeSpec, boolean allBuilds) throws ProvisioningException {
+        for (Producer<?> producer : universe.getProducers()) {
+            for (Channel channel : producer.getChannels()) {
+                if (allBuilds) {
+                    List<String> builds = getAllBuilds(universeSpec, producer, channel);
+                    if (builds != null && !builds.isEmpty()) {
+                        for (String build : builds) {
+                            visitor.visit(producer, new FeaturePackLocation(universeSpec,
+                                    producer.getName(), channel.getName(), null, build));
+                        }
+                    }
+                }
+                for (String freq : producer.getFrequencies()) {
+                    String build = getBuild(universeSpec, producer, channel, freq);
+                    FeaturePackLocation loc = new FeaturePackLocation(universeSpec,
+                            producer.getName(), channel.getName(), freq, build);
+                    visitor.visit(producer, loc);
+                }
+            }
+        }
+    }
+
+    private static List<String> getAllBuilds(UniverseSpec spec, Producer<?> producer, Channel channel) {
+        FeaturePackLocation loc = new FeaturePackLocation(spec, producer.getName(), channel.getName(), null, null);
+        List<String> build = Collections.emptyList();
+        try {
+            build = channel.getAllBuilds(loc);
+        } catch (ProvisioningException ex) {
+            // OK, no build.
+        }
+        return build;
+    }
+
+    private static String getBuild(UniverseSpec spec, Producer<?> producer, Channel channel, String freq) {
+        FeaturePackLocation loc = new FeaturePackLocation(spec, producer.getName(), channel.getName(), freq, null);
+        String build = null;
+        try {
+            build = channel.getLatestBuild(loc);
+        } catch (ProvisioningException ex) {
+            // OK, no build.
+        }
+        return build;
+    }
+
 }

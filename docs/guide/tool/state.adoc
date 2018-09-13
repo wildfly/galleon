@@ -71,15 +71,23 @@ _feature-pack get-info wildfly:current#1.0.0-Alpha1_
 
 ### Listing latest available feature-packs
 
-_[/]$ list-feature-packs_ + 
+_[/]$ list-feature-packs [--all-frequencies] [--universe=<universe id>]_ + 
 
-This command lists all the latest feature packs present in all the installed universes.
+This command lists all the final feature packs present in all the installed universes. +
+If _--all-frequencies_ option is set, then the latest build of all frequencies are displayed. +
+If _--universe_ option is set, the command lists the feature packs of this universe. +
 
-You can search for feature-packs that match a given pattern using _--filter-pattern=<pattern>_. +
-For example: +
-_[/]$ list-feature-packs --filter-pattern=wildfly*_
+TIP: The information displayed by this command can be re-used when installing, updating features-packs.
 
-TIPS: The information displayed by this command can be re-used when installing, updating features-packs.
+### Searching for feature-packs
+
+_[/]$ find <pattern> [--universe=<universe id>]_ + 
+
+This command searches for all the feature pack builds present in all the installed 
+universes that match the provided pattern. +
+If _--universe_ option is set, the command searches for feature packs inside this universe. +
+
+TIP: The information displayed by this command can be re-used when installing, updating features-packs.
 
 ### Installing a feature-pack
 

@@ -115,7 +115,7 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
         if (includeAll) {
             headers.add(Headers.DEPENDENCY);
         }
-        headers.add(Headers.CHANNEL);
+        headers.add(Headers.UPDATE_CHANNEL);
         updates.t = new Table(headers);
 
         for (FeaturePackUpdatePlan p : plan.getUpdates()) {

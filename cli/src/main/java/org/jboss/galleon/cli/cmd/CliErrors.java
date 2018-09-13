@@ -128,6 +128,10 @@ public interface CliErrors {
         return failed("Install");
     }
 
+    static String missingPattern() {
+        return "Pattern is missing.";
+    }
+
     static String newStateFailed() {
         return failed("Create new state");
     }
