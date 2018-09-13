@@ -57,6 +57,7 @@ public class ModelDepOverwritesTestCase extends ConfigOrderTestBase {
                         .addFeature(new FeatureConfig("specA").setParam("id", "11"))
                         .build())
                 .addConfig(ConfigModel.builder("model2", "config1")
+                        .setConfigDep("dep1", new ConfigId("model2", "config2"))
                         .addFeature(new FeatureConfig("specA").setParam("id", "21"))
                         .build())
                 .addConfig(ConfigModel.builder("model3", "config1")
@@ -67,7 +68,6 @@ public class ModelDepOverwritesTestCase extends ConfigOrderTestBase {
                         .addFeature(new FeatureConfig("specA").setParam("id", "12"))
                         .build())
                 .addConfig(ConfigModel.builder("model2", "config2")
-                        .setConfigDep("dep1", new ConfigId("model2", "config1"))
                         .addFeature(new FeatureConfig("specA").setParam("id", "22"))
                         .build())
                 .addConfig(ConfigModel.builder("model3", null)
@@ -125,9 +125,9 @@ public class ModelDepOverwritesTestCase extends ConfigOrderTestBase {
         return new String[] {
                 "model1 config1",
                 "model1 config2",
-                "model3 config1",
+                "model2 config2",
                 "model2 config1",
-                "model2 config2"
+                "model3 config1"
         };
     }
 }
