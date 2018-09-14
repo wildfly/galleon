@@ -1,37 +1,54 @@
 #### Model-only configurations
 
-Model-only configurations are associated with a specific model using `model` attribute of `config` element but are not associated with any name.
+Model-only configurations are associated only with a model by means of `model` attribute of `config` element but are not associated with any name specific name.
 
-IMPORTANT: Model-only configurations are meant to be merged into named configurations. The provisioned installation will contain only named configurations but not the model-only ones.
+The idea behind the model-only configurations is to be able to define the base for a configuration of a specific model that every final configuration of that model should include. Model-only configurations are always added into the configuration before the named configurations, i.e. named configurations will be added on top of the model-only ones and will overwrite them.
+
+IMPORTANT: At the end, a provisioned installation will only contain the named configurations but not the model-only ones. Model-only configurations are always merged into the named configurations.
 
 IMPORTANT: A model-only configuration is merged into *all* the named configurations of the installation associated with the same model as the model-only configuration.
 
-NOTE: A model-only configuration will simply be ignored if the installation does not include any named configuration with the same model as the model-only configuration.
+Let's look at an example. Suppose we have two feature-packs: `fp1` and `fp2`.
 
-The idea behind the model-only configurations is to be able to define the base for a configuration of a specific model that every final configuration of that model should include. Model-only configs are always added into the configuration before the named model configs, i.e. the named configs will be added on top of the model-only ones and will overwrite them.
+`fp1` is defined as
 
-Here is an example:
-
+.fp1: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
               location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
-  <config model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="a" value="fp1-modelA"/>
-      <param name="b" value="fp1-modelA"/>
-    </feature>
-  </config>
-  <config name="main" model="modelB">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="b" value="fp1-modelB"/>
-    </feature>
-  </config>
+  <config name="main" model="modelB"/>
 </feature-pack>
 ----
 
+And includes the following configurations
+
+.fp1: configs/modelA/model.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="a" value="fp1-modelA"/>
+    <param name="b" value="fp1-modelA"/>
+  </feature>
+</config>
+----
+
+.fp1: configs/modelB/main/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="main" model="modelB">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="b" value="fp1-modelB"/>
+  </feature>
+</config>
+----
+
+`fp2` is defined as
+
+.fp2: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
@@ -39,71 +56,101 @@ Here is an example:
   <dependencies>
     <dependency location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
   </dependencies>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="b" value="fp2-modelA"/>
-    </feature>
-  </config>
-  <config name="test" model="modelA">
-    <feature spec="feature2">
-      <param name="id" value="1"/>
-      <param name="a" value="fp2-modelA"/>
-      <param name="b" value="fp2-modelA"/>
-    </feature>
-  </config>
-  <config model="modelB">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="a" value="fp2-modelB"/>
-      <param name="b" value="fp2-modelB"/>
-    </feature>
-  </config>
-  <config name="test" model="modelB">
-    <feature spec="feature2">
-      <param name="id" value="1"/>
-      <param name="a" value="fp2-modelB"/>
-      <param name="b" value="fp2-modelB"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
+  <config name="test" model="modelA"/>
+  <config name="test" model="modelB"/>
 </feature-pack>
 ----
 
+And includes the following configurations
+
+.fp2: configs/modelA/main/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="main" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="b" value="fp2-modelA"/>
+  </feature>
+</config>
+----
+
+.fp2: configs/modelA/test/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="test" model="modelA">
+  <feature spec="feature2">
+    <param name="id" value="1"/>
+    <param name="a" value="fp2-modelA"/>
+    <param name="b" value="fp2-modelA"/>
+  </feature>
+</config>
+----
+
+.fp2: configs/modelB/model.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="modelB">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="a" value="fp2-modelB"/>
+    <param name="b" value="fp2-modelB"/>
+  </feature>
+</config>
+----
+
+.fp2: configs/modelB/test/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="test" model="modelB">
+  <feature spec="feature2">
+    <param name="id" value="1"/>
+    <param name="a" value="fp2-modelB"/>
+    <param name="b" value="fp2-modelB"/>
+  </feature>
+</config>
+----
+
 Installing these two feature-packs will result in the following configurations:
+
+.modelA:main
 [%header,options="autowidth"]
 |===
-|Config model |Config name |Feature spec origin |Feature spec |id |a |b
-|modelA |main |fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp1-modelA |fp2-modelA
+|Feature spec origin |Feature spec |id |a |b
+|fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp1-modelA |fp2-modelA
 |===
 
+.modelA:test
 [%header,options="autowidth"]
 |===
-|Config model |Config name |Feature spec origin |Feature spec |id |a |b
-|modelA |test |fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp1-modelA |fp1-modelA
-|modelA |test |fp2@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature2 |1 |fp2-modelA |fp2-modelA
+|Feature spec origin |Feature spec |id |a |b
+|fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp1-modelA |fp1-modelA
+|fp2@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature2 |1 |fp2-modelA |fp2-modelA
 |===
 
+.modelB:main
 [%header,options="autowidth"]
 |===
-|Config model |Config name |Feature spec origin |Feature spec |id |a |b
-|modelB |main |fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp2-modelB |fp1-modelB
+|Feature spec origin |Feature spec |id |a |b
+|fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp2-modelB |fp1-modelB
 |===
 
+.modelB:test
 [%header,options="autowidth"]
 |===
-|Config model |Config name |Feature spec origin |Feature spec |id |a |b
-|modelB |test |fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp2-modelB |fp2-modelB
-|modelB |test |fp2@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature2 |1 |fp2-modelB |fp2-modelB
+|Feature spec origin |Feature spec |id |a |b
+|fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp2-modelB |fp2-modelB
+|fp2@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature2 |1 |fp2-modelB |fp2-modelB
 |===
 
 
-##### Excluding model-only configurations with the exclude element
+##### Excluding model-only configurations with exclude element
 
-Normally, model-only configurations are not supposed to be explicitly excluded. If a user excludes all the named configs of a specific model, the model-only configs of that model will implicitly be ignored by the provisioning mechanism.
+Normally, model-only configurations are not supposed to be explicitly excluded. If a user excludes all the named configs of a specific model, the model-only configs of that model will simply be ignored by the provisioning mechanism.
 
-NOTE: Configuration model designers are encouraged to design configurations in a way that model-only configurations represent essential configuration and don't need to be excluded explicitly by users or should be excluded in exceptional cases.
+NOTE: Configuration model designers are encouraged to model configurations in a way that model-only configurations represent an essential part of any configuration of that model and its runtime dependencies and don't need to be excluded explicitly by users or should be excluded in exceptional cases.
 
-In a previous chapter it was described how the default configurations could be excluded from the provisioned installation by <<excl-configs-by-model,specifying their model name>>. Here is an example once again
+In a previous chapter it was described how the default configurations could be excluded from the provisioned installation by <<excl-configs-by-model,specifying their model name>>. Here is the relevant part of the configuration:
 [source,xml]
 ----
 <installation xmlns="urn:jboss:galleon:provisioning:1.0">
@@ -115,29 +162,48 @@ In a previous chapter it was described how the default configurations could be e
 </installation>
 ----
 
-`exclude` element above *does not* affect the model-only configurations. It affects *only* the named configs. And in this specific example this fact will not make any difference on the result which is why, users shouldn't care about it, since if the named configurations are excluded, the model-only configurations will automatically be ignored by the provisioning mechanism. Let's look at an example where it makes a real difference.
+`exclude` element above *does not* affect the model-only configurations. It affects *only the named* configurations associated with the specified model.
 
+Let's imagine we have the following feature-pack `fp1`
+
+.fp1: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
               location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
-  <config model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="a" value="fp1-modelA"/>
-      <param name="b" value="fp1-modelA"/>
-      <param name="c" value="fp1-modelA"/>
-    </feature>
-  </config>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="b" value="fp1-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
 
+with the following configurations
+
+.fp1: configs/modelA/model.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="a" value="fp1-modelA"/>
+    <param name="b" value="fp1-modelA"/>
+    <param name="c" value="fp1-modelA"/>
+  </feature>
+</config>
+----
+
+.fp1: configs/modelA/main/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="main" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="b" value="fp1-modelA-main"/>
+  </feature>
+</config>
+----
+
+And feature-pack `fp2`
+
+.fp2: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0"
@@ -145,16 +211,26 @@ In a previous chapter it was described how the default configurations could be e
   <dependencies>
     <dependency location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
   </dependencies>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="c" value="fp2-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
 
-If we install these feature-packs the resulting config will contain
+With the following configuration
+
+.fp2: configs/modelA/main/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="main" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="c" value="fp2-modelA-main"/>
+  </feature>
+</config>
+----
+
+If we install these feature-packs the resulting configuration will contain
+
+.modelA:main
 [%header,options="autowidth"]
 |===
 |Feature spec origin |Feature spec |id |a |b |c
@@ -162,6 +238,8 @@ If we install these feature-packs the resulting config will contain
 |===
 
 If we exclude `modelA` like it was shown in the previous example *in the declaration of the dependency* on `fp1`, i.e.
+
+.fp2: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
@@ -173,23 +251,22 @@ If we exclude `modelA` like it was shown in the previous example *in the declara
       </default-configs>
     </dependency>
   </dependencies>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="c" value="fp2-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
 
-If we install *fp2*, the provisioned configuration will contain
+If we install `fp2` now, the provisioned configuration will contain
+
+.modelA:main
 [%header,options="autowidth"]
 |===
 |Feature spec origin |Feature spec |id |a |b |c
 |fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final |feature1 |1 |fp1-modelA |fp1-modelA |fp2-modelA-main
 |===
 
-The model-only configuration from `fp1` is still effective because it is considered being essential for any named configuration of `modelA`. In case it still has to be excluded from the provisioned configuration you can add `named-only-models="false"` attribute to `exclude` element, e.g.
+The model-only configuration from `fp1` is still effective because `fp1` is installed as a dependency of `fp2` and its `modelA` configuration is considered being essential for any named configuration of the model. In case it still has to be excluded from the provisioned configuration it can be done by adding `named-only-models="false"` attribute to `exclude` element, e.g.
+
+.fp2: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
@@ -201,12 +278,7 @@ The model-only configuration from `fp1` is still effective because it is conside
       </default-configs>
     </dependency>
   </dependencies>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="c" value="fp2-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
 
@@ -215,60 +287,84 @@ The model-only configuration from `fp1` is still effective because it is conside
 IMPORTANT: `named-only-models` attribute is optional and if abscent its value is assumed to be `true`.
 
 The provisioned configuration of `fp2` will now contain
+
+.modelA:main
 [%header,options="autowidth"]
 |===
 |Feature spec origin |Feature spec |id |c
 |org.jboss.pm.test:fp1:1.0.0.Final |feature1 |1 |fp2-modelA-main
 |===
 
-##### Disabling inheritance of the model-only configurations
+##### Disabling inheritance of model-only configurations
 
 In an earlier chapter it was shown <<disable-def-configs,how the default configurations of a feature-pack could be suppressed>>. Let's now include a model-only configuration in the example.
 
+.fp1: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
               location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
-  <config model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="a" value="fp1-modelA"/>
-      <param name="b" value="fp1-modelA"/>
-      <param name="c" value="fp1-modelA"/>
-    </feature>
-  </config>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="b" value="fp1-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
 
+.fp1: configs/modelA/model.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="a" value="fp1-modelA"/>
+    <param name="b" value="fp1-modelA"/>
+    <param name="c" value="fp1-modelA"/>
+  </feature>
+</config>
+----
+
+.fp1: configs/modelA/main/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="main" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="b" value="fp1-modelA-main"/>
+  </feature>
+</config>
+----
+
+.fp2: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
               location="fp2@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
   <dependencies>
     <dependency location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
-      <default-configs inherit="false"/>
+      <default-configs inherit="false"/> <!--1-->
     </dependency>
   </dependencies>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="c" value="fp2-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
+<1> the default configurations from `fp1` are going to be ignored
 
-With `inherit="false"` attribute of `default-configs` element we indicated that the default configs of `fp1` should not be included into the distribution provisioned from `fp2`. But it does not affect the model-only configs. So the model-only `modelA` configuration will still be effective in `fp2`.
+.fp2: configs/modelA/main/config.xml
+[source,xml]
+----
+<config xmlns="urn:jboss:galleon:config:1.0" name="main" model="modelA">
+  <feature spec="feature1">
+    <param name="id" value="1"/>
+    <param name="c" value="fp2-modelA-main"/>
+  </feature>
+</config>
+----
+
+With `inherit="false"` attribute of `default-configs` element we indicated that the default configurations of `fp1` should not be included into the distribution provisioned from `fp2`. But it does not affect the model-only configs. So the model-only `modelA` configuration will still be effective in `fp2`.
 
 IMPORTANT: `inherit-unnamed-models` attributes of `default-configs` element controls whether the model-only configs are inherited or not. The attribute is optional and if not present, its value is assumed to be `true`.
 
-Here is an example that disables the inheritance of all the named and model-only configs:
+Here is an example that disables the inheritance of all the named and model-only configurations:
+
+.fp2: feature-pack.xml
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0"
@@ -278,16 +374,13 @@ Here is an example that disables the inheritance of all the named and model-only
       <default-configs inherit="false" inherit-unnamed-models="false"/>
     </dependency>
   </dependencies>
-  <config name="main" model="modelA">
-    <feature spec="feature1">
-      <param name="id" value="1"/>
-      <param name="c" value="fp2-modelA-main"/>
-    </feature>
-  </config>
+  <config name="main" model="modelA"/>
 </feature-pack>
 ----
 
-The provisioned configuration of `fp2` will now contain
+The installation provisioned from `fp2` will include the following configuration
+
+.modelA:main
 [%header,options="autowidth"]
 |===
 |Feature spec origin |Feature spec |id |c

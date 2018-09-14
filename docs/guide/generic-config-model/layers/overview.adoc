@@ -6,7 +6,7 @@ The idea behind layers is to predefine certain technology or some other purpose 
 
 For example, let's suppose we are provisioning an application server that supports multiple technologies such as EJB, Servlet, Messaging, etc. Those technologies could be viewed as components that make up the complete server but also, possibly, as a user's choice at installation time, in case the user is actually interested only in a subset of those or perhaps simply one, or something that is not included into the default set.
 
-Layers are defined in feature-pack archive's `layers` directory. A layer is associated with a name but also, <<_configuration_model_attributes,as configuration models>>, can be associated with a configuration model. If a layer is associated with a configuration model, its definition in the feature-pack archive will appear in `layers/_config_model_/_layer_name_/layer-spec.xml` file, otherwise it will end up in `layers/_layer_name_/layer-spec.xml`.
+Layers are defined in feature-pack archive's `layers` directory. A layer is associated with a name but also, <<_configuration_model_attributes,as configuration models>>, can be associated with a model. If a layer is associated with a model, its definition in the feature-pack archive will appear in `layers/_config_model_/_layer_name_/layer-spec.xml` file, otherwise it will end up in `layers/_layer_name_/layer-spec.xml`.
 
 Layers may depend on other layers. If a configuration includes a layer that depends on another layer, that other layer will be included (unless explicitly excluded by the user) into the configuration as well (prior to the layer declaring the dependency on it).
 
