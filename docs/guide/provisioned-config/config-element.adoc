@@ -1,5 +1,7 @@
 ### Content of `config` element
 
+NOTE: Although this chapter is describing `config` element as a child of `feature-pack` element, the same applies to the root `config` element from `config.xml` and `model.xml` files.
+
 `config` element is basically an extended version of <<_feature_groups,`feature-group` element>>. Meaning that everything that is allowed in the body of `feature-group` (which is `feature`, `feature-group` and `origin` elements for explicit dependency origins) is allowed in `config` element.
 
 Besides that `config` element supports already mentioned in an earlier chapter the <<_configuration_model_attributes, config attributes>> and `props` element.
