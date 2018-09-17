@@ -62,6 +62,8 @@ public class CliTestCase {
         Path cache = cli.getSession().getPmConfiguration().getLayoutCache();
         assertFalse(Files.exists(cache));
 
+        cli.execute("feature-pack clear-cache");
+
         Path p = cli.newDir("install", false);
         FeaturePackLocation fpl = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1");
         cli.execute("install " + fpl + " --dir=" + p);

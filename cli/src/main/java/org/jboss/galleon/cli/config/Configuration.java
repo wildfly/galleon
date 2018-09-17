@@ -170,7 +170,7 @@ public class Configuration implements MavenChangeListener {
         try {
             IoUtils.recursiveDelete(getLayoutCache());
         } finally {
-            Files.delete(layoutContentFile);
+            Files.deleteIfExists(layoutContentFile);
         }
     }
 }
