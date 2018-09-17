@@ -20,10 +20,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.aesh.command.completer.OptionCompleter;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.UniverseManager;
@@ -48,8 +47,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
             doComplete(completerInvocation);
         } catch (ProvisioningException ex) {
             // no completion.
-            Logger.getLogger(FPLocationCompleter.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", ex.getLocalizedMessage());
+            CliLogging.completionException(ex);
         }
     }
 
@@ -208,8 +206,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                 });
             }
         } catch (Exception ex) {
-            Logger.getLogger(FPLocationCompleter.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", ex.getLocalizedMessage());
+            CliLogging.completionException(ex);
             return;
         }
         completerInvocation.addAllCompleterValues(candidates);
@@ -248,8 +245,7 @@ public class FPLocationCompleter implements OptionCompleter<PmCompleterInvocatio
                 }
             }
         } catch (ProvisioningException ex) {
-            Logger.getLogger(FPLocationCompleter.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", ex.getLocalizedMessage());
+            CliLogging.completionException(ex);
         }
         return null;
     }

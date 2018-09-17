@@ -21,10 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.jboss.galleon.cli.config.Configuration;
-import java.util.logging.LogManager;
 import org.aesh.command.AeshCommandRuntimeBuilder;
 import org.aesh.command.Command;
 import org.aesh.command.CommandException;
+import org.aesh.command.CommandNotFoundHandler;
 import org.aesh.command.CommandRuntime;
 import org.aesh.command.activator.CommandActivator;
 import org.aesh.command.activator.OptionActivator;
@@ -38,6 +38,7 @@ import org.aesh.command.registry.CommandRegistry;
 import org.aesh.command.registry.MutableCommandRegistry;
 import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
+import org.aesh.command.shell.Shell;
 import org.aesh.command.validator.ValidatorInvocation;
 import org.aesh.readline.ReadlineConsole;
 import org.aesh.utils.Config;
@@ -53,6 +54,11 @@ import org.jboss.galleon.cli.terminal.OutputInvocationProvider;
  */
 public class CliMain {
 
+    static {
+        // Must be called prior any logging usage in order to
+        // rely on JBOSS log manager if no manager already set.
+        enableJBossLogManager();
+    }
 
     public static void main(String[] args) {
         Arguments arguments = Arguments.parseArguments(args);
@@ -93,6 +99,12 @@ public class CliMain {
             } finally {
                 System.exit(1);
             }
+        }
+    }
+
+    private static void enableJBossLogManager() {
+        if (System.getProperty("java.util.logging.manager") == null) {
+            System.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
         }
     }
 
@@ -157,16 +169,6 @@ public class CliMain {
         console.start();
     }
 
-    private static boolean overrideLogging() {
-        // If the current log manager is not java.util.logging.LogManager the user has specifically overridden this
-        // and we should not override logging
-        return LogManager.getLogManager().getClass() == LogManager.class &&
-                // The user has specified a class to configure logging, we shouldn't override it
-                System.getProperty("java.util.logging.config.class") == null &&
-                // The user has specified a specific logging configuration and again we shouldn't override it
-                System.getProperty("java.util.logging.config.file") == null;
-    }
-
     private static Settings<? extends Command,
         ? extends CommandInvocation,
         ? extends ConverterInvocation,
@@ -181,7 +183,14 @@ public class CliMain {
                 ? extends ValidatorInvocation,
                 ? extends OptionActivator,
                 ? extends CommandActivator> settings = SettingsBuilder.builder().
-                logging(overrideLogging()).
+                logging(false).
+                commandNotFoundHandler(new CommandNotFoundHandler() {
+                    @Override
+                    public void handleCommandNotFound(String line, Shell shell) {
+                        shell.writeln(CliErrors.commandNotFound(line));
+                        CliLogging.commandNotFound(line);
+                    }
+                }).
                 commandRegistry(buildRegistry(pmSession)).
                 enableOperatorParser(true).
                 persistHistory(true).

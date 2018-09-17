@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Level;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.PmSession;
 
 /**
@@ -88,8 +88,7 @@ public class ResourceResolver {
         try {
             t = res.resolve();
         } catch (Throwable thr) {
-            java.util.logging.Logger.getLogger(ResourceResolver.class.getName()).log(Level.FINEST,
-                    "Exception while resolving: {0}", thr.getLocalizedMessage());
+            CliLogging.exceptionResolving(thr);
             synchronized (this) {
                 content.remove(key);
                 finalComp.completeExceptionally(thr);

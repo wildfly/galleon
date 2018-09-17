@@ -61,5 +61,11 @@ if [[ -n $BUILD ]]; then
 fi
 
 if [[ -n $RUN ]]; then
-java $JAVA_OPTS -jar ./cli/target/galleon-cli-3.0.0.Alpha2-SNAPSHOT.jar $ARGS
+  LOG_CONF=`echo $JAVA_OPTS | grep "logging.configuration"`
+  if [ "x$LOG_CONF" = "x" ]; then
+    java $JAVA_OPTS -Dlogging.configuration=file:"./content/bin/galleon-cli-logging.properties" -jar ./cli/target/galleon-cli-3.0.0.Alpha2-SNAPSHOT.jar $ARGS
+  else
+    echo "logging.configuration already set in JAVA_OPTS"
+    java $JAVA_OPTS -jar ./cli/target/galleon-cli-3.0.0.Alpha2-SNAPSHOT.jar $ARGS
+  fi
 fi

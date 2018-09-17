@@ -285,6 +285,11 @@
         <version>${version.org.jboss.logging}</version>
       </dependency>
       <dependency>
+        <groupId>org.jboss.logmanager</groupId>
+        <artifactId>jboss-logmanager</artifactId>
+        <version>${version.org.jboss.logmanager}</version>
+      </dependency>
+      <dependency>
         <groupId>org.jboss.slf4j</groupId>
         <artifactId>slf4j-jboss-logging</artifactId>
         <version>${version.org.jboss.logging.slf4j-jboss-logging}</version>

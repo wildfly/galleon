@@ -32,8 +32,15 @@ if "x%JAVA_HOME%" == "x" (
   set "JAVA=%JAVA_HOME%\bin\java"
 )
 
-"%JAVA%" %JAVA_OPTS% -jar "%DIRNAME%\galleon-cli.jar" %*
+set LOGGING_CONFIG=
+echo "%JAVA_OPTS%" | findstr /I "logging.configuration" > nul
+if errorlevel == 1 (
+  set LOGGING_CONFIG="-Dlogging.configuration=file:%DIRNAME%\galleon-cli-logging.properties"
+) else (
+  echo logging.configuration already set in JAVA_OPTS
+)
 
+"%JAVA%" %JAVA_OPTS% %LOGGING_CONFIG% -jar "%DIRNAME%\galleon-cli.jar" %*
 :END
 if "x%NOPAUSE%" == "x" pause
 

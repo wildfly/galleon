@@ -40,6 +40,10 @@ public interface CliErrors {
         return failed("Check for updates");
     }
 
+    static String commandNotFound(String cmd) {
+        return "Command named " + cmd + " was not found.";
+    }
+
     static String clearHistoryFailed() {
         return failed("Clear history");
     }

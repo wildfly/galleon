@@ -19,9 +19,8 @@ package org.jboss.galleon.cli.cmd;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
@@ -79,8 +78,7 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
                 completerInvocation.getPmSession().enableTrackers(trackersEnabled);
             }
         } catch (Exception ex) {
-            Logger.getLogger(InstalledProducerCompleter.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", ex.getLocalizedMessage());
+            CliLogging.completionException(ex);
         }
         return items;
     }

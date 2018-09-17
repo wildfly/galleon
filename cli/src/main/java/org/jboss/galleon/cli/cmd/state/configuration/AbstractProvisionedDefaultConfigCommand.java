@@ -20,12 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.AbstractCompleter;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCompleterInvocation;
@@ -73,8 +72,7 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
                 }
                 return configs;
             } catch (Exception ex) {
-                Logger.getLogger(AbstractProvisionedDefaultConfigCommand.class.getName()).log(Level.FINEST,
-                        "Exception while completing: {0}", ex.getLocalizedMessage());
+                CliLogging.completionException(ex);
                 return Collections.emptyList();
             }
         }
@@ -103,8 +101,7 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
                 }
                 return lst;
             } catch (Exception ex) {
-                Logger.getLogger(TargetedFPCompleter.class.getName()).log(Level.FINEST,
-                        "Exception while completing: {0}", ex.getLocalizedMessage());
+                CliLogging.completionException(ex);
                 return Collections.emptyList();
             }
         }

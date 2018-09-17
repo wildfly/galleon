@@ -23,8 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
 import org.aesh.command.container.CommandContainer;
@@ -39,6 +37,7 @@ import org.aesh.command.map.MapProcessedCommandBuilder.MapProcessedCommand;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.parser.ParsedLine;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -143,8 +142,8 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 }
                 return options;
             } catch (Exception ex) {
-                Logger.getLogger(AbstractDynamicCommand.class.getName()).log(Level.FINEST,
-                        "Error retrieving dynamic options: {0}", ex.getLocalizedMessage());
+                CliLogging.log.errorf("Error retrieving dynamic options: {0}",
+                        ex.getLocalizedMessage());
             }
             return Collections.emptyList();
         }

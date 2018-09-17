@@ -26,8 +26,6 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.aesh.command.activator.CommandActivator;
 import org.aesh.command.activator.CommandActivatorProvider;
 import org.aesh.command.activator.OptionActivator;
@@ -91,7 +89,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
                 }
                 config.storeLayoutCacheContent(props);
             } catch (IOException ex) {
-                Logger.getLogger(PmSession.class.getName()).log(Level.SEVERE, null, ex);
+                CliLogging.exception(ex);
             }
         }
 
@@ -103,7 +101,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
                         isDevBuild(fpid);
                 return devBuild && !seen.contains(fpid);
             } catch (ProvisioningException ex) {
-                Logger.getLogger(PmSession.class.getName()).log(Level.SEVERE, null, ex);
+                CliLogging.exception(ex);
                 return true;
             }
         }
@@ -328,7 +326,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
                     try {
                         cacheManager.remove(FeaturePackLocation.fromString(k).getFPID());
                     } catch (ProvisioningException ex) {
-                        Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
+                        CliLogging.exception(ex);
                     }
                 }
                 // keep root dir to check that the dirs located in cache are valid
@@ -356,7 +354,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
                 }
             });
         } catch (ProvisioningDescriptionException | IOException ex) {
-            Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
+            CliLogging.exception(ex);
         }
 
     }
