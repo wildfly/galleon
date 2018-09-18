@@ -418,7 +418,7 @@ public class ResolvedFeatureSpec extends CapabilityProvider {
             FeatureReferenceSpec refSpec) throws ProvisioningException {
         try {
             if(refSpec.getOrigin() != null) {
-                origin = rt.layout.getFeaturePack(origin.spec.getFeaturePackDep(refSpec.getOrigin()).getLocation().getProducer());
+                origin = rt.layout.getFeaturePack(origin.getSpec().getFeaturePackDep(refSpec.getOrigin()).getLocation().getProducer());
             }
             final ResolvedFeatureSpec resolvedRefSpec = rt.getFeatureSpec(origin, refSpec.getFeature().getName());
             assertRefParamMapping(refSpec, resolvedRefSpec);

@@ -54,6 +54,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.LayoutUtils;
 
 /**
  *
@@ -521,7 +522,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         return index;
     }
 
-    private boolean dependsOn(F f, ProducerSpec dep, Set<ProducerSpec> visitedFps) {
+    private boolean dependsOn(F f, ProducerSpec dep, Set<ProducerSpec> visitedFps) throws ProvisioningException {
         final FeaturePackSpec spec = f.getSpec();
         if(!spec.hasFeaturePackDeps()) {
             return false;
@@ -835,7 +836,16 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     }
                     continue;
                 }
-                final Path fpDir = f.getDir();
+
+                final Path fpDir = LayoutUtils.getFeaturePackDir(getTmpPath("patched"), f.getFPID(), false);
+                try {
+                    Files.createDirectories(fpDir);
+                    IoUtils.copy(f.getDir(), fpDir);
+                } catch (IOException e) {
+                    throw new ProvisioningException("Failed to patch feature-pack dir for " + f.getFPID(), e);
+                }
+                f.dir = fpDir;
+
                 for(F patch : patches) {
                     final Path patchDir = patch.getDir();
                     Path patchContent = patchDir.resolve(Constants.PACKAGES);

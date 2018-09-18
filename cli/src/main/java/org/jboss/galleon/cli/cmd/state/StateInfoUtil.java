@@ -339,7 +339,7 @@ public class StateInfoUtil {
         return null;
     }
 
-    public static String buildPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) {
+    public static String buildPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         if (!layout.hasPatches()) {
             return null;
         }

@@ -253,7 +253,7 @@ public class ProvisioningRuntimeBuilder {
 
             boolean extendedStackLevel = false;
             if (!fpConfig.isTransitive()) {
-                final FeaturePackSpec currentSpec = currentOrigin.spec;
+                final FeaturePackSpec currentSpec = currentOrigin.getSpec();
                 if (currentSpec.hasDefinedConfigs()) {
                     for (ConfigModel config : currentSpec.getDefinedConfigs()) {
                         final ConfigId id = config.getId();
@@ -321,7 +321,7 @@ public class ProvisioningRuntimeBuilder {
                     specConfigStacks = CollectionUtils.add(specConfigStacks, configStack);
                 }
 
-                config = currentOrigin.spec.getDefinedConfig(configId);
+                config = currentOrigin.getSpec().getDefinedConfig(configId);
                 if(config != null) {
                     configStack.pushConfig(config);
                     specConfigStacks = CollectionUtils.add(specConfigStacks, configStack);
@@ -331,13 +331,13 @@ public class ProvisioningRuntimeBuilder {
 
             boolean extendedStackLevel = false;
             if (!fpConfig.isTransitive()) {
-                if (currentOrigin.spec.hasFeaturePackDeps()) {
-                    if (currentOrigin.spec.hasTransitiveDeps()) {
-                        for (FeaturePackConfig fpDep : currentOrigin.spec.getTransitiveDeps()) {
+                if (currentOrigin.getSpec().hasFeaturePackDeps()) {
+                    if (currentOrigin.getSpec().hasTransitiveDeps()) {
+                        for (FeaturePackConfig fpDep : currentOrigin.getSpec().getTransitiveDeps()) {
                             extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
                         }
                     }
-                    for (FeaturePackConfig fpDep : currentOrigin.spec.getFeaturePackDeps()) {
+                    for (FeaturePackConfig fpDep : currentOrigin.getSpec().getFeaturePackDeps()) {
                         extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
                     }
                     if (extendedStackLevel) {
@@ -354,8 +354,8 @@ public class ProvisioningRuntimeBuilder {
                     }
                 }
 
-                if (fpConfig.isInheritPackages() && currentOrigin.spec.hasDefaultPackages()) {
-                    for (String packageName : currentOrigin.spec.getDefaultPackageNames()) {
+                if (fpConfig.isInheritPackages() && currentOrigin.getSpec().hasDefaultPackages()) {
+                    for (String packageName : currentOrigin.getSpec().getDefaultPackageNames()) {
                         if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName, false)) {
                             continue;
                         }
@@ -446,8 +446,8 @@ public class ProvisioningRuntimeBuilder {
             if (configLayer != null) {
                 layerStack.pushGroup(configLayer);
             }
-            if(fp.spec.hasFeaturePackDeps()) {
-                for(FeaturePackConfig depConfig : fp.spec.getFeaturePackDeps()) {
+            if(fp.getSpec().hasFeaturePackDeps()) {
+                for(FeaturePackConfig depConfig : fp.getSpec().getFeaturePackDeps()) {
                     resolveConfigLayer(layout.getFeaturePack(depConfig.getLocation().getProducer()), layerStack, layerId);
                 }
             }
@@ -509,7 +509,7 @@ public class ProvisioningRuntimeBuilder {
                 modelOnlyStack.pushConfig(config);
                 ++pushedCount;
             }
-            config = fp.spec.getDefinedConfig(configId);
+            config = fp.getSpec().getDefinedConfig(configId);
             if(config != null) {
                 if(modelOnlyStack == null) {
                     modelOnlyStack = new ConfigModelStack(configId, this);
@@ -527,14 +527,14 @@ public class ProvisioningRuntimeBuilder {
             }
 
             boolean extendedStackLevel = false;
-            if (fp.spec.hasTransitiveDeps()) {
-                for (FeaturePackConfig fpDep : fp.spec.getTransitiveDeps()) {
+            if (fp.getSpec().hasTransitiveDeps()) {
+                for (FeaturePackConfig fpDep : fp.getSpec().getTransitiveDeps()) {
                     extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
                 }
             }
 
-            if(fp.spec.hasFeaturePackDeps()) {
-                for(FeaturePackConfig fpDep : fp.spec.getFeaturePackDeps()) {
+            if(fp.getSpec().hasFeaturePackDeps()) {
+                for(FeaturePackConfig fpDep : fp.getSpec().getFeaturePackDeps()) {
                     extendedStackLevel |= fpConfigStack.push(fpDep, extendedStackLevel);
                     if(fpDep.isConfigModelExcluded(configId) || !fpDep.isInheritModelOnlyConfigs() && !fpDep.isConfigModelIncluded(configId)) {
                         continue;
@@ -663,7 +663,7 @@ public class ProvisioningRuntimeBuilder {
             }
             return thisOrigin;
         }
-        final FeaturePackLocation fpl = currentOrigin == null ? config.getFeaturePackDep(depName).getLocation() : currentOrigin.spec.getFeaturePackDep(depName).getLocation();
+        final FeaturePackLocation fpl = currentOrigin == null ? config.getFeaturePackDep(depName).getLocation() : currentOrigin.getSpec().getFeaturePackDep(depName).getLocation();
         return layout.getFeaturePack(fpl.getProducer());
     }
 
@@ -909,7 +909,7 @@ public class ProvisioningRuntimeBuilder {
             if(origin.resolvePackage(name, this)) {
                 return true;
             }
-            fpDeps = origin.spec;
+            fpDeps = origin.getSpec();
             visited = CollectionUtils.add(visited, origin.producer);
         } else {
             fpDeps = config;
@@ -1083,7 +1083,7 @@ public class ProvisioningRuntimeBuilder {
                 currentOrigin = origin;
                 return fg;
             }
-            fpDeps = origin.spec;
+            fpDeps = origin.getSpec();
             visitedProducers = CollectionUtils.add(visitedProducers, origin.producer);
         } else {
             fpDeps = config;
@@ -1138,7 +1138,7 @@ public class ProvisioningRuntimeBuilder {
                 }
                 return fs;
             }
-            fpDeps = origin.spec;
+            fpDeps = origin.getSpec();
             visitedProducers = CollectionUtils.add(visitedProducers, origin.producer);
         } else {
             fpDeps = config;

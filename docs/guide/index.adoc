@@ -36,6 +36,8 @@ include::provisioned-config/index.adoc[]
 
 include::patches/index.adoc[]
 
+include::user-managed-content/index.adoc[]
+
 include::maven-plugin/index.adoc[]
 
 include::tool/index.adoc[]

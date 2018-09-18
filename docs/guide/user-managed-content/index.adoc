@@ -1,0 +1,86 @@
+## Handling user-managed content
+
+Once an installation has been built, a user or a process (on behalf of the user) may apply certain changes to the content of the installation such as add, edit or remove files and/or directories.
+
+CAUTION: Since these kind of changes are not performed by the provisioning mechanism, it is the responsibility of the user to apply them in a safe manner and not break the installation by introducing some sort of unsatisfied dependencies or violating integrity constraints.
+
+Since these kind of changes are usually going to be applied after the installation has been built they don't interfere with the provisioning process. That is until the next (provisioning state) update.
+
+When a user requests a version update or install/uninstall a patch or a feature-pack, or an undo for the installation that contains user-managed content or changes, the provisioning mechanism detects what exactly has changed since the last provisioned state.
+
+If no user changes have been detected, the updated version of the installation will replace the current one. However, if the provisioning mechanism did detect certain changes to the last provisioned state (in the form of added/remove files and/or directories or editted files), those changes will be respected and re-applied to the updated installation state, i.e.
+
+- files and/or directories added to the previous installation state will be added to the updated installation state;
+
+- files and/or directories removed from the previous installation state will be removed from the updated installation state;
+
+- files editted in the previous installation state will be copied over to the updated installation state.
+
+IMPORTANT: The provisioning mechanism *DOES NOT* perform 3-way merges on files that have changed in the updated installation state since the last provisioned state and that have also been modified by the user.
+
+### Application of user changes to the updated installation state
+
+.User-added file
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|The user-added file is copied to the updated state
+
+|Found and matches the file added by the user
+|
+None
+
+|Found and is different from the file added by the user
+|
+* A copy of the file from the updated state is created with suffix *.glnew*
+
+* The user-added file is copied to the updated state (replacing the existing one)
+|===
+
+.User-modified file
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|The user-modified file is copied to the updated state and a warning is logged saying that the (equivalent of the) file modified in the previous state is not found in the updated state
+
+|Found and matches the resulting file modified by the user
+|
+None
+
+|Found and is different from the resulting file modified by the user
+|
+* A copy of the file from the updated state is created with suffix *.glnew*
+
+* The user-modified file is copied to the updated state (replacing the existing one)
+|===
+
+.User-removed file or directory
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|None
+
+|Found
+|The target is removed from the updated installation
+
+|===
+
+.User-created directory
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|The corresponding directory is created in the updated state
+
+|Found
+|None
+
+|===
+
