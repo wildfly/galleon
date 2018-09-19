@@ -428,13 +428,13 @@ class ConfigModelStack {
         }
     }
 
-    List<ResolvedFeature> orderFeatures() throws ProvisioningException {
+    List<ResolvedFeature> orderFeatures(boolean arrange) throws ProvisioningException {
         if(orderedFeatures != null) {
             return orderedFeatures;
         }
         if (features.isEmpty()) {
             orderedFeatures = Collections.emptyList();
-        } else {
+        } else if(arrange) {
             final String arranger = System.getProperty(Constants.PROP_CONFIG_ARRANGER);
             if(arranger == null) {
                 orderedFeatures = new DefaultBranchedConfigArranger(this).orderFeatures();
@@ -443,10 +443,23 @@ class ConfigModelStack {
             } else {
                 throw new ProvisioningException("Unsupported config arranger " + arranger);
             }
+        } else {
+            orderedFeatures = new ArrayList<>(features.size());
+            for(ResolvedFeature feature : features.values()) {
+                orderedFeatures.add(feature);
+            }
+            // make sure features w/o IDs are also ordered
+            for(Map.Entry<ResolvedSpecId, SpecFeatures> entry : specFeatures.entrySet()) {
+                if(entry.getValue().spec.getSpec().hasId()) {
+                    continue;
+                }
+                for (ResolvedFeature feature : entry.getValue().getFeatures()) {
+                    orderedFeatures.add(feature);
+                }
+            }
         }
         return orderedFeatures;
     }
-
 
     private void addToSpecFeatures(final ResolvedFeature feature) {
         getSpecFeatures(feature.spec).add(feature);

@@ -47,7 +47,7 @@ public class ResolvedConfig implements ProvisionedConfig {
         this.id = configStack.id;
         this.props = CollectionUtils.unmodifiable(configStack.props);
         this.configDeps = CollectionUtils.unmodifiable(configStack.configDeps);
-        this.features = CollectionUtils.unmodifiable(configStack.orderFeatures());
+        this.features = CollectionUtils.unmodifiable(configStack.orderFeatures(true));
         layers = Collections.unmodifiableList(configStack.getIncludedLayers());
     }
 
