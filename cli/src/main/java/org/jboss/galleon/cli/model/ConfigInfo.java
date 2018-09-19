@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.model;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import org.jboss.galleon.config.ConfigId;
@@ -30,12 +31,19 @@ public class ConfigInfo {
     private final String name;
     private Group root;
     private final ConfigId id;
-    public ConfigInfo(String model, String name) {
+    private final Collection<ConfigId> layers;
+
+    public ConfigInfo(String model, String name, Collection<ConfigId> layers) {
         Objects.requireNonNull(model);
         Objects.requireNonNull(name);
         this.model = model;
         this.name = name;
         this.id = new ConfigId(model, name);
+        this.layers = layers;
+    }
+
+    public Collection<ConfigId> getlayers() {
+        return layers;
     }
 
     public ConfigId getId() {

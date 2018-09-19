@@ -105,6 +105,19 @@ You can retrieve the set of feature-pack specific options without relying on com
 _feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=options_ +
 You can then use the listed options (if any) to customize your install command.
 
+### Installing feature-pack layers
+
+The _install_ command can be used to install subset of feature-pack features. Such subset are called layers.
+When installing layers, a custom configuration is generated. If no configuration 
+model and name are provided, the <model name of layers>.xml is used as the generated configuration file name.
+
+_install <[FPL|FPID] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--layers=<comma separated list of layers>] 
+[--model=<layers model>] --config=<configuration name>_
+
+You can retrieve the set of feature-pack defined layers without relying on completion, to do so call: +
+_feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=layers_ +
+You can then use the listed layers (if any) to customize your install command.
+
 ### Un-installing a feature-pack
 
 _uninstall [FPID] [--dir=<installation dir>] [--verbose] [feature-pack specific options]_
@@ -155,17 +168,17 @@ You can then use the listed options (if any) to customize your update command.
 
 ### Observing an installation
 
-_[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|patches]_
+_[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|layers|patches]_
 
-Display the set of installed feature-packs FPID. In addition can display configurations, dependencies and patches. + 
+Display the set of installed feature-packs FPID. In addition can display configurations, dependencies layers and patches. + 
 NB: If some patches are applied, the applied patches information is displayed.
 
 ### Observing a feature-pack
 
-_[my-dir]$ feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|options]_
+_[my-dir]$ feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|layers|options]_
 
-Display the FPID of a feature-pack. In addition can display dependencies, configurations 
-and options usable when installing/provisioning/upgrading.
+Display the FPID of a feature-pack. In addition can display dependencies, configurations, 
+layers and options usable when installing/provisioning/upgrading.
 
 ### Managing the local cache of feature-packs
 

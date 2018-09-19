@@ -17,17 +17,27 @@
 package org.jboss.galleon.layout;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
+import org.jboss.galleon.xml.ConfigLayerSpecXmlParser;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
@@ -122,4 +132,51 @@ public abstract class FeaturePackLayout {
             throw new ProvisioningDescriptionException(Errors.parseXml(specXml), e);
         }
     }
+
+    public ConfigLayerSpec loadConfigLayerSpec(String model, String name) throws ProvisioningException {
+        final Path specXml;
+        if (model == null) {
+            specXml = getDir().resolve(Constants.LAYERS).resolve(name).resolve(Constants.LAYER_SPEC_XML);
+        } else {
+            specXml = getDir().resolve(Constants.LAYERS).resolve(model).resolve(name).resolve(Constants.LAYER_SPEC_XML);
+        }
+        if (!Files.exists(specXml)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(specXml)) {
+            return ConfigLayerSpecXmlParser.getInstance().parse(reader);
+        } catch (Exception e) {
+            throw new ProvisioningDescriptionException(Errors.parseXml(specXml), e);
+        }
+    }
+
+    public Set<ConfigId> loadLayers() throws ProvisioningException, IOException {
+        Path layersDir = getDir().resolve(Constants.LAYERS);
+        if (!Files.exists(layersDir)) {
+            return Collections.emptySet();
+        }
+        Set<ConfigId> layers = new HashSet<>();
+
+        Files.walkFileTree(layersDir, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (file.getFileName().toString().equals(Constants.LAYER_SPEC_XML)) {
+                    ConfigId id;
+                    Path rootDir = file.getParent().getParent();
+                    // No model
+                    if (rootDir.equals(layersDir)) {
+                        id = new ConfigId(null, file.getParent().getFileName().toString());
+                    } else {
+                        id = new ConfigId(rootDir.getFileName().toString(),
+                                file.getParent().getFileName().toString());
+                    }
+                    layers.add(id);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+        });
+        return layers;
+    }
+
 }

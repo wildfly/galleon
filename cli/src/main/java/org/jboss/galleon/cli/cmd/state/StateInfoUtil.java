@@ -36,7 +36,9 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
+import org.jboss.galleon.cli.cmd.maingrp.LayersConfigBuilder;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.LAYERS;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.PATCHES;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -54,6 +56,8 @@ import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.cli.resolver.ResolvedPlugins;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
@@ -76,6 +80,7 @@ public class StateInfoUtil {
 
     public static final String NO_CONFIGURATIONS = "No configurations.";
     public static final String NO_DEPENDENCIES = "No dependencies.";
+    public static final String NO_LAYERS = "No layers.";
     public static final String NO_OPTIONS = "No options.";
     public static final String NO_PATCHES = "No patches.";
 
@@ -289,25 +294,84 @@ public class StateInfoUtil {
         }
     }
 
-    public static String buildConfigs(Map<String, List<ConfigInfo>> configs) {
+    public static String buildConfigs(Map<String, List<ConfigInfo>> configs,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
         if (!configs.isEmpty()) {
-            Table table = new Table(Headers.CONFIGURATION, Headers.NAME);
+            Map<String, Map<String, Set<String>>> layers = LayersConfigBuilder.getAllLayers(pLayout);
+            Table.Tree table = new Table.Tree(Headers.CONFIGURATION, Headers.NAME, Headers.LAYERS);
             for (Entry<String, List<ConfigInfo>> entry : configs.entrySet()) {
                 if (!entry.getValue().isEmpty()) {
-                    List<Table.Cell> cells = new ArrayList<>();
-                    cells.add(new Table.Cell(entry.getKey()));
-                    Table.Cell names = new Table.Cell();
-                    cells.add(names);
+                    Table.Node model = new Table.Node(entry.getKey());
+                    table.add(model);
                     for (ConfigInfo name : entry.getValue()) {
-                        names.addLine(name.getName());
+                        Table.Node nameNode = new Table.Node(name.getName());
+                        model.addNext(nameNode);
+                        // Compute the direct dependencies only, remove dependencies of dependencies.
+                        for (ConfigId id : name.getlayers()) {
+                            Map<String, Set<String>> map = layers.get(entry.getKey());
+                            boolean foundAsDependency = false;
+                            if (map != null) {
+                                for (ConfigId l : name.getlayers()) {
+                                    if (l.getName().equals(id.getName())) {
+                                        continue;
+                                    }
+                                    Set<String> deps = map.get(l.getName());
+                                    if (deps != null) {
+                                        if (deps.contains(id.getName())) {
+                                            foundAsDependency = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (!foundAsDependency) {
+                                nameNode.addNext(new Table.Node(id.getName()));
+                            }
+                        }
+                        ConfigModel m = pLayout.getConfig().getDefinedConfig(name.getId());
+                        if(m != null) {
+                            if(m.hasExcludedLayers()) {
+                                for(String ex : m.getExcludedLayers()) {
+                                    nameNode.addNext(new Table.Node(ex+"(excluded)"));
+                                }
+                            }
+                        }
                     }
-                    table.addCellsLine(cells);
                 }
             }
-            table.sort(Table.SortType.ASCENDANT);
-            return table.build();
+            return "Configurations" + Config.getLineSeparator() + table.build();
         }
         return null;
+    }
+
+    public static String buildLayers(ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        Map<String, Map<String, Set<String>>> layersMap = LayersConfigBuilder.getAllLayers(pLayout);
+        if (!layersMap.isEmpty()) {
+            Table.Tree t = new Table.Tree(Headers.CONFIGURATION, Headers.LAYERS, Headers.DEPENDENCIES);
+            for (Entry<String, Map<String, Set<String>>> entry : layersMap.entrySet()) {
+                Table.Node model = new Table.Node(entry.getKey());
+                t.add(model);
+                for (Entry<String, Set<String>> layerEntry : entry.getValue().entrySet()) {
+                    Table.Node name = new Table.Node(layerEntry.getKey());
+                    model.addNext(name);
+                    for (String dep : layerEntry.getValue()) {
+                        Table.Node dependency = new Table.Node(dep);
+                        name.addNext(dependency);
+                    }
+                }
+            }
+            return "Layers" + Config.getLineSeparator() + t.build();
+        }
+        return null;
+    }
+
+    private static boolean displayLayers(PmCommandInvocation invoc,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        String str = buildLayers(pLayout);
+        if (str != null) {
+            invoc.print(str);
+        }
+        return str != null;
     }
 
     public static String buildDependencies(List<FeaturePackLocation> dependencies, Map<FPID, FeaturePackConfig> configs) {
@@ -374,7 +438,7 @@ public class StateInfoUtil {
         commandInvocation.print(t.build());
     }
 
-    public static void printFeaturePacks(PmCommandInvocation commandInvocation,
+    private static String buildFeaturePacks(PmCommandInvocation commandInvocation,
             Path installation, Collection<FeaturePackConfig> fps) {
         boolean showPatches = showPatches(fps);
         List<String> headers = new ArrayList<>();
@@ -404,7 +468,9 @@ public class StateInfoUtil {
         }
         if (!t.isEmpty()) {
             t.sort(Table.SortType.ASCENDANT);
-            commandInvocation.print(t.build());
+            return t.build();
+        } else {
+            return null;
         }
     }
 
@@ -477,7 +543,10 @@ public class StateInfoUtil {
                             if (displayPatches(invoc, layout)) {
                                 invoc.println("");
                             }
-                            if (displayConfigs(invoc, container)) {
+                            if (displayConfigs(invoc, container, layout)) {
+                                invoc.println("");
+                            }
+                            if (displayLayers(invoc, layout)) {
                                 invoc.println("");
                             }
                             displayOptions(invoc, layout);
@@ -485,7 +554,7 @@ public class StateInfoUtil {
                         }
                         case CONFIGS: {
                             FeatureContainer container = supplier.apply(layout);
-                            String configs = buildConfigs(invoc, container);
+                            String configs = buildConfigs(invoc, container, layout);
                             if (configs != null) {
                                 invoc.print(configs);
                             } else {
@@ -499,6 +568,15 @@ public class StateInfoUtil {
                                 invoc.print(deps);
                             } else {
                                 invoc.println(NO_DEPENDENCIES);
+                            }
+                            break;
+                        }
+                        case LAYERS: {
+                            String layers = buildLayers(layout);
+                            if (layers != null) {
+                                invoc.print(layers);
+                            } else {
+                                invoc.println(NO_LAYERS);
                             }
                             break;
                         }
@@ -531,21 +609,26 @@ public class StateInfoUtil {
         }
     }
 
-    private static boolean displayConfigs(PmCommandInvocation invoc, FeatureContainer container) {
-        String str = buildConfigs(invoc, container);
+    private static boolean displayConfigs(PmCommandInvocation invoc, FeatureContainer container,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        String str = buildConfigs(invoc, container, pLayout);
         if (str != null) {
             invoc.print(str);
         }
         return str != null;
     }
 
-    private static String buildConfigs(PmCommandInvocation invoc, FeatureContainer container) {
-        return buildConfigs(container.getFinalConfigs());
+    private static String buildConfigs(PmCommandInvocation invoc, FeatureContainer container,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        return buildConfigs(container.getFinalConfigs(), pLayout);
     }
 
     private static void displayFeaturePacks(PmCommandInvocation invoc, Path installation,
             ProvisioningConfig config) {
-        printFeaturePacks(invoc, installation, config.getFeaturePackDeps());
+        String str = buildFeaturePacks(invoc, installation, config.getFeaturePackDeps());
+        if (str != null) {
+            invoc.print(str);
+        }
     }
 
     private static boolean displayDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {

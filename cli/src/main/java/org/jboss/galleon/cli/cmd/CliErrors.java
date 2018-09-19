@@ -221,6 +221,10 @@ public interface CliErrors {
         return "Sub command is missing";
     }
 
+    static String tooMuchModels() {
+        return "More than one layer model, model must be specified";
+    }
+
     static String undoFailed() {
         return failed("Undo");
     }
@@ -235,6 +239,14 @@ public interface CliErrors {
 
     static String unknownFile(String absolutePath) {
         return "File " + absolutePath + " doesn't exist";
+    }
+
+    static String unknownLayer(String layer) {
+        return "Unknown layer " + layer;
+    }
+
+    static String unknownModel(String model) {
+        return "Unknown model " + model;
     }
 
     static String updateFailed() {

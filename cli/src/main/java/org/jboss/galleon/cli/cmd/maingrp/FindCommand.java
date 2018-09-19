@@ -16,8 +16,12 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -35,7 +39,15 @@ import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.UniverseManager.UniverseVisitor;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.tracking.ProgressTrackers;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.UniverseSpec;
 
@@ -46,8 +58,35 @@ import org.jboss.galleon.universe.UniverseSpec;
 @CommandDefinition(name = "find", description = HelpDescriptions.FIND)
 public class FindCommand extends PmSessionCommand {
 
+    private static class Result {
+
+        private final FeaturePackLocation location;
+        private final Set<ConfigId> layers;
+
+        Result(FeaturePackLocation location) {
+            layers = new HashSet<>();
+            this.location = location;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(location.toString());
+            if (!layers.isEmpty()) {
+                builder.append(" layers[ ");
+                for (ConfigId l : layers) {
+                    builder.append(l.getModel()).append("/").append(l.getName()).append(" ");
+                }
+                builder.append("]");
+            }
+            return builder.toString();
+        }
+    }
     @Argument(description = HelpDescriptions.FIND_PATTERN)
     private String pattern;
+
+    @Option(description = HelpDescriptions.FIND_LAYERS_PATTERN, name = "layers")
+    private String layerPattern;
 
     @Option(required = false, name = "universe", description = HelpDescriptions.FIND_UNIVERSE)
     private String fromUniverse;
@@ -57,24 +96,44 @@ public class FindCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
-        if (pattern == null) {
+        if (pattern == null && layerPattern == null) {
             throw new CommandExecutionException(CliErrors.missingPattern());
         } else {
-            Map<UniverseSpec, Set<FeaturePackLocation>> results = new HashMap<>();
+            if (pattern == null) {
+                pattern = ".Final";
+            }
+            Map<UniverseSpec, Set<Result>> results = new HashMap<>();
             Map<UniverseSpec, Exception> exceptions = new HashMap<>();
             if (!pattern.endsWith("*")) {
                 pattern = pattern + "*";
             }
             pattern = pattern.replaceAll("\\*", ".*");
+            List<Pattern> layersCompiledPatterns = new ArrayList<>();
+            if (layerPattern != null) {
+                for (String l : layerPattern.split(",")) {
+                    if (!l.endsWith("*")) {
+                        l = l + "*";
+                    }
+                    l = l.replaceAll("\\*", ".*");
+                    layersCompiledPatterns.add(Pattern.compile(l));
+                }
+            }
             boolean containsFrequency = pattern.contains("" + FeaturePackLocation.FREQUENCY_START);
             Pattern compiledPattern = Pattern.compile(pattern);
+
             Integer[] numResults = new Integer[1];
             numResults[0] = 0;
+            ProgressTracker<FPID> track = null;
+            if (invoc.getPmSession().isTrackersEnabled()) {
+                track = ProgressTrackers.newFindTracker(invoc);
+            }
+            ProgressTracker<FPID> tracker = track;
+            invoc.getPmSession().unregisterTrackers();
             try {
-                Comparator<FeaturePackLocation> locComparator = new Comparator<FeaturePackLocation>() {
+                Comparator<Result> locComparator = new Comparator<Result>() {
                     @Override
-                    public int compare(FeaturePackLocation o1, FeaturePackLocation o2) {
-                        return o1.toString().compareTo(o2.toString());
+                    public int compare(Result o1, Result o2) {
+                        return o1.location.toString().compareTo(o2.location.toString());
                     }
                 };
                 UniverseVisitor visitor = new UniverseVisitor() {
@@ -88,7 +147,9 @@ public class FindCommand extends PmSessionCommand {
                             exception(loc.getUniverse(), ex);
                             return;
                         }
-
+                        if (tracker != null) {
+                            tracker.processing(loc.getFPID());
+                        }
                         // Universe could have been set in the pattern, matches on
                         // the canonical and exposed (named universe).
                         FeaturePackLocation exposedLoc = invoc.getPmSession().
@@ -100,17 +161,52 @@ public class FindCommand extends PmSessionCommand {
                         if (canonicalMatch || exposedMatch) {
                             if ((containsFrequency && loc.getFrequency() != null)
                                     || (!containsFrequency && loc.getFrequency() == null)) {
-                                Set<FeaturePackLocation> locations = results.get(loc.getUniverse());
-                                if (locations == null) {
-                                    locations = new TreeSet<>(locComparator);
-                                    results.put(loc.getUniverse(), locations);
-                                }
+                                Result result;
                                 if (exposedMatch) {
-                                    locations.add(exposedLoc);
+                                    result = new Result(exposedLoc);
                                 } else {
-                                    locations.add(loc);
+                                    result = new Result(loc);
                                 }
-                                numResults[0] = numResults[0] + 1;
+                                if (!layersCompiledPatterns.isEmpty()) {
+                                    try {
+                                        FeaturePackConfig config = FeaturePackConfig.forLocation(loc);
+                                        ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
+                                        Set<ConfigId> layers = new HashSet<>();
+                                        try (ProvisioningLayout<FeaturePackLayout> layout
+                                                = invoc.getPmSession().getLayoutFactory().newConfigLayout(provisioning)) {
+                                            for (FeaturePackLayout l : layout.getOrderedFeaturePacks()) {
+                                                layers.addAll(l.loadLayers());
+                                            }
+                                        }
+                                        for (ConfigId l : layers) {
+                                            for (Pattern p : layersCompiledPatterns) {
+                                                if (p.matcher(l.getName()).matches()) {
+                                                    result.layers.add(l);
+                                                }
+                                            }
+                                        }
+                                        if (!result.layers.isEmpty()) {
+                                            Set<Result> locations = results.get(loc.getUniverse());
+                                            if (locations == null) {
+                                                locations = new TreeSet<>(locComparator);
+                                                results.put(loc.getUniverse(), locations);
+                                            }
+                                            locations.add(result);
+                                            numResults[0] = numResults[0] + 1;
+                                        }
+                                    } catch (IOException | ProvisioningException ex) {
+                                        exceptions.put(loc.getUniverse(), ex);
+                                    }
+                                } else {
+                                    Set<Result> locations = results.get(loc.getUniverse());
+                                    if (locations == null) {
+                                        locations = new TreeSet<>(locComparator);
+                                        results.put(loc.getUniverse(), locations);
+                                    }
+                                    locations.add(result);
+                                    numResults[0] = numResults[0] + 1;
+                                }
+
                             }
                         }
                     }
@@ -120,6 +216,9 @@ public class FindCommand extends PmSessionCommand {
                         exceptions.put(spec, ex);
                     }
                 };
+                if (tracker != null) {
+                    tracker.starting(-1);
+                }
 
                 if (fromUniverse == null) {
                     invoc.getPmSession().getUniverse().visitAllUniverses(visitor,
@@ -128,13 +227,16 @@ public class FindCommand extends PmSessionCommand {
                     invoc.getPmSession().getUniverse().visitUniverse(UniverseSpec.
                             fromString(fromUniverse), visitor, true);
                 }
+                if (tracker != null) {
+                    tracker.complete();
+                }
 
                 invoc.println(Config.getLineSeparator() + "Found "
                         + numResults[0] + " feature pack locations.");
 
                 printExceptions(invoc, exceptions);
 
-                for (Entry<UniverseSpec, Set<FeaturePackLocation>> entry : results.entrySet()) {
+                for (Entry<UniverseSpec, Set<Result>> entry : results.entrySet()) {
                     UniverseSpec universeSpec = entry.getKey();
                     String universeName = invoc.getPmSession().getUniverse().
                             getUniverseName(null, universeSpec);
@@ -142,7 +244,7 @@ public class FindCommand extends PmSessionCommand {
                     invoc.println(Config.getLineSeparator() + "Universe "
                             + universeName
                             + Config.getLineSeparator());
-                    for (FeaturePackLocation loc : entry.getValue()) {
+                    for (Result loc : entry.getValue()) {
                         invoc.println(loc.toString());
                     }
                 }
