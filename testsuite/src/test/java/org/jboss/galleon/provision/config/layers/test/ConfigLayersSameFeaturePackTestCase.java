@@ -179,7 +179,7 @@ public class ConfigLayersSameFeaturePackTestCase extends ProvisionConfigMvnTestB
                                 .build())
                         .addFeature(ProvisionedFeatureBuilder.builder(
                                 ResolvedFeatureId.create(prod1.getProducer(), "specA", "p1", "base1"))
-                                .setConfigParam("p2", "spec")
+                                .setConfigParam("p2", "ejb")
                                 .setConfigParam("p3", "ejb")
                                 .setConfigParam("p4", "undertow")
                                 .build())

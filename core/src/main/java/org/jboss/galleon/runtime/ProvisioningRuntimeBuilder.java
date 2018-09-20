@@ -419,7 +419,7 @@ public class ProvisioningRuntimeBuilder {
             }
         }
         configStack.includedLayer(layerId);
-        for(ResolvedFeature feature : layerStack.orderFeatures()) {
+        for(ResolvedFeature feature : layerStack.orderFeatures(false)) {
             if(configStack.isFilteredOut(feature.getSpecId(), feature.getId())) {
                 continue;
             }
