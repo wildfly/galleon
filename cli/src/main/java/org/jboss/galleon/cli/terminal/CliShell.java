@@ -19,8 +19,6 @@ package org.jboss.galleon.cli.terminal;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.aesh.command.shell.Shell;
 import org.aesh.io.Encoder;
 import org.aesh.readline.Prompt;
@@ -34,7 +32,7 @@ import org.aesh.terminal.Terminal;
 import org.aesh.terminal.tty.Capability;
 import org.aesh.terminal.tty.Size;
 import org.aesh.utils.Config;
-import org.jboss.galleon.cli.PmSession;
+import org.jboss.galleon.cli.CliLogging;
 
 /**
  * A shell to handle ANSI and reading input from terminal. This shell is
@@ -68,7 +66,7 @@ class CliShell implements Shell {
         try {
             terminal.output().write(data);
         } catch (IOException ex) {
-            Logger.getLogger(PmSession.class.getName()).log(Level.SEVERE, null, ex);
+            CliLogging.exception(ex);
         }
     }
 

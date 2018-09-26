@@ -19,8 +19,8 @@ package org.jboss.galleon.cli.cmd;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import org.aesh.command.completer.OptionCompleter;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -71,8 +71,7 @@ public abstract class AbstractPathCompleter implements OptionCompleter<PmComplet
             filterCandidates(consumer, candidates);
             return candidates;
         } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(AbstractPathCompleter.class.getName()).log(Level.FINEST,
-                    "Exception while completing: {0}", ex.getLocalizedMessage());
+            CliLogging.log.errorf("Exception while completing: {0}", ex.getLocalizedMessage());
         }
         return Collections.emptyList();
     }

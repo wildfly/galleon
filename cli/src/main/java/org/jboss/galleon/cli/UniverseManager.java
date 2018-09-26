@@ -29,8 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
@@ -75,7 +73,6 @@ public class UniverseManager implements MavenChangeListener {
             return thr;
         }
     });
-    private static final Logger LOGGER = Logger.getLogger(UniverseManager.class.getName());
     private MavenUniverse builtinUniverse;
     private final UniverseSpec builtinUniverseSpec;
     private final UniverseResolver universeResolver;
@@ -131,7 +128,7 @@ public class UniverseManager implements MavenChangeListener {
                         }
                     }
                 } catch (Exception ex) {
-                    LOGGER.log(Level.SEVERE, "Can't resolve builtin universe", ex);
+                    CliLogging.exceptionResolvingBuiltinUniverse(ex);
                 }
             }
         });

@@ -40,4 +40,11 @@ if [ "x$JAVA" = "x" ]; then
         JAVA="java"
     fi
 fi
-exec "$JAVA" $JAVA_OPTS -jar "$DIRNAME"/galleon-cli.jar "$@"
+
+LOG_CONF=`echo $JAVA_OPTS | grep "logging.configuration"`
+if [ "x$LOG_CONF" = "x" ]; then
+  exec "$JAVA" $JAVA_OPTS -Dlogging.configuration=file:"$DIRNAME"/galleon-cli-logging.properties -jar "$DIRNAME"/galleon-cli.jar "$@"
+else
+  echo "logging.configuration already set in JAVA_OPTS"
+  exec "$JAVA" $JAVA_OPTS -jar "$DIRNAME"/galleon-cli.jar "$@"
+fi

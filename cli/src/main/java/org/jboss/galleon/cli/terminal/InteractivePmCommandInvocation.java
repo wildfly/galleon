@@ -40,10 +40,13 @@ import org.jboss.galleon.cli.PmSession;
 class InteractivePmCommandInvocation extends PmCommandInvocation {
 
     private final CommandInvocation delegate;
+    private boolean paging;
 
-    InteractivePmCommandInvocation(PmSession session, CommandInvocation delegate) {
+    InteractivePmCommandInvocation(PmSession session, CommandInvocation delegate,
+            boolean paging) {
         super(session);
         this.delegate = delegate;
+        this.paging = paging;
     }
 
     @Override
@@ -79,13 +82,13 @@ class InteractivePmCommandInvocation extends PmCommandInvocation {
 
     @Override
     public void print(String msg) {
-        delegate.print(msg);
+        delegate.print(msg, paging);
 
     }
 
     @Override
     public void println(String msg) {
-        delegate.println(msg);
+        delegate.println(msg, paging);
     }
 
     @Override
