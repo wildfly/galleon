@@ -43,6 +43,7 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
+import org.jboss.galleon.cli.CliLogging;
 import static org.jboss.galleon.cli.CliMavenArtifactRepositoryManager.DEFAULT_REPOSITORY_TYPE;
 import org.jboss.galleon.cli.Util;
 
@@ -53,7 +54,8 @@ import org.jboss.galleon.cli.Util;
 class MavenMvnSettings implements MavenSettings {
 
     private static final String EXTERNAL = "external:";
-
+    private static final String ALL = "*";
+    private static final String NOT = "!";
     private final List<RemoteRepository> repositories;
     private final RepositorySystemSession session;
 
@@ -121,14 +123,37 @@ class MavenMvnSettings implements MavenSettings {
             for (Mirror mirror : settings.getMirrors()) {
                 String[] patterns = mirror.getMirrorOf().split(",");
                 List<RemoteRepository> mirrored = new ArrayList<>();
+                boolean all = false;
+                List<String> excluded = new ArrayList<>();
                 for (String p : patterns) {
-                    if (p.startsWith(EXTERNAL)) {
-                        throw new ArtifactException(EXTERNAL + " is not supported in mirrorOf");
+                    p = p.trim();
+                    if (ALL.equals(p)) {
+                        all = true;
+                    } else if (p.startsWith(NOT)) {
+                        excluded.add(p.substring(NOT.length()));
                     }
-                    RemoteRepository m = repos.get(p);
-                    if (m != null) {
-                        // Remove from the initial map, it is hidden by mirror
-                        mirrored.add(repos.remove(p));
+                }
+                if (all) {
+                    // Add all except the excluded ones.
+                    List<String> safeKeys = new ArrayList<>(repos.keySet());
+                    for (String k : safeKeys) {
+                        if (!excluded.contains(k)) {
+                            mirrored.add(repos.remove(k));
+                        }
+                    }
+                } else {
+                    for (String p : patterns) {
+                        p = p.trim();
+                        if (p.startsWith(EXTERNAL)) {
+                            CliLogging.log.warn("external:* mirroring is not supported, "
+                                    + "skipping configuration item");
+                            continue;
+                        }
+                        RemoteRepository m = repos.get(p);
+                        if (m != null) {
+                            // Remove from the initial map, it is hidden by mirror
+                            mirrored.add(repos.remove(p));
+                        }
                     }
                 }
                 if (!mirrored.isEmpty()) { // We have an active mirror
