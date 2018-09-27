@@ -59,52 +59,32 @@ abstract class CliProgressTracker<T> implements ProgressCallback<T> {
 
     private class ANSIPrinter implements Printer {
 
-        void print(String content, boolean moveUp) {
-            // The content is printed one line above cursor.
-            if (moveUp) {
-                invocation.getShell().write(ANSI.CURSOR_HIDE);
-                moveCursorUp();
-            }
+        void print(String content) {
+            invocation.getShell().write(ANSI.CURSOR_HIDE);
+            invocation.getShell().write(ANSI.CURSOR_RESTORE);
             invocation.getShell().write(ANSI.ERASE_WHOLE_LINE);
             invocation.getShell().write(content);
-            if (moveUp) {
-                // Put the cursor back to where it was.
-                invocation.getShell().write(ANSI.CURSOR_RESTORE);
-                invocation.getShell().write(ANSI.CURSOR_SHOW);
-                invocation.getShell().write(ANSI.ERASE_WHOLE_LINE);
-            }
+            invocation.getShell().write(ANSI.CURSOR_SHOW);
         }
 
         @Override
         public void complete(String content) {
             if (content != null) {
-                print(content + Config.getLineSeparator(), true);
+                print(content + Config.getLineSeparator());
             } else {
                 invocation.getShell().write(ANSI.ERASE_WHOLE_LINE);
             }
         }
 
-        private void moveCursorUp() {
-            int[] out = new int[4];
-            out[0] = 27; // esc
-            out[1] = '['; // [
-            out[2] = 1;
-            out[3] = 'A';
-            invocation.getShell().write(out);
-        }
-
         @Override
         public void starting() {
-            // Print the start message and a new line to locate the cursor.
             invocation.getShell().write(ANSI.CURSOR_SAVE);
-            print(msgStart + Config.getLineSeparator(), false);
-            // Save the cursor at the begining of the newly added empty line.
-            invocation.getShell().write(ANSI.CURSOR_SAVE);
+            print(msgStart);
         }
 
         @Override
         public void processing(String content) {
-            print(content, true);
+            print(content);
         }
     }
     final String msgStart;
