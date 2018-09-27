@@ -67,7 +67,8 @@ public class Util {
         return session;
     }
 
-    static RepositorySystem newRepositorySystem() {
+    // public for testing purpose
+    public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
         locator.addService(TransporterFactory.class, FileTransporterFactory.class);
