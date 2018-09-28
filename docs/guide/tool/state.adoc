@@ -81,11 +81,12 @@ TIP: The information displayed by this command can be re-used when installing, u
 
 ### Searching for feature-packs
 
-_[/]$ find <pattern> [--universe=<universe id>]_ + 
+_[/]$ find <pattern> [--universe=<universe id>] [--resolved-only]_ + 
 
 This command searches for all the feature pack builds present in all the installed 
 universes that match the provided pattern. +
 If _--universe_ option is set, the command searches for feature packs inside this universe. +
+If _--resolved-only_ option is set, the command only searches for feature packs installed in local repositories. +
 
 TIP: The information displayed by this command can be re-used when installing, updating features-packs.
 

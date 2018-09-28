@@ -350,9 +350,12 @@ public class UniverseManager implements MavenChangeListener {
                 }
                 for (String freq : producer.getFrequencies()) {
                     String build = getBuild(universeSpec, producer, channel, freq);
-                    FeaturePackLocation loc = new FeaturePackLocation(universeSpec,
-                            producer.getName(), channel.getName(), freq, build);
-                    visitor.visit(producer, loc);
+                    // We have a latest build for the frequency.
+                    if (build != null) {
+                        FeaturePackLocation loc = new FeaturePackLocation(universeSpec,
+                                producer.getName(), channel.getName(), freq, build);
+                        visitor.visit(producer, loc);
+                    }
                 }
             }
         }

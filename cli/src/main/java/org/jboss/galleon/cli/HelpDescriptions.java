@@ -70,6 +70,7 @@ public interface HelpDescriptions {
     String FILESYSTEM = "Contains commands to navigate the filesystem";
     String FIND = "Find feature pack locations that match the pattern";
     String FIND_PATTERN = "Feature pack location pattern. eg: wildfly:*.Final to search for all Final builds";
+    String FIND_RESOLVED_ONLY = "Look-up in resolved feature-packs only";
     String FIND_UNIVERSE = "Provide a universe id in order to search for feature packs "
             + "located in not installed universe";
     String FP_FILE = "Feature pack zip file";
