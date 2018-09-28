@@ -122,6 +122,7 @@ public interface HelpDescriptions {
     String MVN_REPO_URL = "Maven remote repository URL";
     String MVN_SETTINGS_PATH = "Path to maven xml settings file. Without any path provided, unset the path";
     String MVN_SET_LOCAL_PATH = "Set or reset the path to the local maven repository path";
+    String MVN_SET_OFFLINE = "Set or reset the offline mode to its default value";
     String MVN_SET_SETTINGS_PATH = "Set or reset the path to the maven xml settings file";
     String MVN_SNAPSHOT_UPDATE_POLICY = "Maven snapshot update policy. " + MVN_POLICIES;
     String MVN_UPDATE_POLICY = "Update policy. " + MVN_POLICIES;

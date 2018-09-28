@@ -85,6 +85,7 @@ public class MavenConfig {
     private boolean defaultEnableRelease = DEFAULT_ENABLE_RELEASE;
 
     private boolean disableAdvertise;
+    private boolean offline;
 
     void disableAdvertise() {
         disableAdvertise = true;
@@ -237,6 +238,11 @@ public class MavenConfig {
             writer.writeCharacters(settings.toAbsolutePath().toString());
             writer.writeEndElement();
         }
+        if (offline) {
+            writer.writeStartElement(MavenConfigXml.OFFLINE);
+            writer.writeCharacters(Boolean.toString(offline));
+            writer.writeEndElement();
+        }
         if (repositories.isEmpty()) {
             writer.writeEmptyElement(MavenConfigXml.REPOSITORIES);
         } else {
@@ -278,6 +284,15 @@ public class MavenConfig {
     public void setSettings(Path path) throws XMLStreamException, IOException {
         settings = path == null ? null : path.normalize();
         advertise();
+    }
+
+    public void setOffline(Boolean offline) throws XMLStreamException, IOException {
+        this.offline = offline == null ? false : offline;
+        advertise();
+    }
+
+    public boolean isOffline() {
+        return offline;
     }
 
     private boolean reuseMavenSettings() {

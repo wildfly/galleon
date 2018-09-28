@@ -41,6 +41,7 @@ public class MavenConfigXml {
     public static final String TYPE = "type";
     public static final String REPOSITORY = "repository";
     public static final String MAVEN = "maven";
+    public static final String OFFLINE = "offline";
 
     public static void read(XMLExtendedStreamReader reader, MavenConfig config)
             throws ProvisioningException, XMLStreamException, IOException {
@@ -80,6 +81,10 @@ public class MavenConfigXml {
                             }
                             case ENABLE_RELEASE: {
                                 config.enableRelease(Boolean.parseBoolean(reader.getElementText()));
+                                break;
+                            }
+                            case OFFLINE: {
+                                config.setOffline(Boolean.parseBoolean(reader.getElementText()));
                                 break;
                             }
                             default: {
