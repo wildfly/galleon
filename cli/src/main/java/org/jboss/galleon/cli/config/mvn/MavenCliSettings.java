@@ -40,7 +40,7 @@ class MavenCliSettings implements MavenSettings {
         repositories = Collections.unmodifiableList(buildRepositories(config));
         MavenProxySelector proxySelector = null;
         session = Util.newRepositorySession(repoSystem, config.getLocalRepository(),
-                listener, proxySelector, false);
+                listener, proxySelector, config.isOffline());
     }
 
     @Override

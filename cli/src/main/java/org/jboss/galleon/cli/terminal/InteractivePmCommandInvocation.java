@@ -29,6 +29,7 @@ import org.aesh.command.validator.OptionValidatorException;
 import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
 import org.aesh.readline.action.KeyAction;
+import org.aesh.utils.Config;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 
@@ -88,6 +89,8 @@ class InteractivePmCommandInvocation extends PmCommandInvocation {
 
     @Override
     public void println(String msg) {
+        // Workaround Aesh 1.8 AESH-489 not adding \n at the end of line.
+        msg = msg + Config.getLineSeparator();
         delegate.println(msg, paging);
     }
 

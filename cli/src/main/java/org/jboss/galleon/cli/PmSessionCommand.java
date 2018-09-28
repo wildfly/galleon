@@ -45,7 +45,6 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
 
     public static void handleException(PmCommandInvocation session, Throwable t) throws CommandException {
         if (session.getPmSession().isExceptionRethrown()) {
-            CliLogging.exception(t);
             throw new CommandException(t);
         }
         // t.printStackTrace();

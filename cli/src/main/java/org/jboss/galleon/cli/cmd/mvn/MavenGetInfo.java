@@ -45,6 +45,7 @@ public class MavenGetInfo extends PmSessionCommand {
         t.addLine("Default snapshot policy", config.getDefaultSnapshotPolicy());
         t.addLine("Enable release", "" + config.isReleaseEnabled());
         t.addLine("Enable snapshot", "" + config.isSnapshotEnabled());
+        t.addLine("Offline", "" + config.isOffline());
         Cell repositories = new Cell();
         Cell title = new Cell("Remote repositories");
         if (config.getRemoteRepositories().isEmpty()) {

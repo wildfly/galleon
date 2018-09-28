@@ -205,6 +205,28 @@ public class MavenConfigTestCase {
 
     }
 
+    @Test
+    public void testOffline() throws Exception {
+        MavenConfig config = cli.getSession().getPmConfiguration().getMavenConfig();
+        Assert.assertFalse(config.isOffline());
+        try {
+            cli.execute("maven set-offline foo");
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // XXX OK
+        }
+
+        cli.execute("maven set-offline true");
+        Assert.assertTrue(config.isOffline());
+
+        Assert.assertTrue(Configuration.parse().getMavenConfig().isOffline());
+
+        cli.execute("maven set-offline");
+        Assert.assertFalse(config.isOffline());
+
+        Assert.assertFalse(Configuration.parse().getMavenConfig().isOffline());
+    }
+
     private static void checkNoRepositories(MavenConfig config, String... names) throws Exception {
         for (String s : names) {
             Assert.assertFalse(config.getRemoteRepositoryNames().contains(s));
