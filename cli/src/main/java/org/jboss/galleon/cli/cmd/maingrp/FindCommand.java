@@ -52,6 +52,9 @@ public class FindCommand extends PmSessionCommand {
     @Option(required = false, name = "universe", description = HelpDescriptions.FIND_UNIVERSE)
     private String fromUniverse;
 
+    @Option(required = false, name = "resolved-only", hasValue = false, description = HelpDescriptions.FIND_RESOLVED_ONLY)
+    private Boolean resolvedOnly;
+
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         if (pattern == null) {
@@ -63,7 +66,6 @@ public class FindCommand extends PmSessionCommand {
                 pattern = pattern + "*";
             }
             pattern = pattern.replaceAll("\\*", ".*");
-            boolean containsUniverse = pattern.contains("" + FeaturePackLocation.UNIVERSE_START);
             boolean containsFrequency = pattern.contains("" + FeaturePackLocation.FREQUENCY_START);
             Pattern compiledPattern = Pattern.compile(pattern);
             Integer[] numResults = new Integer[1];
@@ -78,6 +80,15 @@ public class FindCommand extends PmSessionCommand {
                 UniverseVisitor visitor = new UniverseVisitor() {
                     @Override
                     public void visit(Producer<?> producer, FeaturePackLocation loc) {
+                        try {
+                            if (resolvedOnly && !producer.getChannel(loc.getChannelName()).isResolved(loc)) {
+                                return;
+                            }
+                        } catch (ProvisioningException ex) {
+                            exception(loc.getUniverse(), ex);
+                            return;
+                        }
+
                         // Universe could have been set in the pattern, matches on
                         // the canonical and exposed (named universe).
                         FeaturePackLocation exposedLoc = invoc.getPmSession().

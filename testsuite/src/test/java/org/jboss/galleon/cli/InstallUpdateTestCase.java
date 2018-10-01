@@ -28,6 +28,8 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -57,9 +59,22 @@ public class InstallUpdateTestCase {
         Assert.assertEquals(cli.getMvnRepo().toString(), cli.getMvnRepo(),
                 cli.getSession().getPmConfiguration().getMavenConfig().getLocalRepository());
 
+        // Check resolved feature-packs
+        cli.execute("find * --resolved-only --universe=" + universeSpec);
+        assertFalse(cli.getOutput(), cli.getOutput().contains(CliTestUtils.
+                buildFPL(universeSpec, PRODUCER1, "1", null, "1.0.0.Alpha1-SNAPSHOT").toString()));
+        assertFalse(cli.getOutput(), cli.getOutput().contains(CliTestUtils.
+                buildFPL(universeSpec, PRODUCER2, "1", null, "1.0.0.Alpha1-SNAPSHOT").toString()));
         // Add an alpha1 snapshot release.
         CliTestUtils.install(cli, universeSpec, PRODUCER1, "1.0.0.Alpha1-SNAPSHOT");
         CliTestUtils.install(cli, universeSpec, PRODUCER2, "1.0.0.Alpha1-SNAPSHOT");
+
+        cli.execute("find * --resolved-only --universe=" + universeSpec);
+        assertTrue(cli.getOutput(), cli.getOutput().contains(CliTestUtils.
+                buildFPL(universeSpec, PRODUCER1, "1", null, "1.0.0.Alpha1-SNAPSHOT").toString()));
+        assertTrue(cli.getOutput(), cli.getOutput().contains(CliTestUtils.
+                buildFPL(universeSpec, PRODUCER2, "1", null, "1.0.0.Alpha1-SNAPSHOT").toString()));
+
         FeaturePackLocation finalLoc = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "final", null);
 
         CliTestUtils.checkNoVersionAvailable(cli, CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null), finalLoc);
