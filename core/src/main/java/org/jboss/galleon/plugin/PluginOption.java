@@ -33,6 +33,7 @@ public class PluginOption {
         private final String name;
         private boolean required;
         private boolean acceptsValue = true;
+        private boolean persistent = true;
         private String defaultValue;
         private Set<String> valueSet = Collections.emptySet();
 
@@ -60,6 +61,11 @@ public class PluginOption {
             return this;
         }
 
+        public Builder setPersistent(boolean persistent) {
+            this.persistent = persistent;
+            return this;
+        }
+
         public PluginOption build() {
             return new PluginOption(this);
         }
@@ -69,13 +75,10 @@ public class PluginOption {
         return new Builder(name);
     }
 
-    public static PluginOption forName(String name) {
-        return new PluginOption(name);
-    }
-
     private final String name;
     private final boolean required;
     private final boolean acceptsValue;
+    private final boolean persistent;
     private final String defaultValue;
     private final Set<String> valueSet;
 
@@ -83,6 +86,7 @@ public class PluginOption {
         this.name = name;
         required = false;
         acceptsValue = false;
+        persistent = true;
         defaultValue = null;
         valueSet = Collections.emptySet();
     }
@@ -91,6 +95,7 @@ public class PluginOption {
         this.name = builder.name;
         this.required = builder.required;
         this.acceptsValue = builder.acceptsValue;
+        this.persistent = builder.persistent;
         this.defaultValue = builder.defaultValue;
         this.valueSet = builder.valueSet;
     }
@@ -137,14 +142,24 @@ public class PluginOption {
         return valueSet;
     }
 
+    /**
+     * Indicates whether the option should be persisted in the provisioning configuration.
+     *
+     * @return  true if the option should be persisted, otherwise - false
+     */
+    public boolean isPersistent() {
+        return persistent;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + (acceptsValue ? 1231 : 1237);
         result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + (persistent ? 1231 : 1237);
         result = prime * result + (required ? 1231 : 1237);
-        result = prime * result + (acceptsValue ? 1231 : 1237);
         result = prime * result + ((valueSet == null) ? 0 : valueSet.hashCode());
         return result;
     }
@@ -158,6 +173,8 @@ public class PluginOption {
         if (getClass() != obj.getClass())
             return false;
         PluginOption other = (PluginOption) obj;
+        if (acceptsValue != other.acceptsValue)
+            return false;
         if (defaultValue == null) {
             if (other.defaultValue != null)
                 return false;
@@ -168,9 +185,9 @@ public class PluginOption {
                 return false;
         } else if (!name.equals(other.name))
             return false;
-        if (required != other.required)
+        if (persistent != other.persistent)
             return false;
-        if (acceptsValue != other.acceptsValue)
+        if (required != other.required)
             return false;
         if (valueSet == null) {
             if (other.valueSet != null)

@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.Errors;
@@ -73,11 +72,11 @@ public abstract class AbstractInstallationCommand extends PmSessionCommand imple
         }
         if (layout == null) {
             ProvisioningConfig config = manager.getProvisioningConfig();
-            try (ProvisioningRuntime runtime = manager.getRuntime(config, Collections.emptyMap())) {
+            try (ProvisioningRuntime runtime = manager.getRuntime(config)) {
                 container = FeatureContainers.fromProvisioningRuntime(session, runtime);
             }
         } else {
-            try (ProvisioningRuntime runtime = manager.getRuntime(layout, Collections.emptyMap())) {
+            try (ProvisioningRuntime runtime = manager.getRuntime(layout)) {
                 container = FeatureContainers.fromProvisioningRuntime(session, runtime);
             }
         }

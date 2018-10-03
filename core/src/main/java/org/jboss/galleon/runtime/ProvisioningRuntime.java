@@ -55,7 +55,6 @@ import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.FeaturePackInstallException;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
@@ -115,7 +114,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private ProvisioningConfig config;
     private final Path stagedDir;
     private final ProvisioningLayout<FeaturePackRuntime> layout;
-    private final Map<String, String> pluginOptions;
     private final MessageWriter messageWriter;
     private List<ProvisionedConfig> configs = Collections.emptyList();
 
@@ -136,8 +134,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             layout.close();
             throw e;
         }
-
-        pluginOptions = CollectionUtils.unmodifiable(builder.pluginOptions);
 
         this.messageWriter = messageWriter;
     }
@@ -233,13 +229,13 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public boolean isOptionSet(PluginOption option) throws ProvisioningException {
-        if(!pluginOptions.containsKey(option.getName())) {
+        if(!layout.isPluginOptionSet(option.getName())) {
             return false;
         }
-        if(option.isAcceptsValue() || pluginOptions.get(option.getName()) == null) {
+        if(option.isAcceptsValue() || layout.getPluginOptionValue(option.getName()) == null) {
             return true;
         }
-        throw new ProvisioningException("Plugin option " + option.getName() + " does expect value but is set to " + pluginOptions.get(option.getName()));
+        throw new ProvisioningException("Plugin option " + option.getName() + " does not expect value but is set to " + layout.getPluginOptionValue(option.getName()));
     }
 
     public String getOptionValue(PluginOption option) throws ProvisioningException {
@@ -247,7 +243,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public String getOptionValue(PluginOption option, String defaultValue) throws ProvisioningException {
-        final String value = pluginOptions.get(option.getName());
+        final String value = layout.getPluginOptionValue(option.getName());
         if(value == null) {
             if(defaultValue != null) {
                 return defaultValue;
@@ -273,8 +269,9 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return value;
     }
 
+    @Deprecated
     public Map<String, String> getPluginOptions() {
-        return pluginOptions;
+        return config.getPluginOptions();
     }
 
     /**
@@ -339,7 +336,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 plugin.postInstall(ProvisioningRuntime.this);
             }
         };
-        visitCheckOptionsPlugins(visitor, InstallPlugin.class);
+        layout.visitPlugins(visitor, InstallPlugin.class);
     }
 
     public ProvisioningDiffResult diff(Path target, Path customizedInstallation) throws ProvisioningException {
@@ -372,7 +369,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 //check for missing required options.
                 for (PluginOption opt : plugin.getOptions().values()) {
                     if (opt.isRequired()) {
-                        if (!pluginOptions.keySet().contains(opt.getName())) {
+                        if (!layout.isPluginOptionSet(opt.getName())) {
                             throw new ProvisioningException("Option: " + opt.getName()
                                     + " is required for this plugin.");
                         }
@@ -383,15 +380,11 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         };
         layout.visitPlugins(v, clazz);
         // check if provided options exist
-        for (String userOption : pluginOptions.keySet()) {
+        for (String userOption : config.getPluginOptions().keySet()) {
             if (!options.contains(userOption)) {
                 throw new ProvisioningException("Option " + userOption + " is not supported");
             }
         }
-        layout.visitPlugins(visitor, clazz);
-    }
-
-    public <T extends ProvisioningPlugin> void visitPlugins(FeaturePackPluginVisitor<T> visitor, Class<T> clazz) throws ProvisioningException {
         layout.visitPlugins(visitor, clazz);
     }
 

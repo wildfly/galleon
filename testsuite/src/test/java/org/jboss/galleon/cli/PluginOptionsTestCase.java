@@ -16,13 +16,16 @@
  */
 package org.jboss.galleon.cli;
 
-import java.io.File;
+import java.io.BufferedWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ProvisioningConfig;
+
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
@@ -31,6 +34,7 @@ import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -107,27 +111,33 @@ public class PluginOptionsTestCase {
         cli.execute("install " + CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", "alpha", "1.0.0.Alpha1")
                 + " --dir=" + p + " --" + PluginTest.OPT1_REQUIRED + "=XXX");
 
+        final Path provisioningXml = cli.newDir("workdir", true).resolve("provisioning.xml");
+        try(BufferedWriter writer = Files.newBufferedWriter(provisioningXml)) {
+            final ProvisioningConfig config = ProvisioningConfig.builder()
+                    .addFeaturePackDep(CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1"))
+                    .addFeaturePackDep(CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", "alpha", "1.0.0.Alpha1"))
+                    .build();
+            ProvisioningXmlWriter.getInstance().write(config, writer);
+        }
+
         // PROVISION command
         Path target = cli.newDir("target", false);
         // Invalid option
         try {
-            cli.execute("provision " + p + File.separator + ".galleon" + File.separator
-                    + "provisioning.xml --dir=" + target + " --foo");
+            cli.execute("provision " + provisioningXml + " --dir=" + target + " --foo");
             throw new Exception("Should have failed, --foo beeing unknown");
         } catch (CommandException ex) {
             // XXX OK.
         }
         // missing required option
         try {
-            cli.execute("provision " + p + File.separator + ".galleon" + File.separator
-                    + "provisioning.xml --dir=" + target);
+            cli.execute("provision " + provisioningXml + " --dir=" + target);
             throw new Exception("Should have failed, --opt1-req is required.");
         } catch (CommandException ex) {
             // XXX OK.
         }
         // successfull provisioning
-        cli.execute("provision " + p + File.separator + ".galleon" + File.separator
-                + "provisioning.xml --dir=" + target + " --" + PluginTest.OPT1_REQUIRED + "=XXX");
+        cli.execute("provision " + provisioningXml + " --dir=" + target + " --" + PluginTest.OPT1_REQUIRED + "=XXX");
 
         // UNINSTALL command, remaining PRODUCER2 expects some options.
         try {
@@ -137,16 +147,8 @@ public class PluginOptionsTestCase {
         } catch (CommandException ex) {
             // XXX OK.
         }
-        // missing required option
-        try {
-            cli.execute("uninstall " + CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1")
-                    + " --dir=" + p);
-            throw new Exception("Should have failed, --opt1-req is required.");
-        } catch (CommandException ex) {
-            // XXX OK.
-        }
-        // successfull uninstall
+        // the required option has been persisted and does not have to be explicitly provided by the user
         cli.execute("uninstall " + CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1")
-                + " --dir=" + p + " --" + PluginTest.OPT1_REQUIRED + "=XXX");
+                + " --dir=" + p);
     }
 }

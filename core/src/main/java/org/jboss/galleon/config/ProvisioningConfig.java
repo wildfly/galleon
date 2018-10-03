@@ -17,7 +17,11 @@
 package org.jboss.galleon.config;
 
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -29,22 +33,43 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
 
     public static class Builder extends FeaturePackDepsConfigBuilder<Builder> {
 
+        private Map<String, String> pluginOptions = Collections.emptyMap();
+
         private Builder() {
         }
 
         private Builder(ProvisioningConfig original) throws ProvisioningDescriptionException {
-            if(original != null) {
-                for (FeaturePackConfig fp : original.getFeaturePackDeps()) {
+            if(original == null) {
+                return;
+            }
+            if(original.hasPluginOptions()) {
+                addPluginOptions(original.getPluginOptions());
+            }
+            for (FeaturePackConfig fp : original.getFeaturePackDeps()) {
+                addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
+            }
+            if (original.hasTransitiveDeps()) {
+                for (FeaturePackConfig fp : original.getTransitiveDeps()) {
                     addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
                 }
-                if (original.hasTransitiveDeps()) {
-                    for (FeaturePackConfig fp : original.getTransitiveDeps()) {
-                        addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
-                    }
-                }
-                initUniverses(original);
-                initConfigs(original);
             }
+            initUniverses(original);
+            initConfigs(original);
+        }
+
+        public Builder addPluginOption(String name, String value) {
+            pluginOptions = CollectionUtils.put(pluginOptions, name, value);
+            return this;
+        }
+
+        public Builder removePluginOption(String name) {
+            pluginOptions = CollectionUtils.remove(pluginOptions, name);
+            return this;
+        }
+
+        public Builder addPluginOptions(Map<String, String> options) {
+            pluginOptions = CollectionUtils.putAll(pluginOptions, options);
+            return this;
         }
 
         public ProvisioningConfig build() throws ProvisioningDescriptionException {
@@ -68,10 +93,12 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         return new Builder(provisioningConfig);
     }
 
+    private final Map<String, String> pluginOptions;
     private final Builder builder;
 
     private ProvisioningConfig(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
+        this.pluginOptions = CollectionUtils.unmodifiable(builder.pluginOptions);
         this.builder = builder;
     }
 
@@ -79,14 +106,45 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         return builder;
     }
 
+    public boolean hasPluginOptions() {
+        return !pluginOptions.isEmpty();
+    }
+
+    public Map<String, String> getPluginOptions() {
+        return pluginOptions;
+    }
+
+    public boolean hasPluginOption(String name) {
+        return pluginOptions.containsKey(name);
+    }
+
+    public String getPluginOption(String name) {
+        return pluginOptions.get(name);
+    }
+
     @Override
     public int hashCode() {
-        return super.hashCode();
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((pluginOptions == null) ? 0 : pluginOptions.hashCode());
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ProvisioningConfig other = (ProvisioningConfig) obj;
+        if (pluginOptions == null) {
+            if (other.pluginOptions != null)
+                return false;
+        } else if (!pluginOptions.equals(other.pluginOptions))
+            return false;
+        return true;
     }
 
     @Override
@@ -102,6 +160,10 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
             buf.append("universes=[");
             StringUtils.append(buf, universeSpecs.entrySet());
             buf.append("] ");
+        }
+        if(!pluginOptions.isEmpty()) {
+            buf.append("plugin-options=");
+            StringUtils.append(buf, pluginOptions.entrySet());
         }
         if(!transitiveDeps.isEmpty()) {
             buf.append("transitive=");

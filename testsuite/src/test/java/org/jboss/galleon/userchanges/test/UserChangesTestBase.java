@@ -19,6 +19,7 @@ package org.jboss.galleon.userchanges.test;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.jboss.galleon.universe.SingleUniverseTestBase;
 import org.jboss.galleon.util.IoUtils;
@@ -30,12 +31,13 @@ import org.jboss.galleon.util.IoUtils;
 public abstract class UserChangesTestBase extends SingleUniverseTestBase {
 
     protected void writeContent(String relativePath, String content) {
+        final Path target = installHome.resolve(relativePath);
         try {
-            Files.createDirectories(installHome.resolve(relativePath).getParent());
+            Files.createDirectories(target.getParent());
         } catch (IOException e) {
             throw new IllegalStateException("Failed to create parent directories for " + relativePath, e);
         }
-        try(BufferedWriter writer = Files.newBufferedWriter(installHome.resolve(relativePath))) {
+        try(BufferedWriter writer = Files.newBufferedWriter(target)) {
             writer.write(content);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to write to " + relativePath, e);

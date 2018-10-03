@@ -44,6 +44,8 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.plugin.InstallPlugin;
+import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.spec.FeaturePackSpec;
@@ -62,6 +64,7 @@ import org.jboss.galleon.util.LayoutUtils;
  */
 public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoCloseable {
 
+    public static final String PATCHED = "patched";
     public static final String STAGED = "staged";
     public static final String TMP = "tmp";
 
@@ -71,6 +74,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         private ClassLoader pluginsCl;
         private boolean closePluginsCl;
         private Map<String, List<ProvisioningPlugin>> loadedPlugins = Collections.emptyMap();
+        private Path patchedDir;
         private Path pluginsDir;
         private Path resourcesDir;
         private Path tmpDir;
@@ -82,21 +86,30 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             refs = 1;
         }
 
-        protected void cleanup() {
+        protected void reset() {
             if(closePluginsCl) {
                 try {
                     ((java.net.URLClassLoader)pluginsCl).close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                closePluginsCl = false;
             }
-            if(pluginsDir != null) {
-                IoUtils.recursiveDelete(pluginsDir);
-                pluginsDir = null;
-            }
-            if(resourcesDir != null) {
-                IoUtils.recursiveDelete(resourcesDir);
+            pluginsCl = null;
+            loadedPlugins = Collections.emptyMap();
+            if(workDir != null) {
+                try(DirectoryStream<Path> stream = Files.newDirectoryStream(workDir)) {
+                    for(Path p : stream) {
+                        IoUtils.recursiveDelete(p);
+                    }
+                } catch (IOException e) {
+                    IoUtils.recursiveDelete(workDir);
+                    workDir = null;
+                }
+                patchedDir = null;
                 resourcesDir = null;
+                pluginsDir = null;
+                tmpDir = null;
             }
         }
 
@@ -209,10 +222,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             List<ProvisioningPlugin> plugins = loadedPlugins.get(clazz.getName());
             if (plugins == null) {
                 final ClassLoader pluginsCl = getPluginsClassLoader();
-                final Thread thread = Thread.currentThread();
                 final Iterator<T> pluginIterator = ServiceLoader.load(clazz, pluginsCl).iterator();
                 plugins = Collections.emptyList();
                 if (pluginIterator.hasNext()) {
+                    final Thread thread = Thread.currentThread();
                     final ClassLoader ocl = thread.getContextClassLoader();
                     try {
                         thread.setContextClassLoader(pluginsCl);
@@ -251,6 +264,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             }
         }
 
+        private Path getPatchedDir() {
+            return patchedDir == null ? patchedDir = getWorkDir().resolve(PATCHED) : patchedDir;
+        }
+
         private Path getTmpDir() {
             return tmpDir == null ? tmpDir = getWorkDir().resolve(TMP) : tmpDir;
         }
@@ -268,14 +285,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             if(refs == 0 || --refs > 0) {
                 return;
             }
-            loadedPlugins = Collections.emptyMap();
-            if(closePluginsCl) {
-                try {
-                    ((java.net.URLClassLoader)pluginsCl).close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            reset();
             if(workDir != null) {
                 IoUtils.recursiveDelete(workDir);
             }
@@ -287,6 +297,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private final FeaturePackLayoutFactory<F> fpFactory;
     private final Handle handle;
     private ProvisioningConfig config;
+    private Map<String, String> pluginOptions = Collections.emptyMap();
 
     private Map<ProducerSpec, FeaturePackLocation> resolvedVersions;
     private Set<ProducerSpec> transitiveDeps;
@@ -299,13 +310,40 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
 
-    ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean cleanupTransitive)
+    ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean initPluginOptions)
             throws ProvisioningException {
         this.layoutFactory = layoutFactory;
         this.fpFactory = fpFactory;
         this.config = config;
         this.handle = layoutFactory.createHandle();
-        build(cleanupTransitive, true);
+        if(config.hasFeaturePackDeps()) {
+            try {
+                build(false, true);
+                if (initPluginOptions) {
+                    initPluginOptions(Collections.emptyMap(), false);
+                }
+            } catch(Throwable t) {
+                handle.close();
+                throw t;
+            }
+        }
+    }
+
+    ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, Map<String, String> extraOptions)
+            throws ProvisioningException {
+        this.layoutFactory = layoutFactory;
+        this.fpFactory = fpFactory;
+        this.config = config;
+        this.handle = layoutFactory.createHandle();
+        if(config.hasFeaturePackDeps()) {
+            try {
+                build(false, true);
+                initPluginOptions(extraOptions, false);
+            } catch(Throwable t) {
+                handle.close();
+                throw t;
+            }
+        }
     }
 
     <O extends FeaturePackLayout> ProvisioningLayout(ProvisioningLayout<O> other, FeaturePackLayoutFactory<F> fpFactory) throws ProvisioningException {
@@ -331,6 +369,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.layoutFactory = other.layoutFactory;
         this.fpFactory = fpFactory;
         this.config = other.config;
+        this.pluginOptions = CollectionUtils.clone(other.pluginOptions);
         for(O otherFp : other.ordered) {
             final F fp = transformer.transform(otherFp);
             featurePacks.put(fp.getFPID().getProducer(), fp);
@@ -368,6 +407,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     public void apply(ProvisioningPlan plan) throws ProvisioningException {
+        apply(plan, Collections.emptyMap());
+    }
+
+    public void apply(ProvisioningPlan plan, Map<String, String> pluginOptions) throws ProvisioningException {
         if(plan.isEmpty()) {
             return;
         }
@@ -443,6 +486,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
 
         rebuild(configBuilder.build(), true);
+        initPluginOptions(pluginOptions, plan.hasUninstall());
     }
 
     /**
@@ -462,7 +506,12 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
      * @throws ProvisioningException  in case of a failure
      */
     public void install(FeaturePackConfig fpConfig) throws ProvisioningException {
+        install(fpConfig, Collections.emptyMap());
+    }
+
+    public void install(FeaturePackConfig fpConfig, Map<String, String> pluginOptions) throws ProvisioningException {
         rebuild(install(fpConfig, ProvisioningConfig.builder(config)).build(), false);
+        initPluginOptions(pluginOptions, false);
     }
 
     private ProvisioningConfig.Builder install(FeaturePackConfig fpConfig, ProvisioningConfig.Builder configBuilder) throws ProvisioningException {
@@ -550,7 +599,12 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
      * @throws ProvisioningException  in case of a failure
      */
     public void uninstall(FPID fpid) throws ProvisioningException {
+        uninstall(fpid, Collections.emptyMap());
+    }
+
+    public void uninstall(FPID fpid, Map<String, String> pluginOptions) throws ProvisioningException {
         rebuild(uninstall(fpid, ProvisioningConfig.builder(config)).build(), true);
+        initPluginOptions(pluginOptions, true);
     }
 
     private ProvisioningConfig.Builder uninstall(FPID fpid, ProvisioningConfig.Builder configBuilder) throws ProvisioningException {
@@ -564,7 +618,6 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     throw new ProvisioningException("Target feature-pack for patch " + fpid + " could not be found");
                 }
             }
-            layoutFactory.removeFeaturePackDir(patchTarget.getLocation()); // to clear patches
             return configBuilder.updateFeaturePackDep(FeaturePackConfig.builder(targetConfig).removePatch(fpid).build());
         }
         final F installedFp = featurePacks.get(fpid.getProducer());
@@ -748,7 +801,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         allPatches = Collections.emptyMap();
         fpPatches = Collections.emptyMap();
         this.config = config;
-        handle.cleanup();
+        handle.reset();
         build(cleanupTransitive, trackProgress);
     }
 
@@ -817,27 +870,21 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
         // apply patches
         if(!fpPatches.isEmpty()) {
-            boolean rewriteResources = false;
-            boolean rewritePlugins = false;
             for (F f : ordered) {
                 final List<F> patches = fpPatches.get(f.getFPID());
                 if(patches == null) {
-                    if(rewriteResources) {
-                        final Path fpResources = f.getDir().resolve(Constants.RESOURCES);
-                        if(Files.exists(fpResources)) {
-                            patchDir(getResources(), fpResources);
-                        }
+                    final Path fpResources = f.getDir().resolve(Constants.RESOURCES);
+                    if (Files.exists(fpResources)) {
+                        patchDir(getResources(), fpResources);
                     }
-                    if(rewritePlugins) {
-                        final Path fpPlugins = f.getDir().resolve(Constants.PLUGINS);
-                        if(Files.exists(fpPlugins)) {
-                            patchDir(getPluginsDir(), fpPlugins);
-                        }
+                    final Path fpPlugins = f.getDir().resolve(Constants.PLUGINS);
+                    if (Files.exists(fpPlugins)) {
+                        patchDir(getPluginsDir(), fpPlugins);
                     }
                     continue;
                 }
 
-                final Path fpDir = LayoutUtils.getFeaturePackDir(getTmpPath("patched"), f.getFPID(), false);
+                final Path fpDir = LayoutUtils.getFeaturePackDir(handle.getPatchedDir(), f.getFPID(), false);
                 try {
                     Files.createDirectories(fpDir);
                     IoUtils.copy(f.getDir(), fpDir);
@@ -862,18 +909,18 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     }
                     patchContent = patchDir.resolve(Constants.PLUGINS);
                     if(Files.exists(patchContent)) {
-                        rewritePlugins = true;
+                        patchDir(fpDir.resolve(Constants.PLUGINS), patchContent);
                         patchDir(getPluginsDir(), patchContent);
                     }
                     patchContent = patchDir.resolve(Constants.RESOURCES);
                     if(Files.exists(patchContent)) {
-                        rewriteResources = true;
                         patchDir(fpDir.resolve(Constants.RESOURCES), patchContent);
                         patchDir(getResources(), patchContent);
                     }
                 }
             }
         }
+
         buildTracker.complete();
     }
 
@@ -881,7 +928,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         try {
             IoUtils.copy(patchDir, fpDir);
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(patchDir, fpDir));
+            throw new ProvisioningException(Errors.copyFile(patchDir, fpDir), e);
         }
     }
 
@@ -1027,6 +1074,102 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         return buildTracker == null
                 ? buildTracker = layoutFactory.getProgressTracker(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD)
                 : buildTracker;
+    }
+
+    public boolean isPluginOptionSet(String name) {
+        return pluginOptions.containsKey(name);
+    }
+
+    public String getPluginOptionValue(String name) {
+        return pluginOptions.get(name);
+    }
+
+    private void initPluginOptions(Map<String, String> extraOptions, boolean cleanupConfigOptions) throws ProvisioningException {
+        pluginOptions = config.getPluginOptions();
+        if(!extraOptions.isEmpty()) {
+            pluginOptions = CollectionUtils.putAll(CollectionUtils.clone(pluginOptions), extraOptions);
+        }
+
+        final Map<String, PluginOption> recognizedOptions;
+        final List<PluginOption> overridenOptions;
+        if(pluginOptions.isEmpty()) {
+            recognizedOptions = Collections.emptyMap();
+            overridenOptions = Collections.emptyList();
+        } else {
+            final int size = pluginOptions.size();
+            recognizedOptions = new HashMap<>(size);
+            overridenOptions = new ArrayList<>(size);
+        }
+
+        handle.visitPlugins(new FeaturePackPluginVisitor<InstallPlugin>() {
+            @Override
+            public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
+                for(PluginOption pluginOption : plugin.getOptions().values()) {
+                    final String optionName = pluginOption.getName();
+                    if(!pluginOptions.containsKey(optionName)) {
+                        if(pluginOption.isRequired()) {
+                            throw new ProvisioningException(Errors.pluginOptionRequired(optionName));
+                        }
+                        continue;
+                    }
+                    final PluginOption existing = recognizedOptions.put(optionName, pluginOption);
+                    // options should probably not be shared between plugins but just in case make sure non-persistent option
+                    // doesn't override a persistent one
+                    if (existing != null && existing.isPersistent() && !pluginOption.isPersistent()) {
+                        recognizedOptions.put(existing.getName(), existing);
+                    } else if (pluginOption.isPersistent() || extraOptions.containsKey(optionName) && config.hasPluginOption(optionName)) {
+                        overridenOptions.add(pluginOption);
+                    }
+                }
+            }}, InstallPlugin.class);
+
+        ProvisioningConfig.Builder configBuilder = null;
+        if(recognizedOptions.size() != pluginOptions.size()) {
+            final Set<String> nonRecognized = new HashSet<>(pluginOptions.keySet());
+            nonRecognized.removeAll(recognizedOptions.keySet());
+            if(cleanupConfigOptions) {
+                final Iterator<String> i = nonRecognized.iterator();
+                while(i.hasNext()) {
+                    final String optionName = i.next();
+                    if(!config.hasPluginOption(optionName)) {
+                        continue;
+                    }
+                    if(configBuilder == null) {
+                        configBuilder = ProvisioningConfig.builder(config);
+                    }
+                    configBuilder.removePluginOption(optionName);
+                    i.remove();
+                }
+            }
+            if(!nonRecognized.isEmpty()) {
+                throw new ProvisioningException(Errors.pluginOptionsNotRecognized(nonRecognized));
+            }
+        }
+
+        if(!overridenOptions.isEmpty()) {
+            if(configBuilder == null) {
+                configBuilder = ProvisioningConfig.builder(config);
+            }
+            for(PluginOption option : overridenOptions) {
+                final String optionName = option.getName();
+                if(!extraOptions.containsKey(optionName)) {
+                    continue;
+                }
+                final String value = extraOptions.get(optionName);
+                if(option.isPersistent()) {
+                    configBuilder.addPluginOption(optionName, value);
+                } else if (value == null) {
+                    if (config.getPluginOption(optionName) != null) {
+                        configBuilder.removePluginOption(optionName);
+                    }
+                } else if (!value.equals(config.getPluginOption(optionName))) {
+                    configBuilder.removePluginOption(optionName);
+                }
+            }
+            config = configBuilder.build();
+        } else if(configBuilder != null) {
+            config = configBuilder.build();
+        }
     }
 
     @Override

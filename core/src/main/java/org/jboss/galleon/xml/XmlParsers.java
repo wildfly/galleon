@@ -103,6 +103,7 @@ public class XmlParsers {
         new ProvisionedStateXmlParser30().plugin(this);
         new ProvisioningXmlParser10().plugin(this);
         new ProvisioningXmlParser20().plugin(this);
+        new ProvisioningXmlParser30().plugin(this);
     }
 
     public void plugin(QName root, XMLElementReader<?> reader) {
