@@ -93,10 +93,16 @@ public class StateHistoryUtils {
         } catch (IOException e) {
             throw new ProvisioningException(Errors.writeFile(stagedHistoryDir.resolve(Constants.HISTORY_LIST)), e);
         }
+        final Path stateDir = stagedHistoryDir.resolve(newStateId);
         try {
-            IoUtils.copy(installedConfig, stagedHistoryDir.resolve(newStateId));
+            Files.createDirectory(stateDir);
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(installedConfig, stagedHistoryDir.resolve(newStateId)), e);
+            throw new ProvisioningException(Errors.mkdirs(stateDir));
+        }
+        try {
+            IoUtils.copy(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML));
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.copyFile(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML)), e);
         }
     }
 
@@ -134,12 +140,12 @@ public class StateHistoryUtils {
                 int missingStates = 0;
                 while (offset < installedHistory.size() - 1) {
                     final String stateId = installedHistory.get(offset++);
-                    final Path stateFile = installedHistoryDir.resolve(stateId);
-                    if(!Files.exists(stateFile)) {
+                    final Path stateDir = installedHistoryDir.resolve(stateId);
+                    if(!Files.exists(stateDir)) {
                         ++missingStates;
                         continue;
                     }
-                    IoUtils.copy(stateFile, stagedHistoryDir.resolve(stateId));
+                    IoUtils.copy(stateDir, stagedHistoryDir.resolve(stateId));
                     writer.write(stateId);
                     writer.newLine();
                 }
@@ -208,7 +214,7 @@ public class StateHistoryUtils {
         }
         int i = installedHistory.size() - 1;
         do {
-            final Path statePath = installedHistoryDir.resolve(installedHistory.get(i--));
+            final Path statePath = installedHistoryDir.resolve(installedHistory.get(i--)).resolve(Constants.PROVISIONING_XML);
             if (Files.exists(statePath)) {
                 return ProvisioningXmlParser.parse(statePath);
             }
@@ -297,13 +303,8 @@ public class StateHistoryUtils {
     private static void deleteHistoryFiles(Path installedHistoryDir) throws ProvisioningException {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(installedHistoryDir)) {
             for (Path entry : stream) {
-                if (!Files.isDirectory(entry) && !entry.getFileName().toString().
-                        equals(Constants.HISTORY_LIST)) {
-                    try {
-                        Files.delete(entry);
-                    } catch (IOException ex) {
-                        throw new ProvisioningException(Errors.deleteFile(entry), ex);
-                    }
+                if (Files.isDirectory(entry)) {
+                    IoUtils.recursiveDelete(entry);
                 }
             }
         } catch (IOException ex) {

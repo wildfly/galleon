@@ -441,6 +441,10 @@ public interface Errors {
         return "Required dependency of configuration layer " + srcLayer + " on layer " + targetLayer + " was excluded";
     }
 
+    static String fsEntryInit(Path p) {
+        return "Failed to process child entries for " + p;
+    }
+
     static void appendConfig(final StringBuilder buf, String model, String name) {
         if (model != null) {
             buf.append(" model ").append(model);

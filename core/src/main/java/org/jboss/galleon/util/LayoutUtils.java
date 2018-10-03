@@ -103,4 +103,8 @@ public class LayoutUtils {
         }
         return p;
     }
+
+    public static Path getHashesDir(Path home) {
+        return home.resolve(Constants.PROVISIONED_STATE_DIR).resolve(Constants.HASHES);
+    }
 }

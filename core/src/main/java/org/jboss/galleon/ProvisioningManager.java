@@ -17,14 +17,23 @@
 package org.jboss.galleon;
 
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.diff.FsDiff;
+import org.jboss.galleon.diff.FsEntry;
+import org.jboss.galleon.diff.FsEntryFactory;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningPlan;
@@ -39,7 +48,9 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.StateHistoryUtils;
+import org.jboss.galleon.util.HashUtils;
 import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.LayoutUtils;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.xml.ProvisionedStateXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
@@ -303,7 +314,7 @@ public class ProvisioningManager implements AutoCloseable {
                 layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build());
             }
             try (ProvisioningRuntime runtime = getRuntime(layout, options)) {
-                doProvision(runtime);
+                doProvision(runtime, options, false);
             }
         }
     }
@@ -326,15 +337,14 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of a failure
      */
     public void uninstall(FeaturePackLocation.FPID fpid, Map<String, String> pluginOptions) throws ProvisioningException {
-        ProvisioningConfig config = getProvisioningConfig();
-        final boolean empty = config == null || !config.hasFeaturePackDeps();
-        if(empty) {
+        final ProvisioningConfig config = getProvisioningConfig();
+        if(config == null || !config.hasFeaturePackDeps()) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID());
             try (ProvisioningRuntime runtime = getRuntime(layout, pluginOptions)) {
-                doProvision(runtime);
+                doProvision(runtime, pluginOptions, false);
             }
         }
     }
@@ -358,7 +368,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, options)) {
-            doProvision(runtime);
+            doProvision(runtime, null, false);
         }
     }
 
@@ -371,7 +381,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningLayout<?> provisioningLayout, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(provisioningLayout, options)) {
-            doProvision(runtime);
+            doProvision(runtime, null, false);
         }
     }
 
@@ -394,7 +404,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), options)) {
-            doProvision(runtime);
+            doProvision(runtime, null, false);
         }
     }
 
@@ -458,12 +468,14 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of a failure
      */
     public void apply(ProvisioningPlan plan, Map<String, String> options) throws ProvisioningException {
-        final ProvisioningConfig config = getProvisioningConfig();
-        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(
-                config == null ? getInstallationBuilder().build() : config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
+        ProvisioningConfig config = getProvisioningConfig();
+        if(config == null) {
+            config = getInstallationBuilder().build();
+        }
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
             layout.apply(plan);
             try (ProvisioningRuntime runtime = getRuntime(layout, options)) {
-                doProvision(runtime);
+                doProvision(runtime, options, false);
             }
         }
     }
@@ -517,12 +529,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void undo() throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
-            try {
-                runtime.provision();
-                PathsUtils.replaceDist(runtime.getStagedDir(), home, true, log);
-            } finally {
-                this.provisioningConfig = null;
-            }
+            doProvision(runtime, Collections.emptyMap(), true);
         }
     }
 
@@ -701,10 +708,23 @@ public class ProvisioningManager implements AutoCloseable {
         return ProvisioningConfig.builder(getProvisioningConfig());
     }
 
-    private void doProvision(ProvisioningRuntime runtime) throws ProvisioningException {
+    private void doProvision(ProvisioningRuntime runtime, Map<String, String> options, boolean undo) throws ProvisioningException {
+
+        FsDiff diff = null;
+        final ProvisioningConfig config = getProvisioningConfig();
+        if(config != null && config.hasFeaturePackDeps()) {
+            diff = detectUserChanges(config, options);
+        }
+
         try {
             runtime.provision();
-            PathsUtils.replaceDist(runtime.getStagedDir(), home, false, log);
+            if(runtime.getProvisioningConfig().hasFeaturePackDeps()) {
+                persistHashes(runtime);
+            }
+            if(diff != null && !diff.isEmpty()) {
+                applyUserChanges(diff, runtime.getStagedDir());
+            }
+            PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, log);
         } finally {
             this.provisioningConfig = null;
         }
@@ -735,6 +755,271 @@ public class ProvisioningManager implements AutoCloseable {
     public void close() {
         if(closeLayoutFactory) {
             layoutFactory.close();
+        }
+    }
+
+    private FsDiff detectUserChanges(ProvisioningConfig config, Map<String, String> options) throws ProvisioningException {
+        log.verbose("Detecting user changes");
+        final Path hashesDir = LayoutUtils.getHashesDir(getInstallationHome());
+        if(Files.exists(hashesDir)) {
+            final FsEntry originalState = new FsEntry(null, hashesDir);
+            readHashes(originalState, new ArrayList<>());
+            final FsEntry currentState = getFsEntryFactory().forPath(getInstallationHome());
+            return FsDiff.diff(originalState, currentState);
+        }
+        try(ProvisioningRuntime rt = getRuntime(config, options)) {
+            rt.provision();
+            final FsEntryFactory fsFactory = getFsEntryFactory();
+            final FsEntry originalState = fsFactory.forPath(rt.getStagedDir());
+            final FsEntry currentState = fsFactory.forPath(getInstallationHome());
+            final long startTime = System.nanoTime();
+            final FsDiff fsDiff = FsDiff.diff(originalState, currentState);
+            if (log.isVerboseEnabled()) {
+                final long timeMs = (System.nanoTime() - startTime) / 1000000;
+                final long timeSec = timeMs / 1000;
+                log.verbose("  fs diff took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+            }
+            return fsDiff;
+        }
+    }
+
+    private static void readHashes(FsEntry parent, List<FsEntry> dirs) throws ProvisioningException {
+        int dirsTotal = 0;
+        try(DirectoryStream<Path> stream = Files.newDirectoryStream(parent.getPath())) {
+            for(Path child : stream) {
+                if(child.getFileName().toString().equals(Constants.HASHES)) {
+                    try(BufferedReader reader = Files.newBufferedReader(child)) {
+                        String line = reader.readLine();
+                        while(line != null) {
+                            new FsEntry(parent, line, HashUtils.hexStringToByteArray(reader.readLine()));
+                            line = reader.readLine();
+                        }
+                    } catch (IOException e) {
+                        throw new ProvisioningException("Failed to read hashes", e);
+                    }
+                } else {
+                    dirs.add(new FsEntry(parent, child));
+                    ++dirsTotal;
+                }
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to read hashes", e);
+        }
+        while(dirsTotal > 0) {
+            readHashes(dirs.remove(dirs.size() - 1), dirs);
+            --dirsTotal;
+        }
+    }
+
+    private FsEntryFactory fsEntryFactory;
+
+    private FsEntryFactory getFsEntryFactory() {
+        if(fsEntryFactory == null) {
+            fsEntryFactory = FsEntryFactory.getInstance()
+                .filter("/.galleon")
+                .filter("*.glnew")
+                .filter("/domain/configuration/domain_xml_history")
+                .filter("/domain/configuration/host_xml_history")
+                .filter("/domain/data")
+                .filter("/domain/log")
+                .filter("/domain/servers")
+                .filter("/standalone/configuration/standalone_xml_history")
+                .filter("/standalone/data")
+                .filter("/standalone/log")
+                .filter("/standalone/tmp");
+        }
+        return fsEntryFactory;
+    }
+
+    private void applyUserChanges(FsDiff diff, Path home) throws ProvisioningException {
+        log.verbose("Applying user changes:");
+        if(diff.hasAddedEntries()) {
+            for(FsEntry added : diff.getAddedEntries()) {
+                addFsEntry(home, added);
+            }
+        }
+        if(diff.hasModifiedEntries()) {
+            for(FsEntry[] modified : diff.getModifiedEntries()) {
+                final FsEntry update = modified[1];
+                log.verbose("updating %s", update.getRelativePath());
+                final Path target = home.resolve(update.getRelativePath());
+                boolean copy = true;
+                if(Files.exists(target)) {
+                    final byte[] targetHash;
+                    try {
+                        targetHash = HashUtils.hashPath(target);
+                    } catch (IOException e) {
+                        throw new ProvisioningException(Errors.hashCalculation(target), e);
+                    }
+                    if(Arrays.equals(update.getHash(), targetHash)) {
+                        copy = modifiedPathMatchesExisting(update);
+                    } else if(copy = modifiedPathConflict(update)) {
+                        glnew(target);
+                    }
+                } else {
+                    copy = modifiedPathNotPresent(update);
+                }
+                if (copy) {
+                    try {
+                        IoUtils.copy(update.getPath(), target);
+                    } catch (IOException e) {
+                        throw new ProvisioningException(Errors.copyFile(update.getPath(), target), e);
+                    }
+                }
+            }
+        }
+        if(diff.hasRemovedEntries()) {
+            for(FsEntry removed : diff.getRemovedEntries()) {
+                final Path target = home.resolve(removed.getRelativePath());
+                if(Files.exists(target)) {
+                    log.verbose("removing %s", removed.getRelativePath());
+                    IoUtils.recursiveDelete(target);
+                } else {
+                    removedPathNotPresent(removed);
+                }
+            }
+        }
+    }
+
+    private void addFsEntry(Path home, FsEntry added) throws ProvisioningException {
+        final Path target = home.resolve(added.getRelativePath());
+        boolean copy = true;
+        if(Files.exists(target)) {
+            if(added.isDir()) {
+                for(FsEntry child : added.getChildren()) {
+                    addFsEntry(home, child);
+                }
+                return;
+            }
+            final byte[] targetHash;
+            try {
+                targetHash = HashUtils.hashPath(target);
+            } catch (IOException e) {
+                throw new ProvisioningException(Errors.hashCalculation(target), e);
+            }
+            if(Arrays.equals(added.getHash(), targetHash)) {
+                copy = addedPathMatchesExisting(added);
+            } else if(copy = addedPathConflict(added) && !added.isDir()) {
+                glnew(target);
+            }
+        }
+        if (copy) {
+            log.verbose("adding %s", added.getRelativePath());
+            try {
+                IoUtils.copy(added.getPath(), target);
+            } catch (IOException e) {
+                throw new ProvisioningException(Errors.copyFile(added.getPath(), target), e);
+            }
+        }
+    }
+
+    private static void glnew(final Path target) throws ProvisioningException {
+        try {
+            IoUtils.copy(target, target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW));
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to persist " + target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW), e);
+        }
+    }
+
+    private boolean addedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
+        log.verbose("% added by the user matches the updated version", userEntry.getRelativePath());
+        return false;
+    }
+
+    private boolean addedPathConflict(FsEntry userEntry) throws ProvisioningException {
+        log.verbose("%s added by the user conflicts with the updated version", userEntry.getRelativePath());
+        return true;
+    }
+
+    private boolean modifiedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
+        log.verbose("%s modified by the user matches its updated version", userEntry.getRelativePath());
+        return false;
+    }
+
+    private boolean modifiedPathConflict(FsEntry userEntry) throws ProvisioningException {
+        log.verbose("%s modified by the user conflicts with its updated version", userEntry.getRelativePath());
+        return true;
+    }
+
+    private boolean modifiedPathNotPresent(FsEntry userEntry) throws ProvisioningException {
+        log.print("WARN: " + userEntry.getRelativePath() + " modified by the user is not present in the updated version");
+        return true;
+    }
+
+    private void removedPathNotPresent(FsEntry userEntry) throws ProvisioningException {
+        log.verbose("%s removed by the user is not present in the updated version", userEntry.getRelativePath());
+    }
+
+    private void persistHashes(ProvisioningRuntime runtime) throws ProvisioningException {
+        final long startTime = System.nanoTime();
+        final FsEntry root = getFsEntryFactory().forPath(runtime.getStagedDir());
+        if (root.hasChildren()) {
+            final Path hashes = LayoutUtils.getHashesDir(runtime.getStagedDir());
+            try {
+                Files.createDirectories(hashes);
+            } catch (IOException e) {
+                throw new ProvisioningException("Failed to persist hashes", e);
+            }
+            final List<FsEntry> dirs = new ArrayList<>();
+            persistChildHashes(hashes, root, dirs, hashes);
+            if(!dirs.isEmpty()) {
+                for(int i = dirs.size() - 1; i >= 0; --i) {
+                    persistDirHashes(hashes, dirs.get(i), dirs);
+                }
+            }
+        }
+        if(log.isVerboseEnabled()) {
+            final long timeMs = (System.nanoTime() - startTime) / 1000000;
+            final long timeSec = timeMs / 1000;
+            log.print("Hashing took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+        }
+    }
+
+    private static void persistDirHashes(Path hashes, FsEntry entry, List<FsEntry> dirs) throws ProvisioningException {
+        final Path target = hashes.resolve(entry.getRelativePath());
+        try {
+            Files.createDirectory(target);
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to persist hashes", e);
+        }
+        if (entry.hasChildren()) {
+            persistChildHashes(hashes, entry, dirs, target);
+        }
+    }
+
+    private static void persistChildHashes(Path hashes, FsEntry entry, List<FsEntry> dirs, final Path target)
+            throws ProvisioningException {
+        int dirsTotal = 0;
+        BufferedWriter writer = null;
+        try {
+            for (FsEntry child : entry.getChildren()) {
+                if (!child.isDir()) {
+                    if (writer == null) {
+                        writer = Files.newBufferedWriter(target.resolve(Constants.HASHES));
+                    }
+                    writer.write(child.getName());
+                    writer.newLine();
+                    writer.write(HashUtils.bytesToHexString(child.getHash()));
+                    writer.newLine();
+                } else {
+                    dirs.add(child);
+                    ++dirsTotal;
+                }
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to persist hashes", e);
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        while (dirsTotal > 0) {
+            persistDirHashes(hashes, dirs.remove(dirs.size() - 1), dirs);
+            --dirsTotal;
         }
     }
 }

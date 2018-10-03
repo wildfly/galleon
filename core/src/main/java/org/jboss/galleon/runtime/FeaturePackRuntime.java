@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.runtime;
 
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -26,30 +25,22 @@ import java.util.Set;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.layout.FeaturePackLayout;
-import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.FeaturePack;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeaturePackLayout {
+public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack<PackageRuntime> {
 
-    private final FPID fpid;
-    private final FeaturePackSpec spec;
-    private final Path dir;
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
-    private final int type;
 
     FeaturePackRuntime(FeaturePackRuntimeBuilder builder) throws ProvisioningException {
-        this.fpid = builder.producer.getLocation().getFPID();
-        this.spec = builder.spec;
-        this.dir = builder.dir;
+        super(builder.producer.getLocation().getFPID(), builder.getDir(), builder.getType());
+        this.spec = builder.getSpec();
         this.featureSpecs = builder.featureSpecs;
-        this.type = builder.getType();
 
         Map<String, PackageRuntime> tmpPackages = new LinkedHashMap<>();
         for(String pkgName : builder.pkgOrder) {
@@ -58,26 +49,6 @@ public class FeaturePackRuntime implements FeaturePack<PackageRuntime>, FeatureP
         }
 
         packages = Collections.unmodifiableMap(tmpPackages);
-    }
-
-    @Override
-    public FeaturePackSpec getSpec() {
-        return spec;
-    }
-
-    @Override
-    public int getType() {
-        return type;
-    }
-
-    @Override
-    public Path getDir() {
-        return dir;
-    }
-
-    @Override
-    public FPID getFPID() {
-        return fpid;
     }
 
     @Override

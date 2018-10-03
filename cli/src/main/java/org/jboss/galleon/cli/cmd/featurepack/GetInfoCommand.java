@@ -91,25 +91,26 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                 } else {
                     layout = session.getLayoutFactory().newConfigLayout(file.toPath(), true);
                 }
+
+                for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
+                    boolean isProduct = true;
+                    for (FeaturePackLayout fpLayout2 : layout.getOrderedFeaturePacks()) {
+                        if (fpLayout2.getSpec().hasTransitiveDep(fpLayout.getFPID().getProducer())
+                                || fpLayout2.getSpec().getFeaturePackDep(fpLayout.getFPID().getProducer()) != null) {
+                            isProduct = false;
+                            break;
+                        }
+                    }
+                    if (isProduct) {
+                        product = fpLayout;
+                    } else {
+                        dependencies.add(session.getExposedLocation(null, fpLayout.getFPID().getLocation()));
+                    }
+                }
             } catch (ProvisioningException ex) {
                 throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.infoFailed(), ex);
             }
 
-            for (FeaturePackLayout fpLayout : layout.getOrderedFeaturePacks()) {
-                boolean isProduct = true;
-                for (FeaturePackLayout fpLayout2 : layout.getOrderedFeaturePacks()) {
-                    if (fpLayout2.getSpec().hasTransitiveDep(fpLayout.getFPID().getProducer())
-                            || fpLayout2.getSpec().getFeaturePackDep(fpLayout.getFPID().getProducer()) != null) {
-                        isProduct = false;
-                        break;
-                    }
-                }
-                if (isProduct) {
-                    product = fpLayout;
-                } else {
-                    dependencies.add(session.getExposedLocation(null, fpLayout.getFPID().getLocation()));
-                }
-            }
             if (product == null) {
                 throw new CommandExecutionException("No feature-pack found");
             }
@@ -117,10 +118,15 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
             StateInfoUtil.printFeaturePack(commandInvocation,
                     session.getExposedLocation(null, product.getFPID().getLocation()));
 
-            FPID patchFor = product.getSpec().getPatchFor();
-            if (patchFor != null) {
-                commandInvocation.println(PATCH_FOR + patchFor);
+            try {
+                final FPID patchFor = product.getSpec().getPatchFor();
+                if (patchFor != null) {
+                    commandInvocation.println(PATCH_FOR + patchFor);
+                }
+            } catch (ProvisioningException e) {
+                throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.infoFailed(), e);
             }
+
             try {
                 if (type != null) {
                     switch (type) {
@@ -165,7 +171,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
     }
 
     private void displayConfigs(PmCommandInvocation commandInvocation,
-            FeaturePackLayout product) {
+            FeaturePackLayout product) throws ProvisioningException {
         Map<String, List<ConfigInfo>> configs = new HashMap<>();
         for (ConfigModel m : product.getSpec().getDefinedConfigs()) {
             String model = m.getModel();

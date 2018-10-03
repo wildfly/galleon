@@ -176,26 +176,11 @@ public class ProvisioningLayoutFactory implements Closeable {
     public ProvisioningLayout<FeaturePackLayout> newConfigLayout(ProvisioningConfig config) throws ProvisioningException {
         return newConfigLayout(config, new FeaturePackLayoutFactory<FeaturePackLayout>() {
             @Override
-            public FeaturePackLayout newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec spec, Path dir, int type) {
-                return new FeaturePackLayout() {
-                    @Override
-                    public FPID getFPID() {
-                        return fpl.getFPID();
-                    }
-
+            public FeaturePackLayout newFeaturePack(FeaturePackLocation fpl, FeaturePackSpec fpSpec, Path dir, int type) {
+                return new FeaturePackLayout(fpl.getFPID(), dir, type) {
                     @Override
                     public FeaturePackSpec getSpec() {
-                        return spec;
-                    }
-
-                    @Override
-                    public Path getDir() {
-                        return dir;
-                    }
-
-                    @Override
-                    public int getType() {
-                        return type;
+                        return fpSpec;
                     }
                 };
             }});

@@ -22,6 +22,7 @@ package org.jboss.galleon;
  */
 public interface Constants {
 
+    String DOT_GLNEW = ".glnew";
     String DOT_XML = ".xml";
     String CONFIGS = "configs";
     String CONFIG_XML = "config.xml";
@@ -29,6 +30,7 @@ public interface Constants {
     String FEATURE_GROUPS = "feature_groups";
     String FEATURES = "features";
     String FEATURE_PACK_XML = "feature-pack.xml";
+    String HASHES = "hashes";
     String HISTORY = "history";
     String HISTORY_LIST = "list";
     String LAYERS = "layers";

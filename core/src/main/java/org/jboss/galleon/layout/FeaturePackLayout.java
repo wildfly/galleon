@@ -27,36 +27,63 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.xml.FeaturePackXmlParser;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public interface FeaturePackLayout {
+public abstract class FeaturePackLayout {
 
-    int DIRECT_DEP = 0;
-    int TRANSITIVE_DEP = 1;
-    int PATCH = 2;
+    public static final int DIRECT_DEP = 0;
+    public static final int TRANSITIVE_DEP = 1;
+    public static final int PATCH = 2;
 
-    FPID getFPID();
+    protected final FPID fpid;
+    protected final int type;
+    protected Path dir;
+    protected FeaturePackSpec spec;
 
-    FeaturePackSpec getSpec();
-
-    Path getDir();
-
-    int getType();
-
-    default boolean isDirectDep() {
-        return getType() == DIRECT_DEP;
+    protected FeaturePackLayout(FPID fpid, Path dir, int type) {
+        this.fpid = fpid;
+        this.dir = dir;
+        this.type = type;
     }
 
-    default boolean isTransitiveDep() {
-        return getType() == TRANSITIVE_DEP;
+    public FPID getFPID() {
+        return fpid;
     }
 
-    default boolean isPatch() {
-        return getType() == PATCH;
+    public FeaturePackSpec getSpec() throws ProvisioningException {
+        if(spec == null) {
+            try(BufferedReader reader = Files.newBufferedReader(dir.resolve(Constants.FEATURE_PACK_XML))) {
+                spec = FeaturePackXmlParser.getInstance().parse(reader);
+            } catch (Exception e) {
+                throw new ProvisioningException(Errors.readFile(dir.resolve(Constants.FEATURE_PACK_XML)));
+            }
+        }
+        return spec;
+    }
+
+    public Path getDir() {
+        return dir;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public boolean isDirectDep() {
+        return type == DIRECT_DEP;
+    }
+
+    public boolean isTransitiveDep() {
+        return type == TRANSITIVE_DEP;
+    }
+
+    public boolean isPatch() {
+        return type == PATCH;
     }
 
     /**
@@ -66,26 +93,26 @@ public interface FeaturePackLayout {
      * @return  file-system path for the resource
      * @throws ProvisioningDescriptionException  in case the feature-pack was not found in the layout
      */
-    default Path getResource(String... path) throws ProvisioningDescriptionException {
+    public Path getResource(String... path) throws ProvisioningDescriptionException {
         if(path.length == 0) {
             throw new IllegalArgumentException("Resource path is null");
         }
         if(path.length == 1) {
-            return getDir().resolve(Constants.RESOURCES).resolve(path[0]);
+            return dir.resolve(Constants.RESOURCES).resolve(path[0]);
         }
-        Path p = getDir().resolve(Constants.RESOURCES);
+        Path p = dir.resolve(Constants.RESOURCES);
         for(String name : path) {
             p = p.resolve(name);
         }
         return p;
     }
 
-    default boolean hasFeatureSpec(String name) {
-        return Files.exists(getDir().resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML));
+    public boolean hasFeatureSpec(String name) {
+        return Files.exists(dir.resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML));
     }
 
-    default FeatureSpec loadFeatureSpec(String name) throws ProvisioningException {
-        final Path specXml = getDir().resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML);
+    public FeatureSpec loadFeatureSpec(String name) throws ProvisioningException {
+        final Path specXml = dir.resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML);
         if (!Files.exists(specXml)) {
             return null;
         }

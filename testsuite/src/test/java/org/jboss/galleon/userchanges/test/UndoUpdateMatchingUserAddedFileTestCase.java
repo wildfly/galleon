@@ -14,12 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.undo.test;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import org.jboss.galleon.Constants;
+package org.jboss.galleon.userchanges.test;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -31,81 +28,69 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.SingleUniverseTestBase;
-import org.jboss.galleon.util.PathsUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
 
 /**
  *
- * @author jdenise@redhat.com
+ * @author Alexey Loubyansky
  */
-public class ClearStateHistoryTestCase extends SingleUniverseTestBase {
+@Ignore
+public class UndoUpdateMatchingUserAddedFileTestCase extends UserChangesTestBase {
 
-    private FeaturePackLocation fp100;
-    private FeaturePackLocation fp101;
+    private FeaturePackLocation prod1;
+    private FeaturePackLocation prod2;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
         universe.createProducer("prod1");
+        universe.createProducer("prod2");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
-        fp100 = newFpl("prod1", "1", "1.0.0.Final");
-        creator.newFeaturePack(fp100.getFPID())
-                .newPackage("p1", true)
-                .writeContent("fp1/p1.txt", "fp100 p1");
+        prod1 = newFpl("prod1", "1", "1.0.0.Final");
+        creator.newFeaturePack(prod1.getFPID())
+            .newPackage("p1", true)
+                .writeContent("prod1/p1.txt", "prod1 p1");
 
-        fp101 = newFpl("prod1", "1", "1.0.1.Final");
-        creator.newFeaturePack(fp101.getFPID())
-                .newPackage("p1", true)
-                .writeContent("fp1/p1.txt", "fp101 p1");
+        prod2 = newFpl("prod2", "1", "1.0.0.Final");
+        creator.newFeaturePack(prod2.getFPID())
+            .newPackage("p1", true)
+                .writeContent("prod2/p1.txt", "prod2 p1");
 
         creator.install();
     }
 
     @Override
-    protected ProvisioningConfig initialState() throws ProvisioningException {
-        return ProvisioningConfig.builder()
-                .addFeaturePackDep(fp100)
-                .build();
+    protected void testPm(ProvisioningManager pm) throws ProvisioningException {
+        pm.install(prod1);
+        writeContent("prod2/p1.txt", "prod2 p1");
+        pm.install(prod2);
+        pm.undo();
     }
 
-    @Override
-    protected void testPm(ProvisioningManager pm) throws ProvisioningException {
-        pm.install(fp101);
-        assertTrue(pm.isUndoAvailable());
-        pm.clearStateHistory();
-        assertFalse(pm.isUndoAvailable());
-        Path installedHistoryDir = PathsUtils.getStateHistoryDir(installHome);
-        assertTrue(Files.exists(installedHistoryDir));
-        File[] files = installedHistoryDir.toFile().listFiles();
-        assertEquals(1, files.length);
-        assertTrue(files[0].getName().equals(Constants.HISTORY_LIST));
-    }
 
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.builder(fp101)
-                        .build()).build();
+                .addFeaturePackDep(FeaturePackConfig.builder(prod1).build())
+                .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp101.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(prod1.getFPID())
                         .addPackage("p1")
-                        .build()).build();
+                        .build())
+                .build();
     }
 
     @Override
     protected DirState provisionedHomeDir() {
         return newDirBuilder()
-                .addFile("fp1/p1.txt", "fp101 p1")
+                .addFile("prod1/p1.txt", "prod1 p1")
+                .addFile("prod2/p1.txt", "prod2 p1")
                 .build();
     }
 }
