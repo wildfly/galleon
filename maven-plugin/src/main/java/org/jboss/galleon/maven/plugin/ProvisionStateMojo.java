@@ -153,91 +153,94 @@ public class ProvisionStateMojo extends AbstractMojo {
         final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
                 : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
 
-        final ProvisioningManager pm = ProvisioningManager.builder()
-                .addArtifactResolver(artifactResolver)
+        try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(installDir.toPath())
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
-                .build();
+                .build()) {
 
-        for (FeaturePack fp : featurePacks) {
+            for (FeaturePack fp : featurePacks) {
 
-            if (fp.getLocation() == null && (fp.getGroupId() == null || fp.getArtifactId() == null) && fp.getNormalizedPath() == null) {
-                throw new MojoExecutionException("Feature-pack location, Maven GAV or feature pack path is missing");
-            }
+                if (fp.getLocation() == null && (fp.getGroupId() == null || fp.getArtifactId() == null)
+                        && fp.getNormalizedPath() == null) {
+                    throw new MojoExecutionException("Feature-pack location, Maven GAV or feature pack path is missing");
+                }
 
-            final FeaturePackLocation fpl;
-            if (fp.getNormalizedPath() != null) {
-                fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
-            } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
-                Path path = resolveMaven(fp, (MavenRepoManager) artifactResolver);
-                fpl = pm.getLayoutFactory().addLocal(path, false);
-            } else {
-                fpl = FeaturePackLocation.fromString(fp.getLocation());
-            }
+                final FeaturePackLocation fpl;
+                if (fp.getNormalizedPath() != null) {
+                    fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+                } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
+                    Path path = resolveMaven(fp, (MavenRepoManager) artifactResolver);
+                    fpl = pm.getLayoutFactory().addLocal(path, false);
+                } else {
+                    fpl = FeaturePackLocation.fromString(fp.getLocation());
+                }
 
-            final FeaturePackConfig.Builder fpConfig = fp.isTransitive() ? FeaturePackConfig.transitiveBuilder(fpl) : FeaturePackConfig.builder(fpl);
-            fpConfig.setInheritConfigs(fp.isInheritConfigs());
-            fpConfig.setInheritPackages(fp.isInheritPackages());
+                final FeaturePackConfig.Builder fpConfig = fp.isTransitive() ? FeaturePackConfig.transitiveBuilder(fpl)
+                        : FeaturePackConfig.builder(fpl);
+                fpConfig.setInheritConfigs(fp.isInheritConfigs());
+                fpConfig.setInheritPackages(fp.isInheritPackages());
 
-            if(!fp.getExcludedConfigs().isEmpty()) {
-                for(ConfigurationId configId : fp.getExcludedConfigs()) {
-                    if(configId.isModelOnly()) {
-                        fpConfig.excludeConfigModel(configId.getId().getModel());
-                    } else {
-                        fpConfig.excludeDefaultConfig(configId.getId());
+                if (!fp.getExcludedConfigs().isEmpty()) {
+                    for (ConfigurationId configId : fp.getExcludedConfigs()) {
+                        if (configId.isModelOnly()) {
+                            fpConfig.excludeConfigModel(configId.getId().getModel());
+                        } else {
+                            fpConfig.excludeDefaultConfig(configId.getId());
+                        }
                     }
                 }
-            }
-            if(!fp.getIncludedConfigs().isEmpty()) {
-                for(ConfigurationId configId : fp.getIncludedConfigs()) {
-                    if(configId.isModelOnly()) {
-                        fpConfig.includeConfigModel(configId.getId().getModel());
-                    } else {
-                        fpConfig.includeDefaultConfig(configId.getId());
+                if (!fp.getIncludedConfigs().isEmpty()) {
+                    for (ConfigurationId configId : fp.getIncludedConfigs()) {
+                        if (configId.isModelOnly()) {
+                            fpConfig.includeConfigModel(configId.getId().getModel());
+                        } else {
+                            fpConfig.includeDefaultConfig(configId.getId());
+                        }
                     }
                 }
+
+                if (!fp.getIncludedPackages().isEmpty()) {
+                    for (String includedPackage : fp.getIncludedPackages()) {
+                        fpConfig.includePackage(includedPackage);
+                    }
+                }
+                if (!fp.getExcludedPackages().isEmpty()) {
+                    for (String excludedPackage : fp.getExcludedPackages()) {
+                        fpConfig.excludePackage(excludedPackage);
+                    }
+                }
+
+                state.addFeaturePackDep(fpConfig.build());
             }
 
-            if (!fp.getIncludedPackages().isEmpty()) {
-                for (String includedPackage : fp.getIncludedPackages()) {
-                    fpConfig.includePackage(includedPackage);
+            if (customConfig != null && customConfig.exists()) {
+                try (BufferedReader reader = Files.newBufferedReader(customConfig.toPath())) {
+                    state.addConfig(ConfigXmlParser.getInstance().parse(reader));
+                } catch (XMLStreamException | IOException ex) {
+                    throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
                 }
             }
-            if (!fp.getExcludedPackages().isEmpty()) {
-                for (String excludedPackage : fp.getExcludedPackages()) {
-                    fpConfig.excludePackage(excludedPackage);
+
+            for (ResolveLocalItem localResolverItem : resolveLocals) {
+                if (localResolverItem.getError() != null) {
+                    throw new MojoExecutionException(localResolverItem.getError());
                 }
             }
 
-            state.addFeaturePackDep(fpConfig.build());
-        }
-
-        if (customConfig != null && customConfig.exists()) {
-            try (BufferedReader reader = Files.newBufferedReader(customConfig.toPath())) {
-                state.addConfig(ConfigXmlParser.getInstance().parse(reader));
-            } catch (XMLStreamException | IOException ex) {
-                throw new IllegalArgumentException("Couldn't load the customization configuration " + customConfig, ex);
+            for (ResolveLocalItem localResolverItem : resolveLocals) {
+                if (localResolverItem.getNormalizedPath() != null) {
+                    pm.getLayoutFactory().addLocal(localResolverItem.getNormalizedPath(),
+                            localResolverItem.getInstallInUniverse());
+                } else if (localResolverItem.hasArtifactCoords()) {
+                    Path path = resolveMaven(localResolverItem, (MavenRepoManager) artifactResolver);
+                    pm.getLayoutFactory().addLocal(path, false);
+                } else {
+                    throw new MojoExecutionException("resolve-local element appears to be neither path not maven artifact");
+                }
             }
-        }
 
-        for (ResolveLocalItem localResolverItem : resolveLocals) {
-            if (localResolverItem.getError() != null) {
-                throw new MojoExecutionException(localResolverItem.getError());
-            }
+            pm.provision(state.build(), pluginOptions);
         }
-
-        for (ResolveLocalItem localResolverItem : resolveLocals) {
-            if (localResolverItem.getNormalizedPath() != null) {
-                pm.getLayoutFactory().addLocal(localResolverItem.getNormalizedPath(), localResolverItem.getInstallInUniverse());
-            } else if (localResolverItem.hasArtifactCoords()) {
-                Path path = resolveMaven(localResolverItem, (MavenRepoManager) artifactResolver);
-                pm.getLayoutFactory().addLocal(path, false);
-            } else {
-                throw new MojoExecutionException("resolve-local element appears to be neither path not maven artifact");
-            }
-        }
-
-        pm.provision(state.build(), pluginOptions);
     }
 
     private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MavenUniverseException {

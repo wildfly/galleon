@@ -133,8 +133,10 @@ public class FeaturePackInstaller {
     }
 
     public void install() {
-        try {
-            ProvisioningManager manager = getManager();
+        try(ProvisioningManager manager = ProvisioningManager.builder()
+                .addArtifactResolver(LegacyGalleon1RepositoryManager.newInstance(repoHome))
+                .setInstallationHome(installationDir)
+                .build()) {
             System.setProperty("org.wildfly.logging.skipLogManagerCheck", "true");
             ConfigModel config = null;
             if (customConfig != null && Files.exists(customConfig)) {
@@ -178,12 +180,5 @@ public class FeaturePackInstaller {
         } finally {
             System.clearProperty("org.wildfly.logging.skipLogManagerCheck");
         }
-    }
-
-    private ProvisioningManager getManager() throws ProvisioningException {
-        return ProvisioningManager.builder()
-                .addArtifactResolver(LegacyGalleon1RepositoryManager.newInstance(repoHome))
-                .setInstallationHome(installationDir)
-                .build();
     }
 }
