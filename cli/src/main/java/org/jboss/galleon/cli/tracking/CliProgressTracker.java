@@ -63,6 +63,7 @@ abstract class CliProgressTracker<T> implements ProgressCallback<T> {
             invocation.getShell().write(ANSI.CURSOR_HIDE);
             invocation.getShell().write(ANSI.CURSOR_RESTORE);
             invocation.getShell().write(ANSI.ERASE_WHOLE_LINE);
+            invocation.getShell().write(ANSI.CURSOR_SAVE);
             invocation.getShell().write(content);
             invocation.getShell().write(ANSI.CURSOR_SHOW);
         }
@@ -74,6 +75,7 @@ abstract class CliProgressTracker<T> implements ProgressCallback<T> {
             } else {
                 invocation.getShell().write(ANSI.ERASE_WHOLE_LINE);
             }
+            invocation.getShell().write(ANSI.CURSOR_RESTORE);
         }
 
         @Override
