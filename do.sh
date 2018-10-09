@@ -60,6 +60,19 @@ if [[ -n $BUILD ]]; then
     mvn clean install
 fi
 
+# Set default modular JVM options
+java --add-modules=java.se -version > /dev/null 2>&1 && MODULAR_JDK=true || MODULAR_JDK=false
+if [ "$MODULAR_JDK" = "true" ]; then
+  DEFAULT_MODULAR_JVM_OPTIONS=`echo $* | $GREP "\-\-add\-modules"`
+  if [ "x$DEFAULT_MODULAR_JVM_OPTIONS" = "x" ]; then
+    # Set default modular jdk options
+    DEFAULT_MODULAR_JVM_OPTIONS="$DEFAULT_MODULAR_JVM_OPTIONS --add-modules=java.se"
+  else
+    DEFAULT_MODULAR_JVM_OPTIONS=""
+  fi
+fi
+JAVA_OPTS="$JAVA_OPTS $DEFAULT_MODULAR_JVM_OPTIONS"
+
 if [[ -n $RUN ]]; then
   LOG_CONF=`echo $JAVA_OPTS | grep "logging.configuration"`
   if [ "x$LOG_CONF" = "x" ]; then
