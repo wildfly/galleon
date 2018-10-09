@@ -209,6 +209,10 @@ public class FPLocationParser {
                     }
                     break;
                 }
+                case BUILD: {
+                    builder.append(c);
+                    break;
+                }
             }
         }
         // Need to close the content, this is what needs to be completed
