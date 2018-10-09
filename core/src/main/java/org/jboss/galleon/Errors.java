@@ -20,10 +20,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -443,6 +446,21 @@ public interface Errors {
 
     static String fsEntryInit(Path p) {
         return "Failed to process child entries for " + p;
+    }
+
+    static String pluginOptionRequired(String name) {
+        return "Plugin option " + name + " is required for this configuration";
+    }
+
+    static String pluginOptionsNotRecognized(Collection<String> names) {
+        final StringBuilder buf = new StringBuilder("The following plugin options are not recognized: ");
+        if(names.size() > 1) {
+            final List<String> list = new ArrayList<>(names);
+            Collections.sort(list);
+            names = list;
+        }
+        StringUtils.append(buf, names);
+        return buf.toString();
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {

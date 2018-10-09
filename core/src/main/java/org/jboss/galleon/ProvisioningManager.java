@@ -187,7 +187,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of an error
      */
     public void addUniverse(String name, UniverseSpec universeSpec) throws ProvisioningException {
-        final ProvisioningConfig config = getInstallationBuilder().addUniverse(name, universeSpec).build();
+        final ProvisioningConfig config = ProvisioningConfig.builder(getProvisioningConfig()).addUniverse(name, universeSpec).build();
         try {
             ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(home));
         } catch (Exception e) {
@@ -304,17 +304,14 @@ public class ProvisioningManager implements AutoCloseable {
 
     public void install(FeaturePackConfig fpConfig, Map<String, String> options) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
-        final boolean empty = config == null || !config.hasFeaturePackDeps();
-        if(empty) {
-            config = getInstallationBuilder().addFeaturePackDep(fpConfig).build();
+        if(config == null) {
+            config = ProvisioningConfig.builder().build();
         }
-        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
-            if(!empty) {
-                final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
-                layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build());
-            }
-            try (ProvisioningRuntime runtime = getRuntime(layout, options)) {
-                doProvision(runtime, options, false);
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+            final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
+            layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build(), options);
+            try (ProvisioningRuntime runtime = getRuntime(layout)) {
+                doProvision(runtime, false);
             }
         }
     }
@@ -341,10 +338,10 @@ public class ProvisioningManager implements AutoCloseable {
         if(config == null || !config.hasFeaturePackDeps()) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
-        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
-            layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID());
-            try (ProvisioningRuntime runtime = getRuntime(layout, pluginOptions)) {
-                doProvision(runtime, pluginOptions, false);
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+            layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID(), pluginOptions);
+            try (ProvisioningRuntime runtime = getRuntime(layout)) {
+                doProvision(runtime, false);
             }
         }
     }
@@ -368,7 +365,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, options)) {
-            doProvision(runtime, null, false);
+            doProvision(runtime, false);
         }
     }
 
@@ -376,12 +373,11 @@ public class ProvisioningManager implements AutoCloseable {
      * (Re-)provisions the current installation to the desired specification.
      *
      * @param provisioningLayout  pre-built provisioning layout
-     * @param options  feature-pack plug-ins options
      * @throws ProvisioningException  in case provisioning fails
      */
-    public void provision(ProvisioningLayout<?> provisioningLayout, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(provisioningLayout, options)) {
-            doProvision(runtime, null, false);
+    public void provision(ProvisioningLayout<?> provisioningLayout) throws ProvisioningException {
+        try(ProvisioningRuntime runtime = getRuntime(provisioningLayout)) {
+            doProvision(runtime, false);
         }
     }
 
@@ -404,7 +400,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), options)) {
-            doProvision(runtime, null, false);
+            doProvision(runtime, false);
         }
     }
 
@@ -470,12 +466,12 @@ public class ProvisioningManager implements AutoCloseable {
     public void apply(ProvisioningPlan plan, Map<String, String> options) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
         if(config == null) {
-            config = getInstallationBuilder().build();
+            config = ProvisioningConfig.builder().build();
         }
-        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
-            layout.apply(plan);
-            try (ProvisioningRuntime runtime = getRuntime(layout, options)) {
-                doProvision(runtime, options, false);
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+            layout.apply(plan, options);
+            try (ProvisioningRuntime runtime = getRuntime(layout)) {
+                doProvision(runtime, false);
             }
         }
     }
@@ -528,8 +524,8 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of a failure
      */
     public void undo() throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
-            doProvision(runtime, Collections.emptyMap(), true);
+        try(ProvisioningRuntime runtime = getRuntime(StateHistoryUtils.readUndoConfig(home, log))) {
+            doProvision(runtime, true);
         }
     }
 
@@ -685,35 +681,35 @@ public class ProvisioningManager implements AutoCloseable {
     }
     */
 
-    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, Map<String, String> options)
+    public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig)
             throws ProvisioningException {
-        return getRuntimeInternal(getLayoutFactory().newConfigLayout(provisioningConfig, ProvisioningRuntimeBuilder.FP_RT_FACTORY), options);
+        return getRuntime(provisioningConfig, Collections.emptyMap());
     }
 
-    public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout, Map<String, String> options)
+    private ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, Map<String, String> pluginOptions)
             throws ProvisioningException {
-        return getRuntimeInternal(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY), options);
+        return getRuntimeInternal(getLayoutFactory().newConfigLayout(provisioningConfig, ProvisioningRuntimeBuilder.FP_RT_FACTORY, pluginOptions));
     }
 
-    private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, Map<String, String> options)
+    public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout)
+            throws ProvisioningException {
+        return getRuntimeInternal(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY));
+    }
+
+    private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout)
             throws ProvisioningException {
         return ProvisioningRuntimeBuilder.newInstance(log)
                 .initRtLayout(layout)
                 .setEncoding(encoding)
-                .addOptions(options)
                 .build();
     }
 
-    private ProvisioningConfig.Builder getInstallationBuilder() throws ProvisioningException {
-        return ProvisioningConfig.builder(getProvisioningConfig());
-    }
-
-    private void doProvision(ProvisioningRuntime runtime, Map<String, String> options, boolean undo) throws ProvisioningException {
+    private void doProvision(ProvisioningRuntime runtime, boolean undo) throws ProvisioningException {
 
         FsDiff diff = null;
         final ProvisioningConfig config = getProvisioningConfig();
         if(config != null && config.hasFeaturePackDeps()) {
-            diff = detectUserChanges(config, options);
+            diff = detectUserChanges(config);
         }
 
         try {
@@ -758,7 +754,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    private FsDiff detectUserChanges(ProvisioningConfig config, Map<String, String> options) throws ProvisioningException {
+    private FsDiff detectUserChanges(ProvisioningConfig config) throws ProvisioningException {
         log.verbose("Detecting user changes");
         final Path hashesDir = LayoutUtils.getHashesDir(getInstallationHome());
         if(Files.exists(hashesDir)) {
@@ -767,7 +763,7 @@ public class ProvisioningManager implements AutoCloseable {
             final FsEntry currentState = getFsEntryFactory().forPath(getInstallationHome());
             return FsDiff.diff(originalState, currentState);
         }
-        try(ProvisioningRuntime rt = getRuntime(config, options)) {
+        try(ProvisioningRuntime rt = getRuntime(config)) {
             rt.provision();
             final FsEntryFactory fsFactory = getFsEntryFactory();
             final FsEntry originalState = fsFactory.forPath(rt.getStagedDir());

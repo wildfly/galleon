@@ -49,7 +49,7 @@ public abstract class AbstractProvisionCommand extends AbstractProvisionWithPlug
                 pluginOptions.addAll(plugin.getOptions().values());
             }
         };
-        runtime.visitPlugins(visitor, InstallPlugin.class);
+        runtime.getLayout().visitPlugins(visitor, InstallPlugin.class);
         return pluginOptions;
     }
 

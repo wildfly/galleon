@@ -183,16 +183,15 @@ public class ProvisioningLayoutFactory implements Closeable {
                         return fpSpec;
                     }
                 };
-            }});
+            }}, false);
     }
 
-    public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory) throws ProvisioningException {
-        return new ProvisioningLayout<>(this, config, factory, false);
+    public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory, boolean initOptions) throws ProvisioningException {
+        return new ProvisioningLayout<>(this, config, factory, initOptions);
     }
 
-    public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory, boolean cleanupTransitive)
-            throws ProvisioningException {
-        return new ProvisioningLayout<>(this, config, factory, cleanupTransitive);
+    public <F extends FeaturePackLayout> ProvisioningLayout<F> newConfigLayout(ProvisioningConfig config, FeaturePackLayoutFactory<F> factory, Map<String, String> pluginOptions) throws ProvisioningException {
+        return new ProvisioningLayout<>(this, config, factory, pluginOptions);
     }
 
     public <F extends FeaturePackLayout> F resolveFeaturePack(FeaturePackLocation location, int type, FeaturePackLayoutFactory<F> factory)
@@ -211,10 +210,6 @@ public class ProvisioningLayoutFactory implements Closeable {
 
     private synchronized Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
         return cacheManager.put(universeResolver, fpl);
-    }
-
-    public synchronized void removeFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
-        cacheManager.remove(fpl.getFPID());
     }
 
     ProvisioningLayout.Handle createHandle() {

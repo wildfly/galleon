@@ -84,7 +84,6 @@ public class ProvisioningRuntimeBuilder {
     String encoding;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
-    Map<String, String> pluginOptions = Collections.emptyMap();
     private final MessageWriter messageWriter;
 
     Map<String, ConfigModelStack> nameOnlyConfigs = Collections.emptyMap();
@@ -122,7 +121,7 @@ public class ProvisioningRuntimeBuilder {
     }
 
     public ProvisioningRuntimeBuilder initLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config) throws ProvisioningException {
-        layout = layoutFactory.newConfigLayout(config, FP_RT_FACTORY);
+        layout = layoutFactory.newConfigLayout(config, FP_RT_FACTORY, false);
         return this;
     }
 
@@ -1052,16 +1051,6 @@ public class ProvisioningRuntimeBuilder {
             }
         }
         return false;
-    }
-
-    public ProvisioningRuntimeBuilder setOption(String name, String param) {
-        pluginOptions = CollectionUtils.put(pluginOptions, name, param);
-        return this;
-    }
-
-    public ProvisioningRuntimeBuilder addOptions(Map<String, String> options) {
-        this.pluginOptions = CollectionUtils.putAll(this.pluginOptions, options);
-        return this;
     }
 
     /**

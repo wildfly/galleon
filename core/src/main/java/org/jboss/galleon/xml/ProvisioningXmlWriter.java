@@ -29,8 +29,8 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.xml.ProvisioningXmlParser20.Attribute;
-import org.jboss.galleon.xml.ProvisioningXmlParser20.Element;
+import org.jboss.galleon.xml.ProvisioningXmlParser30.Attribute;
+import org.jboss.galleon.xml.ProvisioningXmlParser30.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 import org.jboss.galleon.xml.util.TextNode;
 
@@ -75,6 +75,21 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         }
 
         writeConfigCustomizations(install, Element.INSTALLATION.getNamespace(), config);
+
+        if(config.hasPluginOptions()) {
+            final Map<String, String> pluginOptions = config.getPluginOptions();
+            final String[] names = pluginOptions.keySet().toArray(new String[pluginOptions.size()]);
+            Arrays.sort(names);
+            final ElementNode optionsE = addElement(install, Element.PLUGIN_OPTIONS);
+            for(String name : names) {
+                final ElementNode optionE = addElement(optionsE, Element.PLUGIN_OPTION);
+                addAttribute(optionE, Attribute.NAME, name);
+                final String value = pluginOptions.get(name);
+                if(value != null) {
+                    addAttribute(optionE, Attribute.VALUE, value);
+                }
+            }
+        }
 
         return install;
     }
