@@ -41,6 +41,20 @@ if [ "x$JAVA" = "x" ]; then
     fi
 fi
 
+$JAVA --add-modules=java.se -version > /dev/null 2>&1 && MODULAR_JDK=true || MODULAR_JDK=false
+
+if [ "$MODULAR_JDK" = "true" ]; then
+  DEFAULT_MODULAR_JVM_OPTIONS=`echo $* | $GREP "\-\-add\-modules"`
+  if [ "x$DEFAULT_MODULAR_JVM_OPTIONS" = "x" ]; then
+    # Set default modular jdk options
+    DEFAULT_MODULAR_JVM_OPTIONS="$DEFAULT_MODULAR_JVM_OPTIONS --add-modules=java.se"
+  else
+    DEFAULT_MODULAR_JVM_OPTIONS=""
+  fi
+fi
+
+JAVA_OPTS="$JAVA_OPTS $DEFAULT_MODULAR_JVM_OPTIONS"
+
 LOG_CONF=`echo $JAVA_OPTS | grep "logging.configuration"`
 if [ "x$LOG_CONF" = "x" ]; then
   exec "$JAVA" $JAVA_OPTS -Dlogging.configuration=file:"$DIRNAME"/galleon-cli-logging.properties -jar "$DIRNAME"/galleon-cli.jar "$@"

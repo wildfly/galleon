@@ -40,6 +40,18 @@ if errorlevel == 1 (
   echo logging.configuration already set in JAVA_OPTS
 )
 
+"%JAVA%" --add-modules=java.se -version >nul 2>&1 && (set MODULAR_JDK=true) || (set MODULAR_JDK=false)
+if "%MODULAR_JDK%" == "true" (
+  echo "%~1" | findstr /I "\-\-add\-modules" > nul
+  if errorlevel == 1 (
+    rem Set default modular jdk options
+    set "DEFAULT_MODULAR_JVM_OPTIONS=%DEFAULT_MODULAR_JVM_OPTIONS% --add-modules=java.se"
+  ) else (
+    set "DEFAULT_MODULAR_JVM_OPTIONS="
+  )
+)
+set "JAVA_OPTS=%JAVA_OPTS% %DEFAULT_MODULAR_JVM_OPTIONS%"
+
 "%JAVA%" %JAVA_OPTS% %LOGGING_CONFIG% -jar "%DIRNAME%\galleon-cli.jar" %*
 :END
 if "x%NOPAUSE%" == "x" pause
