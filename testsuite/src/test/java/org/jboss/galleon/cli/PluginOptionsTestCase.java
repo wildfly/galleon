@@ -24,13 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.ProvisioningConfig;
 
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
@@ -46,14 +46,14 @@ import org.junit.Test;
 public class PluginOptionsTestCase {
 
     public static class PluginTest implements InstallPlugin {
-        private static final Map<String, PluginOption> OPTIONS = new HashMap<>();
+        private static final Map<String, ProvisioningOption> OPTIONS = new HashMap<>();
         private static final String OPT1_REQUIRED = "opt1-req";
         private static final String OPT2_NOT_REQUIRED = "opt2-not-req";
         private static final String OPT3_NOVALUE = "opt3-not-value";
         static {
-            OPTIONS.put(OPT1_REQUIRED, PluginOption.builder(OPT1_REQUIRED).setRequired().build());
-            OPTIONS.put(OPT2_NOT_REQUIRED, PluginOption.builder(OPT2_NOT_REQUIRED).build());
-            OPTIONS.put(OPT3_NOVALUE, PluginOption.builder(OPT3_NOVALUE).hasNoValue().build());
+            OPTIONS.put(OPT1_REQUIRED, ProvisioningOption.builder(OPT1_REQUIRED).setRequired().build());
+            OPTIONS.put(OPT2_NOT_REQUIRED, ProvisioningOption.builder(OPT2_NOT_REQUIRED).build());
+            OPTIONS.put(OPT3_NOVALUE, ProvisioningOption.builder(OPT3_NOVALUE).hasNoValue().build());
         }
 
         @Override
@@ -62,7 +62,7 @@ public class PluginOptionsTestCase {
         }
 
         @Override
-        public Map<String, PluginOption> getOptions() {
+        public Map<String, ProvisioningOption> getOptions() {
             return OPTIONS;
         }
     ;

@@ -29,20 +29,24 @@ public abstract class PackageDepsSpec {
 
     protected final List<PackageDependencySpec> localPkgDeps;
     protected final Map<String, List<PackageDependencySpec>> externalPkgDeps;
+    protected final int requiredPkgDeps;
 
     protected PackageDepsSpec() {
         localPkgDeps = Collections.emptyList();
         externalPkgDeps = Collections.emptyMap();
+        requiredPkgDeps = 0;
     }
 
     protected PackageDepsSpec(PackageDepsSpec src) {
         localPkgDeps = src.localPkgDeps;
         externalPkgDeps = src.externalPkgDeps;
+        requiredPkgDeps = src.requiredPkgDeps;
     }
 
     protected PackageDepsSpec(PackageDepsSpecBuilder<?> builder) {
         this.localPkgDeps = builder.buildLocalPackageDeps();
         this.externalPkgDeps = builder.buildExternalPackageDeps();
+        this.requiredPkgDeps = builder.requiredDeps;
     }
 
     public boolean hasPackageDeps() {
@@ -68,6 +72,10 @@ public abstract class PackageDepsSpec {
     public Collection<PackageDependencySpec> getExternalPackageDeps(String origin) {
         final List<PackageDependencySpec> fpDeps = externalPkgDeps.get(origin);
         return fpDeps == null ? Collections.emptyList() : fpDeps;
+    }
+
+    public int getRequiredPackageDepsTotal() {
+        return requiredPkgDeps;
     }
 
     @Override

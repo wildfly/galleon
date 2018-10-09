@@ -17,11 +17,14 @@
 package org.jboss.galleon.runtime;
 
 import java.nio.file.Path;
-
+import java.util.Collections;
+import java.util.List;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.state.ProvisionedPackage;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
@@ -29,13 +32,117 @@ import org.jboss.galleon.state.ProvisionedPackage;
  */
 public class PackageRuntime implements ProvisionedPackage {
 
+    static final int ON_DEP_BRANCH      = 0b000001;
+    static final int SCHEDULED          = 0b000010;
+    static final int INCLUDED           = 0b000100;
+    static final int PARENT_INCLUDED    = 0b001000;
+    static final int ROOT               = 0b010000;
+    static final int VISITED            = 0b100000;
+
     static class Builder {
+        final FeaturePackRuntimeBuilder fp;
         final Path dir;
         final PackageSpec spec;
+        final int id;
+        private int status;
+        private List<PackageRuntime.Builder> passiveDeps = Collections.emptyList();
+        private List<PackageRuntime.Builder> requiredDeps = Collections.emptyList();
+        int type = PackageDependencySpec.OPTIONAL;
 
-        private Builder(PackageSpec spec, Path dir) {
+        private Builder(FeaturePackRuntimeBuilder fp, PackageSpec spec, Path dir, int id) {
+            this.fp = fp;
             this.dir = dir;
             this.spec = spec;
+            this.id = id;
+        }
+
+        boolean isFlagOn(int flag) {
+            return (status & flag) > 0;
+        }
+
+        boolean setFlag(int flag) {
+            if((status & flag) > 0) {
+                return false;
+            }
+            status ^= flag;
+            return true;
+        }
+
+        void clearFlag(int flag) {
+            if((status & flag) > 0) {
+                status ^= flag;
+            }
+        }
+
+        void schedule() {
+            if(setFlag(SCHEDULED)) {
+                fp.pkgOrder.add(spec.getName());
+            }
+        }
+
+        void referencedAs(int type) {
+            if(type == PackageDependencySpec.PASSIVE) {
+                this.type = type;
+            }
+        }
+
+        void addPackageDep(PackageRuntime.Builder dep, int type) {
+            switch(type) {
+                case PackageDependencySpec.REQUIRED:
+                    //System.out.println("Required dependency " + spec.getName() + " -> " + dep.spec.getName());
+                    if(isFlagOn(INCLUDED)) {
+                        dep.include();
+                    } else {
+                        requiredDeps = CollectionUtils.add(requiredDeps, dep);
+                    }
+                    return;
+                case PackageDependencySpec.PASSIVE:
+                    //System.out.println("Passive dependency " + spec.getName() + " -> " + dep.spec.getName());
+                    passiveDeps = CollectionUtils.add(passiveDeps, dep);
+                    if(isFlagOn(INCLUDED)) {
+                        dep.setFlag(PARENT_INCLUDED);
+                    }
+                    break;
+                default:
+                    //System.out.println("Optional dependency " + spec.getName() + " -> " + dep.spec.getName());
+                    return;
+            }
+        }
+
+        void include() {
+            if(!setFlag(INCLUDED)) {
+                return;
+            }
+            if(!requiredDeps.isEmpty()) {
+                for (PackageRuntime.Builder dep : requiredDeps) {
+                    dep.include();
+                }
+            }
+            if(!passiveDeps.isEmpty()) {
+                for (PackageRuntime.Builder dep : passiveDeps) {
+                    dep.setFlag(PARENT_INCLUDED);
+                }
+            }
+        }
+
+        boolean isPassiveWithSatisfiedDeps() {
+            if(type != PackageDependencySpec.PASSIVE) {
+                return false;
+            }
+            final int specRequiredDeps = spec.getRequiredPackageDepsTotal();
+            if(specRequiredDeps == 0 || !setFlag(VISITED)) {
+                return true;
+            }
+            if(specRequiredDeps != requiredDeps.size()) {
+                return false;
+            }
+            for(PackageRuntime.Builder dep : requiredDeps) {
+                if(!dep.isFlagOn(INCLUDED)) {
+                    return false;
+                }
+            }
+            clearFlag(VISITED);
+            return true;
         }
 
         PackageRuntime build(FeaturePackRuntime fp) {
@@ -43,8 +150,8 @@ public class PackageRuntime implements ProvisionedPackage {
         }
     }
 
-    static Builder builder(PackageSpec spec, Path dir) {
-        return new Builder(spec, dir);
+    static Builder builder(FeaturePackRuntimeBuilder fp, PackageSpec spec, Path dir, int id) {
+        return new Builder(fp, spec, dir, id);
     }
 
     private final FeaturePackRuntime fp;

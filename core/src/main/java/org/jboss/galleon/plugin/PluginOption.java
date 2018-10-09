@@ -16,56 +16,50 @@
  */
 package org.jboss.galleon.plugin;
 
-import java.util.Collections;
-import java.util.Set;
-
-import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.ProvisioningOption;
 
 /**
  * Provisioning plugin option description.
  *
+ * Deprecated in 3.0.0 in favor of ProvisioningOption
+ *
  * @author Alexey Loubyansky
  */
-public class PluginOption {
+@Deprecated
+public class PluginOption extends ProvisioningOption {
 
-    public static class Builder {
+    public static class Builder extends ProvisioningOption.Builder {
 
-        private final String name;
-        private boolean required;
-        private boolean acceptsValue = true;
-        private boolean persistent = true;
-        private String defaultValue;
-        private Set<String> valueSet = Collections.emptySet();
-
-        private Builder(String name) {
-            this.name = name;
+        protected Builder(String name) {
+            super(name);
         }
 
         public Builder setRequired() {
-            this.required = true;
+            super.setRequired();
             return this;
         }
 
         public Builder hasNoValue() {
-            this.acceptsValue = false;
+            super.hasNoValue();
             return this;
         }
 
         public Builder setDefaultValue(String defaultValue) {
-            this.defaultValue = defaultValue;
+            super.setDefaultValue(defaultValue);
             return this;
         }
 
         public Builder addToValueSet(String value) {
-            this.valueSet = CollectionUtils.add(valueSet, value);
+            super.addToValueSet(value);
             return this;
         }
 
         public Builder setPersistent(boolean persistent) {
-            this.persistent = persistent;
+            super.setPersistent(persistent);
             return this;
         }
 
+        @Override
         public PluginOption build() {
             return new PluginOption(this);
         }
@@ -75,125 +69,11 @@ public class PluginOption {
         return new Builder(name);
     }
 
-    private final String name;
-    private final boolean required;
-    private final boolean acceptsValue;
-    private final boolean persistent;
-    private final String defaultValue;
-    private final Set<String> valueSet;
-
-    private PluginOption(String name) {
-        this.name = name;
-        required = false;
-        acceptsValue = false;
-        persistent = true;
-        defaultValue = null;
-        valueSet = Collections.emptySet();
+    protected PluginOption(String name) {
+        super(name);
     }
 
-    private PluginOption(Builder builder) {
-        this.name = builder.name;
-        this.required = builder.required;
-        this.acceptsValue = builder.acceptsValue;
-        this.persistent = builder.persistent;
-        this.defaultValue = builder.defaultValue;
-        this.valueSet = builder.valueSet;
-    }
-
-    /**
-     * Option name, must be unique across plugins
-     * @return  option name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Indicates whether the option must be set by the user for the plugin to function
-     * @return  whether the option is required
-     */
-    public boolean isRequired() {
-        return required;
-    }
-
-    /**
-     * Indicates whether the option accepts a value or can appear w/o a value
-     * @return  whether the option accepts a value
-     */
-    public boolean isAcceptsValue() {
-        return acceptsValue;
-    }
-
-    /**
-     * The default value for the option in case the option was not explicitly set
-     * by the user. May be null.
-     * @return  default option value
-     */
-    public String getDefaultValue() {
-        return defaultValue;
-    }
-
-    /**
-     * Allowed option values. Empty value set indicates there are no restrictions
-     * on the option value.
-     * @return  allowed option values or an empty set in case there are no restrictions on the value
-     */
-    public Set<String> getValueSet() {
-        return valueSet;
-    }
-
-    /**
-     * Indicates whether the option should be persisted in the provisioning configuration.
-     *
-     * @return  true if the option should be persisted, otherwise - false
-     */
-    public boolean isPersistent() {
-        return persistent;
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (acceptsValue ? 1231 : 1237);
-        result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + (persistent ? 1231 : 1237);
-        result = prime * result + (required ? 1231 : 1237);
-        result = prime * result + ((valueSet == null) ? 0 : valueSet.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        PluginOption other = (PluginOption) obj;
-        if (acceptsValue != other.acceptsValue)
-            return false;
-        if (defaultValue == null) {
-            if (other.defaultValue != null)
-                return false;
-        } else if (!defaultValue.equals(other.defaultValue))
-            return false;
-        if (name == null) {
-            if (other.name != null)
-                return false;
-        } else if (!name.equals(other.name))
-            return false;
-        if (persistent != other.persistent)
-            return false;
-        if (required != other.required)
-            return false;
-        if (valueSet == null) {
-            if (other.valueSet != null)
-                return false;
-        } else if (!valueSet.equals(other.valueSet))
-            return false;
-        return true;
+    protected PluginOption(Builder builder) {
+        super(builder);
     }
 }

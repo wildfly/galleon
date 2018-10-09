@@ -80,9 +80,9 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
             final Map<String, String> pluginOptions = config.getPluginOptions();
             final String[] names = pluginOptions.keySet().toArray(new String[pluginOptions.size()]);
             Arrays.sort(names);
-            final ElementNode optionsE = addElement(install, Element.PLUGIN_OPTIONS);
+            final ElementNode optionsE = addElement(install, Element.OPTIONS);
             for(String name : names) {
-                final ElementNode optionE = addElement(optionsE, Element.PLUGIN_OPTION);
+                final ElementNode optionE = addElement(optionsE, Element.OPTION);
                 addAttribute(optionE, Attribute.NAME, name);
                 final String value = pluginOptions.get(name);
                 if(value != null) {

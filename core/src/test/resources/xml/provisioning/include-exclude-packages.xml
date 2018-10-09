@@ -17,19 +17,19 @@
     limitations under the License.
 
 -->
-<installation xmlns="urn:jboss:galleon:provisioning:1.0">
-  <feature-pack groupId="org.jboss.group1" artifactId="fp1" version="0.0.1">
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+  <feature-pack location="fp1@maven(universe):0#0.0.1">
     <packages inherit="false">
       <include name="p1"/>
     </packages>
   </feature-pack>
-  <feature-pack groupId="org.jboss.group1" artifactId="fp2" version="0.0.2">
+  <feature-pack location="fp2@maven(universe):0#0.0.2">
     <packages>
       <exclude name="p2"/>
       <include name="p3"/>
     </packages>
   </feature-pack>
-  <feature-pack groupId="org.jboss.group2" artifactId="fp3" version="0.0.3">
+  <feature-pack location="fp3@maven(universe):0#0.0.3">
     <packages inherit="true">
       <exclude name="p2"/>
       <include name="p3"/>

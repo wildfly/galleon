@@ -21,27 +21,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jboss.galleon.ProvisioningOption;
+
 /**
  *
  * @author Alexey Loubyansky
  */
 public abstract class ProvisioningPluginWithOptions implements ProvisioningPlugin {
 
-    private Map<String, PluginOption> pluginOptions;
+    private Map<String, ProvisioningOption> pluginOptions;
 
     @Override
-    public Map<String, PluginOption> getOptions() {
+    public Map<String, ProvisioningOption> getOptions() {
         if(pluginOptions == null) {
-            final List<PluginOption> options= initPluginOptions();
+            final List<ProvisioningOption> options= initPluginOptions();
             if(options.isEmpty()) {
                 pluginOptions = Collections.emptyMap();
             } else if(options.size() == 1) {
-                final PluginOption option = options.get(0);
+                final ProvisioningOption option = options.get(0);
                 pluginOptions = Collections.singletonMap(option.getName(), option);
             } else {
                 pluginOptions = new HashMap<>(options.size());
                 for(int i = 0; i < options.size(); ++i) {
-                    final PluginOption option = options.get(i);
+                    final ProvisioningOption option = options.get(i);
                     pluginOptions.put(option.getName(), option);
                 }
             }
@@ -49,5 +51,5 @@ public abstract class ProvisioningPluginWithOptions implements ProvisioningPlugi
         return pluginOptions;
     }
 
-    protected abstract List<PluginOption> initPluginOptions();
+    protected abstract List<ProvisioningOption> initPluginOptions();
 }

@@ -17,9 +17,9 @@
     limitations under the License.
 
 -->
-<installation xmlns="urn:jboss:galleon:provisioned-state:1.0">
-  <feature-pack groupId="org.jboss.group1" artifactId="fp1" version="0.0.1" />
-  <feature-pack groupId="org.jboss.group1" artifactId="fp2" version="0.0.2">
+<installation xmlns="urn:jboss:galleon:provisioned-state:2.0">
+  <feature-pack location="fp1@maven(universe):0#0.0.1.Final"/>
+  <feature-pack location="fp2@maven(universe):0#0.0.2.Final">
     <packages>
       <package name="p1"/>
       <package name="p2"/>

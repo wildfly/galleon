@@ -17,12 +17,12 @@
 package org.jboss.galleon.cli.resolver;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.resolver.ResourceResolver.Resolver;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -31,7 +31,6 @@ import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
@@ -115,9 +114,9 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
     }
 
     public static ResolvedPlugins resolvePlugins(ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
-        ResolvedPlugins plugins = null;
+        final Set<ProvisioningOption> installOptions = new HashSet<>(ProvisioningOption.getStandardList());
+        final Set<ProvisioningOption> diffOptions = new HashSet<>(ProvisioningOption.getStandardList());
         if (layout.hasPlugins()) {
-            Set<PluginOption> installOptions = new HashSet<>();
             FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
                 @Override
                 public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
@@ -125,7 +124,6 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
                 }
             };
             layout.visitPlugins(visitor, InstallPlugin.class);
-            Set<PluginOption> diffOptions = new HashSet<>();
             FeaturePackPluginVisitor<DiffPlugin> diffVisitor = new FeaturePackPluginVisitor<DiffPlugin>() {
                 @Override
                 public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
@@ -133,9 +131,8 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
                 }
             };
             layout.visitPlugins(diffVisitor, DiffPlugin.class);
-            plugins = new ResolvedPlugins(installOptions, diffOptions);
         }
-        return plugins == null ? new ResolvedPlugins(Collections.emptySet(), Collections.emptySet()) : plugins;
+        return new ResolvedPlugins(installOptions, diffOptions);
     }
 
 }

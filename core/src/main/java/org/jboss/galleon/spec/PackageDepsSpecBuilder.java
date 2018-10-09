@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
@@ -32,18 +33,26 @@ public abstract class PackageDepsSpecBuilder<T extends PackageDepsSpecBuilder<T>
 
     protected Map<String, PackageDependencySpec> localPkgDeps = Collections.emptyMap();
     protected Map<String, Map<String, PackageDependencySpec>> externalPkgDeps = Collections.emptyMap();
+    protected int requiredDeps;
 
     public T addPackageDep(String packageName) {
         return addPackageDep(packageName, false);
     }
 
     public T addPackageDep(String packageName, boolean optional) {
-        return addPackageDep(PackageDependencySpec.forPackage(packageName, optional));
+        return addPackageDep(optional ? PackageDependencySpec.optional(packageName) : PackageDependencySpec.required(packageName));
+    }
+
+    public T addPackageDep(String packageName, int type) throws ProvisioningDescriptionException {
+        return addPackageDep(PackageDependencySpec.newInstance(packageName, type));
     }
 
     @SuppressWarnings("unchecked")
     public T addPackageDep(PackageDependencySpec dep) {
         localPkgDeps = CollectionUtils.putLinked(localPkgDeps, dep.getName(), dep);
+        if(!dep.isOptional()) {
+            ++requiredDeps;
+        }
         return (T) this;
     }
 
@@ -52,13 +61,20 @@ public abstract class PackageDepsSpecBuilder<T extends PackageDepsSpecBuilder<T>
     }
 
     public T addPackageDep(String origin, String packageName, boolean optional) {
-        return addPackageDep(origin, PackageDependencySpec.forPackage(packageName, optional));
+        return addPackageDep(origin, optional ? PackageDependencySpec.optional(packageName) : PackageDependencySpec.required(packageName));
+    }
+
+    public T addPackageDep(String origin, String packageName, int type) throws ProvisioningDescriptionException {
+        return addPackageDep(origin, PackageDependencySpec.newInstance(packageName, type));
     }
 
     @SuppressWarnings("unchecked")
     public T addPackageDep(String origin, PackageDependencySpec dep) {
         if(origin == null) {
             return addPackageDep(dep);
+        }
+        if(!dep.isOptional()) {
+            ++requiredDeps;
         }
         Map<String, PackageDependencySpec> deps = externalPkgDeps.get(origin);
         if(deps == null) {

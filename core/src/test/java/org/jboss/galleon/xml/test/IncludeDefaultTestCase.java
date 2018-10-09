@@ -18,7 +18,7 @@ package org.jboss.galleon.xml.test;
 
 import java.nio.file.Paths;
 
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.test.util.XmlParserValidator;
@@ -33,7 +33,7 @@ import org.junit.Test;
 public class IncludeDefaultTestCase {
 
     private static final XmlParserValidator<ProvisioningConfig> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioning-2_0.xsd"), ProvisioningXmlParser.getInstance());
 
     @Test
     public void testMain() throws Exception {
@@ -41,13 +41,13 @@ public class IncludeDefaultTestCase {
                 .validateAndParse("xml/provisioning/packages-inherit.xml", null, null);
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation()))
+                        .forLocation(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1")))
                 .addFeaturePackDep(FeaturePackConfig
-                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation()))
+                        .forLocation(FeaturePackLocation.fromString("fp2@maven(universe):0#0.0.2")))
                 .addFeaturePackDep(FeaturePackConfig
-                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation()))
+                        .forLocation(FeaturePackLocation.fromString("fp3@maven(universe):0#0.0.3")))
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp4", "0", "0.0.3").getLocation(), false).build())
+                        .builder(FeaturePackLocation.fromString("fp4@maven(universe):0#0.0.3"), false).build())
                 .build();
         Assert.assertEquals(expected, found);
     }

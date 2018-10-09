@@ -46,7 +46,7 @@ public class CustomizedImplicitFpDepTestCase extends PmProvisionConfigTestBase {
         creator
             .newFeaturePack(FP1_GAV)
                 .newPackage("p1", true)
-                    .addDependency(PackageDependencySpec.forPackage("p2", true))
+                    .addDependency(PackageDependencySpec.optional("p2"))
                     .writeContent("fp1/p1.txt", "fp1 p1")
                     .getFeaturePack()
                 .newPackage("p2")

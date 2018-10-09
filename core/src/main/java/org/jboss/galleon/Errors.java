@@ -197,10 +197,6 @@ public interface Errors {
         return "Unsatisfied dependency on feature-pack " + fpid + " package " + targetPackage;
     }
 
-    static String unsatisfiedExternalPackageDependency(FeaturePackLocation.FPID srcFpid, String srcPackage, FeaturePackLocation.FPID targetFpid, String targetPackage) {
-        return "Feature-pack " + srcFpid + " package " + srcPackage + " has unsatisfied dependency on feature-pack " + targetFpid + " package " + targetPackage;
-    }
-
     static String resolvePackage(FeaturePackLocation.FPID fpid, String packageName) {
         return "Failed to resolve feature-pack " + fpid + " package " + packageName;
     }
@@ -449,7 +445,14 @@ public interface Errors {
     }
 
     static String pluginOptionRequired(String name) {
-        return "Plugin option " + name + " is required for this configuration";
+        return "Provisioning option " + name + " is required for this configuration";
+    }
+
+    static String pluginOptionIllegalValue(String name, String setValue, Collection<String> values) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Provisioning option ").append(name).append(" value ").append(setValue).append(" is not in the legal value set: ");
+        StringUtils.append(buf, values);
+        return buf.toString();
     }
 
     static String pluginOptionsNotRecognized(Collection<String> names) {
@@ -461,6 +464,14 @@ public interface Errors {
         }
         StringUtils.append(buf, names);
         return buf.toString();
+    }
+
+    static String requiredPassiveDependency(String name) {
+        return "Required dependency on " + name + " cannot be passive";
+    }
+
+    static String unexpectedPackageDependencyType(String name, int type) {
+        return "Unexpected dependency type " + type + " on package " + name;
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {

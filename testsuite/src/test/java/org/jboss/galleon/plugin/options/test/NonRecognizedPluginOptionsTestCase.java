@@ -26,7 +26,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.plugin.PluginOption;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 
@@ -37,23 +37,23 @@ import org.jboss.galleon.universe.MvnUniverse;
 public class NonRecognizedPluginOptionsTestCase extends PluginOptionsTestBase {
 
     public static class Plugin1 extends PluginBase {
-        protected Map<String, PluginOption> initOptions() {
-            final Map<String, PluginOption> options = new HashMap<>();
-            addOption(options, PluginOption.builder("p1o1").build());
-            addOption(options, PluginOption.builder("p1o2").setPersistent(false).build());
-            addOption(options, PluginOption.builder("p1o3").setDefaultValue("false").build());
-            addOption(options, PluginOption.builder("p1o4").setDefaultValue("false").build());
+        protected Map<String, ProvisioningOption> initOptions() {
+            final Map<String, ProvisioningOption> options = new HashMap<>();
+            addOption(options, ProvisioningOption.builder("p1o1").build());
+            addOption(options, ProvisioningOption.builder("p1o2").setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p1o3").setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p1o4").setDefaultValue("false").build());
             return options;
         }
     }
 
     public static class Plugin2 extends PluginBase {
-        protected Map<String, PluginOption> initOptions() {
-            final Map<String, PluginOption> options = new HashMap<>();
-            addOption(options, PluginOption.builder("p2o1").build());
-            addOption(options, PluginOption.builder("p2o2").setPersistent(false).build());
-            addOption(options, PluginOption.builder("p2o3").setDefaultValue("false").build());
-            addOption(options, PluginOption.builder("p2o4").setDefaultValue("false").build());
+        protected Map<String, ProvisioningOption> initOptions() {
+            final Map<String, ProvisioningOption> options = new HashMap<>();
+            addOption(options, ProvisioningOption.builder("p2o1").build());
+            addOption(options, ProvisioningOption.builder("p2o2").setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p2o3").setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p2o4").setDefaultValue("false").build());
             return options;
         }
     }
@@ -97,7 +97,7 @@ public class NonRecognizedPluginOptionsTestCase extends PluginOptionsTestBase {
         options.put("p2o5", "true");
         pm.provision(ProvisioningConfig.builder()
                 .addFeaturePackDep(prod2)
-                .addPluginOption("p1o5", null)
+                .addOption("p1o5", null)
                 .build(), options);
     }
 

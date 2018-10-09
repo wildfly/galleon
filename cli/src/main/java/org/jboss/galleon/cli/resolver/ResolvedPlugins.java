@@ -18,7 +18,8 @@ package org.jboss.galleon.cli.resolver;
 
 import java.util.Collections;
 import java.util.Set;
-import org.jboss.galleon.plugin.PluginOption;
+
+import org.jboss.galleon.ProvisioningOption;
 
 /**
  *
@@ -26,10 +27,10 @@ import org.jboss.galleon.plugin.PluginOption;
  */
 public class ResolvedPlugins {
 
-    private final Set<PluginOption> install;
-    private final Set<PluginOption> diff;
+    private final Set<ProvisioningOption> install;
+    private final Set<ProvisioningOption> diff;
 
-    ResolvedPlugins(Set<PluginOption> install, Set<PluginOption> diff) {
+    ResolvedPlugins(Set<ProvisioningOption> install, Set<ProvisioningOption> diff) {
         this.install = Collections.unmodifiableSet(install);
         this.diff = Collections.unmodifiableSet(diff);
     }
@@ -37,14 +38,14 @@ public class ResolvedPlugins {
     /**
      * @return the install
      */
-    public Set<PluginOption> getInstall() {
+    public Set<ProvisioningOption> getInstall() {
         return install;
     }
 
     /**
      * @return the diff
      */
-    public Set<PluginOption> getDiff() {
+    public Set<ProvisioningOption> getDiff() {
         return diff;
     }
 

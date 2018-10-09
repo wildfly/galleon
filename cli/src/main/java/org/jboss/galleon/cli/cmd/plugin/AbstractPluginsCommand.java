@@ -28,6 +28,7 @@ import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
@@ -38,7 +39,6 @@ import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
 import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.model.state.State;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
@@ -122,15 +122,15 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand impl
         List<DynamicOption> options = new ArrayList<>();
         FeaturePackLocation fpl = pmSession.getResolvedLocation(getInstallationDirectory(pmSession.getAeshContext()),
                 getId(pmSession));
-        Set<PluginOption> pluginOptions = getPluginOptions(fpl);
-        for (PluginOption opt : pluginOptions) {
+        Set<ProvisioningOption> pluginOptions = getPluginOptions(fpl);
+        for (ProvisioningOption opt : pluginOptions) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
         }
         return options;
     }
 
-    protected abstract Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException;
+    protected abstract Set<ProvisioningOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException;
 
     protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
         return session.getPmSession().newProvisioningManager(getInstallationDirectory(session.

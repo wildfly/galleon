@@ -46,7 +46,7 @@ public class FpDepVersionConflictResolvedTestCase extends PmProvisionConfigTestB
         creator
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
-                    .addDependency(PackageDependencySpec.forPackage("p2", true))
+                    .addDependency(PackageDependencySpec.optional("p2"))
                     .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")
@@ -58,7 +58,7 @@ public class FpDepVersionConflictResolvedTestCase extends PmProvisionConfigTestB
                 .getCreator()
             .newFeaturePack(FP1_101_GAV)
                 .newPackage("p1", true)
-                    .addDependency(PackageDependencySpec.forPackage("p2", true))
+                    .addDependency(PackageDependencySpec.optional("p2"))
                     .writeContent("fp1/p1.txt", "fp1 1.0.1.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")

@@ -58,4 +58,10 @@ public interface Constants {
 
     // CONFIG ARRANGERS
     String CONFIG_ARRANGER_SPEC_ONLY = "spec-only";
+
+    // OPTIONS
+    String OPTIONAL_PACKAGES = "optional-packages";
+    String ALL = "all";
+    String NONE = "none";
+    String PASSIVE = "passive";
 }

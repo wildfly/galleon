@@ -30,6 +30,7 @@ import org.aesh.readline.action.KeyAction;
 import org.aesh.readline.terminal.Key;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
@@ -47,7 +48,6 @@ import static org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.UP_TO_DATE;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.plugin.PluginOption;
 import static org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.FP_OPTION_NAME;
 
 /**
@@ -111,9 +111,9 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
         }
         Path installation = getAbsolutePath(targetDirArg, pmSession.getAeshContext());
         ProvisioningConfig config = pmSession.newProvisioningManager(installation, false).getProvisioningConfig();
-        Set<PluginOption> opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getDiff();
+        Set<ProvisioningOption> opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getDiff();
         List<DynamicOption> options = new ArrayList<>();
-        for (PluginOption opt : opts) {
+        for (ProvisioningOption opt : opts) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
         }

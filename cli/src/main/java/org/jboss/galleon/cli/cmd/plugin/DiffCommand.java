@@ -30,6 +30,7 @@ import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.resolver.PluginResolver;
@@ -37,7 +38,6 @@ import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CommandDomain;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
 
@@ -69,7 +69,7 @@ public class DiffCommand extends AbstractPluginsCommand {
     }
 
     @Override
-    protected Set<PluginOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException {
+    protected Set<ProvisioningOption> getPluginOptions(FeaturePackLocation loc) throws ProvisioningException {
         try {
             return pmSession.getResolver().get(loc.toString(),
                     PluginResolver.newResolver(pmSession, loc)).getDiff();

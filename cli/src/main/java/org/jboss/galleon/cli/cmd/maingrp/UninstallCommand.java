@@ -27,12 +27,12 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
-import static org.jboss.galleon.cli.cmd.AbstractDynamicCommand.ARGUMENT_NAME;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.InstalledFPLCompleter;
@@ -43,7 +43,6 @@ import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
@@ -125,10 +124,10 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
                     layout.uninstall(pmSession.
                             getResolvedLocation(getInstallationDirectory(pmSession.
                                     getAeshContext()), fpid).getFPID());
-                    Set<PluginOption> opts = PluginResolver.newResolver(pmSession,
+                    Set<ProvisioningOption> opts = PluginResolver.newResolver(pmSession,
                             layout).resolve().getInstall();
                     List<DynamicOption> options = new ArrayList<>();
-                    for (PluginOption opt : opts) {
+                    for (ProvisioningOption opt : opts) {
                         DynamicOption dynOption = new DynamicOption(opt.getName(),
                                 opt.isRequired(), opt.isAcceptsValue());
                         options.add(dynOption);
