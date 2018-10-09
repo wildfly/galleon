@@ -25,6 +25,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.CommandNotFoundException;
 import org.aesh.command.activator.CommandActivator;
 import org.aesh.command.completer.OptionCompleter;
+import org.aesh.command.container.CommandContainer;
 import org.aesh.command.impl.internal.ParsedCommand;
 import org.aesh.command.impl.parser.CommandLineParser;
 import org.aesh.command.invocation.CommandInvocation;
@@ -118,7 +119,18 @@ public class HelpCommand extends PmSessionCommand {
             for (String str : command) {
                 builder.append(str).append(" ");
             }
-            session.println(session.getHelpInfo(builder.toString()));
+            String cmd = builder.toString().trim();
+            try {
+                CommandContainer<?, ?> container = registry.getCommand(command.get(0), null);
+                if (command.size() > 1) {
+                    if (container.getParser().getChildParser(command.get(1)) == null) {
+                        throw new CommandExecutionException(CliErrors.commandNotFound(cmd));
+                    }
+                }
+            } catch (CommandNotFoundException ex) {
+                throw new CommandExecutionException(CliErrors.commandNotFound(cmd));
+            }
+            session.println(session.getHelpInfo(cmd));
         }
     }
 

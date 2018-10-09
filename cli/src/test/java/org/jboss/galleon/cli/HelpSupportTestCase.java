@@ -21,6 +21,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 import org.aesh.command.Command;
+import org.aesh.command.CommandException;
 import org.aesh.command.CommandRuntime;
 import org.aesh.command.impl.internal.ProcessedCommand;
 import org.aesh.command.impl.internal.ProcessedOption;
@@ -62,6 +63,30 @@ public class HelpSupportTestCase {
                     checkCommand(child.getProcessedCommand(), true);
                 }
             }
+        }
+    }
+
+    @Test
+    public void testUnknown() throws Exception {
+        PmSession session = new PmSession(Configuration.parse());
+        session.throwException();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CommandRuntime runtime
+                = CliMain.newRuntime(session, new PrintStream(out, false, StandardCharsets.UTF_8.name()));
+        try {
+            runtime.executeCommand("help foo");
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // XXX OK expected.
+        }
+        out.reset();
+        runtime.executeCommand("help filesystem ");
+        assertTrue(out.toString(), out.toString().contains("Usage: "));
+        try {
+            runtime.executeCommand("help filesystem foo");
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // XXX OK expected.
         }
     }
 
