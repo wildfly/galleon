@@ -408,7 +408,7 @@ public class ProvisioningRuntimeBuilder {
         final ConfigModelStack layerStack = resolveConfigLayer(layerId);
         if(layerStack.hasLayerDeps()) {
             for(ConfigLayerDependency layerDep : layerStack.getLayerDeps()) {
-                if(configStack.isLayerFilteredOut(layerDep.getName())) {
+                if(configStack.isLayerExcluded(layerDep.getName())) {
                     if(layerDep.isOptional()) {
                         continue;
                     }

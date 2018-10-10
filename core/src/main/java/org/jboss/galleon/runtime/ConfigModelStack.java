@@ -93,6 +93,10 @@ class ConfigModelStack {
             return config.isInheritLayers() ? config.isLayerExcluded(layerName) : !config.isLayerIncluded(layerName);
         }
 
+        boolean isLayerExcluded(String layerName) {
+            return config == null ? false : config.isLayerExcluded(layerName);
+        }
+
         boolean isFilteredOut(ResolvedSpecId specId, final ResolvedFeatureId id) {
             boolean included = false;
             for(int i = groupStack.size() - 1; i >= 0; --i) {
@@ -365,6 +369,20 @@ class ConfigModelStack {
         if(configs.size() > 1) {
             for (int i = configs.size() - 2; i >= 0; --i) {
                 if (configs.get(i).isLayerFilteredOut(layerName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    boolean isLayerExcluded(String layerName) {
+        if(lastConfig.isLayerExcluded(layerName)) {
+            return true;
+        }
+        if(configs.size() > 1) {
+            for (int i = configs.size() - 2; i >= 0; --i) {
+                if (configs.get(i).isLayerExcluded(layerName)) {
                     return true;
                 }
             }
