@@ -109,11 +109,20 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
         if (plan.isEmpty()) {
             return updates;
         }
+        boolean hasPatches = false;
+        for (FeaturePackUpdatePlan p : plan.getUpdates()) {
+            if (p.hasNewPatches()) {
+                hasPatches = true;
+                break;
+            }
+        }
         List<String> headers = new ArrayList<>();
         headers.add(Headers.PRODUCT);
         headers.add(Headers.CURRENT_BUILD);
         headers.add(Headers.UPDATE);
-        headers.add(Headers.PATCHES);
+        if (hasPatches) {
+            headers.add(Headers.PATCHES);
+        }
         if (includeAll) {
             headers.add(Headers.DEPENDENCY);
         }
@@ -123,23 +132,29 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
         for (FeaturePackUpdatePlan p : plan.getUpdates()) {
             FeaturePackLocation loc = p.getInstalledLocation();
             String update = p.hasNewLocation() ? p.getNewLocation().getBuild() : NONE;
-            Cell patches = new Cell();
-            if (p.hasNewPatches()) {
-                for (FPID id : p.getNewPatches()) {
-                    patches.addLine(id.getBuild());
+            Cell patches = null;
+            if (hasPatches) {
+                patches = new Cell();
+                if (p.hasNewPatches()) {
+                    for (FPID id : p.getNewPatches()) {
+                        patches.addLine(id.getBuild());
+                    }
+                } else {
+                    patches.addLine(NONE);
                 }
-            } else {
-                patches.addLine(NONE);
             }
 
             List<Cell> line = new ArrayList<>();
             line.add(new Cell(loc.getProducerName()));
             line.add(new Cell(loc.getBuild()));
             line.add(new Cell(update));
-            line.add(patches);
+            if (hasPatches) {
+                line.add(patches);
+            }
             if (includeAll) {
                 line.add(new Cell(p.isTransitive() ? "Y" : "N"));
             }
+            loc = session.getPmSession().getExposedLocation(mgr.getInstallationHome(), loc);
             line.add(new Cell(StateInfoUtil.formatChannel(loc)));
             updates.t.addCellsLine(line);
         }
