@@ -74,6 +74,11 @@ public class StateInfoUtil {
 
     public static final String DEFAULT_UNIVERSE = "default";
 
+    public static final String NO_CONFIGURATIONS = "No configurations.";
+    public static final String NO_DEPENDENCIES = "No dependencies.";
+    public static final String NO_OPTIONS = "No options.";
+    public static final String NO_PATCHES = "No patches.";
+
     public static void printContentPath(PmCommandInvocation session, FeatureContainer fp, String path)
             throws ProvisioningException, PathParserException, PathConsumerException, IOException {
         FeatureContainerPathConsumer consumer = new FeatureContainerPathConsumer(fp, false);
@@ -366,8 +371,7 @@ public class StateInfoUtil {
         loc = commandInvocation.getPmSession().getExposedLocation(null, loc);
         Table t = new Table(Headers.PRODUCT, Headers.BUILD, Headers.UPDATE_CHANNEL);
         t.addLine(loc.getProducer().getName(), loc.getBuild(), formatChannel(loc));
-        commandInvocation.println("");
-        commandInvocation.println(t.build());
+        commandInvocation.print(t.build());
     }
 
     public static void printFeaturePacks(PmCommandInvocation commandInvocation,
@@ -399,9 +403,8 @@ public class StateInfoUtil {
             t.addCellsLine(line);
         }
         if (!t.isEmpty()) {
-            commandInvocation.println("");
             t.sort(Table.SortType.ASCENDANT);
-            commandInvocation.println(t.build());
+            commandInvocation.print(t.build());
         }
     }
 
@@ -459,17 +462,24 @@ public class StateInfoUtil {
             if (!config.hasFeaturePackDeps()) {
                 return;
             }
-            if (type == null) {
-                displayFeaturePacks(invoc, installation, config);
-            } else {
+            invoc.println("");
+            displayFeaturePacks(invoc, installation, config);
+
+            if (type != null) {
+                invoc.println("");
                 try (ProvisioningLayout<FeaturePackLayout> layout = invoc.getPmSession().getLayoutFactory().newConfigLayout(config)) {
                     switch (type) {
                         case ALL: {
                             FeatureContainer container = supplier.apply(layout);
-                            displayFeaturePacks(invoc, installation, config);
-                            displayDependencies(invoc, layout);
-                            displayPatches(invoc, layout);
-                            displayConfigs(invoc, container);
+                            if (displayDependencies(invoc, layout)) {
+                                invoc.println("");
+                            }
+                            if (displayPatches(invoc, layout)) {
+                                invoc.println("");
+                            }
+                            if (displayConfigs(invoc, container)) {
+                                invoc.println("");
+                            }
                             displayOptions(invoc, layout);
                             break;
                         }
@@ -477,32 +487,36 @@ public class StateInfoUtil {
                             FeatureContainer container = supplier.apply(layout);
                             String configs = buildConfigs(invoc, container);
                             if (configs != null) {
-                                displayFeaturePacks(invoc, installation, config);
-                                invoc.println(configs);
+                                invoc.print(configs);
+                            } else {
+                                invoc.println(NO_CONFIGURATIONS);
                             }
                             break;
                         }
                         case DEPENDENCIES: {
                             String deps = buildDependencies(invoc, layout);
                             if (deps != null) {
-                                displayFeaturePacks(invoc, installation, config);
-                                invoc.println(deps);
+                                invoc.print(deps);
+                            } else {
+                                invoc.println(NO_DEPENDENCIES);
                             }
                             break;
                         }
                         case OPTIONS: {
                             String options = buildOptions(layout);
                             if (options != null) {
-                                displayFeaturePacks(invoc, installation, config);
-                                invoc.println(options);
+                                invoc.print(options);
+                            } else {
+                                invoc.println(NO_OPTIONS);
                             }
                             break;
                         }
                         case PATCHES: {
                             String patches = buildPatches(invoc, layout);
                             if (patches != null) {
-                                displayFeaturePacks(invoc, installation, config);
-                                invoc.println(patches);
+                                invoc.print(patches);
+                            } else {
+                                invoc.println(NO_PATCHES);
                             }
                             break;
                         }
@@ -517,11 +531,12 @@ public class StateInfoUtil {
         }
     }
 
-    private static void displayConfigs(PmCommandInvocation invoc, FeatureContainer container) {
+    private static boolean displayConfigs(PmCommandInvocation invoc, FeatureContainer container) {
         String str = buildConfigs(invoc, container);
         if (str != null) {
-            invoc.println(str);
+            invoc.print(str);
         }
+        return str != null;
     }
 
     private static String buildConfigs(PmCommandInvocation invoc, FeatureContainer container) {
@@ -533,11 +548,12 @@ public class StateInfoUtil {
         printFeaturePacks(invoc, installation, config.getFeaturePackDeps());
     }
 
-    private static void displayDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+    private static boolean displayDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = buildDependencies(invoc, layout);
         if (str != null) {
-            invoc.println(str);
+            invoc.print(str);
         }
+        return str != null;
     }
 
     private static String buildDependencies(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
@@ -562,11 +578,12 @@ public class StateInfoUtil {
         return buildDependencies(dependencies, configs);
     }
 
-    private static void displayPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
+    private static boolean displayPatches(PmCommandInvocation invoc, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = buildPatches(invoc, layout);
         if (str != null) {
-            invoc.println(str);
+            invoc.print(str);
         }
+        return str != null;
     }
 
     private static String buildOptions(ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
@@ -577,7 +594,7 @@ public class StateInfoUtil {
             ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = buildOptions(layout);
         if (str != null) {
-            commandInvocation.println(str);
+            commandInvocation.print(str);
         }
     }
 

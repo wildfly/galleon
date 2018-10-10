@@ -45,6 +45,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand;
 import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -90,9 +91,16 @@ public class InstallCommand extends AbstractPluginsCommand {
                 Path p = Util.resolvePath(session.getConfiguration().getAeshContext(), filePath);
                 // always install for future use.
                 manager.install(p, true);
+                loc = FeaturePackDescriber.readSpec(p).getFPID().getLocation();
             } else {
                 manager.install(loc, options);
+                if (!loc.hasBuild()) {
+                    loc = getManager(session).getProvisioningConfig().getFeaturePackDep(loc.getProducer()).getLocation();
+                }
             }
+            session.println("Feature pack installed.");
+            StateInfoUtil.printFeaturePack(session,
+                    session.getPmSession().getExposedLocation(manager.getInstallationHome(), loc));
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.installFailed(), ex);
         }

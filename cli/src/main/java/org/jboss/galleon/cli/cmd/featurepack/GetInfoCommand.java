@@ -114,13 +114,14 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
             if (product == null) {
                 throw new CommandExecutionException("No feature-pack found");
             }
-
+            commandInvocation.println("");
             StateInfoUtil.printFeaturePack(commandInvocation,
                     session.getExposedLocation(null, product.getFPID().getLocation()));
 
             try {
                 final FPID patchFor = product.getSpec().getPatchFor();
                 if (patchFor != null) {
+                    commandInvocation.println("");
                     commandInvocation.println(PATCH_FOR + patchFor);
                 }
             } catch (ProvisioningException e) {
@@ -129,23 +130,34 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
 
             try {
                 if (type != null) {
+                    commandInvocation.println("");
                     switch (type) {
                         case ALL: {
-                            displayDependencies(commandInvocation, dependencies);
-                            displayConfigs(commandInvocation, product);
+                            if (displayDependencies(commandInvocation, dependencies)) {
+                                commandInvocation.println("");
+                            }
+                            if (displayConfigs(commandInvocation, product)) {
+                                commandInvocation.println("");
+                            }
                             displayOptions(commandInvocation, layout);
                             break;
                         }
                         case CONFIGS: {
-                            displayConfigs(commandInvocation, product);
+                            if (!displayConfigs(commandInvocation, product)) {
+                                commandInvocation.println(StateInfoUtil.NO_CONFIGURATIONS);
+                            }
                             break;
                         }
                         case DEPENDENCIES: {
-                            displayDependencies(commandInvocation, dependencies);
+                            if (!displayDependencies(commandInvocation, dependencies)) {
+                                commandInvocation.println(StateInfoUtil.NO_DEPENDENCIES);
+                            }
                             break;
                         }
                         case OPTIONS: {
-                            displayOptions(commandInvocation, layout);
+                            if (!displayOptions(commandInvocation, layout)) {
+                                commandInvocation.println(StateInfoUtil.NO_OPTIONS);
+                            }
                             break;
                         }
                         default: {
@@ -163,14 +175,15 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         }
     }
 
-    private void displayDependencies(PmCommandInvocation commandInvocation, List<FeaturePackLocation> dependencies) throws CommandExecutionException {
+    private boolean displayDependencies(PmCommandInvocation commandInvocation, List<FeaturePackLocation> dependencies) throws CommandExecutionException {
         String str = StateInfoUtil.buildDependencies(dependencies, null);
         if (str != null) {
-            commandInvocation.println(str);
+            commandInvocation.print(str);
         }
+        return str != null;
     }
 
-    private void displayConfigs(PmCommandInvocation commandInvocation,
+    private boolean displayConfigs(PmCommandInvocation commandInvocation,
             FeaturePackLayout product) throws ProvisioningException {
         Map<String, List<ConfigInfo>> configs = new HashMap<>();
         for (ConfigModel m : product.getSpec().getDefinedConfigs()) {
@@ -186,15 +199,17 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         }
         String str = StateInfoUtil.buildConfigs(configs);
         if (str != null) {
-            commandInvocation.println(str);
+            commandInvocation.print(str);
         }
+        return str != null;
     }
 
-    private void displayOptions(PmCommandInvocation commandInvocation,
+    private boolean displayOptions(PmCommandInvocation commandInvocation,
             ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = StateInfoUtil.buildOptions(PluginResolver.resolvePlugins(layout));
         if (str != null) {
-            commandInvocation.println(str);
+            commandInvocation.print(str);
         }
+        return str != null;
     }
 }
