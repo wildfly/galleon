@@ -229,6 +229,10 @@ public interface CliErrors {
         return failed("Uninstall");
     }
 
+    static String unknownDirectory(String dir) {
+        return "Directory " + dir + " doesn't exist";
+    }
+
     static String unknownFile(String absolutePath) {
         return "File " + absolutePath + " doesn't exist";
     }
