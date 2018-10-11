@@ -49,6 +49,7 @@ public interface HelpDescriptions {
     String CHECK_UPDATES_DEPENDENCIES = "Include dependencies when checking for updates";
     String CHECK_UPDATES_FP = "The feature pack to search update for";
     String CD = "Changes the current work dir";
+    String CD_PATH = "Target directory";
     String CD_STATE = "Changes the current node";
     String CLEAR_CACHE = "Clear the cache of feature packs";
     String CLEAR_HISTORY = "Clear the provisioning commands history";

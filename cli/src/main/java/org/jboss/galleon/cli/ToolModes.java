@@ -26,10 +26,12 @@ import org.aesh.command.impl.container.AeshCommandContainerBuilder;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.registry.MutableCommandRegistry;
 import org.aesh.extensions.clear.Clear;
+import org.aesh.extensions.ls.Ls;
+import org.aesh.extensions.pwd.Pwd;
 import org.jboss.galleon.cli.cmd.HelpCommand;
 import org.jboss.galleon.cli.cmd.PmExitCommand;
 import org.jboss.galleon.cli.cmd.featurepack.FeaturePackCommand;
-import org.jboss.galleon.cli.cmd.filesystem.FileSystemCommand;
+import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
 import org.jboss.galleon.cli.cmd.installation.InstallationCommand;
 import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand;
 import org.jboss.galleon.cli.cmd.maingrp.FindCommand;
@@ -102,7 +104,6 @@ public class ToolModes {
 
         // NOMINAL MODE
         nominalCommands.add(containerBuilder.create(new CheckUpdatesCommand()));
-        nominalCommands.add(containerBuilder.create(new FileSystemCommand()));
         nominalCommands.add(containerBuilder.create(new GetInfoCommand()));
         nominalCommands.add(containerBuilder.create(new InstallationCommand()));
         nominalCommands.add(new InstallCommand(pmSession).createCommand());
@@ -111,6 +112,9 @@ public class ToolModes {
         nominalCommands.add(containerBuilder.create(new UndoCommand()));
         nominalCommands.add(new UninstallCommand(pmSession).createCommand());
         nominalCommands.add(new UpdateCommand(pmSession).createCommand());
+        nominalCommands.add(containerBuilder.create(new Ls()));
+        nominalCommands.add(containerBuilder.create(new Pwd()));
+        nominalCommands.add(containerBuilder.create(new CdCommand()));
 
         // EDIT MODE
         editCommands.add(containerBuilder.create(new StateExportCommand()));

@@ -18,6 +18,7 @@ package org.jboss.galleon.cli.cmd.state.feature;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,6 +212,9 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
 
     @Override
     protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
+        if (state == null) {
+            return Collections.emptyList();
+        }
         List<DynamicOption> options = new ArrayList<>();
         for (Entry<String, FeatureParameterSpec> entry : getSpec(state, getId()).getSpec().getParams().entrySet()) {
             DynamicOption dyn = new DynamicOption(entry.getKey(), !entry.getValue().isNillable() && !entry.getValue().hasDefaultValue(), true);

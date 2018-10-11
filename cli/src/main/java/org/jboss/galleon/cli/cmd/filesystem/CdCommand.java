@@ -27,6 +27,7 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 
 /**
  *
@@ -35,7 +36,7 @@ import org.jboss.galleon.cli.PmSessionCommand;
 @CommandDefinition(name = "cd", description = HelpDescriptions.CD)
 public class CdCommand extends PmSessionCommand {
 
-    @Argument()
+    @Argument(description = HelpDescriptions.CD_PATH)
     private File path;
 
     @Override
@@ -54,5 +55,10 @@ public class CdCommand extends PmSessionCommand {
             aeshCtx.setCurrentWorkingDirectory(files.get(0));
         }
         session.setPrompt(session.getPmSession().buildPrompt());
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.OTHERS;
     }
 }

@@ -65,7 +65,7 @@ public class StateTestCase {
         Path dir = cli.newDir("installEdit", false);
         cli.execute("install " + loc + " --dir=" + dir.toString());
 
-        cli.execute("filesystem cd " + dir.toFile().getAbsolutePath());
+        cli.execute("cd " + dir.toFile().getAbsolutePath());
 
         cli.execute("state edit");
         try {
@@ -82,7 +82,7 @@ public class StateTestCase {
         Path provFile = dir.resolve(".galleon").resolve("provisioning.xml");
         cli.execute("install " + loc + " --dir=" + dir.toString());
 
-        cli.execute("filesystem cd " + dir.toFile().getAbsolutePath());
+        cli.execute("cd " + dir.toFile().getAbsolutePath());
 
         Path target = cli.newDir("provisioned", false);
         cli.execute("provision " + provFile.toFile().getAbsolutePath()
@@ -120,7 +120,7 @@ public class StateTestCase {
         Path dir = cli.newDir("installExport", false);
         cli.execute("install " + loc + " --dir=" + dir.toString());
 
-        cli.execute("filesystem cd " + dir.toFile().getAbsolutePath());
+        cli.execute("cd " + dir.toFile().getAbsolutePath());
 
         Path provFile = cli.newDir("xml", true).resolve("prov.xml");
         cli.execute("installation export " + provFile.toFile().getAbsolutePath());

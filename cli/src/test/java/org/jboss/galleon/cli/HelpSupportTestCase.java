@@ -51,6 +51,12 @@ public class HelpSupportTestCase {
         @SuppressWarnings("unchecked")
         CommandRegistry<? extends Command, ? extends CommandInvocation> registry
                 = runtime.getCommandRegistry();
+        test(registry);
+        session.getToolModes().setMode(ToolModes.Mode.EDIT);
+        test(registry);
+    }
+
+    private void test(CommandRegistry<? extends Command, ? extends CommandInvocation> registry) throws Exception {
         for (String c : registry.getAllCommandNames()) {
             CommandLineParser<? extends Command> cmdParser = registry.getCommand(c, null).getParser();
             // XXX TODO jfdenise, to be removed when extensions are fixed.
@@ -80,10 +86,10 @@ public class HelpSupportTestCase {
             // XXX OK expected.
         }
         out.reset();
-        runtime.executeCommand("help filesystem ");
+        runtime.executeCommand("help maven ");
         assertTrue(out.toString(), out.toString().contains("Usage: "));
         try {
-            runtime.executeCommand("help filesystem foo");
+            runtime.executeCommand("help maven foo");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK expected.
@@ -91,7 +97,7 @@ public class HelpSupportTestCase {
     }
 
     private boolean isExtension(CommandLineParser<? extends Command> cmdParser) {
-        return cmdParser.getProcessedCommand().getCommand().getClass().getPackage().getName().startsWith("org.jboss.galleon.cli.cmd.filesystem");
+        return cmdParser.getProcessedCommand().getCommand().getClass().getPackage().getName().startsWith("org.aesh.extensions");
     }
 
     private void checkCommand(ProcessedCommand<? extends Command> processedCommand, boolean child) {

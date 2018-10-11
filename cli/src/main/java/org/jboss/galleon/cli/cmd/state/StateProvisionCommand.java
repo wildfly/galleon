@@ -58,6 +58,9 @@ public class StateProvisionCommand extends AbstractProvisionCommand {
 
     @Override
     protected List<AbstractDynamicCommand.DynamicOption> getDynamicOptions(State state) throws Exception {
+        if (state == null) {
+            return Collections.emptyList();
+        }
         List<AbstractDynamicCommand.DynamicOption> options = new ArrayList<>();
         ProvisioningRuntime rt = state.getRuntime();
         Set<PluginOption> opts = getPluginOptions(rt);
