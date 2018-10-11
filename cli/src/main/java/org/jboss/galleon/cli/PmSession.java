@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -32,6 +33,8 @@ import org.aesh.command.activator.OptionActivator;
 import org.aesh.command.activator.OptionActivatorProvider;
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.command.completer.CompleterInvocationProvider;
+import org.aesh.io.FileResource;
+import org.aesh.io.Resource;
 import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
 import org.aesh.utils.Config;
@@ -51,6 +54,7 @@ import org.jboss.galleon.cli.tracking.ProgressTrackers;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.cache.FeaturePackCacheManager;
 import org.jboss.galleon.cache.FeaturePackCacheManager.OverwritePolicy;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseResolver;
@@ -267,6 +271,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     private final FeaturePackCacheManager cacheManager;
     private ToolModes toolModes;
     private String promptRoot;
+    private Path previousDir;
 
     public PmSession(Configuration config) throws Exception {
         this(config, true);
@@ -524,6 +529,21 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
             state.setPath(currentPath);
         }
         this.currentPath = currentPath;
+    }
+
+    public Path getPreviousDirectory() {
+        return previousDir;
+    }
+
+    public void setCurrentDirectory(Path path) throws IOException {
+        Resource res = new FileResource(path);
+        final List<Resource> files = res.resolve(ctx.getCurrentWorkingDirectory());
+        if (files.get(0).isDirectory()) {
+            previousDir = Paths.get(ctx.getCurrentWorkingDirectory().getAbsolutePath());
+            ctx.setCurrentWorkingDirectory(files.get(0));
+        } else {
+            throw new IOException(CliErrors.unknownDirectory(path.getFileName().toString()));
+        }
     }
 
     public void println(String txt) {

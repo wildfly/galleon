@@ -17,12 +17,10 @@
 package org.jboss.galleon.cli.cmd.filesystem;
 
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Path;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
-import org.aesh.io.FileResource;
-import org.aesh.io.Resource;
-import org.aesh.readline.AeshContext;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -44,17 +42,20 @@ public class CdCommand extends PmSessionCommand {
         if (path == null) {
             return;
         }
-        cdDir(session);
-    }
-
-    private void cdDir(PmCommandInvocation session) {
-        final AeshContext aeshCtx = session.getConfiguration().getAeshContext();
-        Resource res = new FileResource(path);
-        final List<Resource> files = res.resolve(aeshCtx.getCurrentWorkingDirectory());
-        if (files.get(0).isDirectory()) {
-            aeshCtx.setCurrentWorkingDirectory(files.get(0));
+        Path p = path.toPath();
+        if (path.getName().equals("-")) {
+            Path previous = session.getPmSession().getPreviousDirectory();
+            if (previous == null) {
+                return;
+            }
+            p = previous;
         }
-        session.setPrompt(session.getPmSession().buildPrompt());
+        try {
+            session.getPmSession().setCurrentDirectory(p);
+            session.setPrompt(session.getPmSession().buildPrompt());
+        } catch (IOException ex) {
+            throw new CommandExecutionException(ex.getMessage());
+        }
     }
 
     @Override
