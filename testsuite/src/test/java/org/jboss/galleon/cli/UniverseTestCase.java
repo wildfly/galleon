@@ -88,7 +88,7 @@ public class UniverseTestCase {
 
         cli.execute("undo --dir=" + dir);
 
-        cli.execute("filesystem cd " + dir);
+        cli.execute("cd " + dir);
         cli.execute("list-feature-packs");
         assertTrue(cli.getOutput(), cli.getOutput().contains(UNIVERSE_CUSTOM_NAME + "@1"));
 
