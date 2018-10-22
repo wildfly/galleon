@@ -19,11 +19,11 @@ package org.jboss.galleon.cli.cmd.plugin;
 import java.util.HashSet;
 import java.util.Set;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 
 /**
@@ -41,8 +41,8 @@ public abstract class AbstractProvisionCommand extends AbstractProvisionWithPlug
         return "provision";
     }
 
-    protected Set<PluginOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {
-        Set<PluginOption> pluginOptions = new HashSet<>();
+    protected Set<ProvisioningOption> getPluginOptions(ProvisioningRuntime runtime) throws ProvisioningException {
+        Set<ProvisioningOption> pluginOptions = new HashSet<>(ProvisioningOption.getStandardList());
         FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
             @Override
             public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {

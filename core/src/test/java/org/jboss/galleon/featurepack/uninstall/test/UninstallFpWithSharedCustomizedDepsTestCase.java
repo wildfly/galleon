@@ -66,7 +66,7 @@ public class UninstallFpWithSharedCustomizedDepsTestCase extends PmUninstallFeat
 
         creator.newFeaturePack(FP3_100_GAV)
                 .newPackage("p1", true)
-                    .addDependency(PackageDependencySpec.forPackage("p2", true))
+                    .addDependency(PackageDependencySpec.optional("p2"))
                     .writeContent("fp3/p1.txt", "fp3 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")

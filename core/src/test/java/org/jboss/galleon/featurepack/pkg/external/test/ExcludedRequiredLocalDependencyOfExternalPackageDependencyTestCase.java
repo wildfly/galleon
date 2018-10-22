@@ -62,7 +62,7 @@ public class ExcludedRequiredLocalDependencyOfExternalPackageDependencyTestCase 
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals(Errors.resolvePackage(LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final"), "p1"), e.getLocalizedMessage());
+        Assert.assertEquals(Errors.unsatisfiedPackageDependency(LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final"), "p1"), e.getLocalizedMessage());
         Assert.assertNotNull(e.getCause());
         Assert.assertEquals(Errors.unsatisfiedPackageDependency(LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final"), "p2"), e.getCause().getLocalizedMessage());
     }

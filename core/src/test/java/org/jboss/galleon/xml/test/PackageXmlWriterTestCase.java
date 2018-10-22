@@ -38,7 +38,7 @@ import org.junit.Test;
  * @author Bartosz Spyrko-Smietanko (bspyrkos@redhat.com)
  */
 public class PackageXmlWriterTestCase {
-    private static final String SCHEMA = "schema/galleon-package-1_0.xsd";
+    private static final String SCHEMA = "schema/galleon-package-2_0.xsd";
 
     private static XmlParserValidator<PackageSpec> validator;
     private static Path tmpDir;
@@ -64,9 +64,9 @@ public class PackageXmlWriterTestCase {
                 .addPackageDep("optional-dep", true)
                 .addPackageDep("external", "external-dep")
                 .addPackageDep("external", "external-optional-dep", true)
-                .addPackageDep(PackageDependencySpec.forPackage("pkg-spec-dep"))
-                .addPackageDep(PackageDependencySpec.forPackage("pkg-spec-optional-dep", true))
-                .addPackageDep("external", PackageDependencySpec.forPackage("pkg-spec-external-dep"))
+                .addPackageDep(PackageDependencySpec.required("pkg-spec-dep"))
+                .addPackageDep(PackageDependencySpec.optional("pkg-spec-optional-dep"))
+                .addPackageDep("external", PackageDependencySpec.required("pkg-spec-external-dep"))
                 .build();
 
         Path path = marshallToTempFile(originalState);

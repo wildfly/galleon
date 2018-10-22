@@ -130,6 +130,11 @@ public class PackageXmlParser10 implements PlugableXmlParser<PackageSpec.Builder
     }
 
     @Override
+    public void plugin(XmlParsers parsers) {
+        parsers.plugin(ROOT_1_0, this);
+    }
+
+    @Override
     public QName getRoot() {
         return ROOT_1_0;
     }

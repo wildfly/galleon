@@ -18,7 +18,7 @@ package org.jboss.galleon.xml.test;
 
 import java.nio.file.Paths;
 
-import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -34,23 +34,23 @@ import org.junit.Test;
 public class ProvisioningXmlExcludesIncludesTestCase {
 
     private static final XmlParserValidator<ProvisioningConfig> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-provisioning-1_0.xsd"), ProvisioningXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioning-2_0.xsd"), ProvisioningXmlParser.getInstance());
 
     @Test
     public void readExcludes() throws Exception {
         ProvisioningConfig found = validator.validateAndParse("xml/provisioning/exclude-package.xml");
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1"))
                         .excludePackage("p1")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp2@maven(universe):0#0.0.2"))
                         .excludePackage("p2")
                         .excludePackage("p3")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation()))
+                        .forLocation(FeaturePackLocation.fromString("fp3@maven(universe):0#0.0.3")))
                 .build();
         Assert.assertEquals(expected, found);
     }
@@ -60,16 +60,16 @@ public class ProvisioningXmlExcludesIncludesTestCase {
         ProvisioningConfig found = validator.validateAndParse("xml/provisioning/include-package.xml");
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1"))
                         .includePackage("p1")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp2@maven(universe):0#0.0.2"))
                         .includePackage("p2")
                         .includePackage("p3")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .forLocation(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation()))
+                        .forLocation(FeaturePackLocation.fromString("fp3@maven(universe):0#0.0.3")))
                 .build();
         Assert.assertEquals(expected, found);
     }
@@ -89,17 +89,17 @@ public class ProvisioningXmlExcludesIncludesTestCase {
         ProvisioningConfig found = validator.validateAndParse("xml/provisioning/include-exclude-packages.xml");
         ProvisioningConfig expected = ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp1", "0", "0.0.1").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1"))
                         .setInheritPackages(false)
                         .includePackage("p1")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group1:fp2", "0", "0.0.2").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp2@maven(universe):0#0.0.2"))
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
-                        .builder(LegacyGalleon1Universe.newFPID("org.jboss.group2:fp3", "0", "0.0.3").getLocation())
+                        .builder(FeaturePackLocation.fromString("fp3@maven(universe):0#0.0.3"))
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())

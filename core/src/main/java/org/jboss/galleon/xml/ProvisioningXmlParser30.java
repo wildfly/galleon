@@ -54,12 +54,12 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
         FEATURE_PACK("feature-pack"),
         INCLUDE("include"),
         INSTALLATION("installation"),
+        OPTION("option"),
+        OPTIONS("options"),
         ORIGIN("origin"),
         PACKAGES("packages"),
         PATCHES("patches"),
         PATCH("patch"),
-        PLUGIN_OPTION("plugin-option"),
-        PLUGIN_OPTIONS("plugin-options"),
         TRANSITIVE("transitive"),
         UNIVERSES("universes"),
         UNIVERSE("universe"),
@@ -78,12 +78,12 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
             elementsByLocal.put(FEATURE_PACK.name, FEATURE_PACK);
             elementsByLocal.put(INCLUDE.name, INCLUDE);
             elementsByLocal.put(INSTALLATION.name, INSTALLATION);
+            elementsByLocal.put(OPTION.name, OPTION);
+            elementsByLocal.put(OPTIONS.name, OPTIONS);
             elementsByLocal.put(ORIGIN.name, ORIGIN);
             elementsByLocal.put(PACKAGES.name, PACKAGES);
             elementsByLocal.put(PATCHES.name, PATCHES);
             elementsByLocal.put(PATCH.name, PATCH);
-            elementsByLocal.put(PLUGIN_OPTION.name, PLUGIN_OPTION);
-            elementsByLocal.put(PLUGIN_OPTIONS.name, PLUGIN_OPTIONS);
             elementsByLocal.put(TRANSITIVE.name, TRANSITIVE);
             elementsByLocal.put(UNIVERSE.name, UNIVERSE);
             elementsByLocal.put(UNIVERSES.name, UNIVERSES);
@@ -224,8 +224,8 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
                         case TRANSITIVE:
                             readTransitive(reader, builder);
                             break;
-                        case PLUGIN_OPTIONS:
-                            readPluginOptions(reader, builder);
+                        case OPTIONS:
+                            readOptions(reader, builder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -568,7 +568,7 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
         }
     }
 
-    static void readPluginOptions(XMLExtendedStreamReader reader, ProvisioningConfig.Builder builder) throws XMLStreamException {
+    static void readOptions(XMLExtendedStreamReader reader, ProvisioningConfig.Builder builder) throws XMLStreamException {
         ParsingUtils.parseNoAttributes(reader);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
@@ -578,8 +578,8 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
                 case XMLStreamConstants.START_ELEMENT: {
                     final Element element = Element.of(reader.getName().getLocalPart());
                     switch (element) {
-                        case PLUGIN_OPTION:
-                            readPluginOption(reader, builder);
+                        case OPTION:
+                            readOption(reader, builder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -593,7 +593,7 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
         }
     }
 
-    private static void readPluginOption(XMLExtendedStreamReader reader, ProvisioningConfig.Builder builder) throws XMLStreamException {
+    private static void readOption(XMLExtendedStreamReader reader, ProvisioningConfig.Builder builder) throws XMLStreamException {
         String name = null;
         String value = null;
         for (int i = 0; i < reader.getAttributeCount(); i++) {
@@ -610,6 +610,6 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
             }
         }
         ParsingUtils.parseNoContent(reader);
-        builder.addPluginOption(name, value);
+        builder.addOption(name, value);
     }
 }

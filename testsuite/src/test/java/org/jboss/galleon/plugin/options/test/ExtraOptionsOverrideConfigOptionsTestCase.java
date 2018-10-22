@@ -26,7 +26,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.plugin.PluginOption;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
@@ -40,23 +40,23 @@ import org.jboss.galleon.universe.MvnUniverse;
 public class ExtraOptionsOverrideConfigOptionsTestCase extends PluginOptionsTestBase {
 
     public static class Plugin1 extends PluginBase {
-        protected Map<String, PluginOption> initOptions() {
-            final Map<String, PluginOption> options = new HashMap<>();
-            addOption(options, PluginOption.builder("p1o1").build());
-            addOption(options, PluginOption.builder("p1o2").setPersistent(false).build());
-            addOption(options, PluginOption.builder("p1o3").setDefaultValue("false").build());
-            addOption(options, PluginOption.builder("p1o4").setDefaultValue("false").build());
+        protected Map<String, ProvisioningOption> initOptions() {
+            final Map<String, ProvisioningOption> options = new HashMap<>();
+            addOption(options, ProvisioningOption.builder("p1o1").build());
+            addOption(options, ProvisioningOption.builder("p1o2").setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p1o3").setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p1o4").setDefaultValue("false").build());
             return options;
         }
     }
 
     public static class Plugin2 extends PluginBase {
-        protected Map<String, PluginOption> initOptions() {
-            final Map<String, PluginOption> options = new HashMap<>();
-            addOption(options, PluginOption.builder("p2o1").build());
-            addOption(options, PluginOption.builder("p2o2").setPersistent(false).build());
-            addOption(options, PluginOption.builder("p2o3").setDefaultValue("false").build());
-            addOption(options, PluginOption.builder("p2o4").setDefaultValue("false").build());
+        protected Map<String, ProvisioningOption> initOptions() {
+            final Map<String, ProvisioningOption> options = new HashMap<>();
+            addOption(options, ProvisioningOption.builder("p2o1").build());
+            addOption(options, ProvisioningOption.builder("p2o2").setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p2o3").setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p2o4").setDefaultValue("false").build());
             return options;
         }
     }
@@ -106,11 +106,11 @@ public class ExtraOptionsOverrideConfigOptionsTestCase extends PluginOptionsTest
         options.put("p2o4", null);
         pm.provision(ProvisioningConfig.builder()
                 .addFeaturePackDep(prod2)
-                .addPluginOption("p1o3", "config")
-                .addPluginOption("p1o4", "config")
-                .addPluginOption("p1o1", null)
-                .addPluginOption("p2o2", "config")
-                .addPluginOption("p2o4", "config")
+                .addOption("p1o3", "config")
+                .addOption("p1o4", "config")
+                .addOption("p1o1", null)
+                .addOption("p2o2", "config")
+                .addOption("p2o4", "config")
                 .build(), options);
     }
 
@@ -118,10 +118,10 @@ public class ExtraOptionsOverrideConfigOptionsTestCase extends PluginOptionsTest
     protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig.builder(prod2).build())
-                .addPluginOption("p1o1", "extra")
-                .addPluginOption("p1o3", "config")
-                .addPluginOption("p1o4", "extra")
-                .addPluginOption("p2o4", null)
+                .addOption("p1o1", "extra")
+                .addOption("p1o3", "config")
+                .addOption("p1o4", "extra")
+                .addOption("p2o4", null)
                 .build();
     }
 

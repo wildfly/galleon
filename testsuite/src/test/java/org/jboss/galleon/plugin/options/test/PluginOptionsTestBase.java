@@ -26,8 +26,8 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.SingleUniverseTestBase;
 
@@ -39,19 +39,19 @@ public abstract class PluginOptionsTestBase extends SingleUniverseTestBase {
 
     public abstract static class PluginBase implements InstallPlugin {
 
-        protected static void addOption(Map<String, PluginOption> options, PluginOption option) {
+        protected static void addOption(Map<String, ProvisioningOption> options, ProvisioningOption option) {
             options.put(option.getName(), option);
         }
 
-        protected final Map<String, PluginOption> options;
+        protected final Map<String, ProvisioningOption> options;
         {
             options = Collections.unmodifiableMap(initOptions());
         }
 
-        protected abstract Map<String, PluginOption> initOptions();
+        protected abstract Map<String, ProvisioningOption> initOptions();
 
         @Override
-        public Map<String, PluginOption> getOptions() {
+        public Map<String, ProvisioningOption> getOptions() {
             return options;
         }
 
@@ -61,8 +61,8 @@ public abstract class PluginOptionsTestBase extends SingleUniverseTestBase {
         }
     }
 
-    protected static void handleOptions(ProvisioningRuntime rt, Collection<PluginOption> options) throws ProvisioningException {
-        for(PluginOption option : options) {
+    protected static void handleOptions(ProvisioningRuntime rt, Collection<ProvisioningOption> options) throws ProvisioningException {
+        for(ProvisioningOption option : options) {
             if(!rt.isOptionSet(option)) {
                 continue;
             }

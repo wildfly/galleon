@@ -19,6 +19,7 @@ package org.jboss.galleon.featurepack.pkg.xml.test;
 import java.nio.file.Paths;
 import java.util.Locale;
 
+import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.test.util.XmlParserValidator;
 import org.jboss.galleon.xml.PackageXmlParser;
@@ -33,7 +34,7 @@ import org.junit.Test;
 public class PackageXmlParserTestCase {
 
     private static final XmlParserValidator<PackageSpec> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-package-1_0.xsd"), PackageXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-package-2_0.xsd"), PackageXmlParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 
@@ -73,7 +74,7 @@ public class PackageXmlParserTestCase {
     @Test
     public void readEmptyDependencies() throws Exception {
         validator.validateAndParse("xml/package/package-1.0-empty-dependencies.xml",
-                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:jboss:galleon:package:1.0\":package, \"urn:jboss:galleon:package:1.0\":origin}' is expected.",
+                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:jboss:galleon:package:2.0\":package, \"urn:jboss:galleon:package:2.0\":origin}' is expected.",
                 "The content of element 'dependencies' is not complete. One of 'package', 'origin' is expected.");
     }
 
@@ -102,6 +103,20 @@ public class PackageXmlParserTestCase {
                 .addPackageDep("dep1")
                 .addPackageDep("dep2")
                 .addPackageDep("dep3", true)
+                .build();
+        Assert.assertEquals(expected, found);
+    }
+
+    @Test
+    public void readPassiveDependencies() throws Exception {
+        PackageSpec found = validator.validateAndParse("xml/package/package-2.0-passive-dependencies.xml", null, null);
+        PackageSpec expected = PackageSpec.builder("package1")
+                .addPackageDep("dep1", PackageDependencySpec.REQUIRED)
+                .addPackageDep("dep2", PackageDependencySpec.OPTIONAL)
+                .addPackageDep("dep3", PackageDependencySpec.OPTIONAL)
+                .addPackageDep("dep4", PackageDependencySpec.PASSIVE)
+                .addPackageDep("dep5", PackageDependencySpec.PASSIVE)
+                .addPackageDep("dep6", PackageDependencySpec.REQUIRED)
                 .build();
         Assert.assertEquals(expected, found);
     }

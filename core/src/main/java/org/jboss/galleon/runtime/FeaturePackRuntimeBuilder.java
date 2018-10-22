@@ -32,6 +32,7 @@ import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.UnsatisfiedPackageDependencyException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureGroup;
@@ -39,6 +40,7 @@ import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.type.ParameterTypeProvider;
 import org.jboss.galleon.type.builtin.BuiltInParameterTypeProvider;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -68,6 +70,8 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
 
     private ParameterTypeProvider featureParamTypeProvider = BuiltInParameterTypeProvider.getInstance();
 
+    private boolean visited;
+
     FeaturePackRuntimeBuilder(FPID fpid, FeaturePackSpec spec, Path dir, int type) {
         super(fpid, dir, type);
         this.producer = fpid.getProducer();
@@ -75,43 +79,66 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
         this.spec = spec;
     }
 
-    boolean resolvePackage(String pkgName, ProvisioningRuntimeBuilder rt) throws ProvisioningException {
-        if(pkgBuilders.containsKey(pkgName)) {
-            return true;
-        }
-
-        final Path pkgDir = LayoutUtils.getPackageDir(dir, pkgName, false);
-        if(!Files.exists(pkgDir)) {
+    boolean setVisited(boolean visited) {
+        if(this.visited == visited) {
             return false;
         }
-        final Path pkgXml = pkgDir.resolve(Constants.PACKAGE_XML);
-        if(!Files.exists(pkgXml)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(pkgXml));
-        }
+        this.visited = visited;
+        return true;
+    }
 
-        final PackageRuntime.Builder pkgBuilder;
-        try(BufferedReader reader = Files.newBufferedReader(pkgXml)) {
-            pkgBuilder = PackageRuntime.builder(PackageXmlParser.getInstance().parse(reader), pkgDir);
-        } catch (IOException | XMLStreamException e) {
-            throw new ProvisioningException(Errors.parseXml(pkgXml), e);
-        }
-        if(!pkgBuilder.spec.getName().equals(pkgName)) {
-            throw new ProvisioningDescriptionException("Feature-pack " + getFPID() + " package spec name " + pkgBuilder.spec.getName() + " does not match the requested package name " + pkgName);
-        }
-        pkgBuilders = CollectionUtils.put(pkgBuilders, pkgName, pkgBuilder);
+    boolean isVisited() {
+        return visited;
+    }
 
+    boolean resolvePackage(String pkgName, ProvisioningRuntimeBuilder rt, PackageRuntime.Builder parent, int type) throws ProvisioningException {
+        PackageRuntime.Builder pkgBuilder = pkgBuilders.get(pkgName);
+        if(pkgBuilder == null) {
+            final Path pkgDir = LayoutUtils.getPackageDir(dir, pkgName, false);
+            if (!Files.exists(pkgDir)) {
+                return false;
+            }
+            final Path pkgXml = pkgDir.resolve(Constants.PACKAGE_XML);
+            if (!Files.exists(pkgXml)) {
+                throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(pkgXml));
+            }
+
+            try (BufferedReader reader = Files.newBufferedReader(pkgXml)) {
+                pkgBuilder = PackageRuntime.builder(this, PackageXmlParser.getInstance().parse(reader), pkgDir, ++rt.pkgsTotal);
+            } catch (IOException | XMLStreamException e) {
+                throw new ProvisioningException(Errors.parseXml(pkgXml), e);
+            }
+            if (!pkgBuilder.spec.getName().equals(pkgName)) {
+                throw new ProvisioningDescriptionException("Feature-pack " + getFPID() + " package spec name "
+                        + pkgBuilder.spec.getName() + " does not match the requested package name " + pkgName);
+            }
+            pkgBuilders = CollectionUtils.put(pkgBuilders, pkgName, pkgBuilder);
+        }
+        pkgBuilder.referencedAs(type);
+        if(parent == null) {
+            pkgBuilder.setFlag(PackageRuntime.ROOT);
+            if(type == PackageDependencySpec.REQUIRED) {
+                pkgBuilder.include();
+            }
+        } else if(!parent.isFlagOn(PackageRuntime.SCHEDULED)) {
+            parent.addPackageDep(pkgBuilder, type);
+        }
+        if(!rt.addToPkgDepBranch(pkgBuilder)) {
+            // to avoid stack overflow processing circular dependencies
+            return true;
+        }
         if(pkgBuilder.spec.hasPackageDeps()) {
             final FeaturePackRuntimeBuilder currentOrigin = rt.setOrigin(this);
             try {
-                rt.processPackageDeps(pkgBuilder.spec);
+                rt.processPackageDeps(pkgBuilder.spec, pkgBuilder);
+            } catch(UnsatisfiedPackageDependencyException e) {
+                throw new UnsatisfiedPackageDependencyException(getFPID(), pkgName, e);
             } catch(ProvisioningException e) {
-                throw new ProvisioningDescriptionException(Errors.resolvePackage(producer.getLocation().getFPID(), pkgName), e);
+                throw new ProvisioningException(Errors.resolvePackage(getFPID(), pkgName), e);
             } finally {
                 rt.setOrigin(currentOrigin);
             }
         }
-
-        pkgOrder.add(pkgName);
         return true;
     }
 
@@ -211,7 +238,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
         }
     }
 
-    FeaturePackRuntime build() throws ProvisioningException {
-        return new FeaturePackRuntime(this);
+    FeaturePackRuntime build(ProvisioningRuntimeBuilder rt) throws ProvisioningException {
+        return new FeaturePackRuntime(this, rt);
     }
 }

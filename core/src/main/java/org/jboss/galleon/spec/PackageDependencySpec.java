@@ -16,6 +16,9 @@
  */
 package org.jboss.galleon.spec;
 
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningDescriptionException;
+
 /**
  * Describes dependency on a single package.
  *
@@ -23,33 +26,63 @@ package org.jboss.galleon.spec;
  */
 public class PackageDependencySpec implements Comparable<PackageDependencySpec> {
 
-    /**
-     * Creates a required dependency on the provided package name.
-     *
-     * @param name  target package name
-     * @return  dependency description
-     */
-    public static PackageDependencySpec forPackage(String name) {
-        return new PackageDependencySpec(name, false);
+    public static final int OPTIONAL    = 0b001;
+    public static final int PASSIVE     = 0b011;
+    public static final int REQUIRED    = 0b100;
+
+    public static boolean isOptional(int type) {
+        return type != REQUIRED;
     }
 
     /**
-     * Creates a dependency on the provided package name.
+     * Creates a required dependency on the package.
      *
      * @param name  target package name
-     * @param optional  whether the dependency should be optional
-     * @return  dependency description
+     * @return  dependency spec
      */
-    public static PackageDependencySpec forPackage(String name, boolean optional) {
-        return new PackageDependencySpec(name, optional);
+    public static PackageDependencySpec required(String name) {
+        return new PackageDependencySpec(name, REQUIRED);
+    }
+
+    /**
+     * Creates an optional dependency on the package.
+     *
+     * @param name  target package name
+     * @return  dependency spec
+     */
+    public static PackageDependencySpec optional(String name) {
+        return new PackageDependencySpec(name, OPTIONAL);
+    }
+
+    /**
+     * Creates a passive dependency on the package.
+     *
+     * @param name  target package name
+     * @return  dependency spec
+     */
+    public static PackageDependencySpec passive(String name) {
+        return new PackageDependencySpec(name, PASSIVE);
+    }
+
+    public static PackageDependencySpec newInstance(String packageName, int type) throws ProvisioningDescriptionException {
+        switch(type) {
+            case PackageDependencySpec.OPTIONAL:
+                return PackageDependencySpec.optional(packageName);
+            case PackageDependencySpec.PASSIVE:
+                return PackageDependencySpec.passive(packageName);
+            case PackageDependencySpec.REQUIRED:
+                return PackageDependencySpec.required(packageName);
+            default:
+                throw new ProvisioningDescriptionException(Errors.unexpectedPackageDependencyType(packageName, type));
+        }
     }
 
     private final String name;
-    private final boolean optional;
+    private final int type;
 
-    protected PackageDependencySpec(String name, boolean optional) {
+    protected PackageDependencySpec(String name, int type) {
         this.name = name;
-        this.optional = optional;
+        this.type = type;
     }
 
     public String getName() {
@@ -57,7 +90,15 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
     }
 
     public boolean isOptional() {
-        return optional;
+        return (type & OPTIONAL) == OPTIONAL;
+    }
+
+    public boolean isPassive() {
+        return (type & PASSIVE) == PASSIVE;
+    }
+
+    public int getType() {
+        return type;
     }
 
     @Override
@@ -65,7 +106,7 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
         final int prime = 31;
         int result = 1;
         result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + (optional ? 1231 : 1237);
+        result = prime * result + type;
         return result;
     }
 
@@ -83,7 +124,7 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
                 return false;
         } else if (!name.equals(other.name))
             return false;
-        if (optional != other.optional)
+        if (type != other.type)
             return false;
         return true;
     }
@@ -91,9 +132,10 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
-        buf.append('[')
-            .append(name)
-            .append(optional ? " optional]" : " required");
+        buf.append('[').append(name);
+        if(isOptional()) {
+            buf.append(type == OPTIONAL ? " optional" : " passive");
+        }
         return buf.append(']').toString();
     }
 

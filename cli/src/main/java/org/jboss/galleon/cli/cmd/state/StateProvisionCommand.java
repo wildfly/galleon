@@ -27,6 +27,7 @@ import java.util.Set;
 import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
@@ -37,7 +38,6 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionCommand;
 import org.jboss.galleon.cli.model.state.State;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 
 /**
@@ -63,8 +63,8 @@ public class StateProvisionCommand extends AbstractProvisionCommand {
         }
         List<AbstractDynamicCommand.DynamicOption> options = new ArrayList<>();
         ProvisioningRuntime rt = state.getRuntime();
-        Set<PluginOption> opts = getPluginOptions(rt);
-        for (PluginOption opt : opts) {
+        Set<ProvisioningOption> opts = getPluginOptions(rt);
+        for (ProvisioningOption opt : opts) {
             AbstractDynamicCommand.DynamicOption dynOption = new AbstractDynamicCommand.DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
         }

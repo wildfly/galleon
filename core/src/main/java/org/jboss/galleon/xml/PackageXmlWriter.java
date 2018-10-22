@@ -21,8 +21,8 @@ import java.util.Collection;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageDepsSpec;
 import org.jboss.galleon.spec.PackageSpec;
-import org.jboss.galleon.xml.PackageXmlParser10.Attribute;
-import org.jboss.galleon.xml.PackageXmlParser10.Element;
+import org.jboss.galleon.xml.PackageXmlParser20.Attribute;
+import org.jboss.galleon.xml.PackageXmlParser20.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -78,7 +78,11 @@ public class PackageXmlWriter extends BaseXmlWriter<PackageSpec> {
         final ElementNode depElement = addElement(deps, PackageDepsSpecXmlParser.PACKAGE, ns);
         addAttribute(depElement, Attribute.NAME, depSpec.getName());
         if(depSpec.isOptional()) {
-            addAttribute(depElement, PackageDepsSpecXmlParser.Attribute.OPTIONAL, TRUE);
+            if(depSpec.isPassive()) {
+                addAttribute(depElement, PackageDepsSpecXmlParser.Attribute.PASSIVE, TRUE);
+            } else {
+                addAttribute(depElement, PackageDepsSpecXmlParser.Attribute.OPTIONAL, TRUE);
+            }
         }
     }
 }

@@ -34,6 +34,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -117,13 +118,13 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final MessageWriter messageWriter;
     private List<ProvisionedConfig> configs = Collections.emptyList();
 
-    ProvisioningRuntime(ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
+    ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
         this.config = builder.config;
         this.layout = builder.layout.transform(new FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
             @Override
             public FeaturePackRuntime transform(FeaturePackRuntimeBuilder other) throws ProvisioningException {
-                return other.build();
+                return other.build(builder);
             }
         });
 
@@ -228,22 +229,43 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return layout.getTmpPath(path);
     }
 
+    /**
+     * Deprecated in 3.0.0 in favor of the equivalent with ProvisioningOption
+     * @param option  plugin option
+     * @return  whether the value is set
+     * @throws ProvisioningException  in case of an error
+     */
+    @Deprecated
     public boolean isOptionSet(PluginOption option) throws ProvisioningException {
-        if(!layout.isPluginOptionSet(option.getName())) {
-            return false;
-        }
-        if(option.isAcceptsValue() || layout.getPluginOptionValue(option.getName()) == null) {
-            return true;
-        }
-        throw new ProvisioningException("Plugin option " + option.getName() + " does not expect value but is set to " + layout.getPluginOptionValue(option.getName()));
+        return isOptionSet((ProvisioningOption)option);
     }
 
+    @Deprecated
     public String getOptionValue(PluginOption option) throws ProvisioningException {
+        return getOptionValue((ProvisioningOption)option);
+    }
+
+    @Deprecated
+    public String getOptionValue(PluginOption option, String defaultValue) throws ProvisioningException {
+        return getOptionValue((ProvisioningOption)option, defaultValue);
+    }
+
+    public boolean isOptionSet(ProvisioningOption option) throws ProvisioningException {
+        if(!layout.isOptionSet(option.getName())) {
+            return false;
+        }
+        if(option.isAcceptsValue() || layout.getOptionValue(option.getName()) == null) {
+            return true;
+        }
+        throw new ProvisioningException("Plugin option " + option.getName() + " does not expect value but is set to " + layout.getOptionValue(option.getName()));
+    }
+
+    public String getOptionValue(ProvisioningOption option) throws ProvisioningException {
         return getOptionValue(option, null);
     }
 
-    public String getOptionValue(PluginOption option, String defaultValue) throws ProvisioningException {
-        final String value = layout.getPluginOptionValue(option.getName());
+    public String getOptionValue(ProvisioningOption option, String defaultValue) throws ProvisioningException {
+        final String value = layout.getOptionValue(option.getName());
         if(value == null) {
             if(defaultValue != null) {
                 return defaultValue;
@@ -269,9 +291,13 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return value;
     }
 
+    /**
+     * Deprecated in 3.0.0
+     * @return  configured provisioning options
+     */
     @Deprecated
     public Map<String, String> getPluginOptions() {
-        return config.getPluginOptions();
+        return layout.getOptions();
     }
 
     /**
@@ -367,9 +393,9 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             @Override
             public void visitPlugin(T plugin) throws ProvisioningException {
                 //check for missing required options.
-                for (PluginOption opt : plugin.getOptions().values()) {
+                for (ProvisioningOption opt : plugin.getOptions().values()) {
                     if (opt.isRequired()) {
-                        if (!layout.isPluginOptionSet(opt.getName())) {
+                        if (!layout.isOptionSet(opt.getName())) {
                             throw new ProvisioningException("Option: " + opt.getName()
                                     + " is required for this plugin.");
                         }

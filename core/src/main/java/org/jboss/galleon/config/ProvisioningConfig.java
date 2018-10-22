@@ -33,7 +33,7 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
 
     public static class Builder extends FeaturePackDepsConfigBuilder<Builder> {
 
-        private Map<String, String> pluginOptions = Collections.emptyMap();
+        private Map<String, String> options = Collections.emptyMap();
 
         private Builder() {
         }
@@ -43,7 +43,7 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
                 return;
             }
             if(original.hasPluginOptions()) {
-                addPluginOptions(original.getPluginOptions());
+                addOptions(original.getPluginOptions());
             }
             for (FeaturePackConfig fp : original.getFeaturePackDeps()) {
                 addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
@@ -57,18 +57,18 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
             initConfigs(original);
         }
 
-        public Builder addPluginOption(String name, String value) {
-            pluginOptions = CollectionUtils.put(pluginOptions, name, value);
+        public Builder addOption(String name, String value) {
+            options = CollectionUtils.put(options, name, value);
             return this;
         }
 
-        public Builder removePluginOption(String name) {
-            pluginOptions = CollectionUtils.remove(pluginOptions, name);
+        public Builder removeOption(String name) {
+            options = CollectionUtils.remove(options, name);
             return this;
         }
 
-        public Builder addPluginOptions(Map<String, String> options) {
-            pluginOptions = CollectionUtils.putAll(pluginOptions, options);
+        public Builder addOptions(Map<String, String> options) {
+            this.options = CollectionUtils.putAll(this.options, options);
             return this;
         }
 
@@ -93,12 +93,12 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         return new Builder(provisioningConfig);
     }
 
-    private final Map<String, String> pluginOptions;
+    private final Map<String, String> options;
     private final Builder builder;
 
     private ProvisioningConfig(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
-        this.pluginOptions = CollectionUtils.unmodifiable(builder.pluginOptions);
+        this.options = CollectionUtils.unmodifiable(builder.options);
         this.builder = builder;
     }
 
@@ -107,26 +107,26 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
     }
 
     public boolean hasPluginOptions() {
-        return !pluginOptions.isEmpty();
+        return !options.isEmpty();
     }
 
     public Map<String, String> getPluginOptions() {
-        return pluginOptions;
+        return options;
     }
 
     public boolean hasPluginOption(String name) {
-        return pluginOptions.containsKey(name);
+        return options.containsKey(name);
     }
 
     public String getPluginOption(String name) {
-        return pluginOptions.get(name);
+        return options.get(name);
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + ((pluginOptions == null) ? 0 : pluginOptions.hashCode());
+        result = prime * result + ((options == null) ? 0 : options.hashCode());
         return result;
     }
 
@@ -139,10 +139,10 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         if (getClass() != obj.getClass())
             return false;
         ProvisioningConfig other = (ProvisioningConfig) obj;
-        if (pluginOptions == null) {
-            if (other.pluginOptions != null)
+        if (options == null) {
+            if (other.options != null)
                 return false;
-        } else if (!pluginOptions.equals(other.pluginOptions))
+        } else if (!options.equals(other.options))
             return false;
         return true;
     }
@@ -161,9 +161,9 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
             StringUtils.append(buf, universeSpecs.entrySet());
             buf.append("] ");
         }
-        if(!pluginOptions.isEmpty()) {
-            buf.append("plugin-options=");
-            StringUtils.append(buf, pluginOptions.entrySet());
+        if(!options.isEmpty()) {
+            buf.append("options=");
+            StringUtils.append(buf, options.entrySet());
         }
         if(!transitiveDeps.isEmpty()) {
             buf.append("transitive=");

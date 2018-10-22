@@ -17,7 +17,13 @@
     limitations under the License.
 
 -->
-<installation xmlns="urn:jboss:galleon:provisioning:1.0">
-  <feature-pack groupId="org.jboss.group1" artifactId="fp1" version="0.0.1" />
-  <feature-pack groupId="org.jboss.group1" version="0.0.2" />
-</installation>
+<package-spec xmlns="urn:jboss:galleon:package:2.0" name="package1">
+  <dependencies>
+    <package name="dep1"/>
+    <package name="dep2" optional="true"/>
+    <package name="dep3" optional="true" passive="false"/>
+    <package name="dep4" optional="true" passive="true"/>
+    <package name="dep5" passive="true"/>
+    <package name="dep6" passive="false"/>
+  </dependencies>
+</package-spec>

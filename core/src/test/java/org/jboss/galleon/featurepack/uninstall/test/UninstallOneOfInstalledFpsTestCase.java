@@ -44,7 +44,7 @@ public class UninstallOneOfInstalledFpsTestCase extends PmUninstallFeaturePackTe
         creator
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
-                    .addDependency(PackageDependencySpec.forPackage("p2", true))
+                    .addDependency(PackageDependencySpec.optional("p2"))
                     .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")
@@ -56,7 +56,7 @@ public class UninstallOneOfInstalledFpsTestCase extends PmUninstallFeaturePackTe
                 .getCreator()
             .newFeaturePack(FP2_100_GAV)
                 .newPackage("p1", true)
-                    .addDependency(PackageDependencySpec.forPackage("p2", true))
+                    .addDependency(PackageDependencySpec.optional("p2"))
                     .writeContent("fp2/p1.txt", "fp2 1.0.0.Final p1")
                     .getFeaturePack()
                 .newPackage("p2")

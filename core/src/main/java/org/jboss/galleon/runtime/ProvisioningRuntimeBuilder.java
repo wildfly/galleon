@@ -30,6 +30,8 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
+import org.jboss.galleon.UnsatisfiedPackageDependencyException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigItem;
 import org.jboss.galleon.config.ConfigItemContainer;
@@ -100,6 +102,12 @@ public class ProvisioningRuntimeBuilder {
     private Map<ConfigId, ConfigModelStack> configsToBuild = Collections.emptyMap();
     private Map<ConfigId, ConfigModelStack> layers = Collections.emptyMap();
 
+    private ArrayList<PackageRuntime.Builder> resolvedPkgBranch = new ArrayList<>();
+    int pkgsTotal;
+
+    private List<FeaturePackRuntimeBuilder> visited = new ArrayList<>();
+    int pkgDepMask;
+
     private ProvisioningRuntimeBuilder(final MessageWriter messageWriter) {
         startTime = System.currentTimeMillis();
         this.messageWriter = messageWriter;
@@ -135,10 +143,29 @@ public class ProvisioningRuntimeBuilder {
         }
     }
 
+    static final int PKG_DEP_MASK_ALL = Integer.MAX_VALUE;
+    static final int PKG_DEP_MASK_PASSIVE = PKG_DEP_MASK_ALL ^ PackageDependencySpec.OPTIONAL;
+    static final int PKG_DEP_MASK_REQUIRED = PKG_DEP_MASK_ALL ^ PackageDependencySpec.PASSIVE;
+
     private ProvisioningRuntime doBuild() throws ProvisioningException {
 
         config = layout.getConfig();
         fpConfigStack = new FpStack(config);
+
+        final String optionalPackages = layout.getOptionValue(ProvisioningOption.OPTIONAL_PACKAGES);
+        switch(optionalPackages) {
+            case Constants.ALL:
+                this.pkgDepMask = PKG_DEP_MASK_ALL;
+                break;
+            case Constants.PASSIVE:
+                this.pkgDepMask = PKG_DEP_MASK_PASSIVE;
+                break;
+            case Constants.NONE:
+                this.pkgDepMask = PKG_DEP_MASK_REQUIRED;
+                break;
+            default:
+                throw new ProvisioningDescriptionException(Errors.pluginOptionIllegalValue(ProvisioningOption.OPTIONAL_PACKAGES.getName(), optionalPackages, ProvisioningOption.OPTIONAL_PACKAGES.getValueSet()));
+        }
 
         collectDefaultConfigs();
 
@@ -168,13 +195,13 @@ public class ProvisioningRuntimeBuilder {
             processFpConfig(fpConfigStack.next());
         }
 
-        if(extendedStackLevel) {
-            fpConfigStack.popLevel();
-        }
-
         for(int i = configStacks.size() - 1; i>= 0; --i) {
             final ConfigModelStack configStack = configStacks.get(i);
             processConfig(configStack, popConfig(configStack));
+        }
+
+        if(extendedStackLevel) {
+            fpConfigStack.popLevel();
         }
 
         mergeModelOnlyConfigs();
@@ -358,7 +385,7 @@ public class ProvisioningRuntimeBuilder {
                         if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName, false)) {
                             continue;
                         }
-                        resolvePackage(packageName);
+                        resolvePackage(packageName, null, PackageDependencySpec.REQUIRED);
                     }
                 }
             }
@@ -368,7 +395,7 @@ public class ProvisioningRuntimeBuilder {
                     if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgConfig.getName(), true)) {
                         continue;
                     }
-                    resolvePackage(pkgConfig.getName());
+                    resolvePackage(pkgConfig.getName(), null, PackageDependencySpec.REQUIRED);
                 }
             }
 
@@ -561,7 +588,7 @@ public class ProvisioningRuntimeBuilder {
         configStack.overwriteConfigDeps(config.getConfigDeps());
         try {
             if(config.hasPackageDeps()) {
-                processPackageDeps(config);
+                processPackageDeps(config, null);
             }
             processConfigItemContainer(config);
             this.configStack = null;
@@ -574,7 +601,7 @@ public class ProvisioningRuntimeBuilder {
         this.configStack = configStack;
         try {
             if(layer.hasPackageDeps()) {
-                processPackageDeps(layer);
+                processPackageDeps(layer, null);
             }
             processConfigItemContainer(layer);
             this.configStack = null;
@@ -629,7 +656,7 @@ public class ProvisioningRuntimeBuilder {
         try {
             final FeatureGroupSupport originalFg = getFeatureGroupSpec(includedFg.getName());
             if (originalFg.hasPackageDeps()) {
-                processPackageDeps(originalFg);
+                processPackageDeps(originalFg, null);
             }
             if (!pushed) {
                 return;
@@ -838,7 +865,7 @@ public class ProvisioningRuntimeBuilder {
             throws ProvisioningException {
 
         if(spec.xmlSpec.hasPackageDeps()) {
-            processPackageDeps(spec.xmlSpec);
+            processPackageDeps(spec.xmlSpec, null);
         }
 
         final ResolvedFeature resolvedFeature = configStack.includeFeature(resolvedId, spec, resolvedParams, resolveFeatureDeps(configStack, featureDeps, spec));
@@ -896,20 +923,47 @@ public class ProvisioningRuntimeBuilder {
         return resolvedDeps;
     }
 
-    private void resolvePackage(final String pkgName) throws ProvisioningException {
-        if(!resolvePackage(currentOrigin, pkgName, Collections.emptySet())) {
-            throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.producer.getLocation().getFPID(), pkgName));
+    private void resolvePackage(final String pkgName, PackageRuntime.Builder parent, int type) throws ProvisioningException {
+        final int offset = resolvedPkgBranch.size();
+        boolean resolved = false;
+        try {
+            currentOrigin.setVisited(true);
+            if (resolved = resolvePackage(currentOrigin, pkgName, parent, type)) {
+                if (offset == 0) {
+                    for (int i = resolvedPkgBranch.size() - 1; i >= 0; --i) {
+                        final PackageRuntime.Builder pkg = resolvedPkgBranch.get(i);
+                        pkg.schedule();
+                        pkg.clearFlag(PackageRuntime.ON_DEP_BRANCH);
+                    }
+                    resolvedPkgBranch.clear();
+                }
+                return;
+            }
+        } catch (UnsatisfiedPackageDependencyException e) {
+            if(PackageDependencySpec.isOptional(type)) {
+                return;
+            }
+            throw e;
+        } finally {
+            if (!resolved) {
+                int i = resolvedPkgBranch.size() - offset;
+                while (i > 0) {
+                    resolvedPkgBranch.remove(offset + --i).clearFlag(PackageRuntime.ON_DEP_BRANCH);
+                }
+            }
+            clearVisitedFPs();
+            currentOrigin.setVisited(false);
         }
+        throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.producer.getLocation().getFPID(), pkgName));
     }
 
-    private boolean resolvePackage(FeaturePackRuntimeBuilder origin, String name, Set<ProducerSpec> visited) throws ProvisioningException {
+    private boolean resolvePackage(FeaturePackRuntimeBuilder origin, String name, PackageRuntime.Builder parent, int type) throws ProvisioningException {
         final FeaturePackDepsConfig fpDeps;
         if (origin != null) {
-            if(origin.resolvePackage(name, this)) {
+            if(origin.resolvePackage(name, this, parent, type)) {
                 return true;
             }
             fpDeps = origin.getSpec();
-            visited = CollectionUtils.add(visited, origin.producer);
         } else {
             fpDeps = config;
         }
@@ -919,33 +973,33 @@ public class ProvisioningRuntimeBuilder {
         }
 
         for (FeaturePackConfig fpDep : fpDeps.getFeaturePackDeps()) {
-            if (visited.contains(fpDep.getLocation().getProducer())) {
-                continue;
-            }
-            if(resolvePackage(layout.getFeaturePack(fpDep.getLocation().getProducer()), name, visited)) {
+            final FeaturePackRuntimeBuilder fpDepBuilder = layout.getFeaturePack(fpDep.getLocation().getProducer());
+            if (setVisited(fpDepBuilder) && resolvePackage(fpDepBuilder, name, parent, type)) {
                 return true;
             }
         }
         return false;
     }
 
-    void processPackageDeps(final PackageDepsSpec pkgDeps) throws ProvisioningException {
+    boolean addToPkgDepBranch(PackageRuntime.Builder pkg) {
+        if(pkg.setFlag(PackageRuntime.ON_DEP_BRANCH)) {
+            resolvedPkgBranch.add(pkg);
+            return true;
+        }
+        return false;
+    }
+
+    void processPackageDeps(final PackageDepsSpec pkgDeps, PackageRuntime.Builder parent) throws ProvisioningException {
         if (pkgDeps.hasLocalPackageDeps()) {
             for (PackageDependencySpec dep : pkgDeps.getLocalPackageDeps()) {
                 if(fpConfigStack.isPackageExcluded(currentOrigin.producer, dep.getName())) {
                     if(!dep.isOptional()) {
-                        throw new ProvisioningDescriptionException(Errors.unsatisfiedPackageDependency(currentOrigin.producer.getLocation().getFPID(), dep.getName()));
+                        throw new UnsatisfiedPackageDependencyException(currentOrigin.getFPID(), dep.getName());
                     }
                     continue;
                 }
-                try {
-                    resolvePackage(dep.getName());
-                } catch(ProvisioningDescriptionException e) {
-                    if(dep.isOptional()) {
-                        continue;
-                    } else {
-                        throw e;
-                    }
+                if ((pkgDepMask & dep.getType()) > 0) {
+                    resolvePackage(dep.getName(), parent, dep.getType());
                 }
             }
         }
@@ -955,22 +1009,15 @@ public class ProvisioningRuntimeBuilder {
         for (String origin : pkgDeps.getPackageOrigins()) {
             final FeaturePackRuntimeBuilder originalFp = setOrigin(origin);
             try {
-                for (PackageDependencySpec pkgDep : pkgDeps.getExternalPackageDeps(origin)) {
-                    if (fpConfigStack.isPackageExcluded(currentOrigin.producer, pkgDep.getName())) {
-                        if (!pkgDep.isOptional()) {
-                            throw new ProvisioningDescriptionException(
-                                    Errors.unsatisfiedPackageDependency(currentOrigin.producer.getLocation().getFPID(), pkgDep.getName()));
+                for (PackageDependencySpec dep : pkgDeps.getExternalPackageDeps(origin)) {
+                    if (fpConfigStack.isPackageExcluded(currentOrigin.producer, dep.getName())) {
+                        if (!dep.isOptional()) {
+                            throw new UnsatisfiedPackageDependencyException(currentOrigin.getFPID(), dep.getName());
                         }
                         continue;
                     }
-                    try {
-                        resolvePackage(pkgDep.getName());
-                    } catch (ProvisioningDescriptionException e) {
-                        if (pkgDep.isOptional()) {
-                            continue;
-                        } else {
-                            throw e;
-                        }
+                    if ((pkgDepMask & dep.getType()) > 0) {
+                        resolvePackage(dep.getName(), parent, dep.getType());
                     }
                 }
             } finally {
@@ -1057,23 +1104,27 @@ public class ProvisioningRuntimeBuilder {
      * NOTE: this method will change the current origin to the origin of the group!
      */
     private FeatureGroup getFeatureGroupSpec(String name) throws ProvisioningException {
-        final FeatureGroup fg = getFeatureGroupSpec(currentOrigin, name, Collections.emptySet());
+        final FeatureGroup fg = getFeatureGroupSpec(currentOrigin, name);
+        clearVisitedFPs();
         if(fg == null) {
             throw new ProvisioningDescriptionException("Failed to locate feature group '" + name + "' in " + (currentOrigin == null ? "the provisioning configuration" : currentOrigin.producer + " and its dependencies"));
         }
         return fg;
     }
 
-    private FeatureGroup getFeatureGroupSpec(FeaturePackRuntimeBuilder origin, String name, Set<ProducerSpec> visitedProducers) throws ProvisioningException {
+    private FeatureGroup getFeatureGroupSpec(FeaturePackRuntimeBuilder origin, String name) throws ProvisioningException {
         final FeaturePackDepsConfig fpDeps;
         if(origin != null) {
+            if(origin.isVisited()) {
+                return null;
+            }
             final FeatureGroup fg = origin.getFeatureGroupSpec(name);
             if(fg != null) {
                 currentOrigin = origin;
                 return fg;
             }
             fpDeps = origin.getSpec();
-            visitedProducers = CollectionUtils.add(visitedProducers, origin.producer);
+            setVisited(origin);
         } else {
             fpDeps = config;
         }
@@ -1083,10 +1134,7 @@ public class ProvisioningRuntimeBuilder {
         }
 
         for (FeaturePackConfig fpDep : fpDeps.getFeaturePackDeps()) {
-            if (visitedProducers.contains(fpDep.getLocation().getProducer())) {
-                continue;
-            }
-            final FeatureGroup fg = getFeatureGroupSpec(layout.getFeaturePack(fpDep.getLocation().getProducer()), name, visitedProducers);
+            final FeatureGroup fg = getFeatureGroupSpec(layout.getFeaturePack(fpDep.getLocation().getProducer()), name);
             if (fg != null) {
                 return fg;
             }
@@ -1107,7 +1155,8 @@ public class ProvisioningRuntimeBuilder {
     }
 
     private ResolvedFeatureSpec getFeatureSpec(FeaturePackRuntimeBuilder origin, String name, boolean switchOrigin) throws ProvisioningException {
-        final ResolvedFeatureSpec resolvedSpec = getFeatureSpec(origin, name, Collections.emptySet(), switchOrigin);
+        final ResolvedFeatureSpec resolvedSpec = findFeatureSpec(origin, name, switchOrigin);
+        clearVisitedFPs();
         if(resolvedSpec == null) {
             if(origin == null) {
                 throw new ProvisioningDescriptionException("Failed to locate feature spec '" + name + "' in the installed feature-packs.");
@@ -1117,9 +1166,12 @@ public class ProvisioningRuntimeBuilder {
         return resolvedSpec;
     }
 
-    private ResolvedFeatureSpec getFeatureSpec(FeaturePackRuntimeBuilder origin, String name, Set<ProducerSpec> visitedProducers, boolean switchOrigin) throws ProvisioningException {
+    private ResolvedFeatureSpec findFeatureSpec(FeaturePackRuntimeBuilder origin, String name, boolean switchOrigin) throws ProvisioningException {
         final FeaturePackDepsConfig fpDeps;
         if (origin != null) {
+            if(origin.isVisited()) {
+                return null;
+            }
             final ResolvedFeatureSpec fs = origin.getFeatureSpec(name);
             if (fs != null) {
                 if (switchOrigin) {
@@ -1128,7 +1180,7 @@ public class ProvisioningRuntimeBuilder {
                 return fs;
             }
             fpDeps = origin.getSpec();
-            visitedProducers = CollectionUtils.add(visitedProducers, origin.producer);
+            setVisited(origin);
         } else {
             fpDeps = config;
         }
@@ -1138,15 +1190,28 @@ public class ProvisioningRuntimeBuilder {
         }
 
         for (FeaturePackConfig fpDep : fpDeps.getFeaturePackDeps()) {
-            final FeaturePackLocation fpl = fpDep.getLocation();
-            if (visitedProducers.contains(fpl.getProducer())) {
-                continue;
-            }
-            final ResolvedFeatureSpec fs = getFeatureSpec(layout.getFeaturePack(fpl.getProducer()), name, visitedProducers, switchOrigin);
+            final ResolvedFeatureSpec fs = findFeatureSpec(layout.getFeaturePack(fpDep.getLocation().getProducer()), name, switchOrigin);
             if (fs != null) {
                 return fs;
             }
         }
         return null;
+    }
+
+    private boolean setVisited(FeaturePackRuntimeBuilder fp) {
+        if(fp.setVisited(true)) {
+            visited.add(fp);
+            return true;
+        }
+        return false;
+    }
+
+    private void clearVisitedFPs() {
+        if (!visited.isEmpty()) {
+            for (int i = 0; i < visited.size(); ++i) {
+                visited.get(i).setVisited(false);
+            }
+            visited.clear();
+        }
     }
 }

@@ -29,6 +29,7 @@ import java.util.function.Function;
 import org.aesh.utils.Config;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
@@ -57,7 +58,6 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.spec.CapabilitySpec;
 import org.jboss.galleon.spec.FeatureAnnotation;
 import org.jboss.galleon.spec.FeatureDependencySpec;
@@ -445,9 +445,9 @@ public class StateInfoUtil {
         return (loc.getUniverse() == null ? "" : loc.getUniverse() + "@") + channel;
     }
 
-    private static String buildOptionsTable(Set<PluginOption> options) {
+    private static String buildOptionsTable(Set<ProvisioningOption> options) {
         Table t = new Table(Headers.OPTION, Headers.REQUIRED, Headers.DEFAULT_VALUE);
-        for (PluginOption opt : options) {
+        for (ProvisioningOption opt : options) {
             t.addLine("--" + opt.getName() + (opt.isAcceptsValue() ? "=" : ""),
                     opt.isRequired() ? "Y" : "N",
                     opt.getDefaultValue() == null ? "" : opt.getDefaultValue());

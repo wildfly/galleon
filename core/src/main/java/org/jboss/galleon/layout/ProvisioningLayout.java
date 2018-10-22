@@ -41,11 +41,11 @@ import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.spec.FeaturePackSpec;
@@ -297,7 +297,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private final FeaturePackLayoutFactory<F> fpFactory;
     private final Handle handle;
     private ProvisioningConfig config;
-    private Map<String, String> pluginOptions = Collections.emptyMap();
+    private Map<String, String> options = Collections.emptyMap();
 
     private Map<ProducerSpec, FeaturePackLocation> resolvedVersions;
     private Set<ProducerSpec> transitiveDeps;
@@ -369,7 +369,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.layoutFactory = other.layoutFactory;
         this.fpFactory = fpFactory;
         this.config = other.config;
-        this.pluginOptions = CollectionUtils.clone(other.pluginOptions);
+        this.options = CollectionUtils.clone(other.options);
         for(O otherFp : other.ordered) {
             final F fp = transformer.transform(otherFp);
             featurePacks.put(fp.getFPID().getProducer(), fp);
@@ -1076,56 +1076,67 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 : buildTracker;
     }
 
-    public boolean isPluginOptionSet(String name) {
-        return pluginOptions.containsKey(name);
+    public boolean isOptionSet(String name) {
+        return options.containsKey(name);
     }
 
-    public String getPluginOptionValue(String name) {
-        return pluginOptions.get(name);
+    public String getOptionValue(String name) {
+        return options.get(name);
+    }
+
+    public String getOptionValue(String name, String defValue) {
+        final String setValue = options.get(name);
+        return setValue == null ? defValue : setValue;
+    }
+
+    public String getOptionValue(ProvisioningOption option) throws ProvisioningException {
+        final String setValue = options.get(option.getName());
+        if(setValue == null) {
+            if(option.isRequired() && (!options.containsKey(option.getName()) && option.getDefaultValue() == null)) {
+                throw new ProvisioningException(Errors.pluginOptionRequired(option.getName()));
+            }
+            return option.getDefaultValue();
+        }
+        if(!option.getValueSet().isEmpty() && !option.getValueSet().contains(setValue)) {
+            throw new ProvisioningException(Errors.pluginOptionIllegalValue(option.getName(), setValue, option.getValueSet()));
+        }
+        return setValue;
+    }
+
+    public Map<String, String> getOptions() {
+        return options;
     }
 
     private void initPluginOptions(Map<String, String> extraOptions, boolean cleanupConfigOptions) throws ProvisioningException {
-        pluginOptions = config.getPluginOptions();
+        options = config.getPluginOptions();
         if(!extraOptions.isEmpty()) {
-            pluginOptions = CollectionUtils.putAll(CollectionUtils.clone(pluginOptions), extraOptions);
+            options = CollectionUtils.putAll(CollectionUtils.clone(options), extraOptions);
         }
 
-        final Map<String, PluginOption> recognizedOptions;
-        final List<PluginOption> overridenOptions;
-        if(pluginOptions.isEmpty()) {
+        final Map<String, ProvisioningOption> recognizedOptions;
+        final List<ProvisioningOption> overridenOptions;
+        if(options.isEmpty()) {
             recognizedOptions = Collections.emptyMap();
             overridenOptions = Collections.emptyList();
         } else {
-            final int size = pluginOptions.size();
+            final int size = options.size();
             recognizedOptions = new HashMap<>(size);
             overridenOptions = new ArrayList<>(size);
         }
 
+        // process built-in options
+        processOptions(ProvisioningOption.getStandardList(), extraOptions, recognizedOptions, overridenOptions);
+
+        // process plugin options
         handle.visitPlugins(new FeaturePackPluginVisitor<InstallPlugin>() {
             @Override
             public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
-                for(PluginOption pluginOption : plugin.getOptions().values()) {
-                    final String optionName = pluginOption.getName();
-                    if(!pluginOptions.containsKey(optionName)) {
-                        if(pluginOption.isRequired()) {
-                            throw new ProvisioningException(Errors.pluginOptionRequired(optionName));
-                        }
-                        continue;
-                    }
-                    final PluginOption existing = recognizedOptions.put(optionName, pluginOption);
-                    // options should probably not be shared between plugins but just in case make sure non-persistent option
-                    // doesn't override a persistent one
-                    if (existing != null && existing.isPersistent() && !pluginOption.isPersistent()) {
-                        recognizedOptions.put(existing.getName(), existing);
-                    } else if (pluginOption.isPersistent() || extraOptions.containsKey(optionName) && config.hasPluginOption(optionName)) {
-                        overridenOptions.add(pluginOption);
-                    }
-                }
+                processOptions(plugin.getOptions().values(), extraOptions, recognizedOptions, overridenOptions);
             }}, InstallPlugin.class);
 
         ProvisioningConfig.Builder configBuilder = null;
-        if(recognizedOptions.size() != pluginOptions.size()) {
-            final Set<String> nonRecognized = new HashSet<>(pluginOptions.keySet());
+        if(recognizedOptions.size() != options.size()) {
+            final Set<String> nonRecognized = new HashSet<>(options.keySet());
             nonRecognized.removeAll(recognizedOptions.keySet());
             if(cleanupConfigOptions) {
                 final Iterator<String> i = nonRecognized.iterator();
@@ -1137,7 +1148,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     if(configBuilder == null) {
                         configBuilder = ProvisioningConfig.builder(config);
                     }
-                    configBuilder.removePluginOption(optionName);
+                    configBuilder.removeOption(optionName);
                     i.remove();
                 }
             }
@@ -1150,25 +1161,49 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             if(configBuilder == null) {
                 configBuilder = ProvisioningConfig.builder(config);
             }
-            for(PluginOption option : overridenOptions) {
+            for(ProvisioningOption option : overridenOptions) {
                 final String optionName = option.getName();
                 if(!extraOptions.containsKey(optionName)) {
                     continue;
                 }
                 final String value = extraOptions.get(optionName);
                 if(option.isPersistent()) {
-                    configBuilder.addPluginOption(optionName, value);
+                    configBuilder.addOption(optionName, value);
                 } else if (value == null) {
                     if (config.getPluginOption(optionName) != null) {
-                        configBuilder.removePluginOption(optionName);
+                        configBuilder.removeOption(optionName);
                     }
                 } else if (!value.equals(config.getPluginOption(optionName))) {
-                    configBuilder.removePluginOption(optionName);
+                    configBuilder.removeOption(optionName);
                 }
             }
             config = configBuilder.build();
         } else if(configBuilder != null) {
             config = configBuilder.build();
+        }
+
+        options = CollectionUtils.unmodifiable(options);
+    }
+
+    private void processOptions(Iterable<? extends ProvisioningOption> pluginOptions, Map<String, String> extraOptions,
+            final Map<String, ProvisioningOption> recognizedOptions, final List<ProvisioningOption> overridenOptions)
+            throws ProvisioningException {
+        for(ProvisioningOption pluginOption : pluginOptions) {
+            final String optionName = pluginOption.getName();
+            if(!options.containsKey(optionName)) {
+                if(pluginOption.isRequired()) {
+                    throw new ProvisioningException(Errors.pluginOptionRequired(optionName));
+                }
+                continue;
+            }
+            final ProvisioningOption existing = recognizedOptions.put(optionName, pluginOption);
+            // options should probably not be shared between plugins but just in case make sure non-persistent option
+            // doesn't override a persistent one
+            if (existing != null && existing.isPersistent() && !pluginOption.isPersistent()) {
+                recognizedOptions.put(existing.getName(), existing);
+            } else if (pluginOption.isPersistent() || extraOptions.containsKey(optionName) && config.hasPluginOption(optionName)) {
+                overridenOptions.add(pluginOption);
+            }
         }
     }
 

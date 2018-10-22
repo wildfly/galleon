@@ -29,19 +29,18 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
-import static org.jboss.galleon.cli.cmd.AbstractDynamicCommand.ARGUMENT_NAME;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionCommand;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 
@@ -65,14 +64,14 @@ public class ProvisionCommand extends AbstractProvisionCommand {
     protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
         ProvisioningRuntime rt;
-        Set<PluginOption> opts;
+        Set<ProvisioningOption> opts;
         String file = getFile();
         if (file == null) {
             return Collections.emptyList();
         }
         ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, pmSession.getAeshContext()));
         opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getInstall();
-        for (PluginOption opt : opts) {
+        for (ProvisioningOption opt : opts) {
             DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
             options.add(dynOption);
         }

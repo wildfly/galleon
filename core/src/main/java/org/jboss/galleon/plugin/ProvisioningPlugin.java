@@ -19,13 +19,15 @@ package org.jboss.galleon.plugin;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jboss.galleon.ProvisioningOption;
+
 /**
  *
  * @author Alexey Loubyansky
  */
 public interface ProvisioningPlugin {
 
-    default Map<String, PluginOption> getOptions() {
+    default Map<String, ProvisioningOption> getOptions() {
         return Collections.emptyMap();
     };
 }

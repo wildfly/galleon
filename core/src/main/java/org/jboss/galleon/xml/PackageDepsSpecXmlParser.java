@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageDepsSpecBuilder;
 import org.jboss.galleon.util.ParsingUtils;
@@ -47,6 +48,7 @@ public class PackageDepsSpecXmlParser {
 
         NAME("name"),
         OPTIONAL("optional"),
+        PASSIVE("passive"),
 
         // default unknown attribute
         UNKNOWN(null);
@@ -54,9 +56,10 @@ public class PackageDepsSpecXmlParser {
         private static final Map<QName, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(3);
+            attributes = new HashMap<>(4);
             attributes.put(new QName(NAME.name), NAME);
             attributes.put(new QName(OPTIONAL.name), OPTIONAL);
+            attributes.put(new QName(PASSIVE.name), PASSIVE);
             attributes.put(null, UNKNOWN);
         }
 
@@ -126,7 +129,8 @@ public class PackageDepsSpecXmlParser {
 
     private static PackageDependencySpec parsePackageDependency(XMLExtendedStreamReader reader) throws XMLStreamException {
         String name = null;
-        boolean optional = false;
+        Boolean optional = null;
+        boolean passive = false;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i));
@@ -137,6 +141,9 @@ public class PackageDepsSpecXmlParser {
                 case OPTIONAL:
                     optional = Boolean.parseBoolean(reader.getAttributeValue(i));
                     break;
+                case PASSIVE:
+                    passive = Boolean.parseBoolean(reader.getAttributeValue(i));
+                    break;
                 default:
                     throw ParsingUtils.unexpectedAttribute(reader, i);
             }
@@ -145,7 +152,13 @@ public class PackageDepsSpecXmlParser {
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
         }
         ParsingUtils.parseNoContent(reader);
-        return PackageDependencySpec.forPackage(name, optional);
+        if(passive) {
+            if(optional != null && !optional) {
+                throw new XMLStreamException(Errors.requiredPassiveDependency(name), reader.getLocation());
+            }
+            return PackageDependencySpec.passive(name);
+        }
+        return optional == null || !optional ? PackageDependencySpec.required(name) : PackageDependencySpec.optional(name);
     }
 
     private static void parseOrigin(XMLExtendedStreamReader reader, PackageDepsSpecBuilder<?> pkgDeps) throws XMLStreamException {
