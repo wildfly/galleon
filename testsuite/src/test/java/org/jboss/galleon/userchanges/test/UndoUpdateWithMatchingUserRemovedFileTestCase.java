@@ -28,13 +28,11 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.junit.Ignore;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-@Ignore
 public class UndoUpdateWithMatchingUserRemovedFileTestCase extends UserChangesTestBase {
 
     private FeaturePackLocation prod100;

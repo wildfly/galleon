@@ -17,6 +17,9 @@
 
 package org.jboss.galleon.userchanges.test;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -28,12 +31,13 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
+import org.jboss.galleon.util.IoUtils;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class UndoUpdateMatchingUserAddedFileTestCase extends UserChangesTestBase {
+public class UndoUpdateMatchingUserModifiedFileTestCase extends UserChangesTestBase {
 
     private FeaturePackLocation prod1;
     private FeaturePackLocation prod2;
@@ -49,12 +53,12 @@ public class UndoUpdateMatchingUserAddedFileTestCase extends UserChangesTestBase
         prod1 = newFpl("prod1", "1", "1.0.0.Final");
         creator.newFeaturePack(prod1.getFPID())
             .newPackage("p1", true)
-                .writeContent("prod1/p1.txt", "prod1 p1");
+                .writeContent("common.txt", "prod1 p1");
 
         prod2 = newFpl("prod2", "1", "1.0.0.Final");
         creator.newFeaturePack(prod2.getFPID())
             .newPackage("p1", true)
-                .writeContent("prod2/p1.txt", "prod2 p1");
+                .writeContent("common.txt", "prod2 p1");
 
         creator.install();
     }
@@ -62,8 +66,14 @@ public class UndoUpdateMatchingUserAddedFileTestCase extends UserChangesTestBase
     @Override
     protected void testPm(ProvisioningManager pm) throws ProvisioningException {
         pm.install(prod1);
-        writeContent("prod2/p1.txt", "prod2 p1");
+        writeContent("common.txt", "prod2 p1");
         pm.install(prod2);
+        try {
+            IoUtils.copy(installHome, Paths.get("/home/aloubyansky/galleon-scripts"));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         pm.undo();
     }
 
@@ -87,8 +97,7 @@ public class UndoUpdateMatchingUserAddedFileTestCase extends UserChangesTestBase
     @Override
     protected DirState provisionedHomeDir() {
         return newDirBuilder()
-                .addFile("prod1/p1.txt", "prod1 p1")
-                .addFile("prod2/p1.txt", "prod2 p1")
+                .addFile("common.txt", "prod2 p1")
                 .build();
     }
 }

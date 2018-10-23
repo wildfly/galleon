@@ -48,6 +48,7 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.StateHistoryUtils;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.HashUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -717,10 +718,32 @@ public class ProvisioningManager implements AutoCloseable {
             if(runtime.getProvisioningConfig().hasFeaturePackDeps()) {
                 persistHashes(runtime);
             }
-            if(diff != null && !diff.isEmpty()) {
-                applyUserChanges(diff, runtime.getStagedDir());
+            if(undo) {
+                final Map<String, Boolean> undoTasks = StateHistoryUtils.readUndoTasks(home, log);
+                if(!undoTasks.isEmpty()) {
+                    final Path staged = runtime.getStagedDir();
+                    for(Map.Entry<String, Boolean> entry : undoTasks.entrySet()) {
+                        final Path stagedPath = staged.resolve(entry.getKey());
+                        if(entry.getValue()) {
+                            final Path homePath = home.resolve(entry.getKey());
+                            if(Files.exists(homePath)) {
+                                try {
+                                    IoUtils.copy(homePath, stagedPath);
+                                } catch (IOException e) {
+                                    throw new ProvisioningException(Errors.copyFile(homePath, stagedPath), e);
+                                }
+                            }
+                        } else {
+                            IoUtils.recursiveDelete(stagedPath);
+                        }
+                    }
+                }
             }
-            PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, log);
+            Map<String, Boolean> undoTasks = Collections.emptyMap();
+            if(diff != null && !diff.isEmpty()) {
+                undoTasks = applyUserChanges(diff, runtime.getStagedDir());
+            }
+            PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, undoTasks, log);
         } finally {
             this.provisioningConfig = null;
         }
@@ -827,11 +850,12 @@ public class ProvisioningManager implements AutoCloseable {
         return fsEntryFactory;
     }
 
-    private void applyUserChanges(FsDiff diff, Path home) throws ProvisioningException {
+    private Map<String, Boolean> applyUserChanges(FsDiff diff, Path home) throws ProvisioningException {
         log.verbose("Applying user changes:");
+        Map<String, Boolean> undoTasks = Collections.emptyMap();
         if(diff.hasAddedEntries()) {
             for(FsEntry added : diff.getAddedEntries()) {
-                addFsEntry(home, added);
+                undoTasks = addFsEntry(home, added, undoTasks);
             }
         }
         if(diff.hasModifiedEntries()) {
@@ -849,6 +873,7 @@ public class ProvisioningManager implements AutoCloseable {
                     }
                     if(Arrays.equals(update.getHash(), targetHash)) {
                         copy = modifiedPathMatchesExisting(update);
+                        undoTasks = CollectionUtils.putLinked(undoTasks, update.getRelativePath(), true);
                     } else if(copy = modifiedPathConflict(update)) {
                         glnew(target);
                     }
@@ -872,20 +897,22 @@ public class ProvisioningManager implements AutoCloseable {
                     IoUtils.recursiveDelete(target);
                 } else {
                     removedPathNotPresent(removed);
+                    undoTasks = CollectionUtils.putLinked(undoTasks, removed.getRelativePath(), false);
                 }
             }
         }
+        return undoTasks;
     }
 
-    private void addFsEntry(Path home, FsEntry added) throws ProvisioningException {
+    private Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks) throws ProvisioningException {
         final Path target = home.resolve(added.getRelativePath());
         boolean copy = true;
         if(Files.exists(target)) {
             if(added.isDir()) {
                 for(FsEntry child : added.getChildren()) {
-                    addFsEntry(home, child);
+                    undoTasks = addFsEntry(home, child, undoTasks);
                 }
-                return;
+                return undoTasks;
             }
             final byte[] targetHash;
             try {
@@ -895,6 +922,7 @@ public class ProvisioningManager implements AutoCloseable {
             }
             if(Arrays.equals(added.getHash(), targetHash)) {
                 copy = addedPathMatchesExisting(added);
+                undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
             } else if(copy = addedPathConflict(added) && !added.isDir()) {
                 glnew(target);
             }
@@ -907,6 +935,7 @@ public class ProvisioningManager implements AutoCloseable {
                 throw new ProvisioningException(Errors.copyFile(added.getPath(), target), e);
             }
         }
+        return undoTasks;
     }
 
     private static void glnew(final Path target) throws ProvisioningException {
@@ -918,7 +947,7 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     private boolean addedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
-        log.verbose("% added by the user matches the updated version", userEntry.getRelativePath());
+        log.verbose("%s added by the user matches the file from the updated version", userEntry.getRelativePath());
         return false;
     }
 
