@@ -606,7 +606,7 @@ public class ProvisioningRuntimeBuilder {
             processConfigItemContainer(layer);
             this.configStack = null;
         } catch (ProvisioningException e) {
-            throw new ProvisioningException(Errors.failedToResolveConfigSpec(configStack.id.getModel(), layer.getName()), e);
+            throw new ProvisioningException(Errors.failedToResolveConfigLayer(configStack.id.getModel(), layer.getName()), e);
         }
     }
 

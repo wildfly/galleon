@@ -18,6 +18,7 @@ package org.jboss.galleon.config.feature.deps;
 
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
@@ -78,7 +79,7 @@ public class ExcludedFeatureSpecDependencyIncludedFeatureTestCase extends PmInst
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals("Failed to build config named main", e.getMessage());
+        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, "main"), e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals("{org.jboss.pm.test:fp1@galleon1}specB:id=b has unresolved dependency on {org.jboss.pm.test:fp1@galleon1}specA:id=a", e.getMessage());
