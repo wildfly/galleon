@@ -18,6 +18,7 @@ package org.jboss.galleon.config.capability.dynamic;
 
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
@@ -74,7 +75,7 @@ public class SimpleUnsatisfiedDynamicCapabilityRequirementTestCase extends PmIns
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals("Failed to build config named main", e.getMessage());
+        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, "main"), e.getMessage());
         e = (ProvisioningException) e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals("No provider found for capability cap.b1 required by {org.jboss.pm.test:fp1@galleon1}specB:b=b1 as cap.$b", e.getMessage());

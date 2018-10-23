@@ -92,7 +92,7 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
 
     @Override
     protected void pmFailure(Throwable e) throws ProvisioningDescriptionException {
-        Assert.assertEquals("Failed to resolve config named main", e.getMessage());
+        Assert.assertEquals(Errors.failedToResolveConfigSpec(null, "main"), e.getMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals(Errors.failedToProcess(FP_GAV,

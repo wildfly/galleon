@@ -75,7 +75,7 @@ public class UnknownParameterInCapabilityTestCase extends PmInstallFeaturePackTe
 
     @Override
     protected void pmFailure(Throwable e) {
-        Assert.assertEquals("Failed to build config named main", e.getMessage());
+        Assert.assertEquals(Errors.failedToBuildConfigSpec(null, "main"), e.getMessage());
         e = e.getCause();
         Assert.assertNotNull(e);
         Assert.assertEquals("Failed to resolve capability cap.$a for {org.jboss.pm.test:fp1@galleon1}specB:b=b1", e.getMessage());

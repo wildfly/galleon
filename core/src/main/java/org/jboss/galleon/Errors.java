@@ -273,14 +273,21 @@ public interface Errors {
 
     static String failedToResolveConfigSpec(String model, String name) {
         final StringBuilder buf = new StringBuilder();
-        buf.append("Failed to resolve config");
+        buf.append("Failed to resolve configuration ");
+        appendConfig(buf, model, name);
+        return buf.toString();
+    }
+
+    static String failedToResolveConfigLayer(String model, String name) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Failed to resolve configuration layer ");
         appendConfig(buf, model, name);
         return buf.toString();
     }
 
     static String failedToBuildConfigSpec(String model, String name) {
         final StringBuilder buf = new StringBuilder();
-        buf.append("Failed to build config");
+        buf.append("Failed to build configuration ");
         appendConfig(buf, model, name);
         return buf.toString();
     }
