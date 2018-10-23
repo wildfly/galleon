@@ -24,7 +24,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.jboss.galleon.Constants;
@@ -42,7 +44,7 @@ public class StateHistoryUtils {
 
     public static final int STATE_HISTORY_LIMIT = 100;
 
-    public static void addNewUndoConfig(Path installDir, Path stagedDir, MessageWriter log) throws ProvisioningException {
+    public static void addNewUndoConfig(Path installDir, Path stagedDir, Map<String, Boolean> undoTasks, MessageWriter log) throws ProvisioningException {
         final Path installedConfig = PathsUtils.getProvisioningXml(installDir);
         if (!Files.exists(installedConfig)) {
             return;
@@ -103,6 +105,22 @@ public class StateHistoryUtils {
             IoUtils.copy(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML));
         } catch (IOException e) {
             throw new ProvisioningException(Errors.copyFile(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML)), e);
+        }
+
+        if(!undoTasks.isEmpty()) {
+            log.verbose("Persisting undo tasks: ");
+            try (BufferedWriter writer = Files.newBufferedWriter(stateDir.resolve(Constants.UNDO_TASKS))){
+                for (Map.Entry<String, Boolean> entry : undoTasks.entrySet()) {
+                    final String action = entry.getValue() ? Constants.KEEP : Constants.REMOVE;
+                    log.verbose(" - %s %s", entry.getKey(), action);
+                    writer.write(entry.getKey());
+                    writer.newLine();
+                    writer.write(action);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                throw new ProvisioningException(Errors.writeFile(stateDir.resolve(Constants.UNDO_TASKS)), e);
+            }
         }
     }
 
@@ -194,14 +212,14 @@ public class StateHistoryUtils {
         return false;
     }
 
-    public static ProvisioningConfig readUndoConfig(Path installDir, MessageWriter log) throws ProvisioningException {
+    public static Path getUndoStateDir(Path installDir, MessageWriter log) throws ProvisioningException {
         final Path installedHistoryDir = PathsUtils.getStateHistoryDir(installDir);
         if(!Files.exists(installedHistoryDir)) {
-            throw new ProvisioningException(Errors.historyIsEmpty());
+            return null;
         }
         final Path installedHistoryList = installedHistoryDir.resolve(Constants.HISTORY_LIST);
         if(!Files.exists(installedHistoryList)) {
-            throw new ProvisioningException(Errors.historyIsEmpty());
+            return null;
         }
         final List<String> installedHistory;
         try {
@@ -210,17 +228,54 @@ public class StateHistoryUtils {
             throw new ProvisioningException(Errors.readFile(installedHistoryList), e);
         }
         if(installedHistory.size() < 2) {
-            throw new ProvisioningException(Errors.historyIsEmpty());
+            return null;
         }
         int i = installedHistory.size() - 1;
         do {
-            final Path statePath = installedHistoryDir.resolve(installedHistory.get(i--)).resolve(Constants.PROVISIONING_XML);
-            if (Files.exists(statePath)) {
-                return ProvisioningXmlParser.parse(statePath);
+            final Path statePath = installedHistoryDir.resolve(installedHistory.get(i--));
+            if (Files.exists(statePath.resolve(Constants.PROVISIONING_XML))) {
+                return statePath;
             }
             log.error("The state history of the current installation is corrupted referencing missing states!");
         } while (i >= 1);
-        throw new ProvisioningException(Errors.historyIsEmpty());
+        return null;
+    }
+
+    public static ProvisioningConfig readUndoConfig(Path installDir, MessageWriter log) throws ProvisioningException {
+        final Path stateDir = getUndoStateDir(installDir, log);
+        if(stateDir == null) {
+            throw new ProvisioningException(Errors.historyIsEmpty());
+        }
+        return ProvisioningXmlParser.parse(stateDir.resolve(Constants.PROVISIONING_XML));
+    }
+
+    public static Map<String, Boolean> readUndoTasks(Path installDir, MessageWriter log) throws ProvisioningException {
+        final Path stateDir = getUndoStateDir(installDir, log);
+        if(stateDir == null) {
+            return Collections.emptyMap();
+        }
+        final Path undoTasksFile = stateDir.resolve(Constants.UNDO_TASKS);
+        if(!Files.exists(undoTasksFile)) {
+            return Collections.emptyMap();
+        }
+        final Map<String, Boolean> tasks = new LinkedHashMap<>();
+        try(BufferedReader reader = Files.newBufferedReader(undoTasksFile)) {
+            String line = reader.readLine();
+            while(line != null) {
+                final String action = reader.readLine();
+                if(Constants.KEEP.equals(action)) {
+                    tasks.put(line, true);
+                } else if(Constants.REMOVE.equals(action)) {
+                    tasks.put(line, false);
+                } else {
+                    throw new ProvisioningException("Unexpected undo task '" + action + "' for " + line);
+                }
+                line = reader.readLine();
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.readFile(undoTasksFile), e);
+        }
+        return tasks;
     }
 
     public static int readStateHistoryLimit(Path installDir, MessageWriter log) throws ProvisioningException {

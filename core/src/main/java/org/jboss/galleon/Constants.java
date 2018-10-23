@@ -33,6 +33,7 @@ public interface Constants {
     String HASHES = "hashes";
     String HISTORY = "history";
     String HISTORY_LIST = "list";
+    String KEEP = "keep";
     String LAYERS = "layers";
     String LAYER_SPEC_XML = "layer-spec.xml";
     String MODEL_XML = "model.xml";
@@ -41,9 +42,11 @@ public interface Constants {
     String PACKAGES = "packages";
     String PLUGINS = "plugins";
     String PROVISIONING_XML = "provisioning.xml";
+    String REMOVE = "remove";
     String RESOURCES = "resources";
     String SPEC_XML = "spec.xml";
     String THIS = "this";
+    String UNDO_TASKS = "undo.tasks";
 
     String PROVISIONED_STATE_DIR = ".galleon";
     String PROVISIONED_STATE_XML = "provisioned.xml";
