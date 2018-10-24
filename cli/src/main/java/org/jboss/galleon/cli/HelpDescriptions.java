@@ -70,10 +70,10 @@ public interface HelpDescriptions {
     String FEATURE_PATH = "Configuration / Feature id";
     String FILESYSTEM = "Contains commands to navigate the filesystem";
     String FIND = "Find feature pack locations that match the pattern";
-    String FIND_RESOLVED_ONLY = "Look-up in resolved feature-packs only";
-    String FIND_PATTERN = "Feature pack location and/or layer pattern. eg: wildfly:*.Final to search for all Final builds";
     String FIND_LAYERS_PATTERN = "Comma separated list of layer name patterns. eg: ejb* to search for all feature-pack that offer an ejb layer. "
             + "If no feature pack location pattern is set, search into the final releases";
+    String FIND_PATTERN = "Feature pack location and/or layer pattern. eg: wildfly:*.Final to search for all Final builds";
+    String FIND_RESOLVED_ONLY = "Look-up in resolved feature-packs only";
     String FIND_UNIVERSE = "Provide a universe id in order to search for feature packs "
             + "located in not installed universe";
     String FP_FILE = "Feature pack zip file";
