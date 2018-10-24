@@ -30,6 +30,7 @@ import java.util.Set;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
@@ -112,6 +113,7 @@ public class State {
         config = builder.build();
         runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
                 .initLayout(pmSession.getLayoutFactory(), config)
+                .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build();
         container = FeatureContainers.fromProvisioningRuntime(pmSession, runtime);
         container.setEdit(true);
@@ -267,6 +269,7 @@ public class State {
         }
         runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
                 .initLayout(pmSession.getLayoutFactory(), tmp)
+                .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build();
         Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {

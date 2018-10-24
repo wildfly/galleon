@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.featurepack;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
@@ -32,17 +34,20 @@ import org.jboss.galleon.cli.PmCompleterInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.LAYERS;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.DEPENDENCIES;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.OPTIONS;
 import org.jboss.galleon.cli.resolver.PluginResolver;
-import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
+import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -60,7 +65,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         @Override
         protected List<String> getItems(PmCompleterInvocation completerInvocation) {
             // No patch for un-customized FP.
-            return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONS);
+            return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, LAYERS, OPTIONS);
         }
 
     }
@@ -78,7 +83,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         PmSession session = commandInvocation.getPmSession();
         FeaturePackLayout product = null;
         List<FeaturePackLocation> dependencies = new ArrayList<>();
-        ProvisioningConfig provisioning = null;
+        ProvisioningConfig provisioning;
         ProvisioningLayout<FeaturePackLayout> layout = null;
         try {
             try {
@@ -136,14 +141,17 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                             if (displayDependencies(commandInvocation, dependencies)) {
                                 commandInvocation.println("");
                             }
-                            if (displayConfigs(commandInvocation, product)) {
+                            if (displayConfigs(commandInvocation, layout)) {
+                                commandInvocation.println("");
+                            }
+                            if (displayLayers(commandInvocation, layout)) {
                                 commandInvocation.println("");
                             }
                             displayOptions(commandInvocation, layout);
                             break;
                         }
                         case CONFIGS: {
-                            if (!displayConfigs(commandInvocation, product)) {
+                            if (!displayConfigs(commandInvocation, layout)) {
                                 commandInvocation.println(StateInfoUtil.NO_CONFIGURATIONS);
                             }
                             break;
@@ -151,6 +159,12 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                         case DEPENDENCIES: {
                             if (!displayDependencies(commandInvocation, dependencies)) {
                                 commandInvocation.println(StateInfoUtil.NO_DEPENDENCIES);
+                            }
+                            break;
+                        }
+                        case LAYERS: {
+                            if (!displayLayers(commandInvocation, layout)) {
+                                commandInvocation.println(StateInfoUtil.NO_LAYERS);
                             }
                             break;
                         }
@@ -165,7 +179,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                         }
                     }
                 }
-            } catch (ProvisioningException ex) {
+            } catch (ProvisioningException | IOException ex) {
                 throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.infoFailed(), ex);
             }
         } finally {
@@ -184,20 +198,35 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
     }
 
     private boolean displayConfigs(PmCommandInvocation commandInvocation,
-            FeaturePackLayout product) throws ProvisioningException {
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
         Map<String, List<ConfigInfo>> configs = new HashMap<>();
-        for (ConfigModel m : product.getSpec().getDefinedConfigs()) {
-            String model = m.getModel();
-            List<ConfigInfo> names = configs.get(model);
-            if (names == null) {
-                names = new ArrayList<>();
-                configs.put(model, names);
+        try (ProvisioningRuntime rt = ProvisioningRuntimeBuilder.
+                newInstance(commandInvocation.getPmSession().getMessageWriter(false))
+                .initRtLayout(pLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY))
+                .setEncoding(ProvisioningManager.Builder.ENCODING)
+                .build()) {
+            for (ProvisionedConfig m : rt.getConfigs()) {
+                String model = m.getModel();
+                List<ConfigInfo> names = configs.get(model);
+                if (names == null) {
+                    names = new ArrayList<>();
+                    configs.put(model, names);
+                }
+                if (m.getName() != null) {
+                    names.add(new ConfigInfo(model, m.getName(), m.getLayers()));
+                }
             }
-            if (m.getName() != null) {
-                names.add(new ConfigInfo(model, m.getName()));
+            String str = StateInfoUtil.buildConfigs(configs, pLayout);
+            if (str != null) {
+                commandInvocation.print(str);
             }
+            return str != null;
         }
-        String str = StateInfoUtil.buildConfigs(configs);
+    }
+
+    private boolean displayLayers(PmCommandInvocation commandInvocation,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        String str = StateInfoUtil.buildLayers(pLayout);
         if (str != null) {
             commandInvocation.print(str);
         }

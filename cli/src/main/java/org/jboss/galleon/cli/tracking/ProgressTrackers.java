@@ -22,6 +22,9 @@ import java.util.Map.Entry;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
+import org.jboss.galleon.progresstracking.DefaultProgressTracker;
+import org.jboss.galleon.progresstracking.ProgressTracker;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -76,5 +79,12 @@ public abstract class ProgressTrackers {
             UpdatesTracker updates = new UpdatesTracker(session);
             trackers.put(ProvisioningLayoutFactory.TRACK_UPDATES, updates);
         }
+    }
+
+    public static ProgressTracker<FPID> newFindTracker(PmCommandInvocation invoc) {
+        FindTracker findTracker = new FindTracker(invoc.getPmSession());
+        findTracker.commandStart(invoc);
+        ProgressTracker<FPID> tracker = new DefaultProgressTracker<>(findTracker);
+        return tracker;
     }
 }

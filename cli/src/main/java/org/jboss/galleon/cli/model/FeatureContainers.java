@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -168,7 +169,7 @@ public abstract class FeatureContainers {
         Map<ProducerSpec, Set<ResolvedSpecId>> actualSet = new HashMap<>();
         Map<ResolvedSpecId, List<FeatureInfo>> features = new HashMap<>();
         for (ProvisionedConfig c : runtime.getConfigs()) {
-            ConfigInfo config = new ConfigInfo(c.getModel(), c.getName());
+            ConfigInfo config = new ConfigInfo(c.getModel(), c.getName(), c.getLayers());
             fp.addFinalConfig(config);
             FeatureGroupsBuilder grpBuilder = new FeatureGroupsBuilder();
             c.handle(new ProvisionedConfigHandler() {
@@ -226,6 +227,7 @@ public abstract class FeatureContainers {
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
         ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
                 .initLayout(pmSession.getLayoutFactory(), provisioning)
+                .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build();
         return runtime;
     }

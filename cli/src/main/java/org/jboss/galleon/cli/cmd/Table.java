@@ -41,6 +41,7 @@ public class Table {
                 addLine(c);
             }
         }
+
         public void addLine(String line) {
             items.add(line);
             if (line.length() > length) {
@@ -67,6 +68,7 @@ public class Table {
             return items.subList(1, items.size());
         }
     }
+
     public enum SortType {
         ASCENDANT,
         DESCENDANT
@@ -116,6 +118,7 @@ public class Table {
     public void addCellsLine(Cell... cell) {
         addCellsLine(Arrays.asList(cell));
     }
+
     public void addCellsLine(List<Cell> line) {
         for (int i = 0; i < line.size(); i++) {
             int length = line.get(i).length();
@@ -225,5 +228,115 @@ public class Table {
             builder.append(" ");
         }
         return builder.toString();
+    }
+
+    public static class Node implements Comparable<Node> {
+
+        private final List<Node> next = new ArrayList<>();
+        private final String value;
+
+        public Node(String value) {
+            this.value = value;
+        }
+
+        public void addNext(Node next) {
+            this.next.add(next);
+        }
+
+        String getValue() {
+            return value;
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            return value.compareTo(o.value);
+        }
+
+    }
+
+    public static class Tree {
+
+        StringBuilder builder;
+        Map<Integer, Integer> columnsWidth = new HashMap<>();
+        List<String> headers;
+        private final List<Node> trees = new ArrayList<>();
+
+        public Tree(String... headers) {
+            this(Arrays.asList(headers));
+        }
+
+        public Tree(List<String> headers) {
+            this.headers = headers;
+        }
+
+        public void add(Node line) {
+            trees.add(line);
+        }
+
+        public String build() {
+            builder = new StringBuilder();
+            columnsWidth.clear();
+            computeWidths(trees, 0);
+
+            StringBuilder lineBuilder = new StringBuilder();
+            for (int i = 0; i < headers.size(); i++) {
+                int max = columnsWidth.get(i);
+                lineBuilder.append(line(max)).append(" ");
+            }
+            String line = lineBuilder.toString();
+            builder.append(line).append(Config.getLineSeparator());
+            for (int i = 0; i < headers.size(); i++) {
+                String header = headers.get(i);
+                Integer w = columnsWidth.get(i);
+                header = pad(header, w);
+                builder.append(header).append(" ");
+            }
+            if (line != null) {
+                builder.append(Config.getLineSeparator()).append(line).
+                        append(Config.getLineSeparator());
+            }
+            render(trees, 0, 0);
+            return builder.append(Config.getLineSeparator()).toString();
+        }
+
+        void computeWidths(List<Node> trees, int column) {
+            if (column >= headers.size()) {
+                return;
+            }
+            int max = 0;
+            List<Node> next = new ArrayList<>();
+            for (Node n : trees) {
+                if (n.getValue().length() > max) {
+                    max = n.getValue().length();
+                }
+                next.addAll(n.next);
+            }
+            int hsize = headers.get(column).length();
+            if (hsize > max) {
+                max = hsize;
+            }
+            columnsWidth.put(column, max);
+            computeWidths(next, column + 1);
+        }
+
+        void render(List<Node> trees, int offset, int column) {
+            if (trees.isEmpty()) {
+                return;
+            }
+            Collections.sort(trees);
+            int max = columnsWidth.get(column);
+
+            String tab = "";
+            for (int i = 0; i < trees.size(); i++) {
+                Node n = trees.get(i);
+                String content = pad(n.getValue(), max);
+                builder.append(tab).append(content).append(" ");
+                render(n.next, offset + max + 1, column + 1);
+                if (i < trees.size() - 1) {
+                    builder.append(Config.getLineSeparator());
+                }
+                tab = tab(offset);
+            }
+        }
     }
 }

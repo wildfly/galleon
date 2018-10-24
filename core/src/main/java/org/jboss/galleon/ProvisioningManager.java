@@ -64,8 +64,8 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 public class ProvisioningManager implements AutoCloseable {
 
     public static class Builder extends UniverseResolverBuilder<Builder> {
-
-        private String encoding = "UTF-8";
+        public static final String ENCODING = "UTF-8";
+        private String encoding = ENCODING;
         private Path installationHome;
         private ProvisioningLayoutFactory layoutFactory;
         private MessageWriter messageWriter;

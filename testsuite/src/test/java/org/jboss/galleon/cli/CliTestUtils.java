@@ -21,10 +21,12 @@ import java.util.List;
 import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.plugin.InstallPlugin;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
@@ -83,6 +85,33 @@ public abstract class CliTestUtils {
         FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
                 producer, "1", null, version);
         creator.newFeaturePack(fp1.getFPID())
+                .newPackage("p1", true)
+                .writeContent("fp1/p1.txt", "fp1 p1");
+        creator.install();
+    }
+
+    public static void installWithLayers(CliWrapper cli, UniverseSpec universeSpec,
+            String producer, String version) throws ProvisioningException {
+        FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
+        FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
+                producer, "1", null, version);
+        creator.newFeaturePack(fp1.getFPID())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("base-" + producer)
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerA-" + producer)
+                        .addLayerDep("base-" + producer)
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerB-" + producer)
+                        .addLayerDep("layerA-" + producer)
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerC-" + producer)
+                        .build())
+                .addConfig(ConfigModel.builder("testmodel", "config1.xml").
+                        includeLayer("layerB-" + producer).build(), true)
                 .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1");
         creator.install();
