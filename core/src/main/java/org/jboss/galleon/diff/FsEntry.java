@@ -47,6 +47,7 @@ public class FsEntry {
     final String name;
     final boolean dir;
     private byte[] hash;
+    private String relativePath;
 
     private Map<String, FsEntry> children = Collections.emptyMap();
 
@@ -86,9 +87,15 @@ public class FsEntry {
     }
 
     public String getRelativePath() {
-        final StringBuilder buf = new StringBuilder();
-        collectPath(this, buf);
-        return buf.toString();
+        if (relativePath == null) {
+            final StringBuilder buf = new StringBuilder();
+            collectPath(this, buf);
+            if(dir) {
+                buf.append('/');
+            }
+            relativePath = buf.toString();
+        }
+        return relativePath;
     }
 
     public Path getPath() {

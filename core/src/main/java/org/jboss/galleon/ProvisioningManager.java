@@ -850,9 +850,26 @@ public class ProvisioningManager implements AutoCloseable {
         return fsEntryFactory;
     }
 
+    private static final char REPLAY_SKIP = 'S';
+    private static final char REPLAY_ADDED = '+';
+    private static final char REPLAY_MODIFIED = 'M';
+    private static final char REPLAY_REMOVED = '-';
+
     private Map<String, Boolean> applyUserChanges(FsDiff diff, Path home) throws ProvisioningException {
-        log.verbose("Applying user changes:");
+        log.print("Replaying your changes on top");
         Map<String, Boolean> undoTasks = Collections.emptyMap();
+        if(diff.hasRemovedEntries()) {
+            for(FsEntry removed : diff.getRemovedEntries()) {
+                final Path target = home.resolve(removed.getRelativePath());
+                if(Files.exists(target)) {
+                    logReplay(REPLAY_REMOVED, removed.getRelativePath(), null);
+                    IoUtils.recursiveDelete(target);
+                } else {
+                    removedPathNotPresent(removed);
+                    undoTasks = CollectionUtils.putLinked(undoTasks, removed.getRelativePath(), false);
+                }
+            }
+        }
         if(diff.hasAddedEntries()) {
             for(FsEntry added : diff.getAddedEntries()) {
                 undoTasks = addFsEntry(home, added, undoTasks);
@@ -861,9 +878,9 @@ public class ProvisioningManager implements AutoCloseable {
         if(diff.hasModifiedEntries()) {
             for(FsEntry[] modified : diff.getModifiedEntries()) {
                 final FsEntry update = modified[1];
-                log.verbose("updating %s", update.getRelativePath());
                 final Path target = home.resolve(update.getRelativePath());
-                boolean copy = true;
+                char action = REPLAY_MODIFIED;
+                String warning = null;
                 if(Files.exists(target)) {
                     final byte[] targetHash;
                     try {
@@ -872,15 +889,30 @@ public class ProvisioningManager implements AutoCloseable {
                         throw new ProvisioningException(Errors.hashCalculation(target), e);
                     }
                     if(Arrays.equals(update.getHash(), targetHash)) {
-                        copy = modifiedPathMatchesExisting(update);
+                        if(!modifiedPathMatchesExisting(update)) {
+                            action = REPLAY_SKIP;
+                        }
                         undoTasks = CollectionUtils.putLinked(undoTasks, update.getRelativePath(), true);
-                    } else if(copy = modifiedPathConflict(update)) {
+                    } else if (!Arrays.equals(modified[0].getHash(), targetHash)) {
+                        if (originalOfModifiedPathUpdated(update)) {
+                            warning = "the original has changed in the updated version";
+                            glnew(target);
+                        } else {
+                            action = REPLAY_SKIP;
+                        }
+                    } else if (modifiedPathConflict(update)) {
                         glnew(target);
+                    } else {
+                        action = REPLAY_SKIP;
                     }
+                } else if(modifiedPathNotPresent(update)) {
+                    warning = "the original has been removed from the updated version";
+                    //action = REPLAY_ADDED;
                 } else {
-                    copy = modifiedPathNotPresent(update);
+                    action = REPLAY_SKIP;
                 }
-                if (copy) {
+                if (action != REPLAY_SKIP) {
+                    logReplay(action, update.getRelativePath(), warning);
                     try {
                         IoUtils.copy(update.getPath(), target);
                     } catch (IOException e) {
@@ -889,27 +921,16 @@ public class ProvisioningManager implements AutoCloseable {
                 }
             }
         }
-        if(diff.hasRemovedEntries()) {
-            for(FsEntry removed : diff.getRemovedEntries()) {
-                final Path target = home.resolve(removed.getRelativePath());
-                if(Files.exists(target)) {
-                    log.verbose("removing %s", removed.getRelativePath());
-                    IoUtils.recursiveDelete(target);
-                } else {
-                    removedPathNotPresent(removed);
-                    undoTasks = CollectionUtils.putLinked(undoTasks, removed.getRelativePath(), false);
-                }
-            }
-        }
         return undoTasks;
     }
 
     private Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks) throws ProvisioningException {
         final Path target = home.resolve(added.getRelativePath());
-        boolean copy = true;
+        char action = REPLAY_ADDED;
+        String warning = null;
         if(Files.exists(target)) {
             if(added.isDir()) {
-                for(FsEntry child : added.getChildren()) {
+                for (FsEntry child : added.getChildren()) {
                     undoTasks = addFsEntry(home, child, undoTasks);
                 }
                 return undoTasks;
@@ -921,14 +942,21 @@ public class ProvisioningManager implements AutoCloseable {
                 throw new ProvisioningException(Errors.hashCalculation(target), e);
             }
             if(Arrays.equals(added.getHash(), targetHash)) {
-                copy = addedPathMatchesExisting(added);
+                if(!addedPathMatchesExisting(added)) {
+                    action = REPLAY_SKIP;
+                } else {
+                    warning = "matches the updated version";
+                    //action = REPLAY_MODIFIED;
+                }
                 undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
-            } else if(copy = addedPathConflict(added) && !added.isDir()) {
+            } else if(addedPathConflict(added) && !added.isDir()) {
+                warning = "conflicts with the updated version";
                 glnew(target);
+                //action = REPLAY_MODIFIED;
             }
         }
-        if (copy) {
-            log.verbose("adding %s", added.getRelativePath());
+        if (action != REPLAY_SKIP) {
+            logReplay(action, added.getRelativePath(), warning);
             try {
                 IoUtils.copy(added.getPath(), target);
             } catch (IOException e) {
@@ -936,6 +964,16 @@ public class ProvisioningManager implements AutoCloseable {
             }
         }
         return undoTasks;
+    }
+
+    private void logReplay(char action, String path, String warning) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append(' ').append(action).append(' ').append(path);
+        if(warning != null) {
+            buf.setCharAt(0, '!');
+            buf.append(" (").append(warning).append(')');
+        }
+        log.print(buf.toString());
     }
 
     private static void glnew(final Path target) throws ProvisioningException {
@@ -947,27 +985,32 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     private boolean addedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
-        log.verbose("%s added by the user matches the file from the updated version", userEntry.getRelativePath());
+        //log.verbose("%s added by the user matches the file from the updated version", userEntry.getRelativePath());
         return false;
     }
 
     private boolean addedPathConflict(FsEntry userEntry) throws ProvisioningException {
-        log.verbose("%s added by the user conflicts with the updated version", userEntry.getRelativePath());
+        //log.verbose("%s added by the user conflicts with the updated version", userEntry.getRelativePath());
         return true;
     }
 
     private boolean modifiedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
-        log.verbose("%s modified by the user matches its updated version", userEntry.getRelativePath());
+        //log.verbose("%s modified by the user matches its updated version", userEntry.getRelativePath());
         return false;
     }
 
     private boolean modifiedPathConflict(FsEntry userEntry) throws ProvisioningException {
-        log.verbose("%s modified by the user conflicts with its updated version", userEntry.getRelativePath());
+        //log.verbose("%s modified by the user conflicts with its updated version", userEntry.getRelativePath());
+        return true;
+    }
+
+    private boolean originalOfModifiedPathUpdated(FsEntry userEntry) throws ProvisioningException {
+        //log.print("WARN: %s original modified by the user has changed in the new version", userEntry.getRelativePath());
         return true;
     }
 
     private boolean modifiedPathNotPresent(FsEntry userEntry) throws ProvisioningException {
-        log.print("WARN: " + userEntry.getRelativePath() + " modified by the user is not present in the updated version");
+        //log.print("WARN: " + userEntry.getRelativePath() + " modified by the user is not present in the updated version");
         return true;
     }
 
