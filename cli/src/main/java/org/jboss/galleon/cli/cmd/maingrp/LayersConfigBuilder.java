@@ -157,12 +157,15 @@ public class LayersConfigBuilder {
         return layersMap;
     }
 
-    FeaturePackConfig build() throws ProvisioningException, IOException {
+    ProvisioningConfig build() throws ProvisioningException, IOException {
+        final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
         ConfigModel.Builder configBuilder = ConfigModel.builder(model, config);
         for (String layer : layers) {
             configBuilder.includeLayer(layer);
         }
-        return FeaturePackConfig.builder(loc).addConfig(configBuilder.
-                build()).setInheritConfigs(false).setInheritPackages(false).build();
+        builder.addConfig(configBuilder.build());
+        builder.addFeaturePackDep(FeaturePackConfig.builder(loc).setInheritConfigs(false).
+                setInheritPackages(false).build());
+        return builder.build();
     }
 }
