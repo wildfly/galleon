@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.util.CollectionUtils;
@@ -57,8 +58,8 @@ public class FsDiff {
             return;
         }
         if(originalEntry.dir) {
-            final Map<String, FsEntry> otherChildren = otherEntry.cloneChildren();
             if (originalEntry.hasChildren()) {
+                final Map<String, FsEntry> otherChildren = otherEntry.cloneChildren();
                 for (FsEntry originalChild : originalEntry.getChildren()) {
                     final FsEntry otherChild = otherChildren.remove(originalChild.getName());
                     if(otherChild == null) {
@@ -71,6 +72,10 @@ public class FsDiff {
                     for (FsEntry otherChild : otherChildren.values()) {
                         added = CollectionUtils.put(added, otherChild.getRelativePath(), otherChild);
                     }
+                }
+            } else if(otherEntry.hasChildren()) {
+                for (FsEntry otherChild : otherEntry.getChildren()) {
+                    added = CollectionUtils.put(added, otherChild.getRelativePath(), otherChild);
                 }
             }
             return;
@@ -92,6 +97,10 @@ public class FsDiff {
         return added.values();
     }
 
+    public Set<String> getAddedPaths() {
+        return added.keySet();
+    }
+
     public boolean hasRemovedEntries() {
         return !removed.isEmpty();
     }
@@ -100,12 +109,24 @@ public class FsDiff {
         return removed.values();
     }
 
+    public Set<String> getRemovedPaths() {
+        return removed.keySet();
+    }
+
     public boolean hasModifiedEntries() {
         return !modified.isEmpty();
     }
 
     public Collection<FsEntry[]> getModifiedEntries() {
         return modified.values();
+    }
+
+    public Set<String> getModifiedPaths() {
+        return modified.keySet();
+    }
+
+    public boolean matches(FsDiff other) {
+        return false;
     }
 
     @Override
