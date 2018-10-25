@@ -852,7 +852,7 @@ public class ProvisioningManager implements AutoCloseable {
 
     private static final char REPLAY_SKIP = 'S';
     private static final char REPLAY_ADDED = '+';
-    private static final char REPLAY_MODIFIED = 'M';
+    private static final char REPLAY_MODIFIED = 'C'; // for conflict
     private static final char REPLAY_REMOVED = '-';
 
     private Map<String, Boolean> applyUserChanges(FsDiff diff, Path home) throws ProvisioningException {
@@ -907,7 +907,7 @@ public class ProvisioningManager implements AutoCloseable {
                     }
                 } else if(modifiedPathNotPresent(update)) {
                     warning = "the original has been removed from the updated version";
-                    //action = REPLAY_ADDED;
+                    action = REPLAY_ADDED;
                 } else {
                     action = REPLAY_SKIP;
                 }
@@ -946,13 +946,13 @@ public class ProvisioningManager implements AutoCloseable {
                     action = REPLAY_SKIP;
                 } else {
                     warning = "matches the updated version";
-                    //action = REPLAY_MODIFIED;
+                    action = REPLAY_MODIFIED;
                 }
                 undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
             } else if(addedPathConflict(added) && !added.isDir()) {
                 warning = "conflicts with the updated version";
                 glnew(target);
-                //action = REPLAY_MODIFIED;
+                action = REPLAY_MODIFIED;
             }
         }
         if (action != REPLAY_SKIP) {
