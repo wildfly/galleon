@@ -17,9 +17,6 @@
 
 package org.jboss.galleon.userchanges.test;
 
-import java.io.IOException;
-import java.nio.file.Paths;
-
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -31,7 +28,6 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.util.IoUtils;
 
 /**
  *
@@ -68,12 +64,6 @@ public class UndoUpdateMatchingUserModifiedFileTestCase extends UserChangesTestB
         pm.install(prod1);
         writeContent("common.txt", "prod2 p1");
         pm.install(prod2);
-        try {
-            IoUtils.copy(installHome, Paths.get("/home/aloubyansky/galleon-scripts"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
         pm.undo();
     }
 
