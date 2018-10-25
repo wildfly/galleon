@@ -51,7 +51,8 @@ public class BasicWildcardFilteringTestCase extends FsEntriesTestBase {
         final FsEntry a = new FsEntry(expectedRoot, root.resolve("a"));
         final FsEntry b = new FsEntry(a, root.resolve("a/b"));
         new FsEntry(b, root.resolve("a/b/file2.txt"));
-        new FsEntry(b, root.resolve("a/b/c"));
+        final FsEntry c = new FsEntry(b, root.resolve("a/b/c"));
+        new FsEntry(c, root.resolve("a/b/c/file1.txt"));
         new FsEntry(b, root.resolve("a/b/f"));
         new FsEntry(a, root.resolve("a/d"));
         new FsEntry(expectedRoot, root.resolve("g"));
