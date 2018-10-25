@@ -92,8 +92,7 @@ public class LayersTestCase {
 
         ProvisioningConfig config = ProvisioningManager.builder().
                 setInstallationHome(path).build().getProvisioningConfig();
-        ConfigModel conf = config.getFeaturePackDep(prod1.getProducer()).
-                getDefinedConfig(new ConfigId("testmodel", "testmodel.xml"));
+        ConfigModel conf = config.getDefinedConfig(new ConfigId("testmodel", "testmodel.xml"));
         assertNotNull(conf);
         assertTrue(conf.getIncludedLayers().size() == 2);
         assertTrue(conf.getIncludedLayers().contains("layerA-" + PRODUCER1));
@@ -118,8 +117,7 @@ public class LayersTestCase {
 
         ProvisioningConfig config2 = ProvisioningManager.builder().
                 setInstallationHome(path2).build().getProvisioningConfig();
-        ConfigModel conf2 = config2.getFeaturePackDep(prod1.getProducer()).
-                getDefinedConfig(new ConfigId("testmodel", "foobar.xml"));
+        ConfigModel conf2 = config2.getDefinedConfig(new ConfigId("testmodel", "foobar.xml"));
         assertNotNull(conf2);
         assertTrue(conf2.getIncludedLayers().size() == 1);
         assertTrue(conf2.getIncludedLayers().contains("layerB-" + PRODUCER1));

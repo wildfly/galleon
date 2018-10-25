@@ -139,7 +139,7 @@ public class InstallCommand extends AbstractPluginsCommand {
             if (layers == null) {
                 manager.install(loc, options);
             } else {
-                manager.install(new LayersConfigBuilder(pmSession, layers.split(","),
+                manager.provision(new LayersConfigBuilder(pmSession, layers.split(","),
                         (String) getValue(MODEL_OPTION_NAME),
                         (String) getValue(CONFIG_OPTION_NAME), loc).build(), options);
             }
