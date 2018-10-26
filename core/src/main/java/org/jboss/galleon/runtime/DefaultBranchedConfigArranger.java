@@ -16,11 +16,6 @@
  */
 package org.jboss.galleon.runtime;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -754,7 +749,7 @@ class DefaultBranchedConfigArranger {
         }
         return circularRefs;
     }
-
+/*
     private void dumpBranches() {
         final Path file = Paths.get(System.getProperty("user.home")).resolve("galleon-scripts").resolve("branches-" + configStack.id.getName());
         try {
@@ -792,4 +787,5 @@ class DefaultBranchedConfigArranger {
             writer.newLine();
         }
     }
+    */
 }

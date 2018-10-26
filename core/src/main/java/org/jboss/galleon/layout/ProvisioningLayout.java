@@ -91,7 +91,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 try {
                     ((java.net.URLClassLoader)pluginsCl).close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
                 closePluginsCl = false;
             }
