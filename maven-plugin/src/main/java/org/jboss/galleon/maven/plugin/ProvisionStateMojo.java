@@ -41,11 +41,14 @@ import org.apache.maven.shared.artifact.ArtifactCoordinate;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.jboss.galleon.Constants;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.maven.plugin.util.Config;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
@@ -111,6 +114,12 @@ public class ProvisionStateMojo extends AbstractMojo {
     */
     @Parameter(alias = "feature-packs", required = true)
     private List<FeaturePack> featurePacks = Collections.emptyList();
+
+    /**
+     * A list of custom configurations to install.
+     */
+    @Parameter(alias = "configurations", required = false)
+    private List<Config> configs = Collections.emptyList();
 
     /**
      * Whether to use offline mode when the plugin resolves an artifact.
@@ -211,6 +220,26 @@ public class ProvisionStateMojo extends AbstractMojo {
                 }
 
                 state.addFeaturePackDep(fpConfig.build());
+            }
+
+            boolean hasLayers = false;
+            for (Config config : configs) {
+                ConfigModel.Builder configBuilder = ConfigModel.
+                        builder(config.getModel(), config.getName());
+                for (String layer : config.getLayers()) {
+                    hasLayers = true;
+                    configBuilder.includeLayer(layer);
+                }
+                state.addConfig(configBuilder.build());
+            }
+
+            if (hasLayers) {
+                if (pluginOptions.isEmpty()) {
+                    pluginOptions = Collections.
+                            singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE);
+                } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
+                    pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE);
+                }
             }
 
             if (customConfig != null && customConfig.exists()) {
