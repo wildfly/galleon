@@ -210,7 +210,7 @@ public class ProvisioningXmlParser30 implements PlugableXmlParser<ProvisioningCo
                             readFeaturePackDep(reader, builder);
                             break;
                         case DEFAULT_CONFIGS:
-                            ProvisioningXmlParser30.parseDefaultConfigs(reader, builder);
+                            parseDefaultConfigs(reader, builder);
                             break;
                         case CONFIG:
                             final ConfigModel.Builder config = ConfigModel.builder();
