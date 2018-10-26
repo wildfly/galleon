@@ -1043,19 +1043,19 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    private static void persistDirHashes(Path hashes, FsEntry entry, List<FsEntry> dirs) throws ProvisioningException {
+    private void persistDirHashes(Path hashes, FsEntry entry, List<FsEntry> dirs) throws ProvisioningException {
         final Path target = hashes.resolve(entry.getRelativePath());
         try {
             Files.createDirectory(target);
         } catch (IOException e) {
-            throw new ProvisioningException("Failed to persist hashes", e);
+            throw new ProvisioningException(Errors.hashesNotPersisted(), e);
         }
         if (entry.hasChildren()) {
             persistChildHashes(hashes, entry, dirs, target);
         }
     }
 
-    private static void persistChildHashes(Path hashes, FsEntry entry, List<FsEntry> dirs, final Path target)
+    private void persistChildHashes(Path hashes, FsEntry entry, List<FsEntry> dirs, final Path target)
             throws ProvisioningException {
         int dirsTotal = 0;
         BufferedWriter writer = null;
@@ -1075,13 +1075,13 @@ public class ProvisioningManager implements AutoCloseable {
                 }
             }
         } catch (IOException e) {
-            throw new ProvisioningException("Failed to persist hashes", e);
+            throw new ProvisioningException(Errors.hashesNotPersisted(), e);
         } finally {
             if (writer != null) {
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error(e, Errors.fileClose(target.resolve(Constants.HASHES)));
                 }
             }
         }

@@ -481,6 +481,18 @@ public interface Errors {
         return "Unexpected dependency type " + type + " on package " + name;
     }
 
+    static String hashesNotPersisted() {
+        return "Failed to persist hashes";
+    }
+
+    static String fileClose(Path p) {
+        return "Failed to close file " + p;
+    }
+
+    static String classloaderClose() {
+        return "Failed to close classloader";
+    }
+
     static void appendConfig(final StringBuilder buf, String model, String name) {
         if (model != null) {
             buf.append(" model ").append(model);
