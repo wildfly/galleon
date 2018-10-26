@@ -18,7 +18,26 @@
 
 -->
 <installation xmlns="urn:jboss:galleon:provisioning:3.0">
+  <universes>
+    <universe name="universe1" factory="factory1" location="location1"/>
+    <universe factory="factory2" location="location2"/>
+    <universe name="universe3" factory="factory3" location="location3"/>
+  </universes>
+  <transitive>
+    <feature-pack location="fp4@maven(universe):0#0.0.4" />
+    <feature-pack location="fp5@maven(universe):0#0.0.5" />
+  </transitive>
   <feature-pack location="fp1@maven(universe):0#0.0.1" />
   <feature-pack location="fp2@maven(universe):0#0.0.2" />
   <feature-pack location="fp3@maven(universe):0#0.0.3" />
+  <default-configs inherit="false" inherit-unnamed-models="false">
+    <include model="model1" name="name1"/>
+    <include name="name2"/>
+    <exclude model="model1" name="name2"/>
+    <exclude name="name1"/>
+  </default-configs>
+  <options>
+    <option name="name1" value="value1"/>
+    <option name="name2" value="value2"/>
+  </options>
 </installation>

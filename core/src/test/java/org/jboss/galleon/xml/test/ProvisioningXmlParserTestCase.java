@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.Locale;
 
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.test.util.XmlParserValidator;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
@@ -65,11 +66,24 @@ public class ProvisioningXmlParserTestCase {
     @Test
     public void readValid() throws Exception {
         ProvisioningConfig found = validator
-                .validateAndParse("xml/provisioning/provisioning-1.0.xml", null, null);
+                .validateAndParse("xml/provisioning/provisioning.xml", null, null);
         ProvisioningConfig expected = ProvisioningConfig.builder()
+                .addUniverse("universe1", "factory1", "location1")
+                .addUniverse(null, "factory2", "location2")
+                .addUniverse("universe3", "factory3", "location3")
+                .addFeaturePackDep(FeaturePackConfig.forTransitiveDep(FeaturePackLocation.fromString("fp4@maven(universe):0#0.0.4")))
+                .addFeaturePackDep(FeaturePackConfig.forTransitiveDep(FeaturePackLocation.fromString("fp5@maven(universe):0#0.0.5")))
                 .addFeaturePackDep(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1"))
                 .addFeaturePackDep(FeaturePackLocation.fromString("fp2@maven(universe):0#0.0.2"))
                 .addFeaturePackDep(FeaturePackLocation.fromString("fp3@maven(universe):0#0.0.3"))
+                .setInheritConfigs(false)
+                .setInheritModelOnlyConfigs(false)
+                .includeDefaultConfig("model1", "name1")
+                .includeDefaultConfig(null, "name2")
+                .excludeDefaultConfig("model1", "name2")
+                .excludeDefaultConfig(null, "name1")
+                .addOption("name1", "value1")
+                .addOption("name2", "value2")
                 .build();
         Assert.assertEquals(expected, found);
     }

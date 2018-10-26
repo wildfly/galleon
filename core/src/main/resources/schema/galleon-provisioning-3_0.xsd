@@ -29,10 +29,65 @@
         Describes the specification of the target installation.
       </xs:documentation>
     </xs:annotation>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="universes" type="universesType"/>
+      <xs:element name="transitive" type="transitiveType"/>
+      <xs:element name="feature-pack" type="feature-packType"/>
+      <xs:element name="default-configs" type="defaultConfigsType"/>
+      <xs:element name="config" type="configType"/>
+      <xs:element name="options" type="optionsType"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="universesType">
+    <xs:annotation>
+      <xs:documentation>
+        Universes used in the configuration
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="universe" type="universeType" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="universeType">
+    <xs:annotation>
+      <xs:documentation>
+        Defines either the default or named universe reference
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Universe short name. If the attribute is not set, the universe is
+          going to be used as the default one
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="factory" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Universe factory
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="location" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Universe location
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="transitiveType">
+    <xs:annotation>
+      <xs:documentation>
+        Describes transitive feature-pack configurations
+      </xs:documentation>
+    </xs:annotation>
     <xs:choice maxOccurs="unbounded" minOccurs="0">
       <xs:element name="feature-pack" type="feature-packType" />
-      <xs:element name="config" type="configType" />
-      <xs:element name="options" type="optionsType" />
     </xs:choice>
   </xs:complexType>
 
@@ -66,6 +121,13 @@
       <xs:annotation>
         <xs:documentation>
           Indicates whether to inherit default configs from the feature-pack spec. 
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inherit-unnamed-models" type="xs:boolean" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>
+          Indicates whether to inherit model-only configs. 
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
