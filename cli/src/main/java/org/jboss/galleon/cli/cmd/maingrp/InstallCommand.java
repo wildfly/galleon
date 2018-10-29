@@ -34,6 +34,7 @@ import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
+import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.ProvisioningOption;
@@ -139,6 +140,9 @@ public class InstallCommand extends AbstractPluginsCommand {
             if (layers == null) {
                 manager.install(loc, options);
             } else {
+                if (!options.containsKey(Constants.OPTIONAL_PACKAGES)) {
+                    options.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE);
+                }
                 manager.provision(new LayersConfigBuilder(pmSession, layers.split(","),
                         (String) getValue(MODEL_OPTION_NAME),
                         (String) getValue(CONFIG_OPTION_NAME), loc).build(), options);
@@ -213,7 +217,8 @@ public class InstallCommand extends AbstractPluginsCommand {
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                completer(LayersCompleter.class).
+                // Disable completion. Re-activate when layers show-up in WF.
+                //completer(LayersCompleter.class).
                 description(HelpDescriptions.INSTALL_LAYERS).
                 build();
         options.add(layers);

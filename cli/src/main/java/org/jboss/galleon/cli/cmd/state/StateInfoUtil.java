@@ -297,12 +297,13 @@ public class StateInfoUtil {
     public static String buildConfigs(Map<String, List<ConfigInfo>> configs,
             ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
         if (!configs.isEmpty()) {
+            boolean hasLayers = false;
+            List<Table.Node> nodes = new ArrayList<>();
             Map<String, Map<String, Set<String>>> layers = LayersConfigBuilder.getAllLayers(pLayout);
-            Table.Tree table = new Table.Tree(Headers.CONFIGURATION, Headers.NAME, Headers.LAYERS);
             for (Entry<String, List<ConfigInfo>> entry : configs.entrySet()) {
                 if (!entry.getValue().isEmpty()) {
                     Table.Node model = new Table.Node(entry.getKey());
-                    table.add(model);
+                    nodes.add(model);
                     for (ConfigInfo name : entry.getValue()) {
                         Table.Node nameNode = new Table.Node(name.getName());
                         model.addNext(nameNode);
@@ -325,13 +326,15 @@ public class StateInfoUtil {
                                 }
                             }
                             if (!foundAsDependency) {
+                                hasLayers = true;
                                 nameNode.addNext(new Table.Node(id.getName()));
                             }
                         }
                         ConfigModel m = pLayout.getConfig().getDefinedConfig(name.getId());
                         if(m != null) {
                             if(m.hasExcludedLayers()) {
-                                for(String ex : m.getExcludedLayers()) {
+                                for (String ex : m.getExcludedLayers()) {
+                                    hasLayers = true;
                                     nameNode.addNext(new Table.Node(ex+"(excluded)"));
                                 }
                             }
@@ -339,6 +342,13 @@ public class StateInfoUtil {
                     }
                 }
             }
+            Table.Tree table;
+            if (hasLayers) {
+                table = new Table.Tree(Headers.CONFIGURATION, Headers.NAME, Headers.LAYERS);
+            } else {
+                table = new Table.Tree(Headers.CONFIGURATION, Headers.NAME);
+            }
+            table.addAll(nodes);
             return "Configurations" + Config.getLineSeparator() + table.build();
         }
         return null;
