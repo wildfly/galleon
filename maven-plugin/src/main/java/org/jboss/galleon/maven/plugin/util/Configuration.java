@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author jdenise@redhat.com
  */
-public class Config {
+public class Configuration {
 
     private String model;
     private String name;

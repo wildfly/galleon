@@ -19,6 +19,7 @@ package org.jboss.galleon.cli;
 import java.nio.file.Path;
 import java.util.Arrays;
 import org.aesh.command.CommandException;
+import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
@@ -29,6 +30,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -97,6 +99,9 @@ public class LayersTestCase {
         assertTrue(conf.getIncludedLayers().size() == 2);
         assertTrue(conf.getIncludedLayers().contains("layerA-" + PRODUCER1));
         assertTrue(conf.getIncludedLayers().contains("layerC-" + PRODUCER1));
+        String opt = config.getPluginOption(Constants.OPTIONAL_PACKAGES);
+        assertNotNull(opt);
+        assertEquals(Constants.PASSIVE, opt);
 
         cli.execute("get-info --dir=" + path + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("layerA-" + PRODUCER1));
