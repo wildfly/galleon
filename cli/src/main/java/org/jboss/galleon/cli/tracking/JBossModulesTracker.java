@@ -32,7 +32,7 @@ public class JBossModulesTracker extends CliProgressTracker<PackageRuntime> {
 
     @Override
     public String processingContent(ProgressTracker<PackageRuntime> tracker) {
-        return String.format("%s of %s JBoss modules installed (%s%%)",
+        return String.format("%s of %s (%s%%)",
                 tracker.getProcessedVolume(), tracker.getTotalVolume(), ((double) Math.round(tracker.getProgress() * 10)) / 10);
     }
 
