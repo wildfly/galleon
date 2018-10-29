@@ -48,7 +48,7 @@ import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.maven.plugin.util.Config;
+import org.jboss.galleon.maven.plugin.util.Configuration;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
@@ -119,7 +119,7 @@ public class ProvisionStateMojo extends AbstractMojo {
      * A list of custom configurations to install.
      */
     @Parameter(alias = "configurations", required = false)
-    private List<Config> configs = Collections.emptyList();
+    private List<Configuration> configs = Collections.emptyList();
 
     /**
      * Whether to use offline mode when the plugin resolves an artifact.
@@ -223,7 +223,7 @@ public class ProvisionStateMojo extends AbstractMojo {
             }
 
             boolean hasLayers = false;
-            for (Config config : configs) {
+            for (Configuration config : configs) {
                 ConfigModel.Builder configBuilder = ConfigModel.
                         builder(config.getModel(), config.getName());
                 for (String layer : config.getLayers()) {
