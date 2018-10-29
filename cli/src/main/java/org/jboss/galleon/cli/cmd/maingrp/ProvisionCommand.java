@@ -41,7 +41,6 @@ import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionCommand;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 
 /**
@@ -63,7 +62,6 @@ public class ProvisionCommand extends AbstractProvisionCommand {
     @Override
     protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
         List<DynamicOption> options = new ArrayList<>();
-        ProvisioningRuntime rt;
         Set<ProvisioningOption> opts;
         String file = getFile();
         if (file == null) {
@@ -72,7 +70,7 @@ public class ProvisionCommand extends AbstractProvisionCommand {
         ProvisioningConfig config = ProvisioningXmlParser.parse(getAbsolutePath(file, pmSession.getAeshContext()));
         opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getInstall();
         for (ProvisioningOption opt : opts) {
-            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
+            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired());
             options.add(dynOption);
         }
         return options;

@@ -65,7 +65,7 @@ public class StateProvisionCommand extends AbstractProvisionCommand {
         ProvisioningRuntime rt = state.getRuntime();
         Set<ProvisioningOption> opts = getPluginOptions(rt);
         for (ProvisioningOption opt : opts) {
-            AbstractDynamicCommand.DynamicOption dynOption = new AbstractDynamicCommand.DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
+            AbstractDynamicCommand.DynamicOption dynOption = new AbstractDynamicCommand.DynamicOption(opt.getName(), opt.isRequired());
             options.add(dynOption);
         }
         return options;

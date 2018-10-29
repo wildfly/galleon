@@ -251,13 +251,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public boolean isOptionSet(ProvisioningOption option) throws ProvisioningException {
-        if(!layout.isOptionSet(option.getName())) {
-            return false;
-        }
-        if(option.isAcceptsValue() || layout.getOptionValue(option.getName()) == null) {
-            return true;
-        }
-        throw new ProvisioningException("Plugin option " + option.getName() + " does not expect value but is set to " + layout.getOptionValue(option.getName()));
+        return layout.isOptionSet(option.getName());
     }
 
     public String getOptionValue(ProvisioningOption option) throws ProvisioningException {
@@ -278,9 +272,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 throw new ProvisioningException("Required plugin option " + option.getName() + " has not been provided");
             }
             return null;
-        }
-        if(!option.isAcceptsValue()) {
-            throw new ProvisioningException("Plugin option " + option.getName() + " is set to " + value + " but does not accept values");
         }
         if(!option.getValueSet().isEmpty() && !option.getValueSet().contains(value)) {
             final StringBuilder buf = new StringBuilder();

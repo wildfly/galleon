@@ -39,13 +39,17 @@ import org.jboss.galleon.universe.MvnUniverse;
  */
 public class ProvisionOverConfigWithPersistentPluginOptionsTestCase extends PluginOptionsTestBase {
 
+    private static final String[] valueSet = new String[] {
+            "v1", "v2", "v3", "v4", "true", "false", "config", "extra"
+    };
+
     public static class Plugin1 extends PluginBase {
         protected Map<String, ProvisioningOption> initOptions() {
             final Map<String, ProvisioningOption> options = new HashMap<>();
-            addOption(options, ProvisioningOption.builder("p1o1").build());
-            addOption(options, ProvisioningOption.builder("p1o2").setPersistent(false).build());
-            addOption(options, ProvisioningOption.builder("p1o3").setDefaultValue("false").build());
-            addOption(options, ProvisioningOption.builder("p1o4").setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p1o1").addToValueSet(valueSet).build());
+            addOption(options, ProvisioningOption.builder("p1o2").addToValueSet(valueSet).setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p1o3").addToValueSet(valueSet).setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p1o4").addToValueSet(valueSet).setDefaultValue("false").build());
             return options;
         }
     }
@@ -53,10 +57,10 @@ public class ProvisionOverConfigWithPersistentPluginOptionsTestCase extends Plug
     public static class Plugin2 extends PluginBase {
         protected Map<String, ProvisioningOption> initOptions() {
             final Map<String, ProvisioningOption> options = new HashMap<>();
-            addOption(options, ProvisioningOption.builder("p2o1").build());
-            addOption(options, ProvisioningOption.builder("p2o2").setPersistent(false).build());
-            addOption(options, ProvisioningOption.builder("p2o3").setDefaultValue("false").build());
-            addOption(options, ProvisioningOption.builder("p2o4").setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p2o1").addToValueSet(valueSet).build());
+            addOption(options, ProvisioningOption.builder("p2o2").addToValueSet(valueSet).setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p2o3").addToValueSet(valueSet).setDefaultValue("false").build());
+            addOption(options, ProvisioningOption.builder("p2o4").addToValueSet(valueSet).setDefaultValue("false").build());
             return options;
         }
     }

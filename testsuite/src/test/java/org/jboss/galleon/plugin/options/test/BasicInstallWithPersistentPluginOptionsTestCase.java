@@ -19,7 +19,6 @@ package org.jboss.galleon.plugin.options.test;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -39,11 +38,15 @@ import org.jboss.galleon.universe.MvnUniverse;
  */
 public class BasicInstallWithPersistentPluginOptionsTestCase extends PluginOptionsTestBase {
 
+    private static final String[] valueSet = new String[] {
+            "v1", "v2", "v3", "v4"
+    };
+
     public static class Plugin1 extends PluginBase {
         protected Map<String, ProvisioningOption> initOptions() {
             final Map<String, ProvisioningOption> options = new HashMap<>();
-            addOption(options, ProvisioningOption.builder("p1o1").build());
-            addOption(options, ProvisioningOption.builder("p1o2").setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p1o1").addToValueSet(valueSet).build());
+            addOption(options, ProvisioningOption.builder("p1o2").addToValueSet(valueSet).setPersistent(false).build());
             addOption(options, ProvisioningOption.builder("p1o3").setDefaultValue("false").build());
             addOption(options, ProvisioningOption.builder("p1o4").setDefaultValue("false").build());
             return options;
@@ -53,8 +56,8 @@ public class BasicInstallWithPersistentPluginOptionsTestCase extends PluginOptio
     public static class Plugin2 extends PluginBase {
         protected Map<String, ProvisioningOption> initOptions() {
             final Map<String, ProvisioningOption> options = new HashMap<>();
-            addOption(options, ProvisioningOption.builder("p2o1").build());
-            addOption(options, ProvisioningOption.builder("p2o2").setPersistent(false).build());
+            addOption(options, ProvisioningOption.builder("p2o1").addToValueSet(valueSet).build());
+            addOption(options, ProvisioningOption.builder("p2o2").addToValueSet(valueSet).setPersistent(false).build());
             addOption(options, ProvisioningOption.builder("p2o3").setDefaultValue("false").build());
             addOption(options, ProvisioningOption.builder("p2o4").setDefaultValue("false").build());
             return options;

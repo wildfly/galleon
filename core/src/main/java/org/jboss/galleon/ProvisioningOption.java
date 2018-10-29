@@ -17,7 +17,9 @@
 
 package org.jboss.galleon;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -42,11 +44,19 @@ public class ProvisioningOption {
         return stdOptions;
     }
 
+    private static Set<String> valueSetBoolean;
+
+    public static Set<String> getBooleanValueSet() {
+        return valueSetBoolean == null
+                ? valueSetBoolean = Collections
+                        .unmodifiableSet(new HashSet<>(Arrays.asList(new String[] { Constants.TRUE, Constants.FALSE })))
+                : valueSetBoolean;
+    }
+
     public static class Builder {
 
         private final String name;
         private boolean required;
-        private boolean acceptsValue = true;
         private boolean persistent = true;
         private String defaultValue;
         private Set<String> valueSet = Collections.emptySet();
@@ -60,18 +70,17 @@ public class ProvisioningOption {
             return this;
         }
 
-        public Builder hasNoValue() {
-            this.acceptsValue = false;
-            return this;
-        }
-
         public Builder setDefaultValue(String defaultValue) {
             this.defaultValue = defaultValue;
             return this;
         }
 
-        public Builder addToValueSet(String value) {
-            this.valueSet = CollectionUtils.addLinked(valueSet, value);
+        public Builder addToValueSet(String... value) {
+            if (value.length > 0) {
+                for (String v : value) {
+                    this.valueSet = CollectionUtils.add(valueSet, v);
+                }
+            }
             return this;
         }
 
@@ -91,7 +100,6 @@ public class ProvisioningOption {
 
     private final String name;
     private final boolean required;
-    private final boolean acceptsValue;
     private final boolean persistent;
     private final String defaultValue;
     private final Set<String> valueSet;
@@ -99,19 +107,29 @@ public class ProvisioningOption {
     protected ProvisioningOption(String name) {
         this.name = name;
         required = false;
-        acceptsValue = false;
         persistent = true;
         defaultValue = null;
-        valueSet = Collections.emptySet();
+        valueSet = getBooleanValueSet();
     }
 
     protected ProvisioningOption(Builder builder) {
         this.name = builder.name;
         this.required = builder.required;
-        this.acceptsValue = builder.acceptsValue;
         this.persistent = builder.persistent;
         this.defaultValue = builder.defaultValue;
-        this.valueSet = builder.valueSet;
+        if(builder.valueSet.isEmpty()) {
+            if(defaultValue == null || getBooleanValueSet().contains(defaultValue)) {
+                this.valueSet = getBooleanValueSet();
+            } else {
+                valueSet = Collections.emptySet();
+            }
+        } else {
+            if(defaultValue != null && !builder.valueSet.contains(defaultValue)) {
+                throw new IllegalArgumentException("The default value " + defaultValue + " of provisioning option " + name +
+                        " is not in the allowed value set " + builder.valueSet);
+            }
+            this.valueSet = CollectionUtils.unmodifiable(builder.valueSet);
+        }
     }
 
     /**
@@ -128,14 +146,6 @@ public class ProvisioningOption {
      */
     public boolean isRequired() {
         return required;
-    }
-
-    /**
-     * Indicates whether the option accepts a value or can appear w/o a value
-     * @return  whether the option accepts a value
-     */
-    public boolean isAcceptsValue() {
-        return acceptsValue;
     }
 
     /**
@@ -169,7 +179,6 @@ public class ProvisioningOption {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (acceptsValue ? 1231 : 1237);
         result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + (persistent ? 1231 : 1237);
@@ -187,8 +196,6 @@ public class ProvisioningOption {
         if (getClass() != obj.getClass())
             return false;
         ProvisioningOption other = (ProvisioningOption) obj;
-        if (acceptsValue != other.acceptsValue)
-            return false;
         if (defaultValue == null) {
             if (other.defaultValue != null)
                 return false;

@@ -217,7 +217,7 @@ public class StateAddFeatureCommand extends AbstractDynamicCommand {
         }
         List<DynamicOption> options = new ArrayList<>();
         for (Entry<String, FeatureParameterSpec> entry : getSpec(state, getId()).getSpec().getParams().entrySet()) {
-            DynamicOption dyn = new DynamicOption(entry.getKey(), !entry.getValue().isNillable() && !entry.getValue().hasDefaultValue(), true);
+            DynamicOption dyn = new DynamicOption(entry.getKey(), !entry.getValue().isNillable() && !entry.getValue().hasDefaultValue());
             String defValue = entry.getValue().getDefaultValue();
             if (defValue != null) {
                 dyn.setDefaultValue(defValue.toString());

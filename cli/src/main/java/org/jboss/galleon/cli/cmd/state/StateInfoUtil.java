@@ -524,7 +524,7 @@ public class StateInfoUtil {
     private static String buildOptionsTable(Set<ProvisioningOption> options) {
         Table t = new Table(Headers.OPTION, Headers.REQUIRED, Headers.DEFAULT_VALUE);
         for (ProvisioningOption opt : options) {
-            t.addLine("--" + opt.getName() + (opt.isAcceptsValue() ? "=" : ""),
+            t.addLine("--" + opt.getName() + "=",
                     opt.isRequired() ? "Y" : "N",
                     opt.getDefaultValue() == null ? "" : opt.getDefaultValue());
         }

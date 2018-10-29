@@ -129,7 +129,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
                     List<DynamicOption> options = new ArrayList<>();
                     for (ProvisioningOption opt : opts) {
                         DynamicOption dynOption = new DynamicOption(opt.getName(),
-                                opt.isRequired(), opt.isAcceptsValue());
+                                opt.isRequired());
                         options.add(dynOption);
                     }
                     return options;

@@ -53,6 +53,9 @@ public interface Constants {
 
     String GLN_UNDEFINED = "GLN_UNDEFINED";
 
+    String FALSE = "false";
+    String TRUE = "true";
+
     // BUILT-IN TYPES
     String BUILT_IN_TYPE_STRING = "String";
 

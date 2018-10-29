@@ -49,11 +49,9 @@ public class PluginOptionsTestCase {
         private static final Map<String, ProvisioningOption> OPTIONS = new HashMap<>();
         private static final String OPT1_REQUIRED = "opt1-req";
         private static final String OPT2_NOT_REQUIRED = "opt2-not-req";
-        private static final String OPT3_NOVALUE = "opt3-not-value";
         static {
             OPTIONS.put(OPT1_REQUIRED, ProvisioningOption.builder(OPT1_REQUIRED).setRequired().build());
             OPTIONS.put(OPT2_NOT_REQUIRED, ProvisioningOption.builder(OPT2_NOT_REQUIRED).build());
-            OPTIONS.put(OPT3_NOVALUE, ProvisioningOption.builder(OPT3_NOVALUE).hasNoValue().build());
         }
 
         @Override
