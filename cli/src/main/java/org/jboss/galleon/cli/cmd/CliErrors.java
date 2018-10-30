@@ -144,6 +144,16 @@ public interface CliErrors {
         return "Not a file: " + absolutePath;
     }
 
+    static String onlyOneOptionOf(String... options) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < options.length; i++) {
+            builder.append(options[i]);
+            if (i < options.length - 1) {
+                builder.append(", ");
+            }
+        }
+        return "Only one of " + builder + " options can be set";
+    }
 
     static String provisioningFailed() {
         return failed("Provisioning");

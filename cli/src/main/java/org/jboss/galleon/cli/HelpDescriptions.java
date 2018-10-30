@@ -46,8 +46,8 @@ public interface HelpDescriptions {
     String ADD_UNIVERSE_STATE = "Add a universe to the provisioning state. Called without a universe name, set the default universe of this installation";
     String BOOLEAN_OPT = "true or false";
     String CHECK_UPDATES = "Get available updates for a full installation or an identified feature pack";
-    String CHECK_UPDATES_DEPENDENCIES = "Include dependencies when checking for updates";
-    String CHECK_UPDATES_FP = "The feature pack to search update for";
+    String CHECK_UPDATES_DEPENDENCIES = "Include dependencies when checking for updates. Doesn't apply when specifying feature-packs";
+    String CHECK_UPDATES_FP = "The feature pack producers to check update for";
     String CD = "Changes the current work dir";
     String CD_PATH = "Target directory";
     String CD_STATE = "Changes the current node";
@@ -161,9 +161,10 @@ public interface HelpDescriptions {
     String UNIVERSE_FACTORY = "Universe factory name";
     String UNIVERSE_LOCATION = "Universe location";
     String UNIVERSE_NAME = "Universe name";
-    String UPDATE = "Update the installation to the latest available updates and patches";
-    String UPDATE_DEPENDENCIES = "Include dependencies when updating";
-    String UPDATE_FP = "The feature pack to update";
+    String UPDATE = "Update the installation to the latest available updates and patches. "
+            + "If feature pack locations are provided thanks to the --feature-packs option, the version they contain are used to update";
+    String UPDATE_DEPENDENCIES = "Include dependencies when updating. Doesn't apply when specifying feature-packs";
+    String UPDATE_FP = "The feature pack producers or locations to update. If a feature pack location is provided, the version it contains is used to update";
     String UPDATE_NO_CONFIRMATION = "No confirmation required";
     String VERBOSE = "Whether or not the output should be verbose";
 

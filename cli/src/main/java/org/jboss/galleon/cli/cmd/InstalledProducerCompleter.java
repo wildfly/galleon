@@ -18,6 +18,8 @@ package org.jboss.galleon.cli.cmd;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CliLogging;
@@ -37,9 +39,39 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
         List<FeaturePackLocation> locations = getInstallationLocations(completerInvocation, true, false);
+        CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
         List<String> items = new ArrayList<>();
-        for (FeaturePackLocation loc : locations) {
-            items.add(loc.getProducer().toString());
+        String trimed = completerInvocation.getGivenCompleteValue().trim();
+        List<String> lst = trimed.isEmpty() ? Collections.emptyList()
+                : Arrays.asList(completerInvocation.getGivenCompleteValue().split(",+"));
+        boolean ended = trimed.endsWith(",");
+        int lastIndex = ended ? lst.size() : Math.max(0, lst.size() - 1);
+        List<FeaturePackLocation> specified = new ArrayList<>();
+        try {
+            // List of specified locations.
+            for (String s : lst) {
+                specified.add(completerInvocation.getPmSession().
+                        getResolvedLocation(cmd.getInstallationDirectory(completerInvocation.
+                                getAeshContext()), s));
+            }
+            for (FeaturePackLocation loc : locations) {
+                boolean found = false;
+                for (int i = 0; i < lastIndex; i++) {
+                    FeaturePackLocation s = specified.get(i);
+                    if (s.getProducer().equals(loc.getProducer())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    items.add(completerInvocation.getPmSession().
+                            getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
+                                    getAeshContext()), loc).getProducer().toString());
+                }
+            }
+        } catch (Exception ex) {
+            CliLogging.completionException(ex);
+            return Collections.emptyList();
         }
         return items;
     }
@@ -55,16 +87,12 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
             try (ProvisioningLayout<FeaturePackLayout> layout = mgr.getLayoutFactory().newConfigLayout(mgr.getProvisioningConfig())) {
                 for (FeaturePackLayout fp : layout.getOrderedFeaturePacks()) {
                     if (fp.isDirectDep() || (fp.isTransitiveDep() && transitive)) {
-                        items.add(completerInvocation.getPmSession().
-                                getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
-                                        getAeshContext()), fp.getFPID().getLocation()));
+                        items.add(fp.getFPID().getLocation());
                     }
                     if (patches) {
                         List<FeaturePackLayout> appliedPatches = layout.getPatches(fp.getFPID());
                         for (FeaturePackLayout patch : appliedPatches) {
-                            items.add(completerInvocation.getPmSession().
-                                    getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
-                                            getAeshContext()), patch.getFPID().getLocation()));
+                            items.add(patch.getFPID().getLocation());
                         }
                     }
                 }

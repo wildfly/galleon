@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import org.aesh.command.CommandDefinition;
+import org.aesh.command.impl.internal.ParsedCommand;
+import org.aesh.command.impl.internal.ParsedOption;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
@@ -28,12 +30,15 @@ import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
+import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.FeaturePackUpdatePlan;
+import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -47,6 +52,25 @@ import org.jboss.galleon.util.PathsUtils;
 @CommandDefinition(name = "check-updates", description = HelpDescriptions.CHECK_UPDATES)
 public class CheckUpdatesCommand extends AbstractProvisioningCommand {
 
+    public static class FPOptionActivator extends PmOptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand pc) {
+            ParsedOption opt = pc.findLongOptionNoActivatorCheck(ALL_DEPENDENCIES_OPTION_NAME);
+            return opt == null || opt.value() == null;
+        }
+
+    }
+
+    public static class AllDepsOptionActivator extends PmOptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand pc) {
+            ParsedOption opt = pc.findLongOptionNoActivatorCheck(FP_OPTION_NAME);
+            return opt == null || opt.value() == null;
+        }
+
+    }
     public static final String UP_TO_DATE = "Up to date. No available updates nor patches.";
     public static final String UPDATES_AVAILABLE = "Some updates and/or patches are available.";
     public static final String FP_OPTION_NAME = "feature-packs";
@@ -60,11 +84,13 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
     static final String ALL_DEPENDENCIES_OPTION_NAME = "include-all-dependencies";
 
     @Option(name = ALL_DEPENDENCIES_OPTION_NAME, hasValue = false, required = false,
-            description = HelpDescriptions.CHECK_UPDATES_DEPENDENCIES)
+            description = HelpDescriptions.CHECK_UPDATES_DEPENDENCIES,
+            activator = AllDepsOptionActivator.class)
     boolean includeAll;
 
     @Option(name = FP_OPTION_NAME, hasValue = true, required = false,
-            completer = InstalledProducerCompleter.class, description = HelpDescriptions.CHECK_UPDATES_FP)
+            completer = InstalledProducerCompleter.class, description = HelpDescriptions.CHECK_UPDATES_FP,
+            activator = FPOptionActivator.class)
     String fp;
 
     @Override
@@ -90,19 +116,36 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
         if (!Files.exists(PathsUtils.getProvisioningXml(mgr.getInstallationHome()))) {
             throw new CommandExecutionException(Errors.homeDirNotUsable(mgr.getInstallationHome()));
         }
-
+        if (includeAll && fp != null) {
+            throw new CommandExecutionException(CliErrors.onlyOneOptionOf(FP_OPTION_NAME,
+                    ALL_DEPENDENCIES_OPTION_NAME));
+        }
         ProvisioningPlan plan;
         if (fp == null) {
             plan = mgr.getUpdates(includeAll);
         } else {
             String[] split = fp.split(",+");
-            ProducerSpec[] resolved = new ProducerSpec[split.length];
-            for (int i = 0; i < split.length; i++) {
-                resolved[i] = session.getPmSession().
+            List<ProducerSpec> resolved = new ArrayList<>();
+            List<FeaturePackLocation> locs = new ArrayList<>();
+            for (String producer : split) {
+                FeaturePackLocation loc = session.getPmSession().
                         getResolvedLocation(mgr.getInstallationHome(),
-                                split[i]).getProducer();
+                                producer);
+                if (loc.hasBuild()) {
+                    locs.add(loc);
+                } else {
+                    resolved.add(loc.getProducer());
+                }
             }
-            plan = mgr.getUpdates(resolved);
+            if (!resolved.isEmpty()) {
+                ProducerSpec[] arr = new ProducerSpec[resolved.size()];
+                plan = mgr.getUpdates(resolved.toArray(arr));
+            } else {
+                plan = ProvisioningPlan.builder();
+            }
+            if (!locs.isEmpty()) {
+                addCustomUpdates(plan, locs, mgr);
+            }
         }
         Updates updates = new Updates();
         updates.plan = plan;
@@ -154,12 +197,24 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
             if (includeAll) {
                 line.add(new Cell(p.isTransitive() ? "Y" : "N"));
             }
-            loc = session.getPmSession().getExposedLocation(mgr.getInstallationHome(), loc);
-            line.add(new Cell(StateInfoUtil.formatChannel(loc)));
+            FeaturePackLocation newLocation = session.getPmSession().getExposedLocation(mgr.getInstallationHome(), p.getNewLocation());
+            line.add(new Cell(StateInfoUtil.formatChannel(newLocation)));
             updates.t.addCellsLine(line);
         }
         updates.t.sort(Table.SortType.ASCENDANT);
         return updates;
     }
 
+    private static void addCustomUpdates(ProvisioningPlan plan, List<FeaturePackLocation> custom, ProvisioningManager mgr) throws ProvisioningException {
+        try (ProvisioningLayout<?> layout = mgr.getLayoutFactory().newConfigLayout(mgr.getProvisioningConfig())) {
+            for (FeaturePackLocation loc : custom) {
+                FeaturePackLayout fpl = layout.getFeaturePack(loc.getProducer());
+                FeaturePackLocation current = fpl.getFPID().getLocation();
+                FeaturePackUpdatePlan fpPlan = FeaturePackUpdatePlan.request(current, fpl.isTransitiveDep()).setNewLocation(loc).buildPlan();
+                if (fpPlan.hasNewLocation()) {
+                    plan.update(fpPlan);
+                }
+            }
+        }
+    }
 }

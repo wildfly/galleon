@@ -43,6 +43,8 @@ import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins;
 import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.Updates;
 import static org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.ALL_DEPENDENCIES_OPTION_NAME;
+import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.AllDepsOptionActivator;
+import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.FPOptionActivator;
 import static org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.UPDATES_AVAILABLE;
 import static org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.UP_TO_DATE;
 import org.jboss.galleon.cli.model.state.State;
@@ -72,6 +74,7 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
                 optionType(OptionType.BOOLEAN).
                 description(HelpDescriptions.UPDATE_DEPENDENCIES).
                 completer(FileOptionCompleter.class).
+                activator(AllDepsOptionActivator.class).
                 required(false).
                 build();
         options.add(includeAll);
@@ -92,6 +95,7 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
                 description(HelpDescriptions.UPDATE_FP).
                 required(false).
                 completer(InstalledProducerCompleter.class).
+                activator(FPOptionActivator.class).
                 build();
         options.add(fp);
         return options;

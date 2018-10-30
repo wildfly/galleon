@@ -33,9 +33,12 @@ public class InstalledFPLCompleter extends AbstractCompleter {
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
         List<FeaturePackLocation> locations = getInstallationLocations(completerInvocation, false, true);
+        CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
         List<String> items = new ArrayList<>();
         for (FeaturePackLocation loc : locations) {
-            items.add(loc.getFPID().toString());
+            items.add(completerInvocation.getPmSession().
+                    getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
+                            getAeshContext()), loc).toString());
         }
         return items;
     }
