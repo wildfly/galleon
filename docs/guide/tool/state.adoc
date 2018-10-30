@@ -146,16 +146,20 @@ Use the _uninstall_ command to remove a given patch or use _state undo_ if the l
 
 ### Checking for updates
 
-_check-updates [--dir=<installation dir>] [--include-all-dependencies] [--products=<list of products>]_
+_check-updates [--dir=<installation dir>] [--include-all-dependencies] [--feature-packs=<list of feature-pack producers>]_
 
 If no directory is provided, the current directory is used. If no products are provided, all installed products are checked for updates.
 
 ### Updating an installation
 
-_update [--dir=<installation dir>] [--include-all-dependencies] [--yes] [--products=<list of products>] [feature-pack specific options]_
+The _update_ command allows to update an installation to the latest available versions of installed feature-packs.
+
+_update [--dir=<installation dir>] [--include-all-dependencies] [--yes] [--feature-packs=<list of feature-pack producers or locations>] [feature-pack specific options]_
 
 Display the list of available updates/patches then update. If no directory is provided, the current directory is used. 
 If _--yes_ is provided, the command will proceed without asking for confirmation.
+
+NB: If the option _--feature-packs_ contains feature-pack locations with versions, then these versions are used to update the feature-packs.
 
 NB: Using completion, when an installation directory has been identified, the options that
 are specific to the installed feature-pack(s) are proposed. When updating an installation for the first time 

@@ -18,6 +18,7 @@ package org.jboss.galleon.cli;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import org.aesh.command.CommandException;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
@@ -150,5 +151,26 @@ public class InstallUpdateTestCase {
         Assert.assertEquals(cf1.getLocation().toString(), cf1.getLocation(), CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
         Assert.assertEquals(cf2.getLocation().toString(), cf2.getLocation(), CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", "snapshot", "1.0.0.Alpha1"));
 
+        try {
+            cli.execute("update --yes --dir=" + install1 + " --include-all-dependencies "
+                    + "--feature-packs=" + CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null)
+                    + "," + CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", "snapshot", "1.0.0.Alpha1-SNAPSHOT"));
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // ok expected.
+        }
+
+        //Downgrade P2 to 1.0.0.Alpha1-SNAPSHOT, P1 shouldn't be impacted.
+        cli.execute("update --yes --dir=" + install1
+                + " --feature-packs=" + CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null)
+                + "," + CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, "1.0.0.Alpha1-SNAPSHOT"));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("1.0.0.Alpha1-SNAPSHOT"));
+        Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
+        config = CliTestUtils.getConfig(install1);
+        cf1 = config.getFeaturePackDep(CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null).getProducer());
+        Assert.assertEquals(cf1.getLocation().toString(), cf1.getLocation(), CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
+        cf2 = config.getFeaturePackDep(CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, null).getProducer());
+        Assert.assertEquals(cf2.getLocation().toString(), cf2.getLocation(), CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, "1.0.0.Alpha1-SNAPSHOT"));
     }
 }
