@@ -58,6 +58,23 @@ public abstract class FeatureGroupBuilderSupport<B extends FeatureGroupBuilderSu
         this.name = name;
     }
 
+    protected FeatureGroupBuilderSupport(FeatureGroupSupport fg) {
+        super(fg);
+        this.name = fg.name;
+        this.origin = fg.origin;
+        this.inheritFeatures = fg.inheritFeatures;
+        this.includedSpecs = CollectionUtils.clone(fg.includedSpecs);
+        this.includedFeatures = CollectionUtils.clone(fg.includedFeatures);
+        this.excludedSpecs = CollectionUtils.clone(fg.excludedSpecs);
+        this.excludedFeatures = CollectionUtils.clone(fg.excludedFeatures);
+        if(!fg.externalFgConfigs.isEmpty()) {
+            for(Map.Entry<String, FeatureGroup> entry : fg.externalFgConfigs.entrySet()) {
+                externalFgConfigs = CollectionUtils.putLinked(externalFgConfigs, entry.getKey(), FeatureGroup.builder(entry.getValue()));
+            }
+        }
+        this.items = CollectionUtils.clone(fg.items);
+    }
+
     @SuppressWarnings("unchecked")
     public B setOrigin(String origin) {
         this.origin = origin;

@@ -67,6 +67,12 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
             return this;
         }
 
+        public Builder clearOptions() {
+            options = Collections.emptyMap();
+            return this;
+        }
+
+
         public Builder addOptions(Map<String, String> options) {
             this.options = CollectionUtils.putAll(this.options, options);
             return this;

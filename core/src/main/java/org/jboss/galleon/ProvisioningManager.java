@@ -34,9 +34,12 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.diff.FsEntry;
 import org.jboss.galleon.diff.FsEntryFactory;
+import org.jboss.galleon.diff.ProvisioningDiffProvider;
+import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningPlan;
+import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
@@ -305,15 +308,19 @@ public class ProvisioningManager implements AutoCloseable {
 
     public void install(FeaturePackConfig fpConfig, Map<String, String> options) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
+        ProvisioningDiffProvider diffProvider = null;
         if(config == null) {
             config = ProvisioningConfig.builder().build();
+        } else {
+            diffProvider = getDiffProvider();
+            if(diffProvider != null) {
+                config = diffProvider.getMergedConfig();
+            }
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
             layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build(), options);
-            try (ProvisioningRuntime runtime = getRuntime(layout)) {
-                doProvision(runtime, false);
-            }
+            doProvision(layout, diffProvider, false);
         }
     }
 
@@ -335,15 +342,17 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of a failure
      */
     public void uninstall(FeaturePackLocation.FPID fpid, Map<String, String> pluginOptions) throws ProvisioningException {
-        final ProvisioningConfig config = getProvisioningConfig();
+        ProvisioningConfig config = getProvisioningConfig();
         if(config == null || !config.hasFeaturePackDeps()) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
+        final ProvisioningDiffProvider diffProvider = getDiffProvider();
+        if (diffProvider != null) {
+            config = diffProvider.getMergedConfig();
+        }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID(), pluginOptions);
-            try (ProvisioningRuntime runtime = getRuntime(layout)) {
-                doProvision(runtime, false);
-            }
+            doProvision(layout, diffProvider, false);
         }
     }
 
@@ -365,8 +374,8 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case provisioning fails
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(provisioningConfig, options)) {
-            doProvision(runtime, false);
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(provisioningConfig, options)) {
+            doProvision(layout, getDiffProvider(), false);
         }
     }
 
@@ -377,8 +386,8 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case provisioning fails
      */
     public void provision(ProvisioningLayout<?> provisioningLayout) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(provisioningLayout)) {
-            doProvision(runtime, false);
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
+            doProvision(layout, getDiffProvider(), false);
         }
     }
 
@@ -400,8 +409,8 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException in case provisioning fails
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(ProvisioningXmlParser.parse(provisioningXml), options)) {
-            doProvision(runtime, false);
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(ProvisioningXmlParser.parse(provisioningXml), options)) {
+            doProvision(layout, getDiffProvider(), false);
         }
     }
 
@@ -466,14 +475,18 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void apply(ProvisioningPlan plan, Map<String, String> options) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
+        ProvisioningDiffProvider diffProvider = null;
         if(config == null) {
             config = ProvisioningConfig.builder().build();
+        } else {
+            diffProvider = getDiffProvider();
+            if(diffProvider != null) {
+                config = diffProvider.getMergedConfig();
+            }
         }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.apply(plan, options);
-            try (ProvisioningRuntime runtime = getRuntime(layout)) {
-                doProvision(runtime, false);
-            }
+            doProvision(layout, diffProvider, false);
         }
     }
 
@@ -525,8 +538,8 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of a failure
      */
     public void undo() throws ProvisioningException {
-        try(ProvisioningRuntime runtime = getRuntime(StateHistoryUtils.readUndoConfig(home, log))) {
-            doProvision(runtime, true);
+        try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
+            doProvision(layout, getDiffProvider(), true);
         }
     }
 
@@ -549,147 +562,15 @@ public class ProvisioningManager implements AutoCloseable {
         }
         IoUtils.copy(userProvisionedXml, exportPath);
     }
-/*
-    public void exportConfigurationChanges(Path location, FPID fpid, Map<String, String> options) throws ProvisioningException, IOException {
-        final ProvisioningConfig configuration = getProvisioningConfig();
-        if (configuration == null) {
-            throw new ProvisioningException("Provisioned state record is missing for " + home);
-        }
-
-        try (ProvisioningLayout<FeaturePackLayout> layout = getLayoutFactory().newConfigLayout(configuration)) {
-            final FeaturePackPluginVisitor<UserConfigDiffPlugin> visitor = new FeaturePackPluginVisitor<UserConfigDiffPlugin>() {
-                @Override
-                public void visitPlugin(UserConfigDiffPlugin plugin) throws ProvisioningException {
-                    plugin.userConfigDiff(getProvisionedState(), layout, getInstallationHome(), log);
-                }
-            };
-            layout.visitPlugins(visitor, UserConfigDiffPlugin.class);
-        }
-
-        / *
-        try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
-                .initLayout(getLayoutFactory(), configuration)
-                .setEncoding(encoding)
-                .addOptions(options)
-                // .setOperation(fpid != null ? "diff-to-feature-pack" : "diff")
-                .build()) {
-            runtime.provision();
-            if (fpid != null) {
-                ProvisioningRuntime.exportToFeaturePack(runtime, fpid, location, home);
-            } else {
-                // execute the plug-ins
-                runtime.diff(location, home);
-            }
-        }
-        * /
-    }
-*/
-    /*
-    public void upgrade(ArtifactCoords.Gav fpGav, Map<String, String> options) throws ProvisioningException, IOException {
-        ProvisioningConfig configuration = this.getProvisioningConfig();
-        Path tempInstallationDir = IoUtils.createRandomTmpDir();
-        Path stagedDir = IoUtils.createRandomTmpDir();
-        try (ProvisioningManager reference = new ProvisioningManager(ProvisioningManager.builder()
-                    .setLayoutFactory(getLayoutFactory())
-                    .setEncoding(encoding)
-                    .setInstallationHome(tempInstallationDir)
-                    .setMessageWriter(new MessageWriter() {
-                        @Override
-                        public void verbose(Throwable cause, CharSequence message) {
-                            return;
-                        }
-
-                        @Override
-                        public void print(Throwable cause, CharSequence message) {
-                            log.print(cause, message);
-                        }
-
-                        @Override
-                        public void error(Throwable cause, CharSequence message) {
-                            log.error(cause, message);
-                        }
-
-                        @Override
-                        public boolean isVerboseEnabled() {
-                            return false;
-                        }
-
-                        @Override
-                        public void close() throws Exception {
-                            return;
-                        }
-                    }))) {
-            reference.provision(configuration);
-        }
-        Files.createDirectories(stagedDir);
-        try (ProvisioningManager reference = new ProvisioningManager(ProvisioningManager.builder()
-                    .setLayoutFactory(getLayoutFactory())
-                    .setEncoding(encoding)
-                    .setInstallationHome(stagedDir)
-                    .setMessageWriter(new MessageWriter() {
-                        @Override
-                        public void verbose(Throwable cause, CharSequence message) {
-                            return;
-                        }
-
-                        @Override
-                        public void print(Throwable cause, CharSequence message) {
-                            log.print(cause, message);
-                        }
-
-                        @Override
-                        public void error(Throwable cause, CharSequence message) {
-                            log.error(cause, message);
-                        }
-
-                        @Override
-                        public boolean isVerboseEnabled() {
-                            return false;
-                        }
-
-                        @Override
-                        public void close() throws Exception {
-                            return;
-                        }
-                    }))) {
-            reference.provision(ProvisioningConfig.builder().addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.toFpl(fpGav))).build());
-        }
-        try (ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(log)
-                .initLayout(getLayoutFactory(), configuration).setEncoding(encoding)
-                // .setInstallDir(tempInstallationDir)
-                .addOptions(options)
-                // .setOperation("upgrade")
-                .build()) {
-            // install the software
-            Files.createDirectories(tempInstallationDir.resolve("model_diff"));
-            // execute the plug-ins
-            final ProvisioningDiffResult diff = runtime.diff(tempInstallationDir.resolve("model_diff"), home);
-            // execute the plug-ins
-            runtime.executeUpgradePlugins(diff, home);
-            if (Files.exists(home)) {
-                IoUtils.recursiveDelete(home);
-            }
-            try {
-                IoUtils.copy(stagedDir, home);
-            } catch (IOException e) {
-                throw new ProvisioningException(Errors.copyFile(stagedDir, home));
-            }
-
-        } finally {
-            IoUtils.recursiveDelete(tempInstallationDir);
-            IoUtils.recursiveDelete(stagedDir);
-        }
-    }
-    */
 
     public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig)
             throws ProvisioningException {
-        return getRuntime(provisioningConfig, Collections.emptyMap());
+        return getRuntimeInternal(newConfigLayout(provisioningConfig, Collections.emptyMap()));
     }
 
-    private ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig, Map<String, String> pluginOptions)
-            throws ProvisioningException {
-        return getRuntimeInternal(getLayoutFactory().newConfigLayout(provisioningConfig, ProvisioningRuntimeBuilder.FP_RT_FACTORY, pluginOptions));
+    private ProvisioningLayout<FeaturePackRuntimeBuilder> newConfigLayout(ProvisioningConfig provisioningConfig,
+            Map<String, String> pluginOptions) throws ProvisioningException {
+        return getLayoutFactory().newConfigLayout(provisioningConfig, ProvisioningRuntimeBuilder.FP_RT_FACTORY, pluginOptions);
     }
 
     public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout)
@@ -705,28 +586,21 @@ public class ProvisioningManager implements AutoCloseable {
                 .build();
     }
 
-    private void doProvision(ProvisioningRuntime runtime, boolean undo) throws ProvisioningException {
-
-        FsDiff diff = null;
-        final ProvisioningConfig config = getProvisioningConfig();
-        if(config != null && config.hasFeaturePackDeps()) {
-            diff = detectUserChanges(config);
-        }
-
-        try {
+    private void doProvision(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, ProvisioningDiffProvider diffProvider, boolean undo) throws ProvisioningException {
+        try (ProvisioningRuntime runtime = getRuntimeInternal(layout)) {
             runtime.provision();
-            if(runtime.getProvisioningConfig().hasFeaturePackDeps()) {
+            if (runtime.getProvisioningConfig().hasFeaturePackDeps()) {
                 persistHashes(runtime);
             }
-            if(undo) {
+            if (undo) {
                 final Map<String, Boolean> undoTasks = StateHistoryUtils.readUndoTasks(home, log);
-                if(!undoTasks.isEmpty()) {
+                if (!undoTasks.isEmpty()) {
                     final Path staged = runtime.getStagedDir();
-                    for(Map.Entry<String, Boolean> entry : undoTasks.entrySet()) {
+                    for (Map.Entry<String, Boolean> entry : undoTasks.entrySet()) {
                         final Path stagedPath = staged.resolve(entry.getKey());
-                        if(entry.getValue()) {
+                        if (entry.getValue()) {
                             final Path homePath = home.resolve(entry.getKey());
-                            if(Files.exists(homePath)) {
+                            if (Files.exists(homePath)) {
                                 try {
                                     IoUtils.copy(homePath, stagedPath);
                                 } catch (IOException e) {
@@ -740,12 +614,33 @@ public class ProvisioningManager implements AutoCloseable {
                 }
             }
             Map<String, Boolean> undoTasks = Collections.emptyMap();
-            if(diff != null && !diff.isEmpty()) {
-                undoTasks = applyUserChanges(diff, runtime.getStagedDir());
+            if (diffProvider != null) {
+                undoTasks = applyUserChanges(diffProvider.getFsDiff(), runtime.getStagedDir());
             }
             PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, undoTasks, log);
         } finally {
             this.provisioningConfig = null;
+        }
+    }
+
+    private ProvisioningDiffProvider getDiffProvider() throws ProvisioningException {
+        final ProvisioningConfig config = getProvisioningConfig();
+        if(config == null || !config.hasFeaturePackDeps()) {
+            return null;
+        }
+        final FsDiff diff = detectUserChanges(config);
+        if(diff.isEmpty()) {
+            return null;
+        }
+        try (ProvisioningLayout<?> layout = layoutFactory.newConfigLayout(config)) {
+            final ProvisioningDiffProvider diffProvider = ProvisioningDiffProvider.newInstance(layout, getProvisionedState(), diff, log);
+            layout.visitPlugins(new FeaturePackPluginVisitor<DiffPlugin>() {
+                @Override
+                public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
+                    plugin.diff(diffProvider);
+                }
+            }, DiffPlugin.class);
+            return diffProvider;
         }
     }
 
@@ -796,7 +691,7 @@ public class ProvisioningManager implements AutoCloseable {
             if (log.isVerboseEnabled()) {
                 final long timeMs = (System.nanoTime() - startTime) / 1000000;
                 final long timeSec = timeMs / 1000;
-                log.verbose("  fs diff took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+                log.verbose("  filesystem diff took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
             }
             return fsDiff;
         }
@@ -860,6 +755,9 @@ public class ProvisioningManager implements AutoCloseable {
         Map<String, Boolean> undoTasks = Collections.emptyMap();
         if(diff.hasRemovedEntries()) {
             for(FsEntry removed : diff.getRemovedEntries()) {
+                if(removed.isSuppressed()) {
+                    continue;
+                }
                 final Path target = home.resolve(removed.getRelativePath());
                 if(Files.exists(target)) {
                     logReplay(REPLAY_REMOVED, removed.getRelativePath(), null);
@@ -872,11 +770,17 @@ public class ProvisioningManager implements AutoCloseable {
         }
         if(diff.hasAddedEntries()) {
             for(FsEntry added : diff.getAddedEntries()) {
+                if(added.isSuppressed()) {
+                    continue;
+                }
                 undoTasks = addFsEntry(home, added, undoTasks);
             }
         }
         if(diff.hasModifiedEntries()) {
             for(FsEntry[] modified : diff.getModifiedEntries()) {
+                if(modified[0].isSuppressed()) {
+                    continue;
+                }
                 final FsEntry update = modified[1];
                 final Path target = home.resolve(update.getRelativePath());
                 char action = REPLAY_MODIFIED;
@@ -895,7 +799,7 @@ public class ProvisioningManager implements AutoCloseable {
                         undoTasks = CollectionUtils.putLinked(undoTasks, update.getRelativePath(), true);
                     } else if (!Arrays.equals(modified[0].getHash(), targetHash)) {
                         if (originalOfModifiedPathUpdated(update)) {
-                            warning = "the original has changed in the updated version";
+                            warning = "has changed in the updated version";
                             glnew(target);
                         } else {
                             action = REPLAY_SKIP;
@@ -906,7 +810,7 @@ public class ProvisioningManager implements AutoCloseable {
                         action = REPLAY_SKIP;
                     }
                 } else if(modifiedPathNotPresent(update)) {
-                    warning = "the original has been removed from the updated version";
+                    warning = "has been removed from the updated version";
                     action = REPLAY_ADDED;
                 } else {
                     action = REPLAY_SKIP;
@@ -931,6 +835,9 @@ public class ProvisioningManager implements AutoCloseable {
         if(Files.exists(target)) {
             if(added.isDir()) {
                 for (FsEntry child : added.getChildren()) {
+                    if(child.isSuppressed()) {
+                        continue;
+                    }
                     undoTasks = addFsEntry(home, child, undoTasks);
                 }
                 return undoTasks;
@@ -971,7 +878,7 @@ public class ProvisioningManager implements AutoCloseable {
         buf.append(' ').append(action).append(' ').append(path);
         if(warning != null) {
             buf.setCharAt(0, '!');
-            buf.append(" (").append(warning).append(')');
+            buf.append(' ').append(warning);
         }
         log.print(buf.toString());
     }

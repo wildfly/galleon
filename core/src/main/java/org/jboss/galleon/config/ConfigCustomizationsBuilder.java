@@ -52,6 +52,17 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
         return (B) this;
     }
 
+    protected void resetConfigs() {
+        inheritConfigs = true;
+        inheritModelOnlyConfigs = true;
+        includedModels = Collections.emptySet();
+        includedConfigs = Collections.emptySet();
+        excludedModels = Collections.emptyMap();
+        excludedConfigs = Collections.emptySet();
+        definedConfigs = Collections.emptyMap();
+        hasModelOnlyConfigs = false;
+    }
+
     @SuppressWarnings("unchecked")
     public B setInheritConfigs(boolean inherit) {
         this.inheritConfigs = inherit;

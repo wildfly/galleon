@@ -55,7 +55,7 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
             for(FeaturePackConfig dep : fpSpec.getTransitiveDeps()) {
                 final ElementNode depElement = addElement(transitives, Element.DEPENDENCY);
                 ProvisioningXmlWriter.writeFeaturePackConfig(depElement,
-                        fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
+                        fpSpec.getUserConfiguredLocation(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
             }
         }
 
@@ -64,7 +64,7 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
             for (FeaturePackConfig dep : fpSpec.getFeaturePackDeps()) {
                 final ElementNode depElement = addElement(deps, Element.DEPENDENCY);
                 ProvisioningXmlWriter.writeFeaturePackConfig(depElement,
-                        fpSpec.getUserConfiguredSource(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
+                        fpSpec.getUserConfiguredLocation(dep.getLocation()), dep, fpSpec.originOf(dep.getLocation().getProducer()));
             }
         }
 

@@ -35,6 +35,24 @@ public abstract class PackageDepsSpecBuilder<T extends PackageDepsSpecBuilder<T>
     protected Map<String, Map<String, PackageDependencySpec>> externalPkgDeps = Collections.emptyMap();
     protected int requiredDeps;
 
+    protected PackageDepsSpecBuilder() {
+    }
+
+    protected PackageDepsSpecBuilder(PackageDepsSpec spec) {
+        if(spec.hasLocalPackageDeps()) {
+            for(PackageDependencySpec dep : spec.getLocalPackageDeps()) {
+                addPackageDep(dep);
+            }
+        }
+        if(spec.hasExternalPackageDeps()) {
+            for(String origin : spec.getPackageOrigins()) {
+                for(PackageDependencySpec dep : spec.getExternalPackageDeps(origin)) {
+                    addPackageDep(origin, dep);
+                }
+            }
+        }
+    }
+
     public T addPackageDep(String packageName) {
         return addPackageDep(packageName, false);
     }

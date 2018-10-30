@@ -56,6 +56,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         fpDepsByOrigin = Collections.emptyMap();
         producerOrigins = Collections.emptyMap();
         transitiveDeps = Collections.emptyMap();
+        resetConfigs();
         return (B) this;
     }
 

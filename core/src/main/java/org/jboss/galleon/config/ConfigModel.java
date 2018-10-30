@@ -57,6 +57,16 @@ public class ConfigModel extends FeatureGroupSupport {
             this.model = model;
         }
 
+        protected Builder(ConfigModel config) {
+            super(config);
+            this.model = config.getModel();
+            this.props = CollectionUtils.clone(config.props);
+            this.configDeps = CollectionUtils.clone(config.configDeps);
+            this.inheritLayers = config.inheritLayers;
+            this.includedLayers = CollectionUtils.clone(config.includedLayers);
+            this.excludedLayers = CollectionUtils.clone(config.excludedLayers);
+        }
+
         public Builder setModel(String model) {
             this.model = model;
             return this;
@@ -104,6 +114,10 @@ public class ConfigModel extends FeatureGroupSupport {
 
     public static Builder builder(String model, String name) {
         return new Builder(model, name);
+    }
+
+    public static Builder builder(ConfigModel config) {
+        return new Builder(config);
     }
 
     final ConfigId id;

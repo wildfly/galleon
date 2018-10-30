@@ -79,19 +79,19 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         return universeSpecs;
     }
 
-    public FeaturePackLocation getUserConfiguredSource(FeaturePackLocation fpSource) {
-        final UniverseSpec universeSource = fpSource.getUniverse();
+    public FeaturePackLocation getUserConfiguredLocation(FeaturePackLocation fpl) {
+        final UniverseSpec universeSource = fpl.getUniverse();
         if(defaultUniverse != null && defaultUniverse.equals(universeSource)) {
-            return new FeaturePackLocation(null, fpSource.getProducerName(), fpSource.getChannelName(), fpSource.getFrequency(),
-                    fpSource.getBuild());
+            return new FeaturePackLocation(null, fpl.getProducerName(), fpl.getChannelName(), fpl.getFrequency(),
+                    fpl.getBuild());
         }
         for (Map.Entry<String, UniverseSpec> entry : universeSpecs.entrySet()) {
             if (entry.getValue().equals(universeSource)) {
-                return new FeaturePackLocation(new UniverseSpec(entry.getKey(), null), fpSource.getProducerName(),
-                        fpSource.getChannelName(), fpSource.getFrequency(), fpSource.getBuild());
+                return new FeaturePackLocation(new UniverseSpec(entry.getKey(), null), fpl.getProducerName(),
+                        fpl.getChannelName(), fpl.getFrequency(), fpl.getBuild());
             }
         }
-        return fpSource;
+        return fpl;
     }
 
     public boolean hasFeaturePackDeps() {

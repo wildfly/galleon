@@ -17,44 +17,28 @@
 package org.jboss.galleon.runtime;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
-import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
-import org.jboss.galleon.config.ConfigId;
-import org.jboss.galleon.config.ConfigModel;
-import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.creator.FeaturePackBuilder;
-import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.diff.ProvisioningDiffResult;
 import org.jboss.galleon.layout.FeaturePackLayoutTransformer;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
-import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.PluginOption;
-import org.jboss.galleon.plugin.ProvisioningPlugin;
-import org.jboss.galleon.plugin.UpgradePlugin;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.FeaturePackInstallException;
 import org.jboss.galleon.util.IoUtils;
@@ -68,48 +52,6 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  * @author Alexey Loubyansky
  */
 public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable {
-
-    public static void exportToFeaturePack(ProvisioningRuntime runtime, FPID fpid, Path location, Path installationHome) throws ProvisioningDescriptionException, ProvisioningException, IOException {
-        // execute the plug-ins
-        final ProvisioningDiffResult diff = runtime.diff(location, installationHome);
-
-        final FeaturePackCreator creator = FeaturePackCreator.getInstance();
-        FeaturePackBuilder fpBuilder = creator.newFeaturePack(fpid);
-        Map<String, FeaturePackConfig.Builder> builders = new HashMap<>();
-        for (FeaturePackConfig fpConfig : runtime.getProvisioningConfig().getFeaturePackDeps()) {
-            FeaturePackConfig.Builder builder = FeaturePackConfig.builder(fpConfig.getLocation());
-            for(ConfigModel configSpec : fpConfig.getDefinedConfigs()) {
-                builder.addConfig(configSpec);
-            }
-            builder.excludeAllPackages(fpConfig.getExcludedPackages());
-            builder.setInheritConfigs(fpConfig.isInheritConfigs());
-            builder.setInheritModelOnlyConfigs(fpConfig.isInheritModelOnlyConfigs());
-            builder.setInheritPackages(fpConfig.isInheritPackages());
-            for(Entry<String, Boolean> excludedModel : fpConfig.getFullModelsExcluded().entrySet()) {
-                builder.excludeConfigModel(excludedModel.getKey(), excludedModel.getValue());
-            }
-            for(ConfigId includedConfig : fpConfig.getIncludedConfigs()) {
-                builder.includeDefaultConfig(includedConfig);
-            }
-            builders.put(FeaturePackConfig.getDefaultOriginName(fpConfig.getLocation()), builder);
-        }
-        runtime.exportDiffResultToFeaturePack(diff, fpBuilder, builders, installationHome);
-        for(Entry<String,FeaturePackConfig.Builder> entry : builders.entrySet()) {
-            fpBuilder.addDependency(entry.getKey(), entry.getValue().build());
-        }
-        if(runtime.layout.hasPlugins()) {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(runtime.layout.getPluginsDir())) {
-                for (Path file : stream) {
-                    if ((Files.isRegularFile(file))) {
-                        fpBuilder.addPlugin(file);
-                    }
-                }
-            } catch (IOException ioex) {
-                throw new ProvisioningException(ioex);
-            }
-        }
-        fpBuilder.getCreator().install();
-    }
 
     private final long startTime;
     private ProvisioningConfig config;
@@ -161,6 +103,15 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return layout;
     }
 
+    /**
+     * Deprecated in 3.0.0.Final
+     * @return  provisioning layout factory
+     */
+    @Deprecated
+    public ProvisioningLayoutFactory getLayoutFactory() {
+        return layout.getFactory();
+    }
+
     @Override
     public boolean hasFeaturePacks() {
         return layout.hasFeaturePacks();
@@ -188,24 +139,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      */
     public MessageWriter getMessageWriter() {
         return messageWriter;
-    }
-
-    public void exportDiffResultToFeaturePack(ProvisioningDiffResult diff, FeaturePackBuilder fpBuilder, Map<String, FeaturePackConfig.Builder> builders, Path installationHome) throws ProvisioningException {
-        ClassLoader pluginClassLoader = layout.getPluginsClassLoader();
-        if (pluginClassLoader != null) {
-            final Thread thread = Thread.currentThread();
-            final ClassLoader ocl = thread.getContextClassLoader();
-            try {
-                thread.setContextClassLoader(pluginClassLoader);
-                diff.toFeaturePack(fpBuilder, builders, this, installationHome);
-            } finally {
-                thread.setContextClassLoader(ocl);
-            }
-        }
-    }
-
-    public ProvisioningLayoutFactory getLayoutFactory() {
-        return layout.getFactory();
     }
 
     /**
@@ -356,55 +289,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         layout.visitPlugins(visitor, InstallPlugin.class);
     }
 
-    public ProvisioningDiffResult diff(Path target, Path customizedInstallation) throws ProvisioningException {
-        final ProvisioningDiffResult result = ProvisioningDiffResult.empty();
-        FeaturePackPluginVisitor<DiffPlugin> visitor = new FeaturePackPluginVisitor<DiffPlugin>() {
-            @Override
-            public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
-                final ProvisioningDiffResult diff = plugin.computeDiff(ProvisioningRuntime.this, customizedInstallation, target);
-                if(diff != null) {
-                    // here we loose plugin specific diff
-                    result.merge(diff);
-                }
-            }
-        };
-        visitCheckOptionsPlugins(visitor, DiffPlugin.class);
-        try {
-            result.toXML(target, customizedInstallation);
-        } catch (Exception e) {
-            throw new ProvisioningException("Failed to persist the diff result", e);
-        }
-        return result;
-    }
-
-    private <T extends ProvisioningPlugin> void visitCheckOptionsPlugins(FeaturePackPluginVisitor<T> visitor,
-            Class<T> clazz) throws ProvisioningException {
-        final Set<String> options = new HashSet<>();
-        final FeaturePackPluginVisitor<T> v = new FeaturePackPluginVisitor<T>() {
-            @Override
-            public void visitPlugin(T plugin) throws ProvisioningException {
-                //check for missing required options.
-                for (ProvisioningOption opt : plugin.getOptions().values()) {
-                    if (opt.isRequired()) {
-                        if (!layout.isOptionSet(opt.getName())) {
-                            throw new ProvisioningException("Option: " + opt.getName()
-                                    + " is required for this plugin.");
-                        }
-                    }
-                    options.add(opt.getName());
-                }
-            }
-        };
-        layout.visitPlugins(v, clazz);
-        // check if provided options exist
-        for (String userOption : config.getPluginOptions().keySet()) {
-            if (!options.contains(userOption)) {
-                throw new ProvisioningException("Option " + userOption + " is not supported");
-            }
-        }
-        layout.visitPlugins(visitor, clazz);
-    }
-
     @Override
     public void close() {
         layout.close();
@@ -413,15 +297,5 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             final long seconds = time / 1000;
             messageWriter.verbose("Done in %d.%d seconds", seconds, (time - seconds * 1000));
         }
-    }
-
-    public void executeUpgradePlugins(ProvisioningDiffResult diff, Path customizedInstallation) throws ProvisioningException {
-        FeaturePackPluginVisitor<UpgradePlugin> visitor = new FeaturePackPluginVisitor<UpgradePlugin>() {
-            @Override
-            public void visitPlugin(UpgradePlugin plugin) throws ProvisioningException {
-                plugin.upgrade(ProvisioningRuntime.this, diff, customizedInstallation);
-            }
-        };
-        visitCheckOptionsPlugins(visitor, UpgradePlugin.class);
     }
 }

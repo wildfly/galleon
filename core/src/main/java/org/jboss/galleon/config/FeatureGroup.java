@@ -44,6 +44,10 @@ public class FeatureGroup extends FeatureGroupSupport {
             this.inheritFeatures = inheritFeatures;
         }
 
+        protected Builder(FeatureGroupSupport featureGroup) {
+            super(featureGroup);
+        }
+
         public FeatureGroup build() throws ProvisioningDescriptionException {
             return new FeatureGroup(this);
         }
@@ -75,6 +79,10 @@ public class FeatureGroup extends FeatureGroupSupport {
 
     public FeatureGroup(String origin, String name) {
         super(origin, name);
+    }
+
+    public static Builder builder(FeatureGroupSupport featureGroup) {
+        return new Builder(featureGroup);
     }
 
     protected FeatureGroup(FeatureGroupBuilderSupport<?> builder) throws ProvisioningDescriptionException {
