@@ -33,7 +33,7 @@ public class MvnOfflineTestCase {
         MavenConfig config = new MavenConfig();
         MavenCliSettings settings = new MavenCliSettings(config, system, null);
         assertFalse(settings.getSession().isOffline());
-        config.setOffline(true);
+        config.enableOffline(true);
         settings = new MavenCliSettings(config, system, null);
         assertTrue(settings.getSession().isOffline());
     }

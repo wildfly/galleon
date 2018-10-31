@@ -99,7 +99,7 @@ public class MavenConfigTestCase {
         cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains(foo.toFile().getAbsolutePath()));
 
-        cli.execute("maven set-local-repository");
+        cli.execute("maven reset-local-repository");
         Assert.assertEquals(defaultOriginalPath, config.getLocalRepository());
         Assert.assertEquals(defaultOriginalPath, Configuration.parse().getMavenConfig().getLocalRepository());
     }
@@ -119,7 +119,7 @@ public class MavenConfigTestCase {
         cli.execute("maven get-info");
         Assert.assertTrue(cli.getOutput().contains(settings.toFile().getAbsolutePath()));
 
-        cli.execute("maven set-settings-file");
+        cli.execute("maven reset-settings-file");
         Assert.assertNull(config.getSettings());
         Assert.assertNull(Configuration.parse().getMavenConfig().getSettings());
     }
@@ -158,8 +158,8 @@ public class MavenConfigTestCase {
         Assert.assertEquals(snapshotPolicy, Configuration.parse().getMavenConfig().getDefaultSnapshotPolicy());
         Assert.assertEquals(releasePolicy, Configuration.parse().getMavenConfig().getDefaultReleasePolicy());
 
-        cli.execute("maven set-snapshot-update-policy");
-        cli.execute("maven set-release-update-policy");
+        cli.execute("maven reset-snapshot-update-policy");
+        cli.execute("maven reset-release-update-policy");
 
         Assert.assertEquals(defaultSnapshot, config.getDefaultSnapshotPolicy());
         Assert.assertEquals(defaultRelease, config.getDefaultReleasePolicy());
@@ -197,8 +197,8 @@ public class MavenConfigTestCase {
         Assert.assertTrue(cli.getOutput().contains("release=" + !enableRelease));
         Assert.assertTrue(cli.getOutput().contains("snapshot=" + !enableSnapshot));
 
-        cli.execute("maven enable-snapshot");
-        cli.execute("maven enable-release");
+        cli.execute("maven reset-snapshot");
+        cli.execute("maven reset-release");
 
         Assert.assertEquals(enableSnapshot, config.isSnapshotEnabled());
         Assert.assertEquals(enableRelease, config.isReleaseEnabled());
@@ -210,18 +210,18 @@ public class MavenConfigTestCase {
         MavenConfig config = cli.getSession().getPmConfiguration().getMavenConfig();
         Assert.assertFalse(config.isOffline());
         try {
-            cli.execute("maven set-offline foo");
+            cli.execute("maven enable-offline foo");
             throw new Exception("Should have failed");
         } catch (CommandException ex) {
             // XXX OK
         }
 
-        cli.execute("maven set-offline true");
+        cli.execute("maven enable-offline true");
         Assert.assertTrue(config.isOffline());
 
         Assert.assertTrue(Configuration.parse().getMavenConfig().isOffline());
 
-        cli.execute("maven set-offline");
+        cli.execute("maven reset-offline");
         Assert.assertFalse(config.isOffline());
 
         Assert.assertFalse(Configuration.parse().getMavenConfig().isOffline());

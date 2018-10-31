@@ -30,17 +30,16 @@ import org.jboss.galleon.cli.cmd.BooleanCompleter;
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "set-offline", description = HelpDescriptions.MVN_SET_OFFLINE)
-public class MavenSetOffline extends PmSessionCommand {
+@CommandDefinition(name = "enable-offline", description = HelpDescriptions.MVN_ENABLE_OFFLINE)
+public class MavenEnableOffline extends PmSessionCommand {
 
-    @Argument(completer = BooleanCompleter.class, description = HelpDescriptions.BOOLEAN_OPT)
+    @Argument(completer = BooleanCompleter.class, description = HelpDescriptions.BOOLEAN_OPT, required = true)
     private String offline;
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         try {
-            session.getPmSession().getPmConfiguration().getMavenConfig().
-                    setOffline(BooleanCompleter.validateValue(offline));
+            session.getPmSession().getPmConfiguration().getMavenConfig().enableOffline(BooleanCompleter.validateValue(offline));
         } catch (XMLStreamException | IOException ex) {
             throw new CommandExecutionException(ex.getLocalizedMessage());
         }

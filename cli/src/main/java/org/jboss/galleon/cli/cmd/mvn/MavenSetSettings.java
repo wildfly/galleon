@@ -36,17 +36,15 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 @CommandDefinition(name = "set-settings-file", description = HelpDescriptions.MVN_SET_SETTINGS_PATH)
 public class MavenSetSettings extends PmSessionCommand {
 
-    @Argument(description = HelpDescriptions.MVN_SETTINGS_PATH, required = false)
+    @Argument(description = HelpDescriptions.MVN_SETTINGS_PATH, required = true)
     private File path;
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
-        Path p = path == null ? null : path.toPath();
+        Path p = path.toPath();
         try {
-            if (p != null) {
-                if (!Files.exists(p)) {
-                    throw new CommandExecutionException("settings file " + p + " doesn't exist.");
-                }
+            if (!Files.exists(p)) {
+                throw new CommandExecutionException("settings file " + p + " doesn't exist.");
             }
             session.getPmSession().getPmConfiguration().getMavenConfig().setSettings(p);
         } catch (XMLStreamException | IOException ex) {

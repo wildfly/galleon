@@ -33,7 +33,8 @@ import org.jboss.galleon.cli.PmSessionCommand;
 @CommandDefinition(name = "set-snapshot-update-policy", description = HelpDescriptions.MVN_SET_DEFAULT_SNAPSHOT_POLICY)
 public class MavenSetSnapshotPolicy extends PmSessionCommand {
 
-    @Argument(completer = MavenAddRepository.UpdatePolicyCompleter.class, description = HelpDescriptions.MVN_UPDATE_POLICY)
+    @Argument(completer = MavenAddRepository.UpdatePolicyCompleter.class,
+            description = HelpDescriptions.MVN_UPDATE_POLICY, required = true)
     private String policy;
 
     @Override

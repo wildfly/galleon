@@ -34,7 +34,7 @@ import org.jboss.galleon.cli.cmd.BooleanCompleter;
 
 @CommandDefinition(name = "enable-release", description = HelpDescriptions.MVN_ENABLE_RELEASE)
 public class MavenEnableRelease extends PmSessionCommand {
-    @Argument(completer = BooleanCompleter.class, description = HelpDescriptions.BOOLEAN_OPT)
+    @Argument(completer = BooleanCompleter.class, description = HelpDescriptions.BOOLEAN_OPT, required = true)
     private String enable;
 
     @Override

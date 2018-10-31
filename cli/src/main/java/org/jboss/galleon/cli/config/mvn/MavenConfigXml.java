@@ -84,7 +84,7 @@ public class MavenConfigXml {
                                 break;
                             }
                             case OFFLINE: {
-                                config.setOffline(Boolean.parseBoolean(reader.getElementText()));
+                                config.enableOffline(Boolean.parseBoolean(reader.getElementText()));
                                 break;
                             }
                             default: {
