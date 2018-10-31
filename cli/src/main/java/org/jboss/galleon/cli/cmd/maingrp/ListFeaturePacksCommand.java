@@ -17,11 +17,12 @@
 package org.jboss.galleon.cli.cmd.maingrp;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
-import org.aesh.utils.Config;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
@@ -56,7 +57,7 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
     public void runCommand(PmCommandInvocation invoc)
             throws CommandExecutionException {
         Map<UniverseSpec, Table> tables = new HashMap<>();
-        Map<UniverseSpec, Exception> exceptions = new HashMap<>();
+        Map<UniverseSpec, Set<String>> exceptions = new HashMap<>();
         UniverseVisitor visitor = new UniverseVisitor() {
             @Override
             public void visit(Producer<?> producer, FeaturePackLocation loc) {
@@ -77,7 +78,13 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
 
             @Override
             public void exception(UniverseSpec spec, Exception ex) {
-                exceptions.put(spec, ex);
+                Set<String> set = exceptions.get(spec);
+                if (set == null) {
+                    set = new HashSet<>();
+                    exceptions.put(spec, set);
+                }
+                set.add(ex.getLocalizedMessage() == null
+                        ? ex.getMessage() : ex.getLocalizedMessage());
             }
         };
         try {
@@ -94,16 +101,9 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
         }
         FindCommand.printExceptions(invoc, exceptions);
         for (Entry<UniverseSpec, Table> entry : tables.entrySet()) {
-            UniverseSpec universeSpec = entry.getKey();
-            String universeName = invoc.getPmSession().getUniverse().getUniverseName(null, universeSpec);
-            universeName = universeName == null ? universeSpec.toString() : universeName;
-            invoc.println(Config.getLineSeparator() + "Universe " + universeName
-                    + Config.getLineSeparator());
-            if (!exceptions.containsKey(entry.getKey())) {
-                Table table = entry.getValue();
-                table.sort(Table.SortType.ASCENDANT);
-                invoc.println(table.build());
-            }
+            Table table = entry.getValue();
+            table.sort(Table.SortType.ASCENDANT);
+            invoc.println(table.build());
         }
     }
 
