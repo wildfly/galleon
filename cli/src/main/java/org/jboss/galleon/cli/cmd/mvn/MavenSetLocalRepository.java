@@ -36,17 +36,15 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 @CommandDefinition(name = "set-local-repository", description = HelpDescriptions.MVN_SET_LOCAL_PATH)
 public class MavenSetLocalRepository extends PmSessionCommand {
 
-    @Argument(description = HelpDescriptions.MVN_LOCAL_REPO_PATH, required = false)
+    @Argument(description = HelpDescriptions.MVN_LOCAL_REPO_PATH, required = true)
     private File path;
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
-        Path p = path == null ? null : path.toPath();
+        Path p = path.toPath();
         try {
-            if (p != null) {
-                if (!Files.exists(p)) {
-                    throw new CommandExecutionException("Local repository directory " + p + " doesn't exist.");
-                }
+            if (!Files.exists(p)) {
+                throw new CommandExecutionException("Local repository directory " + p + " doesn't exist.");
             }
             session.getPmSession().getPmConfiguration().getMavenConfig().setLocalRepository(p);
         } catch (XMLStreamException | IOException ex) {

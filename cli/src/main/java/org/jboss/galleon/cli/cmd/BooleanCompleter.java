@@ -36,13 +36,9 @@ public class BooleanCompleter extends AbstractCompleter {
     }
 
     public static Boolean validateValue(String value) throws CommandExecutionException {
-        if (value != null) {
-            if (!VALUES.contains(value)) {
-                throw new CommandExecutionException(CliErrors.invalidBoolean(value));
-            }
-            return Boolean.parseBoolean(value);
-        } else {
-            return null;
+        if (!VALUES.contains(value)) {
+            throw new CommandExecutionException(CliErrors.invalidBoolean(value));
         }
+        return Boolean.parseBoolean(value);
     }
 }

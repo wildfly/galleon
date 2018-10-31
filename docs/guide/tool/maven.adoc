@@ -9,7 +9,7 @@ change the path to the local repository and add/remove remote maven repositories
 
 ### Relying on maven settings
 In order to makes the cli to use a maven settings file call: _maven set-settings-file <path to settings xml file>_
-In order to remove the reference to the settings file call: _maven set-settings-file_ +
+In order to remove the reference to the settings file call: _maven reset-settings-file_ +
 
 NB: Advanced mirroring (eg: _external:*_) is not supported. + 
 NB: Any other cli maven configuration items will be overridden when a settings xml file is set. +
@@ -37,7 +37,7 @@ Activation of snapshot/release resolution can be changed by calling: +
 _maven enable-snapshot [<true|false>]_ +
 _maven enable-release [<true|false>]_
 
-NB: Calling one of these commands without any argument will reset to the default value.
+NB: A reset command can be called for any of these changes to set the value back to its default value.
 
 ### Advanced maven configuration
 Proxy, authentication and mirroring are only supported when setting a maven xml settings file.
@@ -45,11 +45,11 @@ Proxy, authentication and mirroring are only supported when setting a maven xml 
 ### Local repository
 By default the local maven repository is located in _<user.home>/.m2/repository_. 
 You can change this directory by using the command: _maven set-local-repository <path to your local repository directory>_ +
-In order to reset to the default local maven repository call: _maven set-local-repository_
+In order to reset to the default local maven repository call: _maven reset-local-repository_
 
 ### Offline mode
-By default maven is in online mode. In order to switch to offline use the command _maven set-offline <true|false>_ +
-If no argument is provided, the mode is set to its default value (false).
+By default maven is in online mode. In order to switch to offline use the command _maven enable-offline <true|false>_ +
+In order to reset to the default mode call: _maven reset-offline_
 
 ### Display maven configuration
 Call command: _maven get-info_

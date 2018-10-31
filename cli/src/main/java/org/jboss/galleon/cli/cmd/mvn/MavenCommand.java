@@ -28,7 +28,10 @@ import org.jboss.galleon.cli.cmd.PmGroupCommand;
 @GroupCommandDefinition(description = HelpDescriptions.MAVEN, name = "maven", groupCommands = {MavenAddRepository.class,
     MavenRemoveRepository.class, MavenGetInfo.class, MavenSetLocalRepository.class, MavenResolveFeaturePack.class,
     MavenSetSettings.class, MavenSetReleasePolicy.class, MavenSetSnapshotPolicy.class,
-    MavenEnableRelease.class, MavenEnableSnapshot.class, MavenSetOffline.class})
+    MavenEnableRelease.class, MavenEnableSnapshot.class, MavenEnableOffline.class,
+    MavenResetLocalRepository.class, MavenResetOffline.class, MavenResetRelease.class,
+    MavenResetReleasePolicy.class, MavenResetSettings.class, MavenResetSnapshot.class,
+    MavenResetSnapshotPolicy.class})
 public class MavenCommand implements PmGroupCommand {
 
     @Override

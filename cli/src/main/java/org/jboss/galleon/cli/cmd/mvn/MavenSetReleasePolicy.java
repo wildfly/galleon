@@ -33,7 +33,8 @@ import org.jboss.galleon.cli.PmSessionCommand;
 @CommandDefinition(name = "set-release-update-policy", description = HelpDescriptions.MVN_SET_DEFAULT_RELEASE_POLICY)
 public class MavenSetReleasePolicy extends PmSessionCommand {
 
-    @Argument(completer = MavenAddRepository.UpdatePolicyCompleter.class, description = HelpDescriptions.MVN_UPDATE_POLICY)
+    @Argument(completer = MavenAddRepository.UpdatePolicyCompleter.class,
+            description = HelpDescriptions.MVN_UPDATE_POLICY, required = true)
     private String policy;
 
     @Override

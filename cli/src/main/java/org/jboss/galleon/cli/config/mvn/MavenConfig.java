@@ -104,20 +104,22 @@ public class MavenConfig {
     }
 
     public void enableSnapshot(Boolean enable) throws XMLStreamException, IOException {
-        if (enable == null) {
-            defaultEnableSnapshot = DEFAULT_ENABLE_SNAPSHOT;
-        } else {
-            defaultEnableSnapshot = enable;
-        }
+        defaultEnableSnapshot = enable;
+        advertise();
+    }
+
+    public void resetSnapshot() throws XMLStreamException, IOException {
+        defaultEnableSnapshot = DEFAULT_ENABLE_SNAPSHOT;
         advertise();
     }
 
     public void enableRelease(Boolean enable) throws XMLStreamException, IOException {
-        if (enable == null) {
-            defaultEnableRelease = DEFAULT_ENABLE_RELEASE;
-        } else {
-            defaultEnableRelease = enable;
-        }
+        defaultEnableRelease = enable;
+        advertise();
+    }
+
+    public void resetRelease() throws XMLStreamException, IOException {
+        defaultEnableRelease = DEFAULT_ENABLE_RELEASE;
         advertise();
     }
 
@@ -131,23 +133,27 @@ public class MavenConfig {
 
     public void setDefaultSnapshotPolicy(String policy) throws ProvisioningException,
             XMLStreamException, IOException {
-        if (policy == null) {
-            defaultSnapshotPolicy = DEFAULT_SNAPSHOT_UPDATE_POLICY;
-        } else {
-            validatePolicy(policy);
-            defaultSnapshotPolicy = policy;
-        }
+        validatePolicy(policy);
+        defaultSnapshotPolicy = policy;
+        advertise();
+    }
+
+    public void resetDefaultSnapshotPolicy() throws ProvisioningException,
+            XMLStreamException, IOException {
+        defaultSnapshotPolicy = DEFAULT_SNAPSHOT_UPDATE_POLICY;
         advertise();
     }
 
     public void setDefaultReleasePolicy(String policy) throws ProvisioningException,
             XMLStreamException, IOException {
-        if (policy == null) {
-            defaultReleasePolicy = DEFAULT_RELEASE_UPDATE_POLICY;
-        } else {
-            validatePolicy(policy);
-            defaultReleasePolicy = policy;
-        }
+        validatePolicy(policy);
+        defaultReleasePolicy = policy;
+        advertise();
+    }
+
+    public void resetDefaultReleasePolicy() throws ProvisioningException,
+            XMLStreamException, IOException {
+        defaultReleasePolicy = DEFAULT_RELEASE_UPDATE_POLICY;
         advertise();
     }
 
@@ -277,17 +283,32 @@ public class MavenConfig {
     }
 
     public void setLocalRepository(Path path) throws XMLStreamException, IOException {
-        localRepository = path == null ? null : path.normalize();
+        localRepository = path.normalize();
+        advertise();
+    }
+
+    public void resetLocalRepository() throws XMLStreamException, IOException {
+        localRepository = null;
         advertise();
     }
 
     public void setSettings(Path path) throws XMLStreamException, IOException {
-        settings = path == null ? null : path.normalize();
+        settings = path.normalize();
         advertise();
     }
 
-    public void setOffline(Boolean offline) throws XMLStreamException, IOException {
-        this.offline = offline == null ? false : offline;
+    public void resetSettings() throws XMLStreamException, IOException {
+        settings = null;
+        advertise();
+    }
+
+    public void enableOffline(Boolean offline) throws XMLStreamException, IOException {
+        this.offline = offline;
+        advertise();
+    }
+
+    public void resetOffline() throws XMLStreamException, IOException {
+        this.offline = false;
         advertise();
     }
 
