@@ -103,7 +103,7 @@ public class FindCommand extends PmSessionCommand {
                 pattern = ".Final";
             }
             Map<UniverseSpec, Set<Result>> results = new HashMap<>();
-            Map<UniverseSpec, Exception> exceptions = new HashMap<>();
+            Map<UniverseSpec, Set<String>> exceptions = new HashMap<>();
             if (!pattern.endsWith("*")) {
                 pattern = pattern + "*";
             }
@@ -195,7 +195,7 @@ public class FindCommand extends PmSessionCommand {
                                             numResults[0] = numResults[0] + 1;
                                         }
                                     } catch (IOException | ProvisioningException ex) {
-                                        exceptions.put(loc.getUniverse(), ex);
+                                        exception(loc.getUniverse(), ex);
                                     }
                                 } else {
                                     Set<Result> locations = results.get(loc.getUniverse());
@@ -213,7 +213,13 @@ public class FindCommand extends PmSessionCommand {
 
                     @Override
                     public void exception(UniverseSpec spec, Exception ex) {
-                        exceptions.put(spec, ex);
+                        Set<String> set = exceptions.get(spec);
+                        if (set == null) {
+                            set = new HashSet<>();
+                            exceptions.put(spec, set);
+                        }
+                        set.add(ex.getLocalizedMessage() == null
+                                ? ex.getMessage() : ex.getLocalizedMessage());
                     }
                 };
                 if (tracker != null) {
@@ -231,19 +237,11 @@ public class FindCommand extends PmSessionCommand {
                     tracker.complete();
                 }
 
-                invoc.println(Config.getLineSeparator() + "Found "
-                        + numResults[0] + " feature pack locations.");
-
                 printExceptions(invoc, exceptions);
 
+                invoc.println(Config.getLineSeparator() + "Found "
+                        + numResults[0] + " feature pack location" + (numResults[0] > 1 ? "s." : "."));
                 for (Entry<UniverseSpec, Set<Result>> entry : results.entrySet()) {
-                    UniverseSpec universeSpec = entry.getKey();
-                    String universeName = invoc.getPmSession().getUniverse().
-                            getUniverseName(null, universeSpec);
-                    universeName = universeName == null ? universeSpec.toString() : universeName;
-                    invoc.println(Config.getLineSeparator() + "Universe "
-                            + universeName
-                            + Config.getLineSeparator());
                     for (Result loc : entry.getValue()) {
                         invoc.println(loc.toString());
                     }
@@ -260,15 +258,14 @@ public class FindCommand extends PmSessionCommand {
     }
 
     public static void printExceptions(PmCommandInvocation invoc,
-            Map<UniverseSpec, Exception> exceptions) {
+            Map<UniverseSpec, Set<String>> exceptions) {
         if (!exceptions.isEmpty()) {
-            invoc.println("Some exceptions occured while accessing universes:");
+            invoc.println("Some exceptions occured while accessing universes.");
         }
-        for (Entry<UniverseSpec, Exception> entry : exceptions.entrySet()) {
-            invoc.println(Config.getLineSeparator()
-                    + "Exception for "
-                    + exceptions.get(entry.getKey()).getMessage()
-                    + Config.getLineSeparator());
+        for (Entry<UniverseSpec, Set<String>> entry : exceptions.entrySet()) {
+            for (String ex : entry.getValue()) {
+                invoc.println(ex + " in " + entry.getKey());
+            }
         }
     }
 

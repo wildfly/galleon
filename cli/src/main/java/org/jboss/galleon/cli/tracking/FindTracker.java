@@ -29,7 +29,7 @@ public class FindTracker extends CliProgressTracker<FPID> {
     private final PmSession session;
 
     public FindTracker(PmSession session) {
-        super("Searching", "Search done.");
+        super("Searching in", "Search done.");
         this.session = session;
     }
 
