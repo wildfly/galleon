@@ -57,14 +57,12 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     public class DynamicOption {
 
         private final String name;
-        private final boolean hasValue;
         private final boolean required;
         private String defaultValue;
 
-        public DynamicOption(String name, boolean required, boolean hasValue) {
+        public DynamicOption(String name, boolean required) {
             this.name = name;
             this.required = required;
-            this.hasValue = hasValue;
         }
 
         public void setDefaultValue(String defaultValue) {
@@ -79,13 +77,6 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
          */
         public String getName() {
             return name;
-        }
-
-        /**
-         * @return the hasValue
-         */
-        public boolean hasValue() {
-            return hasValue;
         }
 
         /**
@@ -129,11 +120,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                     }
                     builder.name(opt.getName());
                     builder.type(String.class);
-                    if (!opt.hasValue()) {
-                        noValuesOptions.add(opt.getName());
-                    }
-                    builder.optionType(opt.hasValue() ? OptionType.NORMAL : OptionType.BOOLEAN);
-                    builder.hasValue(opt.hasValue());
+                    builder.optionType(OptionType.NORMAL);
                     builder.required(opt.isRequired());
                     if (opt.getDefaultValue() != null) {
                         builder.addDefaultValue(opt.getDefaultValue());
@@ -151,7 +138,6 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     protected final PmSession pmSession;
     private final Set<String> staticOptions = new HashSet<>();
-    private final Set<String> noValuesOptions = new HashSet<>();
     private MapProcessedCommand cmd;
     private final boolean onlyAtCompletion;
     private final boolean checkForRequired;
@@ -324,11 +310,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
                 throw new CommandException("Invalid null option");
             }
             if (!staticOptions.contains(m)) {
-                if (noValuesOptions.contains(m)) {
-                    options.put(m, null);
-                } else {
-                    options.put(m, (String) getValue(m));
-                }
+                options.put(m, (String) getValue(m));
             }
         }
         return options;

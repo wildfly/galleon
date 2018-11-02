@@ -161,7 +161,7 @@ public class CollectionUtils {
 
     public static <T> List<T> addAll(List<T> dest, List<T> src) {
         if(dest.isEmpty()) {
-            return src;
+            return clone(src);
         }
         if(src.isEmpty()) {
             return dest;
@@ -197,6 +197,22 @@ public class CollectionUtils {
         }
         s.add(t);
         return s;
+    }
+
+    public static <T> Set<T> addAll(Set<T> dest, Set<T> src) {
+        if(dest.isEmpty()) {
+            return clone(src);
+        }
+        if(src.isEmpty()) {
+            return dest;
+        }
+        if(dest.size() == 1) {
+            final Set<T> tmp = dest;
+            dest = new HashSet<>(src.size() + 1);
+            dest.addAll(tmp);
+        }
+        dest.addAll(src);
+        return dest;
     }
 
     public static <T> Set<T> remove(Set<T> s, T t) {

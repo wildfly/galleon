@@ -118,7 +118,7 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
         Set<ProvisioningOption> opts = pmSession.getResolver().get(null, PluginResolver.newResolver(pmSession, config)).getDiff();
         List<DynamicOption> options = new ArrayList<>();
         for (ProvisioningOption opt : opts) {
-            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
+            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired());
             options.add(dynOption);
         }
         return options;
@@ -128,7 +128,6 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
     protected void doRunCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
         try {
             ProvisioningManager mgr = getManager(session);
-            String fp = getFP();
             Updates updates = CheckUpdatesCommand.getUpdatesTable(mgr, session, allDependencies(), getFP());
             if (updates.plan.isEmpty()) {
                 session.println(UP_TO_DATE);

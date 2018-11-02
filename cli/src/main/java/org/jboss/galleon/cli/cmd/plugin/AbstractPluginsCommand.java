@@ -124,7 +124,7 @@ public abstract class AbstractPluginsCommand extends AbstractDynamicCommand impl
                 getId(pmSession));
         Set<ProvisioningOption> pluginOptions = getPluginOptions(fpl);
         for (ProvisioningOption opt : pluginOptions) {
-            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired(), opt.isAcceptsValue());
+            DynamicOption dynOption = new DynamicOption(opt.getName(), opt.isRequired());
             options.add(dynOption);
         }
         return options;
