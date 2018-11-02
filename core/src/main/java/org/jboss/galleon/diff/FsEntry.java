@@ -48,6 +48,7 @@ public class FsEntry {
     final boolean dir;
     private byte[] hash;
     private String relativePath;
+    private boolean suppressed;
 
     private Map<String, FsEntry> children = Collections.emptyMap();
 
@@ -169,6 +170,14 @@ public class FsEntry {
         return hash;
     }
 
+    public void suppress() {
+        suppressed = true;
+    }
+
+    public boolean isSuppressed() {
+        return suppressed;
+    }
+
     public void dumpAsTree(PrintStream out) throws IOException {
         dumpAsTree(children.isEmpty() ? Collections.emptyList() : new ArrayList<>(), out);
     }
@@ -187,6 +196,10 @@ public class FsEntry {
         out.print(name);
         if(dir) {
             out.print('/');
+        }
+        if(suppressed) {
+            out.println("(suppressed)");
+            return;
         }
         out.println();
 

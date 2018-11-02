@@ -14,23 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jboss.galleon.plugin;
 
-import java.nio.file.Path;
-
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.diff.ProvisioningDiffResult;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.diff.ProvisioningDiffProvider;
 
 /**
- * Diff plug-in can be referenced from a feature-pack configuration.
  *
- * Examples of such diff-provisioning tasks could be:
- * - adjust the configuration;
- *
- * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
+ * @author Alexey Loubyansky
  */
 public interface DiffPlugin extends ProvisioningPlugin {
 
-    ProvisioningDiffResult computeDiff(ProvisioningRuntime runtime, Path customizedInstallation, Path target) throws ProvisioningException;
+    void diff(ProvisioningDiffProvider diffProvider) throws ProvisioningException;
 }

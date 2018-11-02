@@ -85,6 +85,14 @@ public class FsDiff {
         }
     }
 
+    public FsEntry getOriginalRoot() {
+        return original;
+    }
+
+    public FsEntry getOtherRoot() {
+        return other;
+    }
+
     public boolean isEmpty() {
         return modified.isEmpty() && added.isEmpty() && removed.isEmpty();
     }
@@ -99,6 +107,10 @@ public class FsDiff {
 
     public Set<String> getAddedPaths() {
         return added.keySet();
+    }
+
+    public FsEntry getAddedEntry(String relativePath) {
+        return added.get(relativePath);
     }
 
     public boolean hasRemovedEntries() {
@@ -125,8 +137,25 @@ public class FsDiff {
         return modified.keySet();
     }
 
-    public boolean matches(FsDiff other) {
-        return false;
+    public FsEntry[] getModifiedEntry(String relativePath) {
+        return modified.get(relativePath);
+    }
+
+    public void suppress(String relativePath) throws ProvisioningException {
+        final FsEntry[] fsEntries = modified.get(relativePath);
+        if(fsEntries != null) {
+            fsEntries[0].suppress();
+            fsEntries[1].suppress();
+            return;
+        }
+        FsEntry fsEntry = added.get(relativePath);
+        if(fsEntry == null) {
+            fsEntry = removed.get(relativePath);
+            if(fsEntry == null) {
+                throw new ProvisioningException("Failed to locate " + relativePath + " in the diff");
+            }
+        }
+        fsEntry.suppress();
     }
 
     @Override

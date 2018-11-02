@@ -634,6 +634,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         configBuilder.removeFeaturePackDep(fpid.getLocation());
         if (!configBuilder.hasFeaturePackDeps()) {
             configBuilder.clearFeaturePackDeps();
+            configBuilder.clearOptions();
         }
         return configBuilder;
     }

@@ -96,7 +96,6 @@ public class XmlParsers {
         new FeaturePackXmlParser10().plugin(this);
         new FeaturePackXmlParser20().plugin(this);
         new FeatureSpecXmlParser10().plugin(this);
-        new FileSystemDiffResultParser10().plugin(this);
         new PackageXmlParser10().plugin(this);
         new PackageXmlParser20().plugin(this);
         new ProvisionedStateXmlParser20().plugin(this);

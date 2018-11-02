@@ -29,8 +29,8 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
-import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.plugin.InstallPlugin;
+import org.jboss.galleon.plugin.DiffPlugin;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**

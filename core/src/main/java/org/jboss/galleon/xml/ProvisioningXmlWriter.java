@@ -61,7 +61,7 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
             final ElementNode transitives = addElement(install, Element.TRANSITIVE);
             for(FeaturePackConfig dep : config.getTransitiveDeps()) {
                 writeFeaturePackConfig(addElement(transitives, Element.FEATURE_PACK),
-                        config.getUserConfiguredSource(dep.getLocation()), dep,
+                        config.getUserConfiguredLocation(dep.getLocation()), dep,
                         config.originOf(dep.getLocation().getProducer()));
             }
         }
@@ -69,7 +69,7 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         if (config.hasFeaturePackDeps()) {
             for(FeaturePackConfig fp : config.getFeaturePackDeps()) {
                 final ElementNode fpElement = addElement(install, Element.FEATURE_PACK);
-                writeFeaturePackConfig(fpElement, config.getUserConfiguredSource(fp.getLocation()),
+                writeFeaturePackConfig(fpElement, config.getUserConfiguredLocation(fp.getLocation()),
                         fp, config.originOf(fp.getLocation().getProducer()));
             }
         }
