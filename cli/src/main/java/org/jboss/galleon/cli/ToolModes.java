@@ -109,7 +109,7 @@ public class ToolModes {
         nominalCommands.add(new InstallCommand(pmSession).createCommand());
         nominalCommands.add(new ProvisionCommand(pmSession).createCommand());
         nominalCommands.add(containerBuilder.create(new StateCommand()));
-        nominalCommands.add(containerBuilder.create(new UndoCommand()));
+        nominalCommands.add(new UndoCommand(pmSession).createCommand());
         nominalCommands.add(new UninstallCommand(pmSession).createCommand());
         nominalCommands.add(new UpdateCommand(pmSession).createCommand());
         nominalCommands.add(containerBuilder.create(new Ls()));

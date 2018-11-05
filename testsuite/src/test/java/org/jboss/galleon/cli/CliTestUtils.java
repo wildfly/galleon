@@ -45,6 +45,7 @@ public abstract class CliTestUtils {
 
     public static final String PRODUCER1 = "producer1";
     public static final String PRODUCER2 = "producer2";
+    public static final String PRODUCER3 = "producer3";
     public static final String UNIVERSE_NAME = "cli-test-universe";
 
     public static ProvisioningConfig getConfig(Path dir) throws ProvisioningException {
@@ -86,7 +87,7 @@ public abstract class CliTestUtils {
                 producer, "1", null, version);
         creator.newFeaturePack(fp1.getFPID())
                 .newPackage("p1", true)
-                .writeContent("fp1/p1.txt", "fp1 p1");
+                .writeContent(producer + "/p1.txt", "fp1 p1");
         creator.install();
     }
 

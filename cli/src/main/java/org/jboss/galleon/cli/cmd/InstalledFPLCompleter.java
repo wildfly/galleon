@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.jboss.galleon.cli.AbstractCompleter;
@@ -32,13 +33,15 @@ public class InstalledFPLCompleter extends AbstractCompleter {
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        List<FeaturePackLocation> locations = getInstallationLocations(completerInvocation, false, true);
         CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
+        Path installation = cmd.getInstallationDirectory(completerInvocation.
+                getAeshContext());
+        List<FeaturePackLocation> locations = getInstallationLocations(installation,
+                completerInvocation.getPmSession(), false, true);
         List<String> items = new ArrayList<>();
         for (FeaturePackLocation loc : locations) {
             items.add(completerInvocation.getPmSession().
-                    getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
-                            getAeshContext()), loc).toString());
+                    getExposedLocation(installation, loc).toString());
         }
         return items;
     }

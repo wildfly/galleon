@@ -17,6 +17,7 @@
 package org.jboss.galleon.cli.cmd.maingrp;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.UniverseManager.UniverseVisitor;
+import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.tracking.ProgressTrackers;
@@ -129,6 +131,15 @@ public class FindCommand extends PmSessionCommand {
             }
             ProgressTracker<FPID> tracker = track;
             invoc.getPmSession().unregisterTrackers();
+
+            // Search for an installation in the context
+            Path installation = null;
+            try {
+                installation = Util.lookupInstallationDir(invoc.getConfiguration().getAeshContext(), null);
+            } catch (ProvisioningException ex) {
+                // XXX OK, no installation.
+            }
+            Path finalPath = installation;
             try {
                 Comparator<Result> locComparator = new Comparator<Result>() {
                     @Override
@@ -153,7 +164,7 @@ public class FindCommand extends PmSessionCommand {
                         // Universe could have been set in the pattern, matches on
                         // the canonical and exposed (named universe).
                         FeaturePackLocation exposedLoc = invoc.getPmSession().
-                                getExposedLocation(null, loc);
+                                getExposedLocation(finalPath, loc);
                         boolean canonicalMatch = compiledPattern.matcher(loc.toString()).matches();
                         boolean exposedMatch = compiledPattern.matcher(exposedLoc.toString()).matches();
                         // Frequency has been set, only matches FPL that contains a frequency.
@@ -228,7 +239,7 @@ public class FindCommand extends PmSessionCommand {
 
                 if (fromUniverse == null) {
                     invoc.getPmSession().getUniverse().visitAllUniverses(visitor,
-                            true);
+                            true, finalPath);
                 } else {
                     invoc.getPmSession().getUniverse().visitUniverse(UniverseSpec.
                             fromString(fromUniverse), visitor, true);

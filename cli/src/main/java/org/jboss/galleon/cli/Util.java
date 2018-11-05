@@ -16,7 +16,10 @@
  */
 package org.jboss.galleon.cli;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -37,6 +40,9 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.util.PathsUtils;
 
 
 /**
@@ -82,8 +88,29 @@ public class Util {
         return Parser.formatDisplayList(array, height, width);
     }
 
-    public static Path resolvePath(AeshContext ctx, String path) {
+    public static Path resolvePath(AeshContext ctx, String path) throws IOException {
         Path workDir = PmSession.getWorkDir(ctx);
-        return Paths.get(FileConverter.translatePath(workDir.toString(), path));
+        // Must be canonical due to deletion, eg:current dir is inside installation,
+        // delete .., when current dir is deleted, absolute path <abs path to dir>/.. becomes invalid
+        return Paths.get(new File(FileConverter.translatePath(workDir.toString(), path)).getCanonicalPath());
+    }
+
+    public static Path lookupInstallationDir(AeshContext ctx, Path install) throws ProvisioningException {
+        if (install != null) {
+            if (Files.exists(PathsUtils.getProvisioningXml(install))) {
+                return install;
+            } else {
+                throw new ProvisioningException(Errors.homeDirNotUsable(install));
+            }
+        } else {
+            Path currentDir = PmSession.getWorkDir(ctx);
+            while (currentDir != null) {
+                if (Files.exists(PathsUtils.getProvisioningXml(currentDir))) {
+                    return currentDir;
+                }
+                currentDir = currentDir.getParent();
+            }
+            throw new ProvisioningException(Errors.homeDirNotUsable(PmSession.getWorkDir(ctx)));
+        }
     }
 }

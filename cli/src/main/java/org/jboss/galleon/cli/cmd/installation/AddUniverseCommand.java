@@ -24,9 +24,10 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.state.StateAddUniverseCommand;
 
 /**
@@ -44,7 +45,8 @@ public class AddUniverseCommand extends StateAddUniverseCommand {
     protected void runCommand(PmCommandInvocation commandInvocation) throws CommandExecutionException {
         try {
             commandInvocation.getPmSession().getUniverse().
-                    addUniverse(targetDirArg == null ? null : targetDirArg.toPath(),
+                    addUniverse(Util.lookupInstallationDir(commandInvocation.getConfiguration().getAeshContext(),
+                            targetDirArg == null ? null : targetDirArg.toPath()),
                             name, factory, location);
         } catch (IOException | ProvisioningException ex) {
             throw new CommandExecutionException(commandInvocation.getPmSession(), CliErrors.addUniverseFailed(), ex);

@@ -30,6 +30,7 @@ import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.validator.CommandValidatorException;
 import org.aesh.command.validator.OptionValidatorException;
 import org.jboss.galleon.cli.config.Configuration;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.IoUtils;
 
 /**
@@ -44,14 +45,19 @@ public class CliWrapper {
     private final File mvnRepo;
     private final CommandRuntime runtime;
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
     public CliWrapper() throws Exception {
+        this(null);
+    }
+
+    public CliWrapper(UniverseSpec builtin) throws Exception {
         userHome = System.getProperty("user.home");
         testUserHome = Files.createTempDirectory("galleon-cli-user-home-").toFile();
         System.setProperty("user.home", testUserHome.getAbsolutePath());
         // This is the default repository if no repository has been set.
         mvnRepo = new File(testUserHome, ".m2" + File.separator + "repository");
         mvnRepo.mkdirs();
-        session = new PmSession(Configuration.parse());
+        session = new PmSession(Configuration.parse(), builtin);
         runtime = CliMain.newRuntime(session, new PrintStream(out, false, StandardCharsets.UTF_8.name()));
         session.getUniverse().disableBackgroundResolution();
         session.throwException();

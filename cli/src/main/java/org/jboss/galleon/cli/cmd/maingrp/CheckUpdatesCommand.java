@@ -16,14 +16,12 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.impl.internal.ParsedCommand;
 import org.aesh.command.impl.internal.ParsedOption;
 import org.aesh.command.option.Option;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
@@ -32,9 +30,11 @@ import org.jboss.galleon.cli.cmd.InstalledProducerCompleter;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmOptionActivator;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
 import org.jboss.galleon.cli.cmd.Table.Cell;
+import org.jboss.galleon.cli.cmd.installation.AbstractInstallationCommand;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.FeaturePackUpdatePlan;
@@ -43,14 +43,13 @@ import org.jboss.galleon.layout.ProvisioningPlan;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.util.PathsUtils;
 
 /**
  *
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "check-updates", description = HelpDescriptions.CHECK_UPDATES)
-public class CheckUpdatesCommand extends AbstractProvisioningCommand {
+public class CheckUpdatesCommand extends AbstractInstallationCommand {
 
     public static class FPOptionActivator extends PmOptionActivator {
 
@@ -96,7 +95,7 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         try {
-            ProvisioningManager mgr = getManager(session.getPmSession(), false);
+            ProvisioningManager mgr = getManager(session.getPmSession());
 
             Updates updates = getUpdatesTable(mgr, session, includeAll, fp);
             if (updates.plan.isEmpty()) {
@@ -112,10 +111,8 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
 
     }
 
-    static Updates getUpdatesTable(ProvisioningManager mgr, PmCommandInvocation session, boolean includeAll, String fp) throws ProvisioningException, CommandExecutionException {
-        if (!Files.exists(PathsUtils.getProvisioningXml(mgr.getInstallationHome()))) {
-            throw new CommandExecutionException(Errors.homeDirNotUsable(mgr.getInstallationHome()));
-        }
+    static Updates getUpdatesTable(ProvisioningManager mgr, PmCommandInvocation session,
+            boolean includeAll, String fp) throws ProvisioningException, CommandExecutionException {
         if (includeAll && fp != null) {
             throw new CommandExecutionException(CliErrors.onlyOneOptionOf(FP_OPTION_NAME,
                     ALL_DEPENDENCIES_OPTION_NAME));
@@ -216,5 +213,10 @@ public class CheckUpdatesCommand extends AbstractProvisioningCommand {
                 }
             }
         }
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.PROVISIONING;
     }
 }

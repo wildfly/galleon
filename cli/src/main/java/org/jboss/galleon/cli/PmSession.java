@@ -278,13 +278,21 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         this(config, true);
     }
 
+    public PmSession(Configuration config, UniverseSpec builtin) throws Exception {
+        this(config, true, builtin);
+    }
+
     public PmSession(Configuration config, boolean interactive) throws Exception {
+        this(config, interactive, null);
+    }
+
+    public PmSession(Configuration config, boolean interactive, UniverseSpec builtin) throws Exception {
         this.config = config;
         this.mavenListener = new MavenListener();
         this.maven = new CliMavenArtifactRepositoryManager(config.getMavenConfig(),
                 mavenListener);
         UniverseResolver universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
-        universe = new UniverseManager(this, config, maven, universeResolver);
+        universe = new UniverseManager(this, config, maven, universeResolver, builtin);
         this.interactive = interactive;
         cacheManager = new FeaturePackCacheManager(config.getLayoutCache(), policy);
         if (interactive) {

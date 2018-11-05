@@ -37,7 +37,7 @@ import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
 import org.jboss.galleon.cli.cmd.FPLocationCompleter;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.VERBOSE_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.universe.FeaturePackLocation;
 

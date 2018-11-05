@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +38,7 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.InstalledFPLCompleter;
 import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.PluginResolver;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -74,7 +75,7 @@ public class UninstallCommand extends AbstractProvisionWithPlugins {
     protected void doRunCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
         try {
             getManager(session).uninstall(getFPID(session.getPmSession()), options);
-        } catch (ProvisioningException e) {
+        } catch (ProvisioningException | IOException e) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.uninstallFailed(), e);
         }
     }

@@ -18,19 +18,18 @@ package org.jboss.galleon.cli.cmd.installation;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import org.aesh.command.option.Option;
 import org.aesh.readline.AeshContext;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.PmSessionCommand;
+import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureContainers;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -49,17 +48,17 @@ public abstract class AbstractInstallationCommand extends PmSessionCommand imple
     protected File targetDirArg;
 
     protected ProvisioningManager getManager(PmSession session) throws ProvisioningException {
-        Path install = getInstallationDirectory(session.getAeshContext());
-        if (!Files.exists(install)) {
-            throw new ProvisioningException(Errors.homeDirNotUsable(install));
-        }
-        return session.newProvisioningManager(install, false);
+        return session.newProvisioningManager(Util.lookupInstallationDir(session.getAeshContext(),
+                targetDirArg == null ? null : targetDirArg.toPath()), false);
     }
 
     @Override
     public Path getInstallationDirectory(AeshContext context) {
-        return targetDirArg == null ? PmSession.getWorkDir(context)
-                : targetDirArg.toPath();
+        try {
+            return Util.lookupInstallationDir(context, targetDirArg == null ? null : targetDirArg.toPath());
+        } catch (ProvisioningException ex) {
+            return null;
+        }
     }
 
     public FeatureContainer getFeatureContainer(PmSession session, ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException,
@@ -81,14 +80,5 @@ public abstract class AbstractInstallationCommand extends PmSessionCommand imple
             }
         }
         return container;
-    }
-
-    protected ProvisioningConfig getProvisioningConfig(PmSession session) throws ProvisioningException, CommandExecutionException {
-        ProvisioningManager manager = getManager(session);
-
-        if (manager.getProvisionedState() == null) {
-            throw new CommandExecutionException("Specified directory doesn't contain an installation");
-        }
-        return manager.getProvisioningConfig();
     }
 }
