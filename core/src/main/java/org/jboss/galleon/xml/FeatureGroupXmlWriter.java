@@ -150,13 +150,13 @@ public class FeatureGroupXmlWriter extends BaseXmlWriter<FeatureGroup> {
                     addAttribute(includeE, Attribute.PARENT_REF, fc.getParentRef());
                 }
                 if(fc != null) {
-                    addFeatureConfigBody(includeE, fc, ns);
+                    addFeatureConfigBody(includeE, entry.getKey(), fc, ns);
                 }
             }
         }
     }
 
-    private static void addFeatureConfigBody(ElementNode fcE, FeatureConfig fc, String ns) {
+    private static void addFeatureConfigBody(ElementNode fcE, FeatureId id, FeatureConfig fc, String ns) {
         if(fc.hasFeatureDeps()) {
             for(FeatureDependencySpec depSpec : fc.getFeatureDeps()) {
                 final ElementNode depE = addElement(fcE, Element.DEPENDS.getLocalName(), ns);
@@ -171,8 +171,12 @@ public class FeatureGroupXmlWriter extends BaseXmlWriter<FeatureGroup> {
         }
         if(fc.hasParams()) {
             for(Map.Entry<String, String> param : fc.getParams().entrySet()) {
+                final String name = param.getKey();
+                if(id != null && id.hasParam(name)) {
+                    continue;
+                }
                 final ElementNode paramE = addElement(fcE, Element.PARAM.getLocalName(), ns);
-                addAttribute(paramE, Attribute.NAME, param.getKey());
+                addAttribute(paramE, Attribute.NAME, name);
                 addAttribute(paramE, Attribute.VALUE, param.getValue());
             }
         }
@@ -197,6 +201,6 @@ public class FeatureGroupXmlWriter extends BaseXmlWriter<FeatureGroup> {
         if(fc.getParentRef() != null) {
             addAttribute(fcE, Attribute.PARENT_REF, fc.getParentRef());
         }
-        addFeatureConfigBody(fcE, fc, ns);
+        addFeatureConfigBody(fcE, null, fc, ns);
     }
 }

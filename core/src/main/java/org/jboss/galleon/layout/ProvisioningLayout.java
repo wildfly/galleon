@@ -1109,7 +1109,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     private void initPluginOptions(Map<String, String> extraOptions, boolean cleanupConfigOptions) throws ProvisioningException {
-        options = config.getPluginOptions();
+        options = config.getOptions();
         if(!extraOptions.isEmpty()) {
             options = CollectionUtils.putAll(CollectionUtils.clone(options), extraOptions);
         }
@@ -1143,7 +1143,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 final Iterator<String> i = nonRecognized.iterator();
                 while(i.hasNext()) {
                     final String optionName = i.next();
-                    if(!config.hasPluginOption(optionName)) {
+                    if(!config.hasOption(optionName)) {
                         continue;
                     }
                     if(configBuilder == null) {
@@ -1171,10 +1171,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 if(option.isPersistent()) {
                     configBuilder.addOption(optionName, value);
                 } else if (value == null) {
-                    if (config.getPluginOption(optionName) != null) {
+                    if (config.getOption(optionName) != null) {
                         configBuilder.removeOption(optionName);
                     }
-                } else if (!value.equals(config.getPluginOption(optionName))) {
+                } else if (!value.equals(config.getOption(optionName))) {
                     configBuilder.removeOption(optionName);
                 }
             }
@@ -1202,7 +1202,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             // doesn't override a persistent one
             if (existing != null && existing.isPersistent() && !pluginOption.isPersistent()) {
                 recognizedOptions.put(existing.getName(), existing);
-            } else if (pluginOption.isPersistent() || extraOptions.containsKey(optionName) && config.hasPluginOption(optionName)) {
+            } else if (pluginOption.isPersistent() || extraOptions.containsKey(optionName) && config.hasOption(optionName)) {
                 overridenOptions.add(pluginOption);
             }
         }

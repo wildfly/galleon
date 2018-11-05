@@ -137,6 +137,10 @@ public class FeatureId {
         return params.keySet();
     }
 
+    public boolean hasParam(String name) {
+        return params.containsKey(name);
+    }
+
     public String getParam(String name) {
         return params.get(name);
     }

@@ -76,8 +76,8 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
 
         writeConfigCustomizations(install, Element.INSTALLATION.getNamespace(), config);
 
-        if(config.hasPluginOptions()) {
-            final Map<String, String> pluginOptions = config.getPluginOptions();
+        if(config.hasOptions()) {
+            final Map<String, String> pluginOptions = config.getOptions();
             final String[] names = pluginOptions.keySet().toArray(new String[pluginOptions.size()]);
             Arrays.sort(names);
             final ElementNode optionsE = addElement(install, Element.OPTIONS);

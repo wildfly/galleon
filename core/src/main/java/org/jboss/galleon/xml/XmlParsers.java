@@ -100,6 +100,7 @@ public class XmlParsers {
         new PackageXmlParser20().plugin(this);
         new ProvisionedStateXmlParser20().plugin(this);
         new ProvisionedStateXmlParser30().plugin(this);
+        new ProvisionedConfigXmlParser30().plugin(this);
         new ProvisioningXmlParser20().plugin(this);
         new ProvisioningXmlParser30().plugin(this);
     }

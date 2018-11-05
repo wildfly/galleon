@@ -39,7 +39,7 @@ import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningPlan;
-import org.jboss.galleon.plugin.DiffPlugin;
+import org.jboss.galleon.plugin.StateDiffPlugin;
 import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
@@ -632,14 +632,14 @@ public class ProvisioningManager implements AutoCloseable {
         if(diff.isEmpty()) {
             return null;
         }
-        try (ProvisioningLayout<?> layout = layoutFactory.newConfigLayout(config)) {
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = layoutFactory.newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             final ProvisioningDiffProvider diffProvider = ProvisioningDiffProvider.newInstance(layout, getProvisionedState(), diff, log);
-            layout.visitPlugins(new FeaturePackPluginVisitor<DiffPlugin>() {
+            layout.visitPlugins(new FeaturePackPluginVisitor<StateDiffPlugin>() {
                 @Override
-                public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
+                public void visitPlugin(StateDiffPlugin plugin) throws ProvisioningException {
                     plugin.diff(diffProvider);
                 }
-            }, DiffPlugin.class);
+            }, StateDiffPlugin.class);
             return diffProvider;
         }
     }
