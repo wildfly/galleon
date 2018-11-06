@@ -40,6 +40,7 @@ import org.jboss.galleon.cli.cmd.maingrp.LayersConfigBuilder;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.LAYERS;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.PATCHES;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.UNIVERSES;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureContainer;
 import org.jboss.galleon.cli.model.FeatureInfo;
@@ -69,6 +70,7 @@ import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.UniverseSpec;
 
 /**
  *
@@ -83,6 +85,7 @@ public class StateInfoUtil {
     public static final String NO_LAYERS = "No layers.";
     public static final String NO_OPTIONS = "No options.";
     public static final String NO_PATCHES = "No patches.";
+    public static final String NO_UNIVERSES = "No custom universes.";
 
     public static void printContentPath(PmCommandInvocation session, FeatureContainer fp, String path)
             throws ProvisioningException, PathParserException, PathConsumerException, IOException {
@@ -559,7 +562,10 @@ public class StateInfoUtil {
                             if (displayLayers(invoc, layout)) {
                                 invoc.println("");
                             }
-                            displayOptions(invoc, layout);
+                            if (displayOptions(invoc, layout)) {
+                                invoc.println("");
+                            }
+                            displayUniverses(invoc, config);
                             break;
                         }
                         case CONFIGS: {
@@ -605,6 +611,15 @@ public class StateInfoUtil {
                                 invoc.print(patches);
                             } else {
                                 invoc.println(NO_PATCHES);
+                            }
+                            break;
+                        }
+                        case UNIVERSES: {
+                            String universes = buildUniverses(config);
+                            if (universes != null) {
+                                invoc.print(universes);
+                            } else {
+                                invoc.println(NO_UNIVERSES);
                             }
                             break;
                         }
@@ -683,12 +698,40 @@ public class StateInfoUtil {
         return buildOptions(PluginResolver.resolvePlugins(layout));
     }
 
-    private static void displayOptions(PmCommandInvocation commandInvocation,
+    private static boolean displayOptions(PmCommandInvocation commandInvocation,
             ProvisioningLayout<FeaturePackLayout> layout) throws ProvisioningException {
         String str = buildOptions(layout);
         if (str != null) {
             commandInvocation.print(str);
         }
+        return str != null;
+    }
+
+    private static String buildUniverses(ProvisioningConfig config) throws ProvisioningException {
+        UniverseSpec defaultUniverse = config.getDefaultUniverse();
+        StringBuilder builder = new StringBuilder();
+        if (defaultUniverse != null || !config.getUniverseNamedSpecs().isEmpty()) {
+            builder.append("Universes").append(Config.getLineSeparator());
+            Table t = new Table(Headers.NAME, Headers.UNIVERSE_FACTORY, Headers.UNIVERSE_LOCATION);
+            if (defaultUniverse != null) {
+                t.addLine("<default>", defaultUniverse.getFactory(), defaultUniverse.getLocation());
+            }
+            for (Entry<String, UniverseSpec> entry : config.getUniverseNamedSpecs().entrySet()) {
+                t.addLine(entry.getKey(), entry.getValue().getFactory(), entry.getValue().getLocation());
+            }
+            t.sort(Table.SortType.ASCENDANT);
+            builder.append(t.build());
+        }
+        return builder.length() == 0 ? null : builder.toString();
+    }
+
+    private static boolean displayUniverses(PmCommandInvocation commandInvocation,
+            ProvisioningConfig config) throws ProvisioningException {
+        String str = buildUniverses(config);
+        if (str != null) {
+            commandInvocation.print(str);
+        }
+        return str != null;
     }
 
 }

@@ -39,6 +39,8 @@ public class Headers {
     public static final String PATCH_FOR = "Patch For";
     public static final String PRODUCT = "Product";
     public static final String REQUIRED = "Required";
+    public static final String UNIVERSE_FACTORY = "Factory";
+    public static final String UNIVERSE_LOCATION = "Location";
     public static final String UPDATE = "Update";
     public static final String UPDATE_CHANNEL = "Update Channel";
     public static final String VALUE = "Value";
