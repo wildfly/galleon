@@ -111,8 +111,13 @@ public abstract class CliTestUtils {
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("layerC-" + producer)
                         .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerD-" + producer)
+                        .build())
                 .addConfig(ConfigModel.builder("testmodel", "config1.xml").
                         includeLayer("layerB-" + producer).build(), true)
+                .addConfig(ConfigModel.builder("testmodel", "config2.xml").
+                        includeLayer("layerD-" + producer).build(), true)
                 .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1");
         creator.install();

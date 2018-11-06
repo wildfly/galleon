@@ -57,12 +57,12 @@ public class LayersConfigBuilder {
 
         this.model = getModel(model, layersMap);
         if (this.model == null) {
-            throw new ProvisioningException(CliErrors.unknownModel(model));
+            throw new ProvisioningException(CliErrors.noLayersForModel(model));
         }
 
         Map<String, Set<String>> map = layersMap.get(this.model);
         if (map == null) {
-            throw new ProvisioningException(CliErrors.unknownModel(this.model));
+            throw new ProvisioningException(CliErrors.noLayersForModel(this.model));
         }
         Set<String> actualLayers = map.keySet();
         for (String l : layers) {
@@ -75,6 +75,9 @@ public class LayersConfigBuilder {
 
     private static String getModel(String model, Map<String, Map<String, Set<String>>> layersMap) throws ProvisioningException {
         if (model == null) {
+            if (layersMap.isEmpty()) {
+                throw new ProvisioningException(CliErrors.noLayers());
+            }
             if (layersMap.size() != 1) {
                 throw new ProvisioningException(CliErrors.tooMuchModels());
             }

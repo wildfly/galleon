@@ -99,7 +99,9 @@ public interface HelpDescriptions {
     String INSTALL = "Installs specified feature pack";
     String INSTALLATION = "Contains commands to manage existing installations";
     String INSTALLATION_DIRECTORY = "Installation directory";
-    String INSTALL_CONFIG = "The newly created configuration name.";
+    String INSTALL_CONFIG = "A <configuration model>/<configuration name> to configure configuration generated with layers. "
+            + "The configuration model is optional, it is retrieved from the feature-pack content";
+    String INSTALL_DEFAULT_CONFIGS = "A comma separated list of <configuration model>/<configuration name>";
     String INSTALL_IN_UNIVERSE = "Install feature pack to universe. Optional, it is installed by default";
     String INSTALL_LAYERS = "Comma seperated list of layers";
     String INSTALL_MODEL = "The layers model";

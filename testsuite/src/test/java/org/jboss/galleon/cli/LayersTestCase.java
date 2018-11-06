@@ -108,17 +108,26 @@ public class LayersTestCase {
         assertTrue(cli.getOutput(), cli.getOutput().contains("layerC-" + PRODUCER1));
         assertFalse(cli.getOutput(), cli.getOutput().contains("base-" + PRODUCER1));
 
-        Path path2 = cli.newDir("prod2", false);
+        // Multiple configurations are invalid with layers
         try {
-            cli.execute("install " + prod1 + " --dir=" + path2 + " --model=moo "
-                    + "--config=foobar.xml --layers=" + "layerB-" + PRODUCER1);
+            cli.execute("install " + prod1 + " --dir=" + path
+                    + " --config=testmodel/foobar.xml,testmodel/foobar2.xml, --layers=" + "layerB-" + PRODUCER1);
             throw new Exception("should have failed");
         } catch (CommandException ex) {
             // XXX OK expected
         }
 
-        cli.execute("install " + prod1 + " --dir=" + path2 + " --model=testmodel "
-                + "--config=foobar.xml --layers=" + "layerB-" + PRODUCER1);
+        Path path2 = cli.newDir("prod2", false);
+        try {
+            cli.execute("install " + prod1 + " --dir=" + path2
+                    + " --config=moo/foobar.xml --layers=" + "layerB-" + PRODUCER1);
+            throw new Exception("should have failed");
+        } catch (CommandException ex) {
+            // XXX OK expected
+        }
+
+        cli.execute("install " + prod1 + " --dir=" + path2
+                + " --config=testmodel/foobar.xml --layers=" + "layerB-" + PRODUCER1);
 
         ProvisioningConfig config2 = ProvisioningManager.builder().
                 setInstallationHome(path2).build().getProvisioningConfig();
@@ -134,6 +143,57 @@ public class LayersTestCase {
         assertFalse(cli.getOutput(), cli.getOutput().contains("layerA-" + PRODUCER1));
         assertFalse(cli.getOutput(), cli.getOutput().contains("layerC-" + PRODUCER1));
         assertFalse(cli.getOutput(), cli.getOutput().contains("base-" + PRODUCER1));
+
+        // Default model and config names
+        Path path3 = cli.newDir("prod3", false);
+        cli.execute("install " + prod1 + " --dir=" + path3
+                + " --config=foobar.xml --layers=" + "layerB-" + PRODUCER1);
+        cli.execute("get-info --dir=" + path3 + " --type=configs");
+        assertTrue(cli.getOutput(), cli.getOutput().contains("testmodel"));
+        assertTrue(cli.getOutput(), cli.getOutput().contains("foobar.xml"));
+        config = ProvisioningManager.builder().
+                setInstallationHome(path3).build().getProvisioningConfig();
+        assertTrue(config.getDefinedConfigs().size() == 1);
+        conf = config.getDefinedConfig(new ConfigId("testmodel", "foobar.xml"));
+        assertNotNull(conf);
+
+        try {
+            cli.execute("install " + prod1 + " --dir=" + path3
+                    + " --config=foomodel/ --layers=" + "layerB-" + PRODUCER1);
+            throw new Exception("Should have failed");
+        } catch (CommandException ex) {
+            // XXX OK, expected
+        }
+
+        cli.execute("install " + prod1 + " --dir=" + path3
+                + " --config=testmodel/ --layers=" + "layerB-" + PRODUCER1);
+        cli.execute("get-info --dir=" + path3 + " --type=configs");
+        assertTrue(cli.getOutput(), cli.getOutput().contains("testmodel"));
+        assertTrue(cli.getOutput(), cli.getOutput().contains("testmodel.xml"));
+        config = ProvisioningManager.builder().
+                setInstallationHome(path3).build().getProvisioningConfig();
+        assertTrue(config.getDefinedConfigs().size() == 1);
+        conf = config.getDefinedConfig(new ConfigId("testmodel", "testmodel.xml"));
+        assertNotNull(conf);
+
+        //Install a specified config without layers
+        Path path4 = cli.newDir("prod4", false);
+        cli.execute("install " + prod1 + " --dir=" + path4);
+        cli.execute("get-info --dir=" + path4 + " --type=configs");
+        assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
+        assertTrue(cli.getOutput(), cli.getOutput().contains("config2.xml"));
+
+        cli.execute("install " + prod1 + " --dir=" + path4
+                + " --default-configs=testmodel/config1.xml");
+        cli.execute("get-info --dir=" + path4 + " --type=configs");
+        assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
+        assertFalse(cli.getOutput(), cli.getOutput().contains("config2.xml"));
+
+        cli.execute("install " + prod1 + " --dir=" + path4
+                + " --default-configs=testmodel/config1.xml,testmodel/config2.xml");
+        cli.execute("get-info --dir=" + path4 + " --type=configs");
+        assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
+        assertTrue(cli.getOutput(), cli.getOutput().contains("config2.xml"));
     }
 
     protected FeaturePackLocation newFpl(String producer, String channel, String build) {
