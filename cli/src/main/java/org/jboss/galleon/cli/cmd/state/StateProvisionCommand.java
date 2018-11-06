@@ -96,12 +96,12 @@ public class StateProvisionCommand extends AbstractProvisionCommand {
         State state = invoc.getPmSession().getState();
         try {
             getManager(invoc).provision(state.getConfig(), options);
-        } catch (ProvisioningException ex) {
+        } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), ex);
         }
 
         Path home = getInstallationDirectory(invoc.getConfiguration().getAeshContext());
-        if (Files.exists(home)) {
+        if (home != null && Files.exists(home)) {
             try {
                 invoc.println("Installation done in " + home.toFile().getCanonicalPath());
             } catch (IOException ex) {

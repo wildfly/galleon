@@ -140,6 +140,14 @@ public interface CliErrors {
         return failed("Create new state");
     }
 
+    static String noDirectoryProvided() {
+        return "No directory provided";
+    }
+
+    static String notValidInstallation(Path dir) {
+        return dir + " is not a valid installation";
+    }
+
     static String notFile(String absolutePath) {
         return "Not a file: " + absolutePath;
     }

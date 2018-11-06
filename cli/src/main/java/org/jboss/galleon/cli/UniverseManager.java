@@ -30,10 +30,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import javax.xml.stream.XMLStreamException;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
-import static org.jboss.galleon.cli.PmSession.getWorkDir;
+import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.config.Configuration;
 import org.jboss.galleon.cli.config.mvn.MavenConfig;
 import org.jboss.galleon.cli.config.mvn.MavenConfig.MavenChangeListener;
@@ -83,12 +82,13 @@ public class UniverseManager implements MavenChangeListener {
     private boolean bckResolution = true;
 
     UniverseManager(PmSession pmSession, Configuration config, CliMavenArtifactRepositoryManager maven,
-            UniverseResolver universeResolver) throws ProvisioningException {
+            UniverseResolver universeResolver, UniverseSpec builtin) throws ProvisioningException {
         this.pmSession = pmSession;
         config.getMavenConfig().addListener(this);
         UniverseFactoryLoader.getInstance().addArtifactResolver(maven);
         this.universeResolver = universeResolver;
-        builtinUniverseSpec = new UniverseSpec(MavenUniverseFactory.ID, JBOSS_UNIVERSE_GROUP_ID + ":" + JBOSS_UNIVERSE_ARTIFACT_ID);
+        builtinUniverseSpec = builtin == null ? new UniverseSpec(MavenUniverseFactory.ID,
+                JBOSS_UNIVERSE_GROUP_ID + ":" + JBOSS_UNIVERSE_ARTIFACT_ID) : builtin;
     }
 
     public void disableBackgroundResolution() {
@@ -187,12 +187,13 @@ public class UniverseManager implements MavenChangeListener {
     }
 
     private ProvisioningManager getProvisioningManager(Path installation) throws ProvisioningException {
-        Path workDir = installation == null ? getWorkDir(pmSession.getAeshContext())
-                : installation;
-        if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
-            throw new ProvisioningException(Errors.homeDirNotUsable(workDir));
+        if (installation == null) {
+            throw new ProvisioningException(CliErrors.noDirectoryProvided());
         }
-        ProvisioningManager mgr = pmSession.newProvisioningManager(workDir, false);
+        if (!Files.exists(PathsUtils.getProvisioningXml(installation))) {
+            throw new ProvisioningException(CliErrors.notValidInstallation(installation));
+        }
+        ProvisioningManager mgr = pmSession.newProvisioningManager(installation, false);
         return mgr;
     }
 
@@ -250,10 +251,6 @@ public class UniverseManager implements MavenChangeListener {
         if (pmSession.getState() != null) {
             defaultUniverse = pmSession.getState().getConfig().getDefaultUniverse();
         } else {
-            Path workDir = getWorkDir(pmSession.getAeshContext());
-            if (!Files.exists(PathsUtils.getProvisioningXml(workDir))) {
-                return builtinUniverseSpec;
-            }
             try {
                 ProvisioningManager mgr = getProvisioningManager(installation);
                 defaultUniverse = mgr.getProvisioningConfig().getDefaultUniverse();
@@ -284,7 +281,7 @@ public class UniverseManager implements MavenChangeListener {
     }
 
     public UniverseSpec getUniverseSpec(Path installation, String name) {
-        ProvisioningConfig config = null;
+        ProvisioningConfig config;
         if (pmSession.getState() != null) {
             config = pmSession.getState().getConfig();
         } else {
@@ -305,7 +302,7 @@ public class UniverseManager implements MavenChangeListener {
     }
 
     public void visitAllUniverses(UniverseVisitor visitor,
-            boolean allBuilds) {
+            boolean allBuilds, Path installation) {
         try {
             visit(visitor, getUniverse(builtinUniverseSpec), builtinUniverseSpec, allBuilds);
         } catch (ProvisioningException ex) {
@@ -319,9 +316,9 @@ public class UniverseManager implements MavenChangeListener {
         } catch (ProvisioningException ex) {
             visitor.exception(defaultUniverse, ex);
         }
-        Set<String> universes = getUniverseNames(null);
+        Set<String> universes = getUniverseNames(installation);
         for (String u : universes) {
-            UniverseSpec universeSpec = getUniverseSpec(null, u);
+            UniverseSpec universeSpec = getUniverseSpec(installation, u);
             try {
                 visit(visitor, getUniverse(universeSpec), universeSpec, allBuilds);
             } catch (ProvisioningException ex) {

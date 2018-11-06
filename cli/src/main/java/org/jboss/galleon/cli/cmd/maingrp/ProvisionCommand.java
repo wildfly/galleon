@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -98,8 +99,12 @@ public class ProvisionCommand extends AbstractProvisionCommand {
     protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
         String filePath = getFile();
         if (filePath != null) {
-            if (!Files.exists(getAbsolutePath(filePath, invoc.getConfiguration().getAeshContext()))) {
-                throw new CommandExecutionException(filePath + " doesn't exist");
+            try {
+                if (!Files.exists(getAbsolutePath(filePath, invoc.getConfiguration().getAeshContext()))) {
+                    throw new CommandExecutionException(filePath + " doesn't exist");
+                }
+            } catch (IOException ex) {
+                throw new CommandExecutionException(ex.getMessage());
             }
         }
     }
@@ -119,13 +124,13 @@ public class ProvisionCommand extends AbstractProvisionCommand {
         if (file == null) {
             throw new CommandExecutionException("No provisioning file provided.");
         }
-        final Path provisioningFile = getAbsolutePath(file, invoc.getConfiguration().getAeshContext());
-        if (!Files.exists(provisioningFile)) {
-            throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
-        }
         try {
+            final Path provisioningFile = getAbsolutePath(file, invoc.getConfiguration().getAeshContext());
+            if (!Files.exists(provisioningFile)) {
+                throw new CommandExecutionException("Failed to locate provisioning file " + provisioningFile.toAbsolutePath());
+            }
             getManager(invoc).provision(provisioningFile, options);
-        } catch (ProvisioningException e) {
+        } catch (ProvisioningException | IOException e) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.provisioningFailed(), e);
         }
     }

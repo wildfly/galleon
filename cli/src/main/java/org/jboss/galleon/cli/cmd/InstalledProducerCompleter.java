@@ -24,6 +24,7 @@ import java.util.List;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.PmCompleterInvocation;
+import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -38,8 +39,12 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        List<FeaturePackLocation> locations = getInstallationLocations(completerInvocation, true, false);
         CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
+        Path installation = cmd.getInstallationDirectory(completerInvocation.
+                getAeshContext());
+        List<FeaturePackLocation> locations = getInstallationLocations(installation,
+                completerInvocation.getPmSession(), true, false);
+
         List<String> items = new ArrayList<>();
         String trimed = completerInvocation.getGivenCompleteValue().trim();
         List<String> lst = trimed.isEmpty() ? Collections.emptyList()
@@ -51,8 +56,7 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
             // List of specified locations.
             for (String s : lst) {
                 specified.add(completerInvocation.getPmSession().
-                        getResolvedLocation(cmd.getInstallationDirectory(completerInvocation.
-                                getAeshContext()), s));
+                        getResolvedLocation(installation, s));
             }
             for (FeaturePackLocation loc : locations) {
                 boolean found = false;
@@ -65,8 +69,7 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
                 }
                 if (!found) {
                     items.add(completerInvocation.getPmSession().
-                            getExposedLocation(cmd.getInstallationDirectory(completerInvocation.
-                                    getAeshContext()), loc).getProducer().toString());
+                            getExposedLocation(installation, loc).getProducer().toString());
                 }
             }
         } catch (Exception ex) {
@@ -76,14 +79,12 @@ public class InstalledProducerCompleter extends AbstractCommaSeparatedCompleter 
         return items;
     }
 
-    public static List<FeaturePackLocation> getInstallationLocations(PmCompleterInvocation completerInvocation, boolean transitive, boolean patches) {
-        CommandWithInstallationDirectory cmd = (CommandWithInstallationDirectory) completerInvocation.getCommand();
-        Path currentDir = cmd.getInstallationDirectory(completerInvocation.getAeshContext());
+    public static List<FeaturePackLocation> getInstallationLocations(Path installation, PmSession session, boolean transitive, boolean patches) {
         List<FeaturePackLocation> items = new ArrayList<>();
         try {
-            PathsUtils.assertInstallationDir(currentDir);
-            ProvisioningManager mgr = completerInvocation.getPmSession().
-                    newProvisioningManager(currentDir, false);
+            PathsUtils.assertInstallationDir(installation);
+            ProvisioningManager mgr = session.
+                    newProvisioningManager(installation, false);
             try (ProvisioningLayout<FeaturePackLayout> layout = mgr.getLayoutFactory().newConfigLayout(mgr.getProvisioningConfig())) {
                 for (FeaturePackLayout fp : layout.getOrderedFeaturePacks()) {
                     if (fp.isDirectDep() || (fp.isTransitiveDep() && transitive)) {

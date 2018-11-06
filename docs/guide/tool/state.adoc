@@ -74,6 +74,8 @@ _feature-pack get-info wildfly:current#1.0.0-Alpha1_
 _[/]$ list-feature-packs [--all-frequencies] [--universe=<universe id>]_ + 
 
 This command lists all the final feature packs present in all the installed universes. +
+The command looks in the current directory and its parent hierarchy for a possible installation 
+in which some universes would have been added. By default the builtin universe is used. +
 If _--all-frequencies_ option is set, then the latest build of all frequencies are displayed. +
 If _--universe_ option is set, the command lists the feature packs of this universe. +
 
@@ -85,6 +87,8 @@ _[/]$ find <pattern> [--universe=<universe id>] [--resolved-only]_ +
 
 This command searches for all the feature pack builds present in all the installed 
 universes that match the provided pattern. +
+The command looks in the current directory and its parent hierarchy for a possible installation 
+in which some universes would have been added. By default the builtin universe is used. +
 If _--universe_ option is set, the command searches for feature packs inside this universe. +
 If _--resolved-only_ option is set, the command only searches for feature packs installed in local repositories. +
 
@@ -148,7 +152,7 @@ Use the _uninstall_ command to remove a given patch or use _state undo_ if the l
 
 _check-updates [--dir=<installation dir>] [--include-all-dependencies] [--feature-packs=<list of feature-pack producers>]_
 
-If no directory is provided, the current directory is used. If no products are provided, all installed products are checked for updates.
+If no products are provided, all installed products are checked for updates.
 
 ### Updating an installation
 
@@ -156,7 +160,7 @@ The _update_ command allows to update an installation to the latest available ve
 
 _update [--dir=<installation dir>] [--include-all-dependencies] [--yes] [--feature-packs=<list of feature-pack producers or locations>] [feature-pack specific options]_
 
-Display the list of available updates/patches then update. If no directory is provided, the current directory is used. 
+Display the list of available updates/patches then update.
 If _--yes_ is provided, the command will proceed without asking for confirmation.
 
 NB: If the option _--feature-packs_ contains feature-pack locations with versions, then these versions are used to update the feature-packs.
@@ -232,6 +236,17 @@ _[/]$ installation add-universe [--dir=<installation dir>] [--name=<universe nam
 
 Remove a named or default (without using the --name option) universe from an installation. + 
 _[/]$ installation remove-universe [--dir=<installation dir>] [--name=<universe name>]_
+
+
+### Directory option
+Some commands (eg: install, get-info, check-updates, ...) allow you to optionally provide a target directory thanks to the _--dir=<path>_ option. 
+If no directory is provided, the command will lookup for an existing installation in the 
+current directory (that you can change with the _cd_ command) and its parent directories hierarchy. 
+If no installation exists, the command will abort.
+
+There are some exceptions to this installation lookup. _install and provision_ commands expect the current directory 
+to be empty or to be the root of an installation. _uninstall, undo and update_ commands expect 
+the current directory to be the root of an installation.
 
 ### Exploring an installation or a feature-pack.
 

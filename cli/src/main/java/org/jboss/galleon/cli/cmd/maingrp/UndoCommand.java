@@ -16,35 +16,71 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
-import org.aesh.command.CommandDefinition;
-import org.aesh.command.option.Option;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.aesh.command.impl.internal.ProcessedOption;
+import org.aesh.command.parser.OptionParserException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins;
+import org.jboss.galleon.cli.model.state.State;
 
 /**
  *
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "undo", description = HelpDescriptions.UNDO)
-public class UndoCommand extends AbstractProvisioningCommand {
+public class UndoCommand extends AbstractProvisionWithPlugins {
 
-    @Option(name = VERBOSE_OPTION_NAME, required = false, hasValue = false,
-            description = HelpDescriptions.VERBOSE)
-    private boolean verbose;
+    public UndoCommand(PmSession pmSession) {
+        super(pmSession);
+    }
 
     @Override
-    protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
+    protected List<ProcessedOption> getOtherOptions() throws OptionParserException {
+        return Collections.emptyList();
+    }
+
+    @Override
+    protected String getName() {
+        return "undo";
+    }
+
+    @Override
+    protected void doRunCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
         try {
-            ProvisioningManager mgr = getManager(invoc.getPmSession(), verbose);
+            ProvisioningManager mgr = getManager(session);
             mgr.undo();
-        } catch (ProvisioningException ex) {
-            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.undoFailed(), ex);
+        } catch (ProvisioningException | IOException ex) {
+            throw new CommandExecutionException(session.getPmSession(), CliErrors.undoFailed(), ex);
         }
+    }
+
+    @Override
+    protected String getDescription() {
+        return HelpDescriptions.UNDO;
+    }
+
+    @Override
+    protected List<DynamicOption> getDynamicOptions(State state) throws Exception {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.PROVISIONING;
+    }
+
+    @Override
+    protected void doValidateOptions(PmCommandInvocation invoc) throws CommandExecutionException {
     }
 
 }

@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,6 +30,7 @@ import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.PmSessionCommand;
 import org.jboss.galleon.cli.UniverseManager.UniverseVisitor;
+import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.Headers;
@@ -58,6 +60,14 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
             throws CommandExecutionException {
         Map<UniverseSpec, Table> tables = new HashMap<>();
         Map<UniverseSpec, Set<String>> exceptions = new HashMap<>();
+        // Search for an installation in the context
+        Path installation = null;
+        try {
+            installation = Util.lookupInstallationDir(invoc.getConfiguration().getAeshContext(), null);
+        } catch (ProvisioningException ex) {
+            // XXX OK, no installation.
+        }
+        Path finalPath = installation;
         UniverseVisitor visitor = new UniverseVisitor() {
             @Override
             public void visit(Producer<?> producer, FeaturePackLocation loc) {
@@ -70,7 +80,7 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
                         table = new Table(Headers.PRODUCT, Headers.UPDATE_CHANNEL, Headers.LATEST_BUILD);
                         tables.put(loc.getUniverse(), table);
                     }
-                    loc = invoc.getPmSession().getExposedLocation(null, loc);
+                    loc = invoc.getPmSession().getExposedLocation(finalPath, loc);
                     table.addLine(producer.getName(), StateInfoUtil.formatChannel(loc),
                             (loc.getBuild() == null ? NONE : loc.getBuild()));
                 }
@@ -93,7 +103,7 @@ public class ListFeaturePacksCommand extends PmSessionCommand {
                         visitUniverse(UniverseSpec.fromString(fromUniverse), visitor, true);
             } else {
                 invoc.getPmSession().getUniverse().
-                        visitAllUniverses(visitor, true);
+                        visitAllUniverses(visitor, true, finalPath);
             }
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(invoc.getPmSession(),

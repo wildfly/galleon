@@ -51,7 +51,7 @@ import org.jboss.galleon.cli.cmd.AbstractCommaSeparatedCompleter;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -248,7 +248,12 @@ public class InstallCommand extends AbstractPluginsCommand {
                 return super.getId(session);
             }
         }
-        Path path = Util.resolvePath(session.getAeshContext(), filePath);
+        Path path;
+        try {
+            path = Util.resolvePath(session.getAeshContext(), filePath);
+        } catch (IOException ex) {
+            throw new CommandExecutionException(ex.getMessage());
+        }
         if (!Files.exists(path)) {
             return null;
         }
@@ -283,7 +288,12 @@ public class InstallCommand extends AbstractPluginsCommand {
         if (arg != null) {
             throw new CommandExecutionException("Only one of file or Feature-pack location is allowed.");
         }
-        Path p = Util.resolvePath(invoc.getConfiguration().getAeshContext(), filePath);
+        Path p;
+        try {
+            p = Util.resolvePath(invoc.getConfiguration().getAeshContext(), filePath);
+        } catch (IOException ex) {
+            throw new CommandExecutionException(ex.getMessage());
+        }
         if (!Files.exists(p)) {
             throw new CommandExecutionException(p + " doesn't exist.");
         }
@@ -309,7 +319,12 @@ public class InstallCommand extends AbstractPluginsCommand {
     public Path getInstallationDirectory(AeshContext context) {
         String targetDirArg = (String) getValue(DIR_OPTION_NAME);
         Path workDir = PmSession.getWorkDir(context);
-        return targetDirArg == null ? workDir : Util.resolvePath(context, targetDirArg);
+        try {
+            return targetDirArg == null ? workDir : Util.resolvePath(context, targetDirArg);
+        } catch (IOException ex) {
+            CliLogging.exception(ex);
+            return null;
+        }
     }
 
     @Override

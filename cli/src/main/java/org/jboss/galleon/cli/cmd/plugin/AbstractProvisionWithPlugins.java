@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.plugin;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.cli.CliLogging;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandActivator;
@@ -37,8 +39,6 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.Util;
 import org.jboss.galleon.cli.cmd.AbstractDynamicCommand;
 import org.jboss.galleon.cli.cmd.CommandWithInstallationDirectory;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.VERBOSE_OPTION_NAME;
 import org.jboss.galleon.util.PathsUtils;
 
 /**
@@ -46,6 +46,9 @@ import org.jboss.galleon.util.PathsUtils;
  * @author jdenise@redhat.com
  */
 public abstract class AbstractProvisionWithPlugins extends AbstractDynamicCommand implements CommandWithInstallationDirectory {
+
+    public static final String DIR_OPTION_NAME = "dir";
+    public static final String VERBOSE_OPTION_NAME = "verbose";
 
     protected AbstractProvisionWithPlugins(PmSession pmSession) {
         super(pmSession, true);
@@ -81,17 +84,22 @@ public abstract class AbstractProvisionWithPlugins extends AbstractDynamicComman
         return (String) getValue(DIR_OPTION_NAME);
     }
 
-    protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException {
-        return session.getPmSession().newProvisioningManager(getInstallationDirectory(session.
+    protected ProvisioningManager getManager(PmCommandInvocation session) throws ProvisioningException, IOException {
+        return session.getPmSession().newProvisioningManager(getAbsolutePath(getDir(), session.
                 getConfiguration().getAeshContext()), isVerbose());
     }
 
     @Override
     public Path getInstallationDirectory(AeshContext context) {
-        return getDir() == null ? PmSession.getWorkDir(context) : getAbsolutePath(getDir(), context);
+        try {
+            return getAbsolutePath(getDir(), context);
+        } catch (IOException ex) {
+            CliLogging.exception(ex);
+            return null;
+        }
     }
 
-    protected Path getAbsolutePath(String path, AeshContext context) {
+    protected Path getAbsolutePath(String path, AeshContext context) throws IOException {
         return path == null ? PmSession.getWorkDir(context) : Util.resolvePath(context, path);
     }
 

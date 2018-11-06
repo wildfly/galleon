@@ -21,14 +21,16 @@ import java.util.function.Function;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.cmd.CommandDomain;
+import org.jboss.galleon.cli.cmd.installation.AbstractInstallationCommand;
 import org.jboss.galleon.cli.cmd.state.InfoTypeCompleter;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.FeatureContainer;
-import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 
@@ -38,7 +40,7 @@ import org.jboss.galleon.layout.ProvisioningLayout;
  * @author jdenise@redhat.com
  */
 @CommandDefinition(name = "get-info", description = HelpDescriptions.GET_INFO)
-public class GetInfoCommand extends AbstractProvisioningCommand {
+public class GetInfoCommand extends AbstractInstallationCommand {
 
     @Option(completer = InfoTypeCompleter.class, description = HelpDescriptions.INFO_TYPE)
     private String type;
@@ -46,7 +48,6 @@ public class GetInfoCommand extends AbstractProvisioningCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
-            ProvisioningConfig config = getProvisioningConfig(invoc.getPmSession());
             Function<ProvisioningLayout<FeaturePackLayout>, FeatureContainer> supplier
                     = new Function<ProvisioningLayout<FeaturePackLayout>, FeatureContainer>() {
                 public FeatureContainer apply(ProvisioningLayout<FeaturePackLayout> layout) {
@@ -57,10 +58,15 @@ public class GetInfoCommand extends AbstractProvisioningCommand {
                     }
                 }
             };
-            StateInfoUtil.displayInfo(invoc, getInstallationDirectory(invoc.
-                    getConfiguration().getAeshContext()), config, type, supplier);
+            ProvisioningManager mgr = getManager(invoc.getPmSession());
+            StateInfoUtil.displayInfo(invoc, mgr.getInstallationHome(), mgr.getProvisioningConfig(), type, supplier);
         } catch (ProvisioningException | CommandExecutionException ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.infoFailed(), ex);
         }
+    }
+
+    @Override
+    public CommandDomain getDomain() {
+        return CommandDomain.PROVISIONING;
     }
 }

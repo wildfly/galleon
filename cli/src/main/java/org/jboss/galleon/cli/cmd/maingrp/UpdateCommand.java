@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins;
-import static org.jboss.galleon.cli.cmd.maingrp.AbstractProvisioningCommand.DIR_OPTION_NAME;
+import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.Updates;
 import static org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.ALL_DEPENDENCIES_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand.AllDepsOptionActivator;
@@ -151,7 +152,7 @@ public class UpdateCommand extends AbstractProvisionWithPlugins {
                 }
                 mgr.apply(updates.plan, options);
             }
-        } catch (ProvisioningException ex) {
+        } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(session.getPmSession(),
                     CliErrors.updateFailed(), ex);
         } catch (InterruptedException ignored) {
