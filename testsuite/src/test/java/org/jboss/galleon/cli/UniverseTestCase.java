@@ -84,6 +84,9 @@ public class UniverseTestCase {
         cli.execute("installation add-universe --name=" + UNIVERSE_CUSTOM_NAME
                 + " --factory=maven --location=" + universeSpec2.getLocation() + " --dir=" + dir);
 
+        cli.execute("get-info --dir=" + dir + " --type=universes");
+        assertTrue(cli.getOutput(), cli.getOutput().contains(UNIVERSE_CUSTOM_NAME));
+
         FeaturePackLocation toInstall2 = CliTestUtils.buildFPL(UniverseSpec.
                 fromString(UNIVERSE_CUSTOM_NAME), PRODUCER2, "1", null, null);
 
@@ -129,6 +132,11 @@ public class UniverseTestCase {
         Path dir2 = cli.newDir("install2", false);
         cli.execute("install " + toInstall + " --dir=" + dir2);
         cli.execute("installation add-universe --factory=maven --location=" + universeSpec1.getLocation() + " --dir=" + dir2);
+
+        cli.execute("get-info --dir=" + dir2 + " --type=universes");
+        assertTrue(cli.getOutput(), cli.getOutput().contains(universeSpec1.getFactory()));
+        assertTrue(cli.getOutput(), cli.getOutput().contains(universeSpec1.getLocation()));
+        assertTrue(cli.getOutput(), cli.getOutput().contains("<default>"));
 
         FeaturePackLocation toUnInstall3 = CliTestUtils.buildFPL(null, PRODUCER1, "1", null, "1.0.0.Final");
         cli.execute("uninstall " + toUnInstall3.getFPID() + " --dir=" + dir2);

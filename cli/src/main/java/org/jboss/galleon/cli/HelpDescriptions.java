@@ -95,7 +95,7 @@ public interface HelpDescriptions {
     String INCLUDE_PACKAGE = "Include a package";
     String INCLUDE_DEFAULT_CONFIGS = "Include the default configurations defined in this feature pack. By default they are not included";
     String INCLUDE_DEFAULT_PACKAGES = "Include the default packages defined in this feature pack. By default they are not included";
-    String INFO_TYPE = "Type of information to display (all, configs, dependencies, layers, options, patches)";
+    String INFO_TYPE = "Type of information to display (all, configs, dependencies, layers, options, patches, universes)";
     String INSTALL = "Installs specified feature pack";
     String INSTALLATION = "Contains commands to manage existing installations";
     String INSTALLATION_DIRECTORY = "Installation directory";

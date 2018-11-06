@@ -35,10 +35,11 @@ public class InfoTypeCompleter extends AbstractCompleter {
     public static final String ALL = "all";
     public static final String PATCHES = "patches";
     public static final String LAYERS = "layers";
+    public static final String UNIVERSES = "universes";
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONS, LAYERS, PATCHES);
+        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONS, LAYERS, PATCHES, UNIVERSES);
     }
 
 }
