@@ -152,6 +152,10 @@ public interface CliErrors {
         return "Not a file: " + absolutePath;
     }
 
+    static String onlyOneConfigurationWithlayers() {
+        return "Only one configuration is allowed when using layers";
+    }
+
     static String onlyOneOptionOf(String... options) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < options.length; i++) {
@@ -263,8 +267,12 @@ public interface CliErrors {
         return "Unknown layer " + layer;
     }
 
-    static String unknownModel(String model) {
-        return "Unknown model " + model;
+    static String noLayers() {
+        return "No layers";
+    }
+
+    static String noLayersForModel(String model) {
+        return "No layers for model " + model;
     }
 
     static String updateFailed() {

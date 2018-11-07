@@ -109,14 +109,22 @@ You can retrieve the set of feature-pack specific options without relying on com
 _feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=options_ +
 You can then use the listed options (if any) to customize your install command.
 
+### Installing a subset of feature-pack configurations
+
+When installing a feature-pack, all its default configurations are installed. 
+Use the _--default-configs=<comma separated list of config_model/config_name>_ option
+to specify the subset of configurations to install.
+
 ### Installing feature-pack layers
 
-The _install_ command can be used to install subset of feature-pack features. Such subset are called layers.
-When installing layers, a custom configuration is generated. If no configuration 
-model and name are provided, the <model name of layers>.xml is used as the generated configuration file name.
+The _install_ command can be used to install a subset of feature-pack features. Such subset are called layers.
+When installing layers, a custom configuration is generated.
 
 _install <[FPL|FPID] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--layers=<comma separated list of layers>] 
-[--model=<layers model>] --config=<configuration name>_
+[--config=<layers_model/configuration_name>]_
+
+If no model name is provided, the CLI tries to identify the default model contained in the feature-pack.
+If no configuration name is provided, the <layers_model>.xml is used as the generated configuration file name.
 
 You can retrieve the set of feature-pack defined layers without relying on completion, to do so call: +
 _feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=layers_ +

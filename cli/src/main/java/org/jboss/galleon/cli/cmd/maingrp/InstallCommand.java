@@ -53,6 +53,9 @@ import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.plugin.AbstractPluginsCommand;
 import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_OPTION_NAME;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
@@ -117,11 +120,42 @@ public class InstallCommand extends AbstractPluginsCommand {
         }
 
     }
+
+    private class LayersOptionActivator implements OptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand parsedCommand) {
+            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(DEFAULT_CONFIGS_OPTION_NAME);
+            return opt == null || opt.value() == null;
+        }
+
+    }
+
+    private class DefaultConfigsOptionActivator implements OptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand parsedCommand) {
+            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(LAYERS_OPTION_NAME);
+            return opt == null || opt.value() == null;
+        }
+
+    }
+
+    private class ConfigOptionActivator implements OptionActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand parsedCommand) {
+            ParsedOption opt = parsedCommand.findLongOptionNoActivatorCheck(LAYERS_OPTION_NAME);
+            return opt != null && opt.value() != null;
+        }
+
+    }
+
     public static final String FILE_OPTION_NAME = "file";
 
     public static final String LAYERS_OPTION_NAME = "layers";
+    public static final String DEFAULT_CONFIGS_OPTION_NAME = "default-configs";
     public static final String CONFIG_OPTION_NAME = "config";
-    public static final String MODEL_OPTION_NAME = "model";
 
     public InstallCommand(PmSession pmSession) {
         super(pmSession);
@@ -138,14 +172,39 @@ public class InstallCommand extends AbstractPluginsCommand {
                 loc = session.getPmSession().getLayoutFactory().addLocal(p, true);
             }
             if (layers == null) {
-                manager.install(loc, options);
+                String configurations = (String) getValue(DEFAULT_CONFIGS_OPTION_NAME);
+                if (configurations == null) {
+                    manager.install(loc, options);
+                } else {
+                    final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
+                    FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(loc).setInheritConfigs(false);
+                    for (ConfigId c : parseConfigurations(configurations)) {
+                        fpConfig.includeDefaultConfig(c);
+                    }
+                    builder.addFeaturePackDep(fpConfig.build());
+                    manager.provision(builder.build(), options);
+                }
             } else {
                 if (!options.containsKey(Constants.OPTIONAL_PACKAGES)) {
                     options.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE);
                 }
-                manager.provision(new LayersConfigBuilder(pmSession, layers.split(","),
-                        (String) getValue(MODEL_OPTION_NAME),
-                        (String) getValue(CONFIG_OPTION_NAME), loc).build(), options);
+                String configuration = (String) getValue(CONFIG_OPTION_NAME);
+                String model = null;
+                String config = null;
+                if (configuration != null) {
+                    List<ConfigId> configs = parseConfigurations(configuration);
+                    if (configs.size() > 1) {
+                        throw new CommandExecutionException(CliErrors.onlyOneConfigurationWithlayers());
+                    }
+                    if (!configs.isEmpty()) {
+                        ConfigId id = configs.get(0);
+                        model = id.getModel();
+                        config = id.getName();
+                    }
+                }
+                manager.provision(new LayersConfigBuilder(pmSession, layers.split(",+"),
+                        model,
+                        config, loc).build(), options);
             }
             if (!loc.hasBuild()) {
                 loc = getManager(session).getProvisioningConfig().getFeaturePackDep(loc.getProducer()).getLocation();
@@ -156,6 +215,32 @@ public class InstallCommand extends AbstractPluginsCommand {
         } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.installFailed(), ex);
         }
+    }
+
+    private static List<ConfigId> parseConfigurations(String configurations) {
+        String[] split = configurations.split(",+");
+        List<ConfigId> configs = new ArrayList<>();
+        if (split.length == 0) {
+            return configs;
+        }
+        for (String c : split) {
+            String config = null;
+            String model = null;
+            c = c.trim();
+            if (!c.isEmpty()) {
+                int i = c.indexOf("/");
+                if (i < 0) {
+                    config = c.trim();
+                } else {
+                    model = c.substring(0, i).trim();
+                    if (i < c.length() - 1) {
+                        config = c.substring(i + 1, c.length()).trim();
+                    }
+                }
+                configs.add(new ConfigId(model, config));
+            }
+        }
+        return configs;
     }
 
     @Override
@@ -219,20 +304,23 @@ public class InstallCommand extends AbstractPluginsCommand {
                 optionType(OptionType.NORMAL).
                 // Disable completion. Re-activate when layers show-up in WF.
                 //completer(LayersCompleter.class).
+                activator(new LayersOptionActivator()).
                 description(HelpDescriptions.INSTALL_LAYERS).
                 build();
         options.add(layers);
-        ProcessedOption model = ProcessedOptionBuilder.builder().name(MODEL_OPTION_NAME).
+        ProcessedOption configs = ProcessedOptionBuilder.builder().name(DEFAULT_CONFIGS_OPTION_NAME).
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                description(HelpDescriptions.INSTALL_MODEL).
+                activator(new DefaultConfigsOptionActivator()).
+                description(HelpDescriptions.INSTALL_DEFAULT_CONFIGS).
                 build();
-        options.add(model);
+        options.add(configs);
         ProcessedOption config = ProcessedOptionBuilder.builder().name(CONFIG_OPTION_NAME).
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
+                activator(new ConfigOptionActivator()).
                 description(HelpDescriptions.INSTALL_CONFIG).
                 build();
         options.add(config);
@@ -265,9 +353,19 @@ public class InstallCommand extends AbstractPluginsCommand {
     }
 
     String getModel(PmSession session) throws CommandExecutionException {
-        String model = (String) getValue(MODEL_OPTION_NAME);
-        if (model == null) {
-            model = getOptionValue(MODEL_OPTION_NAME);
+        String config = (String) getValue(CONFIG_OPTION_NAME);
+        if (config == null) {
+            config = getOptionValue(CONFIG_OPTION_NAME);
+        }
+        String model = null;
+        if (config != null) {
+            List<ConfigId> configs = parseConfigurations(config);
+            if (configs.size() > 1) {
+                throw new CommandExecutionException(CliErrors.onlyOneConfigurationWithlayers());
+            }
+            if (!configs.isEmpty()) {
+                model = configs.get(0).getModel();
+            }
         }
         return model;
     }
