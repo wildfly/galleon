@@ -30,7 +30,7 @@ import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.DiffPlugin;
+import org.jboss.galleon.plugin.StateDiffPlugin;
 import org.jboss.galleon.universe.FeaturePackLocation;
 
 /**
@@ -124,13 +124,13 @@ public class PluginResolver implements Resolver<ResolvedPlugins> {
                 }
             };
             layout.visitPlugins(visitor, InstallPlugin.class);
-            FeaturePackPluginVisitor<DiffPlugin> diffVisitor = new FeaturePackPluginVisitor<DiffPlugin>() {
+            FeaturePackPluginVisitor<StateDiffPlugin> diffVisitor = new FeaturePackPluginVisitor<StateDiffPlugin>() {
                 @Override
-                public void visitPlugin(DiffPlugin plugin) throws ProvisioningException {
+                public void visitPlugin(StateDiffPlugin plugin) throws ProvisioningException {
                     diffOptions.addAll(plugin.getOptions().values());
                 }
             };
-            layout.visitPlugins(diffVisitor, DiffPlugin.class);
+            layout.visitPlugins(diffVisitor, StateDiffPlugin.class);
         }
         return new ResolvedPlugins(installOptions, diffOptions);
     }

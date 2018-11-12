@@ -17,17 +17,37 @@
 
 package org.jboss.galleon.diff;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jboss.galleon.Constants;
 import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.plugin.StateDiffPlugin;
+import org.jboss.galleon.plugin.ProvisionedConfigHandler;
+import org.jboss.galleon.runtime.FeaturePackRuntimeBuilder;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
+import org.jboss.galleon.runtime.ResolvedFeatureId;
+import org.jboss.galleon.spec.FeatureId;
+import org.jboss.galleon.spec.FeatureParameterSpec;
+import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.state.ProvisionedConfig;
+import org.jboss.galleon.state.ProvisionedFeature;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.CollectionUtils;
@@ -38,18 +58,18 @@ import org.jboss.galleon.util.CollectionUtils;
  */
 public class ProvisioningDiffProvider {
 
-    public static ProvisioningDiffProvider newInstance(ProvisioningLayout<?> layout, ProvisionedState provisionedState, FsDiff diff, MessageWriter log) {
+    public static ProvisioningDiffProvider newInstance(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, ProvisionedState provisionedState, FsDiff diff, MessageWriter log) {
         ProvisioningDiffProvider diffProvider = new ProvisioningDiffProvider();
         diffProvider.layout = layout;
-        diffProvider.provisioningConfig = layout.getConfig();
+        diffProvider.provisionedConfig = layout.getConfig();
         diffProvider.provisionedState = provisionedState;
         diffProvider.fsDiff = diff;
         diffProvider.log = log;
         return diffProvider;
     }
 
-    private ProvisioningLayout<?> layout;
-    private ProvisioningConfig provisioningConfig;
+    private ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
+    private ProvisioningConfig provisionedConfig;
     private ProvisionedState provisionedState;
     private FsDiff fsDiff;
     private MessageWriter log;
@@ -57,9 +77,11 @@ public class ProvisioningDiffProvider {
     private Map<FPID, FeaturePackConfig.Builder> updatedDirectFps = Collections.emptyMap();
     private Map<FPID, FeaturePackConfig.Builder> updatedTransitiveFps = Collections.emptyMap();
     private Map<FPID, FeaturePackConfig.Builder> addedTransitiveFps = Collections.emptyMap();
-    private Map<ConfigId, ConfigModel> updatedConfigs = Collections.emptyMap();
+    private Map<ConfigId, ConfigModel> updatedConfigs = new LinkedHashMap<>(1);
     private Map<ConfigId, ConfigModel> addedConfigs = Collections.emptyMap();
     private Set<ConfigId> removedConfigs = Collections.emptySet();
+    private Map<ConfigId, ProvisionedFeatureDiffCallback> configPlugins = Collections.emptyMap();
+    private FeatureDiff featureDiff;
 
     private ProvisioningConfig mergedConfig;
 
@@ -70,12 +92,12 @@ public class ProvisioningDiffProvider {
         return log;
     }
 
-    public ProvisioningLayout<?> getProvisioningLayout() {
+    public ProvisioningLayout<FeaturePackRuntimeBuilder> getProvisioningLayout() {
         return layout;
     }
 
     public ProvisioningConfig getOriginalConfig() {
-        return provisioningConfig;
+        return provisionedConfig;
     }
 
     public ProvisionedState getProvisionedState() {
@@ -86,23 +108,51 @@ public class ProvisioningDiffProvider {
         return fsDiff;
     }
 
-    public void excludePackage(FPID fpid, String name, String... relativePaths) throws ProvisioningException {
+    public void excludePackage(StateDiffPlugin plugin, FPID fpid, String name, String... relativePaths) throws ProvisioningException {
         getFpcBuilder(fpid).excludePackage(name);
         suppressPaths(relativePaths);
     }
 
-    public void includePackage(FPID fpid, String name, String... relativePaths) throws ProvisioningException {
+    public void includePackage(StateDiffPlugin plugin, FPID fpid, String name, String... relativePaths) throws ProvisioningException {
         getFpcBuilder(fpid).includePackage(name);
         suppressPaths(relativePaths);
     }
 
-    public void updateConfig(ConfigModel config, String... relativePaths) throws ProvisioningException {
-        updatedConfigs = CollectionUtils.put(updatedConfigs, config.getId(), config);
+    public void updateConfig(ProvisionedFeatureDiffCallback featureDiffCallback, ProvisionedConfig updatedConfig, String... relativePaths) throws ProvisioningException {
+        final ConfigId configId = new ConfigId(updatedConfig.getModel(), updatedConfig.getName());
+        configPlugins = CollectionUtils.put(configPlugins, configId, featureDiffCallback);
+        if(featureDiff == null) {
+            featureDiff = new FeatureDiff(log);
+        }
+        featureDiff.init(getRequiredProvisionedConfig(provisionedState.getConfigs(), updatedConfig.getModel(), updatedConfig.getName()));
+        featureDiff.diff(featureDiffCallback, updatedConfig);
+        final ConfigModel mergedConfig = featureDiff.getMergedConfig(layout);
+        if (mergedConfig == null) {
+            log.verbose("%s has not changed", updatedConfig.getName());
+        } else {
+            updatedConfigs.put(configId, mergedConfig);
+        }
+        featureDiff.reset();
+
         suppressPaths(relativePaths);
     }
 
-    public void addConfig(ConfigModel config, String... relativePaths) throws ProvisioningException {
-        addedConfigs = CollectionUtils.putLinked(addedConfigs, config.getId(), config);
+    public void addConfig(ProvisionedFeatureDiffCallback featureDiffCallback, ProvisionedConfig config, String... relativePaths) throws ProvisioningException {
+        if(featureDiff == null) {
+            featureDiff = new FeatureDiff(log);
+        }
+        featureDiff.reset();
+        featureDiff.model = config.getModel();
+        featureDiff.name = config.getName();
+        featureDiff.diff(featureDiffCallback, config);
+        final ConfigModel mergedConfig = featureDiff.getMergedConfig(layout);
+        if (mergedConfig == null) {
+            log.verbose("%s is meaningless", config.getName());
+        } else {
+            addedConfigs = CollectionUtils.putLinked(addedConfigs, new ConfigId(config.getModel(), config.getName()), mergedConfig);
+        }
+        featureDiff.reset();
+
         suppressPaths(relativePaths);
     }
 
@@ -121,62 +171,98 @@ public class ProvisioningDiffProvider {
     }
 
     public ProvisioningConfig getMergedConfig() throws ProvisioningException {
-        if(mergedConfig != null) {
+        if (mergedConfig != null) {
             return mergedConfig;
         }
-        if(!hasConfigChanges()) {
-            mergedConfig = provisioningConfig;
-            return provisioningConfig;
+        if (!hasConfigChanges()) {
+            mergedConfig = provisionedConfig;
+            return provisionedConfig;
         }
-
-        final ProvisioningConfig.Builder configBuilder = ProvisioningConfig.builder();
-        configBuilder.initUniverses(provisioningConfig);
-        if(provisioningConfig.hasPluginOptions()) {
-            configBuilder.addOptions(provisioningConfig.getPluginOptions());
-        }
-
-        for(FeaturePackConfig fp : provisioningConfig.getFeaturePackDeps()) {
-            final FeaturePackConfig.Builder fpcBuilder = updatedDirectFps.get(fp.getLocation().getFPID());
-            if(fpcBuilder == null) {
-                configBuilder.addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getProducer()), fp);
-            } else {
-                configBuilder.addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getProducer()), fpcBuilder.build());
+        final ProvisioningConfig.Builder configBuilder = initProvisioningConfig();
+        final Collection<ConfigModel> definedConfigs = provisionedConfig.getDefinedConfigs();
+        if (!definedConfigs.isEmpty()) {
+            for (ConfigModel originalConfig : definedConfigs) {
+                final ConfigModel updatedConfig = updatedConfigs.remove(originalConfig.getId());
+                if (updatedConfig != null) {
+                    configBuilder.addConfig(updatedConfig);
+                    continue;
+                }
+                if (removedConfigs.contains(originalConfig.getId())) {
+                    continue;
+                }
+                configBuilder.addConfig(originalConfig);
             }
         }
-
-        for (FeaturePackConfig fp : provisioningConfig.getTransitiveDeps()) {
-            final FeaturePackConfig.Builder fpcBuilder = updatedTransitiveFps.get(fp.getLocation().getFPID());
-            if (fpcBuilder == null) {
-                configBuilder.addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getProducer()), fp);
-            } else {
-                configBuilder.addFeaturePackDep(provisioningConfig.originOf(fp.getLocation().getProducer()),
-                        fpcBuilder.build());
+        if(!updatedConfigs.isEmpty()) {
+            for (ConfigModel updatedConfig : updatedConfigs.values()) {
+                configBuilder.addConfig(updatedConfig);
             }
-        }
-
-        for (FeaturePackConfig.Builder fpcBuilder : addedTransitiveFps.values()) {
-            configBuilder.addFeaturePackDep(fpcBuilder.build());
-        }
-
-        for (ConfigModel originalConfig : provisioningConfig.getDefinedConfigs()) {
-            ConfigModel config = updatedConfigs.get(originalConfig.getId());
-            if (config != null) {
-                configBuilder.addConfig(config);
-                continue;
-            }
-            if (removedConfigs.contains(originalConfig.getId())) {
-                continue;
-            }
-            configBuilder.addConfig(originalConfig);
         }
 
         if (!addedConfigs.isEmpty()) {
-            for (ConfigModel config : addedConfigs.values()) {
-                configBuilder.addConfig(config);
+            for (ConfigModel addedConfig : addedConfigs.values()) {
+                configBuilder.addConfig(addedConfig);
+            }
+        }
+
+        if(!removedConfigs.isEmpty()) {
+            List<ProvisionedConfig> baseConfigs = null;
+            for(ConfigId configId : removedConfigs) {
+                if(provisionedConfig.hasDefinedConfig(configId)) {
+                    if (baseConfigs == null) {
+                        final ProvisioningConfig.Builder baseBuilder = initProvisioningConfig();
+                        for (ProvisionedConfig config : provisionedState.getConfigs()) {
+                            final ConfigId provisionedId = new ConfigId(config.getModel(), config.getName());
+                            if (!provisionedConfig.hasDefinedConfig(provisionedId)) {
+                                baseBuilder.excludeDefaultConfig(provisionedId);
+                            }
+                        }
+                        try (ProvisioningRuntime baseRt = ProvisioningRuntimeBuilder.newInstance(log)
+                                .initLayout(layout.getFactory(), baseBuilder.build()).build()) {
+                            baseConfigs = baseRt.getConfigs();
+                        }
+                    }
+                    if(getProvisionedConfig(baseConfigs, configId.getModel(), configId.getName()) != null) {
+                        configBuilder.excludeDefaultConfig(configId);
+                    }
+                } else {
+                    configBuilder.excludeDefaultConfig(configId);
+                }
             }
         }
         mergedConfig = configBuilder.build();
         return mergedConfig;
+    }
+
+    private ProvisioningConfig.Builder initProvisioningConfig() throws ProvisioningDescriptionException {
+        final ProvisioningConfig.Builder configBuilder = ProvisioningConfig.builder();
+        configBuilder.initUniverses(provisionedConfig);
+        if (provisionedConfig.hasOptions()) {
+            configBuilder.addOptions(provisionedConfig.getOptions());
+        }
+        for (FeaturePackConfig fp : provisionedConfig.getFeaturePackDeps()) {
+            final FeaturePackConfig.Builder fpcBuilder = updatedDirectFps.get(fp.getLocation().getFPID());
+            if (fpcBuilder == null) {
+                configBuilder.addFeaturePackDep(provisionedConfig.originOf(fp.getLocation().getProducer()), fp);
+            } else {
+                configBuilder.addFeaturePackDep(provisionedConfig.originOf(fp.getLocation().getProducer()), fpcBuilder.build());
+            }
+        }
+        for (FeaturePackConfig fp : provisionedConfig.getTransitiveDeps()) {
+            final FeaturePackConfig.Builder fpcBuilder = updatedTransitiveFps.get(fp.getLocation().getFPID());
+            if (fpcBuilder == null) {
+                configBuilder.addFeaturePackDep(provisionedConfig.originOf(fp.getLocation().getProducer()), fp);
+            } else {
+                configBuilder.addFeaturePackDep(provisionedConfig.originOf(fp.getLocation().getProducer()), fpcBuilder.build());
+            }
+        }
+        for (FeaturePackConfig.Builder fpcBuilder : addedTransitiveFps.values()) {
+            configBuilder.addFeaturePackDep(fpcBuilder.build());
+        }
+
+        configBuilder.setInheritConfigs(provisionedConfig.isInheritConfigs());
+        configBuilder.setInheritModelOnlyConfigs(provisionedConfig.isInheritModelOnlyConfigs());
+        return configBuilder;
     }
 
     private void suppressPaths(String... relativePaths) throws ProvisioningException {
@@ -199,14 +285,14 @@ public class ProvisioningDiffProvider {
             return fpcBuilder;
         }
 
-        FeaturePackConfig fpc = provisioningConfig.getFeaturePackDep(fpid.getProducer());
+        FeaturePackConfig fpc = provisionedConfig.getFeaturePackDep(fpid.getProducer());
         if(fpc != null) {
             fpcBuilder = FeaturePackConfig.builder(fpc);
             updatedDirectFps = CollectionUtils.put(updatedDirectFps, fpid, fpcBuilder);
             return fpcBuilder;
         }
 
-        fpc = provisioningConfig.getTransitiveDep(fpid.getProducer());
+        fpc = provisionedConfig.getTransitiveDep(fpid.getProducer());
         if(fpc != null) {
             fpcBuilder = FeaturePackConfig.builder(fpc);
             updatedTransitiveFps = CollectionUtils.put(updatedTransitiveFps, fpid, fpcBuilder);
@@ -216,5 +302,287 @@ public class ProvisioningDiffProvider {
         fpcBuilder = FeaturePackConfig.transitiveBuilder(fpid.getLocation());
         addedTransitiveFps = CollectionUtils.putLinked(addedTransitiveFps, fpid, fpcBuilder);
         return fpcBuilder;
+    }
+
+    private static class FeatureDiff implements ProvisionedConfigHandler {
+        private MessageWriter log;
+        private String model;
+        private String name;
+        Map<ResolvedFeatureId, ProvisionedFeature> original = new HashMap<>();
+        Map<ResolvedFeatureId, ProvisionedFeature> added = Collections.emptyMap();
+        Map<ResolvedFeatureId, ProvisionedFeature[]> modified = Collections.emptyMap();
+        List<ProvisionedFeature> originalWoIds = Collections.emptyList();
+        List<ProvisionedFeature> addedWoIds = Collections.emptyList();
+        private boolean init;
+        private ProvisionedFeatureDiffCallback featureCallback;
+        private ProvisionedConfig provisionedConfig;
+
+        FeatureDiff(MessageWriter log) {
+            this.log = log;
+        }
+
+        public void reset() {
+            original.clear();
+            added = Collections.emptyMap();
+            modified = Collections.emptyMap();
+            originalWoIds = Collections.emptyList();
+            addedWoIds = Collections.emptyList();
+            featureCallback = null;
+            model = null;
+            name = null;
+            provisionedConfig = null;
+        }
+
+        public void init(ProvisionedConfig config) throws ProvisioningException {
+            reset();
+            model = config.getModel();
+            name = config.getName();
+            init = true;
+            config.handle(this);
+            init = false;
+        }
+
+        public void diff(ProvisionedFeatureDiffCallback featureDiffCallback, ProvisionedConfig config) throws ProvisioningException {
+            this.featureCallback = featureDiffCallback;
+            this.provisionedConfig = config;
+            config.handle(this);
+            if(!original.isEmpty()) {
+                final Iterator<Map.Entry<ResolvedFeatureId, ProvisionedFeature>> i = original.entrySet().iterator();
+                while(i.hasNext()) {
+                    if(!featureCallback.removed(i.next().getValue())) {
+                        i.remove();
+                    }
+                }
+            }
+            if(!originalWoIds.isEmpty()) {
+                if(originalWoIds.size() == 1) {
+                    if(!featureCallback.removed(originalWoIds.get(0))) {
+                        originalWoIds = Collections.emptyList();
+                    }
+                } else {
+                    final Iterator<ProvisionedFeature> i = originalWoIds.iterator();
+                    while(i.hasNext()) {
+                        if(!featureCallback.removed(i.next())) {
+                            i.remove();
+                        }
+                    }
+                }
+            }
+        }
+
+        public ConfigModel getMergedConfig(ProvisioningLayout<FeaturePackRuntimeBuilder> layout) throws ProvisioningException {
+            if(isEmpty()) {
+                return null;
+            }
+
+            final ProvisioningConfig provisionedConfig = layout.getConfig();
+            final ConfigModel definedConfig = provisionedConfig.getDefinedConfig(new ConfigId(model, name));
+            final ConfigModel.Builder configBuilder = ConfigModel.builder(model, name);
+            if(definedConfig != null) {
+                final ProvisionedFeatureDiffCallback originalCallback = featureCallback;
+                final ProvisionedConfig originalProvisioned = this.provisionedConfig;
+                init(getDefaultProvisionedConfig(layout, definedConfig));
+                diff(originalCallback, originalProvisioned);
+                configBuilder.setInheritLayers(definedConfig.isInheritLayers());
+                if(definedConfig.hasIncludedLayers()) {
+                    for(String layer : definedConfig.getIncludedLayers()) {
+                        configBuilder.includeLayer(layer);
+                    }
+                }
+                if(definedConfig.hasExcludedLayers()) {
+                    for(String layer : definedConfig.getExcludedLayers()) {
+                        configBuilder.excludeLayer(layer);
+                    }
+                }
+            }
+
+            if(isEmpty()) {
+                return configBuilder.build();
+            }
+
+            if(!original.isEmpty()) {
+                for(ProvisionedFeature feature : original.values()) {
+                    // TODO this could check for excluded references with include=true
+                    configBuilder.excludeFeature(provisionedConfig.originOf(feature.getSpecId().getProducer()), getFeatureId(feature));
+                }
+            }
+            if(!modified.isEmpty()) {
+                for(ProvisionedFeature[] feature : modified.values()) {
+                    final ProvisionedFeature original = feature[0];
+                    final ProvisionedFeature actual = feature[1];
+                    final FeatureSpec fSpec = layout.getFeaturePack(actual.getSpecId().getProducer()).getFeatureSpec(actual.getSpecId().getName()).getSpec();
+
+                    final FeatureConfig config = new FeatureConfig(fSpec.getName());
+                    config.setOrigin(provisionedConfig.originOf(actual.getSpecId().getProducer()));
+
+                    final Set<String> actualParams = new HashSet<>(actual.getParamNames());
+                    for(String paramName : original.getParamNames()) {
+                        final FeatureParameterSpec pSpec = fSpec.getParam(paramName);
+                        if(!actualParams.remove(paramName)) {
+                            if(pSpec.isNillable() && pSpec.hasDefaultValue() && !Constants.GLN_UNDEFINED.equals(pSpec.getDefaultValue())) {
+                                config.unsetParam(paramName);
+                            }
+                            continue;
+                        }
+                        final String actualValue = actual.getConfigParam(paramName);
+                        final String originalValue = original.getConfigParam(paramName);
+                        if(actualValue != null) {
+                            if(!pSpec.isNillable() && !pSpec.isFeatureId() || !actualValue.equals(originalValue) && !actualValue.equals(pSpec.getDefaultValue())) {
+                                config.setParam(paramName, actualValue);
+                            }
+                            continue;
+                        }
+                        if(pSpec.hasDefaultValue() && !Constants.GLN_UNDEFINED.equals(pSpec.getDefaultValue())) {
+                            config.unsetParam(paramName);
+                        }
+                    }
+                    if(!actualParams.isEmpty()) {
+                        for(String paramName : actualParams) {
+                            config.setParam(paramName, actual.getConfigParam(paramName));
+                        }
+                    }
+
+                    configBuilder.includeFeature(getFeatureId(actual), config);
+                }
+            }
+
+            if(!added.isEmpty()) {
+                for(ProvisionedFeature feature : added.values()) {
+                    final FeatureConfig config = new FeatureConfig(feature.getSpecId().getName());
+                    for(String name : feature.getParamNames()) {
+                        config.setParam(name, feature.getConfigParam(name));
+                    }
+                    configBuilder.addConfigItem(config);
+                }
+            }
+            return configBuilder.build();
+        }
+
+        boolean isEmpty() {
+            return original.isEmpty()
+                    && added.isEmpty()
+                    && modified.isEmpty()
+                    && originalWoIds.isEmpty()
+                    && addedWoIds.isEmpty();
+        }
+
+        @Override
+        public void nextFeature(ProvisionedFeature feature) throws ProvisioningException {
+            if (init) {
+                if (feature.getId() == null) {
+                    originalWoIds = CollectionUtils.add(originalWoIds, feature);
+                    return;
+                }
+                original.put(feature.getId(), feature);
+                return;
+            }
+            if (feature.getId() == null) {
+                int i = 0;
+                boolean matchesOriginal = false;
+                while (i < originalWoIds.size() && !matchesOriginal) {
+                    final ProvisionedFeature original = originalWoIds.get(i++);
+                    if (!original.getSpecId().equals(feature.getSpecId())) {
+                        continue;
+                    }
+                    matchesOriginal = featureCallback.matches(original, feature);
+                }
+                if (matchesOriginal) {
+                    originalWoIds = CollectionUtils.remove(originalWoIds, --i);
+                } else if(featureCallback.added(feature)) {
+                    addedWoIds = CollectionUtils.add(addedWoIds, feature);
+                }
+                return;
+            }
+            final ProvisionedFeature originalFeature = original.remove(feature.getId());
+            if (originalFeature == null) {
+                if(featureCallback.added(feature)) {
+                    added = CollectionUtils.putLinked(added, feature.getId(), feature);
+                }
+                return;
+            }
+            if(!featureCallback.matches(originalFeature, feature)) {
+                modified = CollectionUtils.putLinked(modified, feature.getId(), new ProvisionedFeature[] { originalFeature, feature });
+            }
+        }
+
+        private ProvisionedConfig getDefaultProvisionedConfig(ProvisioningLayout<?> layout, final ConfigModel definedConfig)
+                throws ProvisioningException {
+            final ProvisioningConfig originalConfig = layout.getConfig();
+            final ProvisioningConfig.Builder baseBuilder = ProvisioningConfig.builder().initUniverses(originalConfig)
+                    .addOptions(originalConfig.getOptions());
+            if (originalConfig.hasTransitiveDeps()) {
+                for (FeaturePackConfig fp : originalConfig.getTransitiveDeps()) {
+                    baseBuilder.addFeaturePackDep(originalConfig.originOf(fp.getLocation().getProducer()), fp);
+                }
+            }
+            for (FeaturePackConfig fp : originalConfig.getFeaturePackDeps()) {
+                baseBuilder.addFeaturePackDep(originalConfig.originOf(fp.getLocation().getProducer()), fp);
+            }
+            baseBuilder.setInheritConfigs(false);
+            baseBuilder.includeDefaultConfig(model, name);
+            baseBuilder.addConfig(getBaseConfig(definedConfig));
+            ProvisioningConfig baseC = baseBuilder.build();
+            try(ProvisioningRuntime baseRt = ProvisioningRuntimeBuilder.newInstance(log).initLayout(layout.getFactory(), baseC).build()) {
+                return getRequiredProvisionedConfig(baseRt.getConfigs(), model, name);
+            }
+        }
+    }
+
+    private static ConfigModel getBaseConfig(final ConfigModel definedConfig) throws ProvisioningDescriptionException {
+        final ConfigModel.Builder baseConfig = ConfigModel.builder(definedConfig.getModel(), definedConfig.getName());
+        baseConfig.setInheritLayers(definedConfig.isInheritLayers());
+        if(definedConfig.hasIncludedLayers()) {
+            for(String layer : definedConfig.getIncludedLayers()) {
+                baseConfig.includeLayer(layer);
+            }
+        }
+        if(definedConfig.hasExcludedLayers()) {
+            for(String layer : definedConfig.getExcludedLayers()) {
+                baseConfig.excludeLayer(layer);
+            }
+        }
+        /* excluding things may break the config
+        if(definedConfig.hasExcludedSpecs()) {
+            for(SpecId specId : definedConfig.getExcludedSpecs()) {
+                baseConfig.excludeSpec(specId.getName());
+            }
+        }
+        if(definedConfig.hasIncludedSpecs()) {
+            for(SpecId specId : definedConfig.getIncludedSpecs()) {
+                baseConfig.includeSpec(specId.getName());
+            }
+        }
+        */
+        return baseConfig.build();
+    }
+
+    private static ProvisionedConfig getRequiredProvisionedConfig(List<ProvisionedConfig> list, String model, String name) throws ProvisioningException {
+        final ProvisionedConfig config = getProvisionedConfig(list, model, name);
+        if(config == null) {
+            throw new ProvisioningException("Failed to locate provisioned config " + model + "/" + name);
+        }
+        return config;
+    }
+
+    private static ProvisionedConfig getProvisionedConfig(List<ProvisionedConfig> list, String model, String name) throws ProvisioningException {
+        for (ProvisionedConfig config : list) {
+            if ((config.getModel() == null && model == null
+                    || config.getModel().equals(model))
+                    && (config.getName() == null && name == null
+                            || config.getName().equals(name))) {
+                return config;
+            }
+        }
+        return null;
+    }
+
+    private static FeatureId getFeatureId(final ProvisionedFeature feature)
+            throws ProvisioningDescriptionException, ProvisioningException {
+        final FeatureId.Builder id = FeatureId.builder(feature.getSpecId().getName());
+        final ResolvedFeatureId resolvedId = feature.getId();
+        for(String name : resolvedId.getParams().keySet()) {
+            id.setParam(name, feature.getConfigParam(name));
+        }
+        return id.build();
     }
 }

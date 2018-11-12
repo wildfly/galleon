@@ -112,19 +112,39 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         return builder;
     }
 
+    @Deprecated
     public boolean hasPluginOptions() {
         return !options.isEmpty();
     }
 
+    @Deprecated
     public Map<String, String> getPluginOptions() {
         return options;
     }
 
+    @Deprecated
     public boolean hasPluginOption(String name) {
         return options.containsKey(name);
     }
 
+    @Deprecated
     public String getPluginOption(String name) {
+        return options.get(name);
+    }
+
+    public boolean hasOptions() {
+        return !options.isEmpty();
+    }
+
+    public Map<String, String> getOptions() {
+        return options;
+    }
+
+    public boolean hasOption(String name) {
+        return options.containsKey(name);
+    }
+
+    public String getOption(String name) {
         return options.get(name);
     }
 

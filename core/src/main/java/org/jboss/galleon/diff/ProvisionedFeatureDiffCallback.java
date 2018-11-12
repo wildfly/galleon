@@ -15,16 +15,24 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.plugin;
+package org.jboss.galleon.diff;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.diff.ProvisioningDiffProvider;
+import org.jboss.galleon.state.ProvisionedFeature;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public interface DiffPlugin extends ProvisioningPlugin {
+public interface ProvisionedFeatureDiffCallback {
 
-    void diff(ProvisioningDiffProvider diffProvider) throws ProvisioningException;
+    default boolean added(ProvisionedFeature added) throws ProvisioningException {
+        return true;
+    }
+
+    default boolean removed(ProvisionedFeature removed) throws ProvisioningException {
+        return true;
+    }
+
+    boolean matches(ProvisionedFeature provisioned, ProvisionedFeature actual) throws ProvisioningException;
 }

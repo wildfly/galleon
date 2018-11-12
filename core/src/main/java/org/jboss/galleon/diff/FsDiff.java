@@ -125,6 +125,10 @@ public class FsDiff {
         return removed.keySet();
     }
 
+    public FsEntry getRemovedEntry(String relativePath) {
+        return removed.get(relativePath);
+    }
+
     public boolean hasModifiedEntries() {
         return !modified.isEmpty();
     }

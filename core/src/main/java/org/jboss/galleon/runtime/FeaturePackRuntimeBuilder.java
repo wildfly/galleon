@@ -72,7 +72,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
 
     private boolean visited;
 
-    FeaturePackRuntimeBuilder(FPID fpid, FeaturePackSpec spec, Path dir, int type) {
+    public FeaturePackRuntimeBuilder(FPID fpid, FeaturePackSpec spec, Path dir, int type) {
         super(fpid, dir, type);
         this.producer = fpid.getProducer();
         this.dir = dir;
@@ -210,7 +210,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
         return layer;
     }
 
-    ResolvedFeatureSpec getFeatureSpec(String name) throws ProvisioningException {
+    public ResolvedFeatureSpec getFeatureSpec(String name) throws ProvisioningException {
         if(featureSpecs != null) {
             final ResolvedFeatureSpec resolvedSpec = featureSpecs.get(name);
             if(resolvedSpec != null) {
