@@ -172,7 +172,7 @@ public class ProvisioningRuntimeBuilder {
         List<ConfigModelStack> configStacks = Collections.emptyList();
         if(config.hasDefinedConfigs()) {
             for(ConfigModel config : config.getDefinedConfigs()) {
-                if (config.getId().isModelOnly() || fpConfigStack.isFilteredOut(null, config.getId(), true)) {
+                if (config.getId().isModelOnly()/* || fpConfigStack.isFilteredOut(null, config.getId(), true)*/) {
                     continue;
                 }
                 configStack = configsToBuild.get(config.getId());
@@ -229,7 +229,7 @@ public class ProvisioningRuntimeBuilder {
         if(config.hasDefinedConfigs()) {
             for(ConfigModel config : config.getDefinedConfigs()) {
                 final ConfigId id = config.getId();
-                if (id.isModelOnly() || fpConfigStack.isFilteredOut(null, id, true)) {
+                if (id.isModelOnly()/* || fpConfigStack.isFilteredOut(null, id, true)*/) {
                     continue;
                 }
                 ConfigModelStack configStack = configsToBuild.get(id);

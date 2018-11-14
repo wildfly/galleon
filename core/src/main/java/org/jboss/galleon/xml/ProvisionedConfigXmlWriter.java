@@ -27,8 +27,8 @@ import org.jboss.galleon.runtime.ResolvedFeatureSpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser30.Attribute;
-import org.jboss.galleon.xml.ProvisionedStateXmlParser30.Element;
+import org.jboss.galleon.xml.ProvisionedConfigXmlParser30.Attribute;
+import org.jboss.galleon.xml.ProvisionedConfigXmlParser30.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -49,25 +49,25 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
 
         @Override
         public void nextFeaturePack(FPID fpid) {
-            fpElement = addElement(parent, Element.FEATURE_PACK);
+            fpElement = addElement(parent, Element.FEATURE_PACK.getLocalName(), parent.getNamespace());
             addAttribute(fpElement, Attribute.LOCATION, fpid.toString());
         }
 
         @Override
         public void nextSpec(ResolvedFeatureSpec spec) {
-            specElement = addElement(fpElement, Element.SPEC);
+            specElement = addElement(fpElement, Element.SPEC.getLocalName(), parent.getNamespace());
             addAttribute(specElement, Attribute.NAME, spec.getId().getName());
         }
 
         @Override
         public void nextFeature(ProvisionedFeature feature) throws ProvisioningException {
-            final ElementNode featureE = addElement(specElement, Element.FEATURE);
+            final ElementNode featureE = addElement(specElement, Element.FEATURE.getLocalName(), parent.getNamespace());
             if(feature.hasId()) {
                 addAttribute(featureE, Attribute.ID, feature.getId().toString());
             }
             if(feature.hasParams()) {
                 for(String param : feature.getParamNames()) {
-                    final ElementNode paramE = addElement(featureE, Element.PARAM);
+                    final ElementNode paramE = addElement(featureE, Element.PARAM.getLocalName(), parent.getNamespace());
                     addAttribute(paramE, Attribute.NAME, param);
                     addAttribute(paramE, Attribute.VALUE, feature.getConfigParam(param));
                 }
@@ -85,7 +85,12 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
     }
 
     protected ElementNode toElement(ProvisionedConfig config) throws XMLStreamException {
-        final ElementNode configE = addElement(null, Element.CONFIG);
+        return toElement(config, ProvisionedConfigXmlParser30.NAMESPACE_3_0);
+    }
+
+    protected ElementNode toElement(ProvisionedConfig config, String ns) throws XMLStreamException {
+
+        final ElementNode configE = addElement(null, Element.CONFIG.getLocalName(), ns);
         if(config.getName() != null) {
             addAttribute(configE, Attribute.NAME, config.getName());
         }
@@ -94,18 +99,18 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
         }
 
         if(config.hasProperties()) {
-            final ElementNode propsE = addElement(configE, Element.PROPS);
+            final ElementNode propsE = addElement(configE, Element.PROPS.getLocalName(), ns);
             for(Map.Entry<String, String> entry : config.getProperties().entrySet()) {
-                final ElementNode propE = addElement(propsE, Element.PROP);
+                final ElementNode propE = addElement(propsE, Element.PROP.getLocalName(), ns);
                 addAttribute(propE, Attribute.NAME, entry.getKey());
                 addAttribute(propE, Attribute.VALUE, entry.getValue());
             }
         }
 
         if(config.hasLayers()) {
-            final ElementNode propsE = addElement(configE, Element.LAYERS);
+            final ElementNode propsE = addElement(configE, Element.LAYERS.getLocalName(), ns);
             for(ConfigId layerId : config.getLayers()) {
-                final ElementNode propE = addElement(propsE, Element.LAYER);
+                final ElementNode propE = addElement(propsE, Element.LAYER.getLocalName(), ns);
                 if(layerId.getModel() != null) {
                     addAttribute(propE, Attribute.MODEL, layerId.getModel());
                 }

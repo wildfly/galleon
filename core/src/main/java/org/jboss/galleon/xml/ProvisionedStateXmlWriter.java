@@ -55,7 +55,7 @@ public class ProvisionedStateXmlWriter extends BaseXmlWriter<FeaturePackSet<?>> 
 
         if(provisionedState.hasConfigs()) {
             for(ProvisionedConfig config : provisionedState.getConfigs()) {
-                pkg.addChild(ProvisionedConfigXmlWriter.getInstance().toElement(config));
+                pkg.addChild(ProvisionedConfigXmlWriter.getInstance().toElement(config, Element.CONFIG.getNamespace()));
             }
         }
 

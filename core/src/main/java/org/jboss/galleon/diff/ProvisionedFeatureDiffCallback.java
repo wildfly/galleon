@@ -26,6 +26,8 @@ import org.jboss.galleon.state.ProvisionedFeature;
  */
 public interface ProvisionedFeatureDiffCallback {
 
+    ProvisionedFeatureDiffCallback DEFAULT = new ProvisionedFeatureDiffCallback() {};
+
     default boolean added(ProvisionedFeature added) throws ProvisioningException {
         return true;
     }
@@ -34,5 +36,7 @@ public interface ProvisionedFeatureDiffCallback {
         return true;
     }
 
-    boolean matches(ProvisionedFeature provisioned, ProvisionedFeature actual) throws ProvisioningException;
+    default boolean matches(ProvisionedFeature provisioned, ProvisionedFeature actual) throws ProvisioningException {
+        return provisioned.equals(actual);
+    }
 }

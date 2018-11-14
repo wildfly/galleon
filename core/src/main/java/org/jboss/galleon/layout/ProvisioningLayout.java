@@ -896,19 +896,12 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
                 for(F patch : patches) {
                     final Path patchDir = patch.getDir();
-                    Path patchContent = patchDir.resolve(Constants.PACKAGES);
-                    if(Files.exists(patchContent)) {
-                        patchDir(fpDir.resolve(Constants.PACKAGES), patchContent);
-                    }
-                    patchContent = patchDir.resolve(Constants.FEATURES);
-                    if(Files.exists(patchContent)) {
-                        patchDir(fpDir.resolve(Constants.FEATURES), patchContent);
-                    }
-                    patchContent = patchDir.resolve(Constants.FEATURE_GROUPS);
-                    if(Files.exists(patchContent)) {
-                        patchDir(fpDir.resolve(Constants.FEATURE_GROUPS), patchContent);
-                    }
-                    patchContent = patchDir.resolve(Constants.PLUGINS);
+                    patchFpDir(fpDir, patchDir, Constants.PACKAGES);
+                    patchFpDir(fpDir, patchDir, Constants.FEATURES);
+                    patchFpDir(fpDir, patchDir, Constants.FEATURE_GROUPS);
+                    patchFpDir(fpDir, patchDir, Constants.CONFIGS);
+                    patchFpDir(fpDir, patchDir, Constants.LAYERS);
+                    Path patchContent = patchDir.resolve(Constants.PLUGINS);
                     if(Files.exists(patchContent)) {
                         patchDir(fpDir.resolve(Constants.PLUGINS), patchContent);
                         patchDir(getPluginsDir(), patchContent);
@@ -923,6 +916,13 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
 
         buildTracker.complete();
+    }
+
+    private void patchFpDir(final Path fpDir, final Path patchDir, String dirName) throws ProvisioningException {
+        Path patchContent = patchDir.resolve(dirName);
+        if(Files.exists(patchContent)) {
+            patchDir(fpDir.resolve(dirName), patchContent);
+        }
     }
 
     private void patchDir(final Path fpDir, final Path patchDir) throws ProvisioningException {
