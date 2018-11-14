@@ -182,6 +182,10 @@ You can retrieve the set of feature-pack specific options without relying on com
 _installation get-info [--dir=<installation dir>] --type=options_ +
 You can then use the listed options (if any) to customize your update command.
 
+### Retrieving changes applied to an installation
+In order to visualize files you have added, removed or modified, use the command _get-changes [--dir=<installation>]_. +
+In the CLI output added files are prefixed by '+', removed ones by '-' and modified ones by 'C' (for conflict).
+
 ### Observing an installation
 
 _[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|layers|patches]_

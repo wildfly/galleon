@@ -43,6 +43,27 @@ import org.jboss.galleon.util.StringUtils;
  */
 public class FsDiff {
 
+    private static class Change implements Comparable<Change> {
+
+        private final String path;
+        private final char tag;
+
+        Change(String path, char tag) {
+            this.path = path;
+            this.tag = tag;
+        }
+
+        @Override
+        public int compareTo(Change o) {
+            return path.compareTo(o.path);
+        }
+    }
+
+    public interface PathResolver {
+
+        String resolve(String relativePath);
+    }
+
     private static final char REPLAY_SKIP = 'S';
     private static final char ADDED = '+';
     private static final char MODIFIED = 'C'; // for conflict
@@ -228,24 +249,51 @@ public class FsDiff {
         }
     }
 
-    public static void log(FsDiff diff, MessageWriter log) {
-        if(diff.isEmpty()) {
+    /**
+     * Log an FsDiff content.
+     *
+     * @param diff The content to log.
+     * @param log The logger.
+     * @param resolver By default the relative path to the installation root
+     * directory is displayed. If a resolver is provided, it will be called
+     * prior to display paths. resolver can be null.
+     */
+    public static void log(FsDiff diff, MessageWriter log, PathResolver resolver) {
+        if (diff.isEmpty()) {
             return;
         }
-        if(diff.hasRemovedEntries()) {
-            for(FsEntry entry : diff.getAddedEntries()) {
-                log.print(formatMessage(REMOVED, entry.getRelativePath(), null));
+        List<Change> changes = new ArrayList<>();
+        if (diff.hasRemovedEntries()) {
+            for (FsEntry entry : diff.getRemovedEntries()) {
+                addEntries(entry, changes, REMOVED);
             }
         }
-        if(diff.hasAddedEntries()) {
-            for(FsEntry entry : diff.getAddedEntries()) {
-                log.print(formatMessage(ADDED, entry.getRelativePath(), null));
+
+        if (diff.hasAddedEntries()) {
+            for (FsEntry entry : diff.getAddedEntries()) {
+                addEntries(entry, changes, ADDED);
             }
         }
-        if(diff.hasModifiedEntries()) {
-            for(FsEntry[] entries : diff.getModifiedEntries()) {
-                log.print(formatMessage(MODIFIED, entries[0].getRelativePath(), null));
+
+        if (diff.hasModifiedEntries()) {
+            for (FsEntry[] entry : diff.getModifiedEntries()) {
+                addEntries(entry[0], changes, MODIFIED);
             }
+        }
+        Collections.sort(changes);
+        for (Change c : changes) {
+            String path = resolver == null ? c.path : resolver.resolve(c.path);
+            log.print(formatMessage(c.tag, path, null));
+        }
+    }
+
+    private static void addEntries(FsEntry entry, List<Change> changes, char tag) {
+        if (entry.hasChildren()) {
+            for (FsEntry child : entry.getChildren()) {
+                addEntries(child, changes, tag);
+            }
+        } else {
+            changes.add(new Change(entry.getRelativePath(), tag));
         }
     }
 

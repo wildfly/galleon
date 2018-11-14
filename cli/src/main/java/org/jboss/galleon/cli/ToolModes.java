@@ -35,6 +35,7 @@ import org.jboss.galleon.cli.cmd.filesystem.CdCommand;
 import org.jboss.galleon.cli.cmd.installation.InstallationCommand;
 import org.jboss.galleon.cli.cmd.maingrp.CheckUpdatesCommand;
 import org.jboss.galleon.cli.cmd.maingrp.FindCommand;
+import org.jboss.galleon.cli.cmd.maingrp.GetChangesCommand;
 import org.jboss.galleon.cli.cmd.maingrp.GetInfoCommand;
 import org.jboss.galleon.cli.cmd.maingrp.InstallCommand;
 import org.jboss.galleon.cli.cmd.maingrp.ListFeaturePacksCommand;
@@ -115,6 +116,7 @@ public class ToolModes {
         nominalCommands.add(containerBuilder.create(new Ls()));
         nominalCommands.add(containerBuilder.create(new Pwd()));
         nominalCommands.add(containerBuilder.create(new CdCommand()));
+        commonCommands.add(containerBuilder.create(new GetChangesCommand()));
 
         // EDIT MODE
         editCommands.add(containerBuilder.create(new StateExportCommand()));
