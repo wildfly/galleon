@@ -24,7 +24,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,6 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseResolverBuilder;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.StateHistoryUtils;
-import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.HashUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -237,10 +235,9 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case any error occurs
      */
     public ProvisioningConfig getProvisioningConfig() throws ProvisioningException {
-        if (provisioningConfig == null) {
-            provisioningConfig = ProvisioningXmlParser.parse(PathsUtils.getProvisioningXml(home));
-        }
-        return provisioningConfig;
+        return provisioningConfig == null
+                ? provisioningConfig = ProvisioningXmlParser.parse(PathsUtils.getProvisioningXml(home))
+                : provisioningConfig;
     }
 
     /**
@@ -308,19 +305,13 @@ public class ProvisioningManager implements AutoCloseable {
 
     public void install(FeaturePackConfig fpConfig, Map<String, String> options) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
-        ProvisioningDiffProvider diffProvider = null;
         if(config == null) {
             config = ProvisioningConfig.builder().build();
-        } else {
-            diffProvider = getDiffProvider();
-            if(diffProvider != null) {
-                config = diffProvider.getMergedConfig();
-            }
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
             layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build(), options);
-            doProvision(layout, diffProvider, false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -346,13 +337,9 @@ public class ProvisioningManager implements AutoCloseable {
         if(config == null || !config.hasFeaturePackDeps()) {
             throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
         }
-        final ProvisioningDiffProvider diffProvider = getDiffProvider();
-        if (diffProvider != null) {
-            config = diffProvider.getMergedConfig();
-        }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID(), pluginOptions);
-            doProvision(layout, diffProvider, false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -375,7 +362,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(provisioningConfig, options)) {
-            doProvision(layout, getDiffProvider(), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -387,7 +374,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningLayout<?> provisioningLayout) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
-            doProvision(layout, getDiffProvider(), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -410,7 +397,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(ProvisioningXmlParser.parse(provisioningXml), options)) {
-            doProvision(layout, getDiffProvider(), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -475,18 +462,29 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void apply(ProvisioningPlan plan, Map<String, String> options) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
-        ProvisioningDiffProvider diffProvider = null;
         if(config == null) {
             config = ProvisioningConfig.builder().build();
-        } else {
-            diffProvider = getDiffProvider();
-            if(diffProvider != null) {
-                config = diffProvider.getMergedConfig();
-            }
         }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.apply(plan, options);
-            doProvision(layout, diffProvider, false);
+            doProvision(layout, getFsDiff(), false);
+        }
+    }
+
+    /**
+     * Merge user changes recognized by the provisioning plug-ins (such as
+     * changes to the configuration files) into the provisioning configuration
+     * file describing the state of the installation).
+     *
+     * @throws ProvisioningException  in case the merge fails
+     */
+    public void persistChanges() throws ProvisioningException {
+        final ProvisioningDiffProvider diffProvider = getDiffProvider();
+        if(diffProvider == null) {
+            return;
+        }
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(diffProvider.getMergedConfig(), ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+            doProvision(layout, diffProvider.getFsDiff(), false);
         }
     }
 
@@ -539,7 +537,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void undo() throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
-            doProvision(layout, getDiffProvider(), true);
+            doProvision(layout, getFsDiff(), true);
         }
     }
 
@@ -586,7 +584,7 @@ public class ProvisioningManager implements AutoCloseable {
                 .build();
     }
 
-    private void doProvision(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, ProvisioningDiffProvider diffProvider, boolean undo) throws ProvisioningException {
+    private void doProvision(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, FsDiff fsDiff, boolean undo) throws ProvisioningException {
         try (ProvisioningRuntime runtime = getRuntimeInternal(layout)) {
             runtime.provision();
             if (runtime.getProvisioningConfig().hasFeaturePackDeps()) {
@@ -614,8 +612,8 @@ public class ProvisioningManager implements AutoCloseable {
                 }
             }
             Map<String, Boolean> undoTasks = Collections.emptyMap();
-            if (diffProvider != null) {
-                undoTasks = applyUserChanges(diffProvider.getFsDiff(), runtime.getStagedDir());
+            if (fsDiff != null && !fsDiff.isEmpty()) {
+                undoTasks = FsDiff.replay(fsDiff, runtime.getStagedDir(), log);
             }
             PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, undoTasks, log);
         } finally {
@@ -623,16 +621,27 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    private ProvisioningDiffProvider getDiffProvider() throws ProvisioningException {
+    /**
+     * Returns the status of the filesystem describing which files have been
+     * added, removed and modified since the last provisioning state transition.
+     *
+     * @return current status of the filesystem
+     * @throws ProvisioningException  in case of an error during the status check
+     */
+    public FsDiff getFsDiff() throws ProvisioningException {
         final ProvisioningConfig config = getProvisioningConfig();
         if(config == null || !config.hasFeaturePackDeps()) {
             return null;
         }
-        final FsDiff diff = detectUserChanges(config);
-        if(diff.isEmpty()) {
+        return detectUserChanges(config);
+    }
+
+    private ProvisioningDiffProvider getDiffProvider() throws ProvisioningException {
+        final FsDiff diff = getFsDiff();
+        if(diff == null || diff.isEmpty()) {
             return null;
         }
-        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = layoutFactory.newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = layoutFactory.newConfigLayout(getProvisioningConfig(), ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             final ProvisioningDiffProvider diffProvider = ProvisioningDiffProvider.newInstance(layout, getProvisionedState(), diff, log);
             layout.visitPlugins(new FeaturePackPluginVisitor<StateDiffPlugin>() {
                 @Override
@@ -743,186 +752,6 @@ public class ProvisioningManager implements AutoCloseable {
                 .filter("/standalone/tmp");
         }
         return fsEntryFactory;
-    }
-
-    private static final char REPLAY_SKIP = 'S';
-    private static final char REPLAY_ADDED = '+';
-    private static final char REPLAY_MODIFIED = 'C'; // for conflict
-    private static final char REPLAY_REMOVED = '-';
-
-    private Map<String, Boolean> applyUserChanges(FsDiff diff, Path home) throws ProvisioningException {
-        log.print("Replaying your changes on top");
-        Map<String, Boolean> undoTasks = Collections.emptyMap();
-        if(diff.hasRemovedEntries()) {
-            for(FsEntry removed : diff.getRemovedEntries()) {
-                if(removed.isSuppressed()) {
-                    continue;
-                }
-                final Path target = home.resolve(removed.getRelativePath());
-                if(Files.exists(target)) {
-                    logReplay(REPLAY_REMOVED, removed.getRelativePath(), null);
-                    IoUtils.recursiveDelete(target);
-                } else {
-                    removedPathNotPresent(removed);
-                    undoTasks = CollectionUtils.putLinked(undoTasks, removed.getRelativePath(), false);
-                }
-            }
-        }
-        if(diff.hasAddedEntries()) {
-            for(FsEntry added : diff.getAddedEntries()) {
-                if(added.isSuppressed()) {
-                    continue;
-                }
-                undoTasks = addFsEntry(home, added, undoTasks);
-            }
-        }
-        if(diff.hasModifiedEntries()) {
-            for(FsEntry[] modified : diff.getModifiedEntries()) {
-                if(modified[0].isSuppressed()) {
-                    continue;
-                }
-                final FsEntry update = modified[1];
-                final Path target = home.resolve(update.getRelativePath());
-                char action = REPLAY_MODIFIED;
-                String warning = null;
-                if(Files.exists(target)) {
-                    final byte[] targetHash;
-                    try {
-                        targetHash = HashUtils.hashPath(target);
-                    } catch (IOException e) {
-                        throw new ProvisioningException(Errors.hashCalculation(target), e);
-                    }
-                    if(Arrays.equals(update.getHash(), targetHash)) {
-                        if(!modifiedPathMatchesExisting(update)) {
-                            action = REPLAY_SKIP;
-                        }
-                        undoTasks = CollectionUtils.putLinked(undoTasks, update.getRelativePath(), true);
-                    } else if (!Arrays.equals(modified[0].getHash(), targetHash)) {
-                        if (originalOfModifiedPathUpdated(update)) {
-                            warning = "has changed in the updated version";
-                            glnew(target);
-                        } else {
-                            action = REPLAY_SKIP;
-                        }
-                    } else if (modifiedPathConflict(update)) {
-                        glnew(target);
-                    } else {
-                        action = REPLAY_SKIP;
-                    }
-                } else if(modifiedPathNotPresent(update)) {
-                    warning = "has been removed from the updated version";
-                    action = REPLAY_ADDED;
-                } else {
-                    action = REPLAY_SKIP;
-                }
-                if (action != REPLAY_SKIP) {
-                    logReplay(action, update.getRelativePath(), warning);
-                    try {
-                        IoUtils.copy(update.getPath(), target);
-                    } catch (IOException e) {
-                        throw new ProvisioningException(Errors.copyFile(update.getPath(), target), e);
-                    }
-                }
-            }
-        }
-        return undoTasks;
-    }
-
-    private Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks) throws ProvisioningException {
-        final Path target = home.resolve(added.getRelativePath());
-        char action = REPLAY_ADDED;
-        String warning = null;
-        if(Files.exists(target)) {
-            if(added.isDir()) {
-                for (FsEntry child : added.getChildren()) {
-                    if(child.isSuppressed()) {
-                        continue;
-                    }
-                    undoTasks = addFsEntry(home, child, undoTasks);
-                }
-                return undoTasks;
-            }
-            final byte[] targetHash;
-            try {
-                targetHash = HashUtils.hashPath(target);
-            } catch (IOException e) {
-                throw new ProvisioningException(Errors.hashCalculation(target), e);
-            }
-            if(Arrays.equals(added.getHash(), targetHash)) {
-                if(!addedPathMatchesExisting(added)) {
-                    action = REPLAY_SKIP;
-                } else {
-                    warning = "matches the updated version";
-                    action = REPLAY_MODIFIED;
-                }
-                undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
-            } else if(addedPathConflict(added) && !added.isDir()) {
-                warning = "conflicts with the updated version";
-                glnew(target);
-                action = REPLAY_MODIFIED;
-            }
-        }
-        if (action != REPLAY_SKIP) {
-            logReplay(action, added.getRelativePath(), warning);
-            try {
-                IoUtils.copy(added.getPath(), target);
-            } catch (IOException e) {
-                throw new ProvisioningException(Errors.copyFile(added.getPath(), target), e);
-            }
-        }
-        return undoTasks;
-    }
-
-    private void logReplay(char action, String path, String warning) {
-        final StringBuilder buf = new StringBuilder();
-        buf.append(' ').append(action).append(' ').append(path);
-        if(warning != null) {
-            buf.setCharAt(0, '!');
-            buf.append(' ').append(warning);
-        }
-        log.print(buf.toString());
-    }
-
-    private static void glnew(final Path target) throws ProvisioningException {
-        try {
-            IoUtils.copy(target, target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW));
-        } catch (IOException e) {
-            throw new ProvisioningException("Failed to persist " + target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW), e);
-        }
-    }
-
-    private boolean addedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
-        //log.verbose("%s added by the user matches the file from the updated version", userEntry.getRelativePath());
-        return false;
-    }
-
-    private boolean addedPathConflict(FsEntry userEntry) throws ProvisioningException {
-        //log.verbose("%s added by the user conflicts with the updated version", userEntry.getRelativePath());
-        return true;
-    }
-
-    private boolean modifiedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
-        //log.verbose("%s modified by the user matches its updated version", userEntry.getRelativePath());
-        return false;
-    }
-
-    private boolean modifiedPathConflict(FsEntry userEntry) throws ProvisioningException {
-        //log.verbose("%s modified by the user conflicts with its updated version", userEntry.getRelativePath());
-        return true;
-    }
-
-    private boolean originalOfModifiedPathUpdated(FsEntry userEntry) throws ProvisioningException {
-        //log.print("WARN: %s original modified by the user has changed in the new version", userEntry.getRelativePath());
-        return true;
-    }
-
-    private boolean modifiedPathNotPresent(FsEntry userEntry) throws ProvisioningException {
-        //log.print("WARN: " + userEntry.getRelativePath() + " modified by the user is not present in the updated version");
-        return true;
-    }
-
-    private void removedPathNotPresent(FsEntry userEntry) throws ProvisioningException {
-        log.verbose("%s removed by the user is not present in the updated version", userEntry.getRelativePath());
     }
 
     private void persistHashes(ProvisioningRuntime runtime) throws ProvisioningException {

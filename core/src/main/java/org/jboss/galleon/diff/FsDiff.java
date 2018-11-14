@@ -17,6 +17,9 @@
 
 package org.jboss.galleon.diff;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,8 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jboss.galleon.Constants;
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.HashUtils;
+import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.StringUtils;
 
 /**
@@ -35,8 +43,210 @@ import org.jboss.galleon.util.StringUtils;
  */
 public class FsDiff {
 
+    private static final char REPLAY_SKIP = 'S';
+    private static final char ADDED = '+';
+    private static final char MODIFIED = 'C'; // for conflict
+    private static final char REMOVED = '-';
+
+    public static final String CONFLICTS_WITH_THE_UPDATED_VERSION = "conflicts with the updated version";
+    public static final String HAS_CHANGED_IN_THE_UPDATED_VERSION = "has changed in the updated version";
+    public static final String HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION = "has been removed from the updated version";
+    public static final String MATCHES_THE_UPDATED_VERSION = "matches the updated version";
+
     public static FsDiff diff(FsEntry original, FsEntry other) throws ProvisioningException {
         return new FsDiff(original, other);
+    }
+
+    public static Map<String, Boolean> replay(FsDiff diff, Path home, MessageWriter log) throws ProvisioningException {
+        log.print("Replaying your changes on top");
+        Map<String, Boolean> undoTasks = Collections.emptyMap();
+        if(diff.hasRemovedEntries()) {
+            for(FsEntry removed : diff.getRemovedEntries()) {
+                if(removed.isSuppressed()) {
+                    continue;
+                }
+                final Path target = home.resolve(removed.getRelativePath());
+                if(Files.exists(target)) {
+                    log.print(formatMessage(REMOVED, removed.getRelativePath(), null));
+                    IoUtils.recursiveDelete(target);
+                } else {
+                    log.verbose(formatMessage(REMOVED, removed.getRelativePath(), HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION));
+                    undoTasks = CollectionUtils.putLinked(undoTasks, removed.getRelativePath(), false);
+                }
+            }
+        }
+        if(diff.hasAddedEntries()) {
+            for(FsEntry added : diff.getAddedEntries()) {
+                if(added.isSuppressed()) {
+                    continue;
+                }
+                undoTasks = addFsEntry(home, added, undoTasks, log);
+            }
+        }
+        if(diff.hasModifiedEntries()) {
+            for(FsEntry[] modified : diff.getModifiedEntries()) {
+                if(modified[0].isSuppressed()) {
+                    continue;
+                }
+                final FsEntry update = modified[1];
+                final Path target = home.resolve(update.getRelativePath());
+                char action = MODIFIED;
+                String warning = null;
+                if(Files.exists(target)) {
+                    final byte[] targetHash;
+                    try {
+                        targetHash = HashUtils.hashPath(target);
+                    } catch (IOException e) {
+                        throw new ProvisioningException(Errors.hashCalculation(target), e);
+                    }
+                    if(Arrays.equals(update.getHash(), targetHash)) {
+                        if(!modifiedPathMatchesExisting(update)) {
+                            action = REPLAY_SKIP;
+                        }
+                        undoTasks = CollectionUtils.putLinked(undoTasks, update.getRelativePath(), true);
+                    } else if (!Arrays.equals(modified[0].getHash(), targetHash)) {
+                        if (modifiedPathUpdated(update)) {
+                            warning = HAS_CHANGED_IN_THE_UPDATED_VERSION;
+                            glnew(target);
+                        } else {
+                            action = REPLAY_SKIP;
+                        }
+                    } else if (modifiedPathConflict(update)) {
+                        glnew(target);
+                    } else {
+                        action = REPLAY_SKIP;
+                    }
+                } else if(modifiedPathNotPresent(update)) {
+                    warning = HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION;
+                    action = ADDED;
+                } else {
+                    action = REPLAY_SKIP;
+                }
+                if (action != REPLAY_SKIP) {
+                    log.print(formatMessage(action, update.getRelativePath(), warning));
+                    try {
+                        IoUtils.copy(update.getPath(), target);
+                    } catch (IOException e) {
+                        throw new ProvisioningException(Errors.copyFile(update.getPath(), target), e);
+                    }
+                }
+            }
+        }
+        return undoTasks;
+    }
+
+    private static Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks, MessageWriter log) throws ProvisioningException {
+        final Path target = home.resolve(added.getRelativePath());
+        char action = ADDED;
+        String warning = null;
+        if(Files.exists(target)) {
+            if(added.isDir()) {
+                for (FsEntry child : added.getChildren()) {
+                    if(child.isSuppressed()) {
+                        continue;
+                    }
+                    undoTasks = addFsEntry(home, child, undoTasks, log);
+                }
+                return undoTasks;
+            }
+            final byte[] targetHash;
+            try {
+                targetHash = HashUtils.hashPath(target);
+            } catch (IOException e) {
+                throw new ProvisioningException(Errors.hashCalculation(target), e);
+            }
+            if(Arrays.equals(added.getHash(), targetHash)) {
+                if(!addedPathMatchesExisting(added)) {
+                    action = REPLAY_SKIP;
+                } else {
+                    warning = MATCHES_THE_UPDATED_VERSION;
+                    action = MODIFIED;
+                }
+                undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
+            } else if(addedPathConflict(added) && !added.isDir()) {
+                warning = CONFLICTS_WITH_THE_UPDATED_VERSION;
+                glnew(target);
+                action = MODIFIED;
+            }
+        }
+        if (action != REPLAY_SKIP) {
+            log.print(formatMessage(action, added.getRelativePath(), warning));
+            try {
+                IoUtils.copy(added.getPath(), target);
+            } catch (IOException e) {
+                throw new ProvisioningException(Errors.copyFile(added.getPath(), target), e);
+            }
+        }
+        return undoTasks;
+    }
+
+    private static boolean addedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
+        //log.verbose("%s added by the user matches the file from the updated version", userEntry.getRelativePath());
+        return false;
+    }
+
+    private static boolean addedPathConflict(FsEntry userEntry) throws ProvisioningException {
+        //log.verbose("%s added by the user conflicts with the updated version", userEntry.getRelativePath());
+        return true;
+    }
+
+    private static boolean modifiedPathMatchesExisting(FsEntry userEntry) throws ProvisioningException {
+        //log.verbose("%s modified by the user matches its updated version", userEntry.getRelativePath());
+        return false;
+    }
+
+    private static boolean modifiedPathConflict(FsEntry userEntry) throws ProvisioningException {
+        //log.verbose("%s modified by the user conflicts with its updated version", userEntry.getRelativePath());
+        return true;
+    }
+
+    private static boolean modifiedPathUpdated(FsEntry userEntry) throws ProvisioningException {
+        //log.print("WARN: %s original modified by the user has changed in the new version", userEntry.getRelativePath());
+        return true;
+    }
+
+    private static boolean modifiedPathNotPresent(FsEntry userEntry) throws ProvisioningException {
+        //log.print("WARN: " + userEntry.getRelativePath() + " modified by the user is not present in the updated version");
+        return true;
+    }
+
+    private static String formatMessage(char action, String path, String warning) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append(' ').append(action).append(' ').append(path);
+        if(warning != null) {
+            buf.setCharAt(0, '!');
+            buf.append(' ').append(warning);
+        }
+        return buf.toString();
+    }
+
+    private static void glnew(final Path target) throws ProvisioningException {
+        try {
+            IoUtils.copy(target, target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW));
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to persist " + target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW), e);
+        }
+    }
+
+    public static void log(FsDiff diff, MessageWriter log) {
+        if(diff.isEmpty()) {
+            return;
+        }
+        if(diff.hasRemovedEntries()) {
+            for(FsEntry entry : diff.getAddedEntries()) {
+                log.print(formatMessage(REMOVED, entry.getRelativePath(), null));
+            }
+        }
+        if(diff.hasAddedEntries()) {
+            for(FsEntry entry : diff.getAddedEntries()) {
+                log.print(formatMessage(ADDED, entry.getRelativePath(), null));
+            }
+        }
+        if(diff.hasModifiedEntries()) {
+            for(FsEntry[] entries : diff.getModifiedEntries()) {
+                log.print(formatMessage(MODIFIED, entries[0].getRelativePath(), null));
+            }
+        }
     }
 
     private final FsEntry original;
