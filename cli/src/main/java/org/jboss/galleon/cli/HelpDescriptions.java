@@ -84,6 +84,7 @@ public interface HelpDescriptions {
     String FP_PATH = "Feature pack node path";
     String FP_TO_REMOVE = "Feature pack to remove";
     String GET_HISTORY_LIMIT = "Get the history limit";
+    String GET_CHANGES = "Display the files modified, added or removed from an installation";
     String GET_INFO = "Display information on an installation directory";
     String GET_INFO_FP = "Display information on a feature pack";
     String GET_INFO_STATE = "Display information on provisioning state";
