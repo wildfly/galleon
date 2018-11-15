@@ -39,6 +39,7 @@ import org.jboss.galleon.cli.cmd.maingrp.GetChangesCommand;
 import org.jboss.galleon.cli.cmd.maingrp.GetInfoCommand;
 import org.jboss.galleon.cli.cmd.maingrp.InstallCommand;
 import org.jboss.galleon.cli.cmd.maingrp.ListFeaturePacksCommand;
+import org.jboss.galleon.cli.cmd.maingrp.PersistChangesCommand;
 import org.jboss.galleon.cli.cmd.maingrp.ProvisionCommand;
 import org.jboss.galleon.cli.cmd.maingrp.UndoCommand;
 import org.jboss.galleon.cli.cmd.maingrp.UninstallCommand;
@@ -117,6 +118,7 @@ public class ToolModes {
         nominalCommands.add(containerBuilder.create(new Pwd()));
         nominalCommands.add(containerBuilder.create(new CdCommand()));
         commonCommands.add(containerBuilder.create(new GetChangesCommand()));
+        commonCommands.add(containerBuilder.create(new PersistChangesCommand()));
 
         // EDIT MODE
         editCommands.add(containerBuilder.create(new StateExportCommand()));

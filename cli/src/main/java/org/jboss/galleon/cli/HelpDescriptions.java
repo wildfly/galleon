@@ -147,6 +147,7 @@ public interface HelpDescriptions {
     String PACKAGE_NAME = "Package name";
     String PACKAGE_ORIGIN = "Package origin";
     String PACKAGE_PATH = "Path to a package";
+    String PERSIST_CHANGES = "Persist the configuration changes into the provisioning configuration";
     String PROVISION = "Provision an installation from a provisioning file";
     String PROVISION_STATE = "Provision an installation from a provisioning state";
     String PROVISION_FILE = "File describing the desired provisioned state";

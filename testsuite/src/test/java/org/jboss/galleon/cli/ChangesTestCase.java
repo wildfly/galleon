@@ -25,6 +25,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -91,5 +92,20 @@ public class ChangesTestCase {
         cli.execute("get-changes");
         assertTrue(cli.getOutput(), cli.getOutput().contains(" + " + nf));
         assertTrue(cli.getOutput(), cli.getOutput().contains(" - " + f));
+    }
+
+    @Test
+    public void testPersist() throws Exception {
+        CliTestUtils.install(cli, universeSpec, PRODUCER1, "1.0.0.Alpha2");
+        Path p = cli.newDir("install-persist", false);
+        FeaturePackLocation fpl = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha2");
+        cli.execute("install " + fpl + " --dir=" + p);
+        cli.execute("persist-changes --dir=" + p);
+        assertTrue(cli.getOutput(), cli.getOutput().contains("No changes to persist"));
+        Path root = p.resolve(PRODUCER1);
+        Path file = root.resolve("p1.txt");
+        Files.write(file, "HelloWorld".getBytes());
+        cli.execute("persist-changes --dir=" + p);
+        assertFalse(cli.getOutput(), cli.getOutput().contains("No changes to persist"));
     }
 }

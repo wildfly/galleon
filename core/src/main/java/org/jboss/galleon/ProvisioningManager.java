@@ -476,16 +476,18 @@ public class ProvisioningManager implements AutoCloseable {
      * changes to the configuration files) into the provisioning configuration
      * file describing the state of the installation).
      *
+     * @return true if some changes have been persisted, false otherwise.
      * @throws ProvisioningException  in case the merge fails
      */
-    public void persistChanges() throws ProvisioningException {
+    public boolean persistChanges() throws ProvisioningException {
         final ProvisioningDiffProvider diffProvider = getDiffProvider();
         if(diffProvider == null) {
-            return;
+            return false;
         }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(diffProvider.getMergedConfig(), ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             doProvision(layout, diffProvider.getFsDiff(), false);
         }
+        return true;
     }
 
     /**
