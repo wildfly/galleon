@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
@@ -253,12 +254,12 @@ public class FsDiff {
      * Log an FsDiff content.
      *
      * @param diff The content to log.
-     * @param log The logger.
+     * @param log The logged content consumer.
      * @param resolver By default the relative path to the installation root
      * directory is displayed. If a resolver is provided, it will be called
      * prior to display paths. resolver can be null.
      */
-    public static void log(FsDiff diff, MessageWriter log, PathResolver resolver) {
+    public static void log(FsDiff diff, Consumer<String> log, PathResolver resolver) {
         if (diff.isEmpty()) {
             return;
         }
@@ -283,7 +284,7 @@ public class FsDiff {
         Collections.sort(changes);
         for (Change c : changes) {
             String path = resolver == null ? c.path : resolver.resolve(c.path);
-            log.print(formatMessage(c.tag, path, null));
+            log.accept(formatMessage(c.tag, path, null));
         }
     }
 

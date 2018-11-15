@@ -16,9 +16,6 @@
  */
 package org.jboss.galleon.cli.cmd.maingrp;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.function.Consumer;
 import org.aesh.command.CommandDefinition;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -27,40 +24,20 @@ import org.jboss.galleon.cli.HelpDescriptions;
 import org.jboss.galleon.cli.PmCommandInvocation;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.installation.AbstractInstallationCommand;
-import org.jboss.galleon.diff.FsDiff;
-import org.jboss.galleon.diff.FsDiff.PathResolver;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "get-changes", description = HelpDescriptions.GET_CHANGES)
-public class GetChangesCommand extends AbstractInstallationCommand {
+@CommandDefinition(name = "persist-changes", description = HelpDescriptions.PERSIST_CHANGES)
+public class PersistChangesCommand extends AbstractInstallationCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation invoc) throws CommandExecutionException {
         try {
             ProvisioningManager mgr = getManager(invoc.getPmSession());
-            FsDiff diff = mgr.getFsDiff();
-            if (diff.isEmpty()) {
-                invoc.println("No changes detected");
-            } else {
-                Path workingDir = Paths.get(invoc.getConfiguration().getAeshContext().
-                        getCurrentWorkingDirectory().getAbsolutePath());
-                Path installation = mgr.getInstallationHome();
-                PathResolver resolver = new PathResolver() {
-                    @Override
-                    public String resolve(String relativePath) {
-                        Path absPath = Paths.get(installation.toString(), relativePath);
-                        return workingDir.relativize(absPath).toString();
-                    }
-                };
-                FsDiff.log(diff, new Consumer<String>() {
-                    @Override
-                    public void accept(String msg) {
-                        invoc.println(msg);
-                    }
-                }, resolver);
+            if (!mgr.persistChanges()) {
+                invoc.println("No changes to persist");
             }
         } catch (ProvisioningException ex) {
             throw new CommandExecutionException(ex.getMessage());

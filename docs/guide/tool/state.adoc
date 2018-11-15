@@ -186,6 +186,15 @@ You can then use the listed options (if any) to customize your update command.
 In order to visualize files you have added, removed or modified, use the command _get-changes [--dir=<installation>]_. +
 In the CLI output added files are prefixed by '+', removed ones by '-' and modified ones by 'C' (for conflict).
 
+### Persisting changes applied to an installation
+Installed feature-packs optionally support persistence of changes into the provisioning configuration. As an example, 
+wildfly feature-packs persist configuration changes into the provisioning config.
+
+Use the command _persist-changes [--dir=<installation>]_ to persist the changes. +
+  
+NB: If the installed feature-packs don't support the ability to merge changes 
+into the provisioning configuration, this operation has no side effect.
+
 ### Observing an installation
 
 _[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|layers|patches]_
