@@ -34,6 +34,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
+import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.ProvisioningLayout;
@@ -46,6 +47,7 @@ import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.spec.SpecId;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
 import org.jboss.galleon.state.ProvisionedState;
@@ -118,7 +120,12 @@ public class ProvisioningDiffProvider {
         suppressPaths(relativePaths);
     }
 
+    public void updateConfig(ProvisionedConfig updatedConfig, String... relativePaths) throws ProvisioningException {
+        updateConfig(ProvisionedFeatureDiffCallback.DEFAULT, updatedConfig, relativePaths);
+    }
+
     public void updateConfig(ProvisionedFeatureDiffCallback featureDiffCallback, ProvisionedConfig updatedConfig, String... relativePaths) throws ProvisioningException {
+
         final ConfigId configId = new ConfigId(updatedConfig.getModel(), updatedConfig.getName());
         configPlugins = CollectionUtils.put(configPlugins, configId, featureDiffCallback);
         if(featureDiff == null) {
@@ -137,7 +144,12 @@ public class ProvisioningDiffProvider {
         suppressPaths(relativePaths);
     }
 
+    public void addConfig(ProvisionedConfig config, String... relativePaths) throws ProvisioningException {
+        addConfig(ProvisionedFeatureDiffCallback.DEFAULT, config, relativePaths);
+    }
+
     public void addConfig(ProvisionedFeatureDiffCallback featureDiffCallback, ProvisionedConfig config, String... relativePaths) throws ProvisioningException {
+
         if(featureDiff == null) {
             featureDiff = new FeatureDiff(log);
         }
@@ -223,9 +235,19 @@ public class ProvisioningDiffProvider {
                         }
                     }
                     if(getProvisionedConfig(baseConfigs, configId.getModel(), configId.getName()) != null) {
+                        if(provisionedConfig.isInheritConfigs()) {
+                            if(!provisionedConfig.isConfigModelExcluded(configId)) {
+                                configBuilder.excludeDefaultConfig(configId);
+                            }
+                        } else if(provisionedConfig.isConfigModelIncluded(configId)) {
+                            configBuilder.excludeDefaultConfig(configId);
+                        }
+                    }
+                } else if(provisionedConfig.isInheritConfigs()) {
+                    if(!provisionedConfig.isConfigModelExcluded(configId)) {
                         configBuilder.excludeDefaultConfig(configId);
                     }
-                } else {
+                } else if(provisionedConfig.isConfigModelIncluded(configId)) {
                     configBuilder.excludeDefaultConfig(configId);
                 }
             }
@@ -262,6 +284,16 @@ public class ProvisioningDiffProvider {
 
         configBuilder.setInheritConfigs(provisionedConfig.isInheritConfigs());
         configBuilder.setInheritModelOnlyConfigs(provisionedConfig.isInheritModelOnlyConfigs());
+        if(provisionedConfig.hasFullModelsExcluded()) {
+            for(Map.Entry<String, Boolean> entry : provisionedConfig.getFullModelsExcluded().entrySet()) {
+                configBuilder.excludeConfigModel(entry.getKey(), entry.getValue());
+            }
+        }
+        if(provisionedConfig.hasFullModelsIncluded()) {
+            for(String model : provisionedConfig.getFullModelsIncluded()) {
+                configBuilder.includeConfigModel(model);
+            }
+        }
         return configBuilder;
     }
 
@@ -383,6 +415,7 @@ public class ProvisioningDiffProvider {
                 final ProvisionedConfig originalProvisioned = this.provisionedConfig;
                 init(getDefaultProvisionedConfig(layout, definedConfig));
                 diff(originalCallback, originalProvisioned);
+                configBuilder.setInheritFeatures(definedConfig.isInheritFeatures());
                 configBuilder.setInheritLayers(definedConfig.isInheritLayers());
                 if(definedConfig.hasIncludedLayers()) {
                     for(String layer : definedConfig.getIncludedLayers()) {
@@ -394,6 +427,31 @@ public class ProvisioningDiffProvider {
                         configBuilder.excludeLayer(layer);
                     }
                 }
+                if(definedConfig.hasIncludedSpecs()) {
+                    for(SpecId specId : definedConfig.getIncludedSpecs()) {
+                        configBuilder.includeSpec(specId.getName());
+                    }
+                }
+                if(definedConfig.hasExcludedSpecs()) {
+                    for(SpecId specId : definedConfig.getExcludedSpecs()) {
+                        configBuilder.excludeSpec(specId.getName());
+                    }
+                }
+                if(definedConfig.hasExternalFeatureGroups()) {
+                    for(Map.Entry<String, FeatureGroup> entry : definedConfig.getExternalFeatureGroups().entrySet()) {
+                        final FeatureGroup fg = entry.getValue();
+                        if(fg.hasIncludedSpecs()) {
+                            for(SpecId specId : fg.getIncludedSpecs()) {
+                                configBuilder.includeSpec(entry.getKey(), specId.getName());
+                            }
+                        }
+                        if(fg.hasExcludedSpecs()) {
+                            for(SpecId specId : fg.getExcludedSpecs()) {
+                                configBuilder.excludeSpec(entry.getKey(), specId.getName());
+                            }
+                        }
+                    }
+                }
             }
 
             if(isEmpty()) {
@@ -403,7 +461,11 @@ public class ProvisioningDiffProvider {
             if(!original.isEmpty()) {
                 for(ProvisionedFeature feature : original.values()) {
                     // TODO this could check for excluded references with include=true
-                    configBuilder.excludeFeature(provisionedConfig.originOf(feature.getSpecId().getProducer()), getFeatureId(feature));
+                    final String origin = provisionedConfig.originOf(feature.getSpecId().getProducer());
+                    if(isExcluded(origin, feature, definedConfig)) {
+                        continue;
+                    }
+                    configBuilder.excludeFeature(origin, getFeatureId(feature));
                 }
             }
             if(!modified.isEmpty()) {
@@ -411,7 +473,6 @@ public class ProvisioningDiffProvider {
                     final ProvisionedFeature original = feature[0];
                     final ProvisionedFeature actual = feature[1];
                     final FeatureSpec fSpec = layout.getFeaturePack(actual.getSpecId().getProducer()).getFeatureSpec(actual.getSpecId().getName()).getSpec();
-
                     final FeatureConfig config = new FeatureConfig(fSpec.getName());
                     config.setOrigin(provisionedConfig.originOf(actual.getSpecId().getProducer()));
 
@@ -427,7 +488,7 @@ public class ProvisioningDiffProvider {
                         final String actualValue = actual.getConfigParam(paramName);
                         final String originalValue = original.getConfigParam(paramName);
                         if(actualValue != null) {
-                            if(!pSpec.isNillable() && !pSpec.isFeatureId() || !actualValue.equals(originalValue) && !actualValue.equals(pSpec.getDefaultValue())) {
+                            if(!pSpec.isFeatureId() && !actualValue.equals(originalValue) && !actualValue.equals(pSpec.getDefaultValue())) {
                                 config.setParam(paramName, actualValue);
                             }
                             continue;
@@ -456,6 +517,40 @@ public class ProvisioningDiffProvider {
                 }
             }
             return configBuilder.build();
+        }
+
+        private static boolean isExcluded(String origin, ProvisionedFeature feature, ConfigModel definedConfig) throws ProvisioningDescriptionException {
+            if(definedConfig == null) {
+                return false;
+            }
+            if(definedConfig.isInheritFeatures()) {
+                Set<SpecId> specs = Collections.emptySet();
+                if (origin == null) {
+                    specs = definedConfig.getExcludedSpecs();
+                } else {
+                    final FeatureGroup featureGroup = definedConfig.getExternalFeatureGroups().get(origin);
+                    if (featureGroup != null) {
+                        specs = featureGroup.getExcludedSpecs();
+                    }
+                }
+                if (specs.contains(SpecId.fromString(feature.getSpecId().getName()))) {
+                    return true;
+                }
+                return false;
+            }
+            Set<SpecId> specs = Collections.emptySet();
+            if (origin == null) {
+                specs = definedConfig.getIncludedSpecs();
+            } else {
+                final FeatureGroup featureGroup = definedConfig.getExternalFeatureGroups().get(origin);
+                if (featureGroup != null) {
+                    specs = featureGroup.getIncludedSpecs();
+                }
+            }
+            if (specs.contains(SpecId.fromString(feature.getSpecId().getName()))) {
+                return false;
+            }
+            return true;
         }
 
         boolean isEmpty() {
@@ -530,6 +625,7 @@ public class ProvisioningDiffProvider {
 
     private static ConfigModel getBaseConfig(final ConfigModel definedConfig) throws ProvisioningDescriptionException {
         final ConfigModel.Builder baseConfig = ConfigModel.builder(definedConfig.getModel(), definedConfig.getName());
+        //baseConfig.setInheritFeatures(definedConfig.isInheritFeatures());
         baseConfig.setInheritLayers(definedConfig.isInheritLayers());
         if(definedConfig.hasIncludedLayers()) {
             for(String layer : definedConfig.getIncludedLayers()) {

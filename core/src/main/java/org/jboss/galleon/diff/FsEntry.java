@@ -41,6 +41,12 @@ import org.jboss.galleon.util.HashUtils;
  */
 public class FsEntry {
 
+    private static final char NONE = ' ';
+    private static final char ADDED = '+';
+    private static final char REMOVED = '-';
+    private static final char MODIFIED = 'C';
+    private static final char SUPPRESSED = 'S';
+
     final int depth;
     final FsEntry parent;
     final Path p;
@@ -48,7 +54,7 @@ public class FsEntry {
     final boolean dir;
     private byte[] hash;
     private String relativePath;
-    private boolean suppressed;
+    private char diffStatus = NONE;
 
     private Map<String, FsEntry> children = Collections.emptyMap();
 
@@ -170,12 +176,39 @@ public class FsEntry {
         return hash;
     }
 
-    public void suppress() {
-        suppressed = true;
+    void diffAdded() {
+        diffStatus = ADDED;
+        if(!children.isEmpty()) {
+            for(FsEntry child : children.values()) {
+                child.diffAdded();
+            }
+        }
     }
 
-    public boolean isSuppressed() {
-        return suppressed;
+    void diffModified() {
+        diffStatus = MODIFIED;
+    }
+
+    void diffRemoved() {
+        diffStatus = REMOVED;
+        if(!children.isEmpty()) {
+            for(FsEntry child : children.values()) {
+                child.diffRemoved();
+            }
+        }
+    }
+
+    void diffSuppress() {
+        diffStatus = SUPPRESSED;
+        if(!children.isEmpty()) {
+            for(FsEntry child : children.values()) {
+                child.diffSuppress();
+            }
+        }
+    }
+
+    boolean isDiffSuppressed() {
+        return diffStatus == SUPPRESSED;
     }
 
     public void dumpAsTree(PrintStream out) throws IOException {
@@ -197,8 +230,10 @@ public class FsEntry {
         if(dir) {
             out.print('/');
         }
-        if(suppressed) {
-            out.println("(suppressed)");
+        if(diffStatus != NONE) {
+            out.print('(');
+            out.print(diffStatus);
+            out.print(')');
             return;
         }
         out.println();
@@ -216,5 +251,13 @@ public class FsEntry {
             }
             dirs.remove(dirsI);
         }
+    }
+
+    @Override
+    public String toString() {
+        if(diffStatus == NONE) {
+            return getRelativePath();
+        }
+        return new StringBuilder().append(getRelativePath()).append('(').append(diffStatus).append(')').toString();
     }
 }

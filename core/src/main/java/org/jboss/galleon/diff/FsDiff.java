@@ -84,7 +84,7 @@ public class FsDiff {
         Map<String, Boolean> undoTasks = Collections.emptyMap();
         if(diff.hasRemovedEntries()) {
             for(FsEntry removed : diff.getRemovedEntries()) {
-                if(removed.isSuppressed()) {
+                if(removed.isDiffSuppressed()) {
                     continue;
                 }
                 final Path target = home.resolve(removed.getRelativePath());
@@ -99,7 +99,7 @@ public class FsDiff {
         }
         if(diff.hasAddedEntries()) {
             for(FsEntry added : diff.getAddedEntries()) {
-                if(added.isSuppressed()) {
+                if(added.isDiffSuppressed()) {
                     continue;
                 }
                 undoTasks = addFsEntry(home, added, undoTasks, log);
@@ -107,7 +107,7 @@ public class FsDiff {
         }
         if(diff.hasModifiedEntries()) {
             for(FsEntry[] modified : diff.getModifiedEntries()) {
-                if(modified[0].isSuppressed()) {
+                if(modified[0].isDiffSuppressed()) {
                     continue;
                 }
                 final FsEntry update = modified[1];
@@ -164,7 +164,7 @@ public class FsDiff {
         if(Files.exists(target)) {
             if(added.isDir()) {
                 for (FsEntry child : added.getChildren()) {
-                    if(child.isSuppressed()) {
+                    if(child.isDiffSuppressed()) {
                         continue;
                     }
                     undoTasks = addFsEntry(home, child, undoTasks, log);
@@ -322,6 +322,7 @@ public class FsDiff {
                 for (FsEntry originalChild : originalEntry.getChildren()) {
                     final FsEntry otherChild = otherChildren.remove(originalChild.getName());
                     if(otherChild == null) {
+                        originalChild.diffRemoved();
                         removed = CollectionUtils.put(removed, originalChild.getRelativePath(), originalChild);
                         continue;
                     }
@@ -329,17 +330,21 @@ public class FsDiff {
                 }
                 if (!otherChildren.isEmpty()) {
                     for (FsEntry otherChild : otherChildren.values()) {
+                        otherChild.diffAdded();
                         added = CollectionUtils.put(added, otherChild.getRelativePath(), otherChild);
                     }
                 }
             } else if(otherEntry.hasChildren()) {
                 for (FsEntry otherChild : otherEntry.getChildren()) {
+                    otherChild.diffAdded();
                     added = CollectionUtils.put(added, otherChild.getRelativePath(), otherChild);
                 }
             }
             return;
         }
         if(!Arrays.equals(originalEntry.getHash(), otherEntry.getHash())) {
+            originalEntry.diffModified();
+            otherEntry.diffModified();
             modified = CollectionUtils.put(modified, originalEntry.getRelativePath(), new FsEntry[] {originalEntry, otherEntry});
         }
     }
@@ -404,21 +409,31 @@ public class FsDiff {
         return modified.get(relativePath);
     }
 
-    public void suppress(String relativePath) throws ProvisioningException {
+    void suppress(String relativePath) throws ProvisioningException {
         final FsEntry[] fsEntries = modified.get(relativePath);
         if(fsEntries != null) {
-            fsEntries[0].suppress();
-            fsEntries[1].suppress();
+            fsEntries[0].diffSuppress();
+            fsEntries[1].diffSuppress();
             return;
         }
         FsEntry fsEntry = added.get(relativePath);
         if(fsEntry == null) {
             fsEntry = removed.get(relativePath);
             if(fsEntry == null) {
-                throw new ProvisioningException("Failed to locate " + relativePath + " in the diff");
+                final String[] pathElements = relativePath.split("/");
+                FsEntry originalEntry = original;
+                FsEntry otherEntry = other;
+                for(String name : pathElements) {
+                    originalEntry = originalEntry == null ? null : originalEntry.getChild(name);
+                    otherEntry = otherEntry == null ? null : otherEntry.getChild(name);
+                    if(originalEntry == null && otherEntry == null) {
+                        throw new ProvisioningException("Failed to locate " + relativePath + " in the diff");
+                    }
+                }
+                fsEntry = originalEntry == null ? otherEntry : originalEntry;
             }
         }
-        fsEntry.suppress();
+        fsEntry.diffSuppress();
     }
 
     @Override
