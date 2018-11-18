@@ -28,6 +28,7 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.state.FeaturePack;
 
 /**
@@ -46,13 +47,14 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
 
         final Map<String, PackageRuntime> tmpPackages = new LinkedHashMap<>(builder.pkgOrder.size());
 
-        switch(rt.pkgDepMask) {
-            case ProvisioningRuntimeBuilder.PKG_DEP_MASK_ALL:
+        switch(rt.includedPkgDeps) {
+            case ProvisioningRuntimeBuilder.PKG_DEP_ALL:
                 for(String pkgName : builder.pkgOrder) {
                     tmpPackages.put(pkgName, builder.pkgBuilders.get(pkgName).build(this));
                 }
                 break;
-            case ProvisioningRuntimeBuilder.PKG_DEP_MASK_PASSIVE:
+            case ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE_PLUS:
+            case ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE:
                 int i = builder.pkgOrder.size();
                 final List<PackageRuntime> included = new ArrayList<>(i);
                 while (--i >= 0) {
@@ -60,7 +62,13 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
                     final PackageRuntime.Builder pkgBuilder = builder.pkgBuilders.get(pkgName);
                     if(pkgBuilder.isFlagOn(PackageRuntime.INCLUDED)) {
                         included.add(pkgBuilder.build(this));
-                    } else if ((pkgBuilder.isFlagOn(PackageRuntime.PARENT_INCLUDED) || pkgBuilder.isFlagOn(PackageRuntime.ROOT)) && pkgBuilder.isPassiveWithSatisfiedDeps()) {
+                    } else if ((pkgBuilder.isFlagOn(PackageRuntime.PARENT_INCLUDED) || pkgBuilder.isFlagOn(PackageRuntime.ROOT))
+                            && (rt.includedPkgDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE
+                                    && pkgBuilder.isPassiveWithSatisfiedDeps()
+                                    || rt.includedPkgDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE_PLUS
+                                            && ((pkgBuilder.type & PackageDependencySpec.OPTIONAL) > 0
+                                                    && pkgBuilder.type != PackageDependencySpec.PASSIVE
+                                                    || pkgBuilder.isPassiveWithSatisfiedDeps()))) {
                         pkgBuilder.include();
                         included.add(pkgBuilder.build(this));
                     }
@@ -71,7 +79,7 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
                     tmpPackages.put(pkg.getName(), pkg);
                 }
                 break;
-            case ProvisioningRuntimeBuilder.PKG_DEP_MASK_REQUIRED:
+            case ProvisioningRuntimeBuilder.PKG_DEP_REQUIRED:
                 for(String pkgName : builder.pkgOrder) {
                     final PackageRuntime.Builder pkgBuilder = builder.pkgBuilders.get(pkgName);
                     if(pkgBuilder.isFlagOn(PackageRuntime.INCLUDED)) {
@@ -80,7 +88,7 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
                 }
                 break;
             default:
-                throw new ProvisioningException("Unexpected package dependency mask " + Integer.toBinaryString(rt.pkgDepMask));
+                throw new ProvisioningException("Unexpected package dependency mask " + Integer.toBinaryString(rt.includedPkgDeps));
         }
 
         packages = Collections.unmodifiableMap(tmpPackages);

@@ -36,6 +36,7 @@ public class ProvisioningOption {
             .addToValueSet(Constants.ALL)
             .addToValueSet(Constants.NONE)
             .addToValueSet(Constants.PASSIVE)
+            .addToValueSet(Constants.PASSIVE_PLUS)
             .build();
 
     private static final List<ProvisioningOption> stdOptions = Collections.singletonList(OPTIONAL_PACKAGES);

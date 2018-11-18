@@ -45,8 +45,8 @@ public class PackageRuntime implements ProvisionedPackage {
         final PackageSpec spec;
         final int id;
         private int status;
-        private List<PackageRuntime.Builder> passiveDeps = Collections.emptyList();
         private List<PackageRuntime.Builder> requiredDeps = Collections.emptyList();
+        private List<PackageRuntime.Builder> optionalDeps = Collections.emptyList();
         int type = PackageDependencySpec.OPTIONAL;
 
         private Builder(FeaturePackRuntimeBuilder fp, PackageSpec spec, Path dir, int id) {
@@ -86,26 +86,29 @@ public class PackageRuntime implements ProvisionedPackage {
             }
         }
 
-        void addPackageDep(PackageRuntime.Builder dep, int type) {
-            switch(type) {
-                case PackageDependencySpec.REQUIRED:
-                    //System.out.println("Required dependency " + spec.getName() + " -> " + dep.spec.getName());
-                    if(isFlagOn(INCLUDED)) {
-                        dep.include();
-                    } else {
-                        requiredDeps = CollectionUtils.add(requiredDeps, dep);
-                    }
-                    return;
-                case PackageDependencySpec.PASSIVE:
-                    //System.out.println("Passive dependency " + spec.getName() + " -> " + dep.spec.getName());
-                    passiveDeps = CollectionUtils.add(passiveDeps, dep);
-                    if(isFlagOn(INCLUDED)) {
-                        dep.setFlag(PARENT_INCLUDED);
-                    }
-                    break;
-                default:
-                    //System.out.println("Optional dependency " + spec.getName() + " -> " + dep.spec.getName());
-                    return;
+        void addPackageDep(PackageRuntime.Builder dep, int type, int includedOptionalDeps) {
+            if(type == PackageDependencySpec.REQUIRED) {
+                if (isFlagOn(INCLUDED)) {
+                    dep.include();
+                } else {
+                    requiredDeps = CollectionUtils.add(requiredDeps, dep);
+                }
+                return;
+            }
+
+            if(includedOptionalDeps == ProvisioningRuntimeBuilder.PKG_DEP_REQUIRED ||
+                 // special case in FeaturePackRuntime
+                    includedOptionalDeps == ProvisioningRuntimeBuilder.PKG_DEP_ALL) {
+                return;
+            }
+
+            if (includedOptionalDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE_PLUS ||
+                    type == PackageDependencySpec.PASSIVE
+                    /* redundant check && includedOptionalDeps != ProvisioningRuntimeBuilder.PKG_DEP_REQUIRED*/) {
+                optionalDeps = CollectionUtils.add(optionalDeps, dep);
+                if (isFlagOn(INCLUDED)) {
+                    dep.setFlag(PARENT_INCLUDED);
+                }
             }
         }
 
@@ -118,8 +121,8 @@ public class PackageRuntime implements ProvisionedPackage {
                     dep.include();
                 }
             }
-            if(!passiveDeps.isEmpty()) {
-                for (PackageRuntime.Builder dep : passiveDeps) {
+            if(!optionalDeps.isEmpty()) {
+                for (PackageRuntime.Builder dep : optionalDeps) {
                     dep.setFlag(PARENT_INCLUDED);
                 }
             }
