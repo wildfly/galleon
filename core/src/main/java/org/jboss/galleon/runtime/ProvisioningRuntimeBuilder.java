@@ -106,7 +106,8 @@ public class ProvisioningRuntimeBuilder {
     int pkgsTotal;
 
     private List<FeaturePackRuntimeBuilder> visited = new ArrayList<>();
-    int pkgDepMask;
+    private int pkgDepMask;
+    int includedPkgDeps;
 
     private ProvisioningRuntimeBuilder(final MessageWriter messageWriter) {
         startTime = System.currentTimeMillis();
@@ -147,6 +148,11 @@ public class ProvisioningRuntimeBuilder {
     static final int PKG_DEP_MASK_PASSIVE = PKG_DEP_MASK_ALL ^ PackageDependencySpec.OPTIONAL;
     static final int PKG_DEP_MASK_REQUIRED = PKG_DEP_MASK_ALL ^ PackageDependencySpec.PASSIVE;
 
+    static final int PKG_DEP_ALL = 0;
+    static final int PKG_DEP_PASSIVE = 1;
+    static final int PKG_DEP_PASSIVE_PLUS = 2;
+    static final int PKG_DEP_REQUIRED = 3;
+
     private ProvisioningRuntime doBuild() throws ProvisioningException {
 
         config = layout.getConfig();
@@ -155,13 +161,20 @@ public class ProvisioningRuntimeBuilder {
         final String optionalPackages = layout.getOptionValue(ProvisioningOption.OPTIONAL_PACKAGES);
         switch(optionalPackages) {
             case Constants.ALL:
-                this.pkgDepMask = PKG_DEP_MASK_ALL;
+                pkgDepMask = PKG_DEP_MASK_ALL;
+                includedPkgDeps = PKG_DEP_ALL;
+                break;
+            case Constants.PASSIVE_PLUS:
+                pkgDepMask = PKG_DEP_MASK_ALL;
+                includedPkgDeps = PKG_DEP_PASSIVE_PLUS;
                 break;
             case Constants.PASSIVE:
-                this.pkgDepMask = PKG_DEP_MASK_PASSIVE;
+                pkgDepMask = PKG_DEP_MASK_PASSIVE;
+                includedPkgDeps = PKG_DEP_PASSIVE;
                 break;
             case Constants.NONE:
-                this.pkgDepMask = PKG_DEP_MASK_REQUIRED;
+                pkgDepMask = PKG_DEP_MASK_REQUIRED;
+                includedPkgDeps = PKG_DEP_REQUIRED;
                 break;
             default:
                 throw new ProvisioningDescriptionException(Errors.pluginOptionIllegalValue(ProvisioningOption.OPTIONAL_PACKAGES.getName(), optionalPackages, ProvisioningOption.OPTIONAL_PACKAGES.getValueSet()));

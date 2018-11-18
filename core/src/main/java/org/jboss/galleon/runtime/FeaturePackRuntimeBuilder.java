@@ -121,7 +121,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
                 pkgBuilder.include();
             }
         } else if(!parent.isFlagOn(PackageRuntime.SCHEDULED)) {
-            parent.addPackageDep(pkgBuilder, type);
+            parent.addPackageDep(pkgBuilder, type, rt.includedPkgDeps);
         }
         if(!rt.addToPkgDepBranch(pkgBuilder)) {
             // to avoid stack overflow processing circular dependencies

@@ -70,4 +70,5 @@ public interface Constants {
     String ALL = "all";
     String NONE = "none";
     String PASSIVE = "passive";
+    String PASSIVE_PLUS = "passive+";
 }
