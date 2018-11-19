@@ -311,7 +311,7 @@ public class ProvisioningManager implements AutoCloseable {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
             layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build(), options);
-            doProvision(layout, getFsDiff(), false);
+            doProvision(layout, getFsDiff(layout), false);
         }
     }
 
@@ -339,7 +339,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID(), pluginOptions);
-            doProvision(layout, getFsDiff(), false);
+            doProvision(layout, getFsDiff(layout), false);
         }
     }
 
@@ -362,7 +362,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(provisioningConfig, options)) {
-            doProvision(layout, getFsDiff(), false);
+            doProvision(layout, getFsDiff(layout), false);
         }
     }
 
@@ -374,7 +374,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningLayout<?> provisioningLayout) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
-            doProvision(layout, getFsDiff(), false);
+            doProvision(layout, getFsDiff(layout), false);
         }
     }
 
@@ -397,7 +397,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(ProvisioningXmlParser.parse(provisioningXml), options)) {
-            doProvision(layout, getFsDiff(), false);
+            doProvision(layout, getFsDiff(layout), false);
         }
     }
 
@@ -467,7 +467,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.apply(plan, options);
-            doProvision(layout, getFsDiff(), false);
+            doProvision(layout, getFsDiff(layout), false);
         }
     }
 
@@ -484,7 +484,11 @@ public class ProvisioningManager implements AutoCloseable {
         if(diffProvider == null) {
             return false;
         }
-        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(diffProvider.getMergedConfig(), ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+        final ProvisioningConfig mergedConfig = diffProvider.getMergedConfig();
+        if(mergedConfig.equals(getProvisioningConfig())) {
+            return false;
+        }
+        try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(mergedConfig, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             doProvision(layout, diffProvider.getFsDiff(), false);
         }
         return true;
@@ -539,7 +543,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void undo() throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
-            doProvision(layout, getFsDiff(), true);
+            doProvision(layout, getFsDiff(layout), true);
         }
     }
 
@@ -631,19 +635,44 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of an error during the status check
      */
     public FsDiff getFsDiff() throws ProvisioningException {
+        return getFsDiff(null);
+    }
+
+    private FsDiff getFsDiff(ProvisioningLayout<?> layout) throws ProvisioningException {
         final ProvisioningConfig config = getProvisioningConfig();
         if(config == null || !config.hasFeaturePackDeps()) {
             return null;
         }
-        return detectUserChanges(config);
+        log.verbose("Detecting user changes");
+        final Path hashesDir = LayoutUtils.getHashesDir(getInstallationHome());
+        if(Files.exists(hashesDir)) {
+            final FsEntry originalState = new FsEntry(null, hashesDir);
+            readHashes(originalState, new ArrayList<>());
+            final FsEntry currentState = (layout == null ? getDefaultFsEntryFactory() : layout.getFsEntryFactory()).forPath(getInstallationHome());
+            return FsDiff.diff(originalState, currentState);
+        }
+        try(ProvisioningRuntime rt = getRuntime(config)) {
+            rt.provision();
+            final FsEntryFactory fsFactory =  layout == null ? getDefaultFsEntryFactory() : layout.getFsEntryFactory();
+            final FsEntry originalState = fsFactory.forPath(rt.getStagedDir());
+            final FsEntry currentState = fsFactory.forPath(getInstallationHome());
+            final long startTime = System.nanoTime();
+            final FsDiff fsDiff = FsDiff.diff(originalState, currentState);
+            if (log.isVerboseEnabled()) {
+                final long timeMs = (System.nanoTime() - startTime) / 1000000;
+                final long timeSec = timeMs / 1000;
+                log.verbose("  filesystem diff took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+            }
+            return fsDiff;
+        }
     }
 
     private ProvisioningDiffProvider getDiffProvider() throws ProvisioningException {
-        final FsDiff diff = getFsDiff();
-        if(diff == null || diff.isEmpty()) {
-            return null;
-        }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = layoutFactory.newConfigLayout(getProvisioningConfig(), ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
+            final FsDiff diff = getFsDiff(layout);
+            if(diff == null || diff.isEmpty()) {
+                return null;
+            }
             final ProvisioningDiffProvider diffProvider = ProvisioningDiffProvider.newInstance(layout, getProvisionedState(), diff, log);
             layout.visitPlugins(new FeaturePackPluginVisitor<StateDiffPlugin>() {
                 @Override
@@ -683,31 +712,6 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    private FsDiff detectUserChanges(ProvisioningConfig config) throws ProvisioningException {
-        log.verbose("Detecting user changes");
-        final Path hashesDir = LayoutUtils.getHashesDir(getInstallationHome());
-        if(Files.exists(hashesDir)) {
-            final FsEntry originalState = new FsEntry(null, hashesDir);
-            readHashes(originalState, new ArrayList<>());
-            final FsEntry currentState = getFsEntryFactory().forPath(getInstallationHome());
-            return FsDiff.diff(originalState, currentState);
-        }
-        try(ProvisioningRuntime rt = getRuntime(config)) {
-            rt.provision();
-            final FsEntryFactory fsFactory = getFsEntryFactory();
-            final FsEntry originalState = fsFactory.forPath(rt.getStagedDir());
-            final FsEntry currentState = fsFactory.forPath(getInstallationHome());
-            final long startTime = System.nanoTime();
-            final FsDiff fsDiff = FsDiff.diff(originalState, currentState);
-            if (log.isVerboseEnabled()) {
-                final long timeMs = (System.nanoTime() - startTime) / 1000000;
-                final long timeSec = timeMs / 1000;
-                log.verbose("  filesystem diff took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
-            }
-            return fsDiff;
-        }
-    }
-
     private static void readHashes(FsEntry parent, List<FsEntry> dirs) throws ProvisioningException {
         int dirsTotal = 0;
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(parent.getPath())) {
@@ -736,29 +740,13 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    private FsEntryFactory fsEntryFactory;
-
-    private FsEntryFactory getFsEntryFactory() {
-        if(fsEntryFactory == null) {
-            fsEntryFactory = FsEntryFactory.getInstance()
-                .filter("/.galleon")
-                .filter("*.glnew")
-                .filter("/domain/configuration/domain_xml_history")
-                .filter("/domain/configuration/host_xml_history")
-                .filter("/domain/data")
-                .filter("/domain/log")
-                .filter("/domain/servers")
-                .filter("/standalone/configuration/standalone_xml_history")
-                .filter("/standalone/data")
-                .filter("/standalone/log")
-                .filter("/standalone/tmp");
-        }
-        return fsEntryFactory;
+    private static FsEntryFactory getDefaultFsEntryFactory() {
+        return FsEntryFactory.getInstance().filterGalleonPaths();
     }
 
     private void persistHashes(ProvisioningRuntime runtime) throws ProvisioningException {
         final long startTime = System.nanoTime();
-        final FsEntry root = getFsEntryFactory().forPath(runtime.getStagedDir());
+        final FsEntry root = getDefaultFsEntryFactory().forPath(runtime.getStagedDir());
         if (root.hasChildren()) {
             final Path hashes = LayoutUtils.getHashesDir(runtime.getStagedDir());
             try {

@@ -22,11 +22,15 @@ import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.plugin.InstallPlugin;
+import org.jboss.galleon.plugin.StateDiffPlugin;
 import org.jboss.galleon.spec.ConfigLayerSpec;
+import org.jboss.galleon.spec.FeatureParameterSpec;
+import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.LatestVersionNotAvailableException;
@@ -35,6 +39,8 @@ import org.jboss.galleon.universe.TestConstants;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
+import org.jboss.galleon.userchanges.persist.test.BasicStateDiffPlugin;
+import org.jboss.galleon.userchanges.persist.test.TestConfigsPersistingPlugin;
 import org.junit.Assert;
 
 /**
@@ -97,8 +103,12 @@ public abstract class CliTestUtils {
         FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
                 producer, "1", null, version);
         creator.newFeaturePack(fp1.getFPID())
+                .addFeatureSpec(FeatureSpec.builder(producer + "-FeatureA")
+                        .addParam(FeatureParameterSpec.createId("id"))
+                        .build())
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("base-" + producer)
+                        .addFeature(new FeatureConfig(producer + "-FeatureA").setParam("id", "base"))
                         .build())
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("layerA-" + producer)
@@ -119,7 +129,11 @@ public abstract class CliTestUtils {
                 .addConfig(ConfigModel.builder("testmodel", "config2.xml").
                         includeLayer("layerD-" + producer).build(), true)
                 .newPackage("p1", true)
-                .writeContent("fp1/p1.txt", "fp1 p1");
+                        .writeContent(producer + "/p1.txt", "fp1 p1")
+                        .getFeaturePack()
+                .addService(StateDiffPlugin.class, BasicStateDiffPlugin.class)
+                .addPlugin(TestConfigsPersistingPlugin.class);
+
         creator.install();
     }
 

@@ -131,6 +131,9 @@ public class FsEntryFactory {
         return new FsEntryFactory();
     }
 
+    private static final String FILTERED_PATH_DOT_GALLEON = "/.galleon";
+    private static final String FILTERED_PATH_GLNEW_EXT = "*.glnew";
+
     private List<PathFilter> pathFilters = Collections.emptyList();
 
     private FsEntryFactory() {
@@ -178,6 +181,12 @@ public class FsEntryFactory {
             }
         }
         return false;
+    }
+
+    public FsEntryFactory filterGalleonPaths() {
+        filter(FILTERED_PATH_DOT_GALLEON);
+        filter(FILTERED_PATH_GLNEW_EXT);
+        return this;
     }
 
     public FsEntryFactory filter(String pathExpr) {
