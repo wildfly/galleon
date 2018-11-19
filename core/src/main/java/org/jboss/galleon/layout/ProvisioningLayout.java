@@ -303,7 +303,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private Set<ProducerSpec> transitiveDeps;
     private Map<ProducerSpec, Set<FPID>> conflicts = Collections.emptyMap();
     private Map<ProducerSpec, F> featurePacks = new HashMap<>();
-    private List<F> ordered = new ArrayList<>();
+    private ArrayList<F> ordered = new ArrayList<>();
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
 
@@ -370,11 +370,19 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.fpFactory = fpFactory;
         this.config = other.config;
         this.options = CollectionUtils.clone(other.options);
-        for(O otherFp : other.ordered) {
+
+        // feature-packs are processed in the reverse order and then re-ordered again
+        // this is necessary to properly analyze and include optional package and their external dependencies
+        int i = other.ordered.size();
+        ordered.ensureCapacity(i);
+        while(--i >= 0) {
+            final O otherFp = other.ordered.get(i);
             final F fp = transformer.transform(otherFp);
             featurePacks.put(fp.getFPID().getProducer(), fp);
             ordered.add(fp);
         }
+        Collections.reverse(ordered);
+
         if(!other.fpPatches.isEmpty()) {
             fpPatches = new HashMap<>(other.fpPatches.size());
             for (Map.Entry<FPID, List<O>> patchEntry : other.fpPatches.entrySet()) {
