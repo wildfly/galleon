@@ -34,22 +34,26 @@ import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
  *
  * @author Alexey Loubyansky
  */
-public class BasicPassivePlusDepIncludedTestCase extends ProvisionFromUniverseTestBase {
+public class PassivePlusOptionalDepWIthExtrnalDepsTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation prod1;
+    private FeaturePackLocation prod2;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
         universe.createProducer("prod1");
+        universe.createProducer("prod2");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
 
         prod1 = newFpl("prod1", "1", "1.0.0.Final");
+        prod2 = newFpl("prod2", "1", "1.0.0.Final");
 
         creator.newFeaturePack()
             .setFPID(prod1.getFPID())
+            .addDependency(prod2)
             .newPackage("p1", true)
                 .addDependency(PackageDependencySpec.optional("p2"))
                 .addDependency(PackageDependencySpec.passive("p5"))
@@ -58,10 +62,6 @@ public class BasicPassivePlusDepIncludedTestCase extends ProvisionFromUniverseTe
             .newPackage("p2")
                 .addDependency("p3")
                 .addDependency("p4")
-                .getFeaturePack()
-            .newPackage("p3")
-                .getFeaturePack()
-            .newPackage("p4")
                 .getFeaturePack()
             .newPackage("p5")
                 .addDependency("p6")
@@ -75,6 +75,12 @@ public class BasicPassivePlusDepIncludedTestCase extends ProvisionFromUniverseTe
                 .addDependency("p9")
                 .getFeaturePack()
             .newPackage("p9");
+
+        creator.newFeaturePack()
+          .setFPID(prod2.getFPID())
+          .newPackage("p3")
+              .getFeaturePack()
+          .newPackage("p4");
 
         creator.install();
     }
@@ -93,11 +99,13 @@ public class BasicPassivePlusDepIncludedTestCase extends ProvisionFromUniverseTe
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
+                .addFeaturePack(ProvisionedFeaturePack.builder(prod2.getFPID())
+                        .addPackage("p3")
+                        .addPackage("p4")
+                        .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(prod1.getFPID())
                         .addPackage("p1")
                         .addPackage("p2")
-                        .addPackage("p3")
-                        .addPackage("p4")
                         .addPackage("p5")
                         .addPackage("p6")
                         .addPackage("p7")
