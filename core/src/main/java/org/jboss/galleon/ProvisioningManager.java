@@ -569,7 +569,7 @@ public class ProvisioningManager implements AutoCloseable {
 
     public ProvisioningRuntime getRuntime(ProvisioningConfig provisioningConfig)
             throws ProvisioningException {
-        return getRuntimeInternal(newConfigLayout(provisioningConfig, Collections.emptyMap()));
+        return getRuntimeInternal(newConfigLayout(provisioningConfig, Collections.emptyMap()), null);
     }
 
     private ProvisioningLayout<FeaturePackRuntimeBuilder> newConfigLayout(ProvisioningConfig provisioningConfig,
@@ -579,19 +579,20 @@ public class ProvisioningManager implements AutoCloseable {
 
     public ProvisioningRuntime getRuntime(ProvisioningLayout<?> provisioningLayout)
             throws ProvisioningException {
-        return getRuntimeInternal(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY));
+        return getRuntimeInternal(provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY), null);
     }
 
-    private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout)
+    private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, FsDiff fsDiff)
             throws ProvisioningException {
         return ProvisioningRuntimeBuilder.newInstance(log)
                 .initRtLayout(layout)
                 .setEncoding(encoding)
+                .setFsDiff(fsDiff)
                 .build();
     }
 
     private void doProvision(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, FsDiff fsDiff, boolean undo) throws ProvisioningException {
-        try (ProvisioningRuntime runtime = getRuntimeInternal(layout)) {
+        try (ProvisioningRuntime runtime = getRuntimeInternal(layout, fsDiff)) {
             runtime.provision();
             if (runtime.getProvisioningConfig().hasFeaturePackDeps()) {
                 persistHashes(runtime);

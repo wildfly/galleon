@@ -30,6 +30,7 @@ import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.layout.FeaturePackLayoutTransformer;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
@@ -55,6 +56,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     private final long startTime;
     private ProvisioningConfig config;
+    private FsDiff fsDiff;
     private final Path stagedDir;
     private final ProvisioningLayout<FeaturePackRuntime> layout;
     private final MessageWriter messageWriter;
@@ -69,6 +71,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 return other.build(builder);
             }
         });
+        this.fsDiff = builder.fsDiff;
 
         try {
             this.configs = builder.getResolvedConfigs();
@@ -101,6 +104,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     public ProvisioningLayout<FeaturePackRuntime> getLayout() {
         return layout;
+    }
+
+    public FsDiff getFsDiff() {
+        return fsDiff;
     }
 
     /**
@@ -246,6 +253,14 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public void provision() throws ProvisioningException {
+
+        layout.visitPlugins(new FeaturePackPluginVisitor<InstallPlugin>() {
+            @Override
+            public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
+                plugin.preInstall(ProvisioningRuntime.this);
+            }
+        }, InstallPlugin.class);
+
         // copy package content
         for(FeaturePackRuntime fp : layout.getOrderedFeaturePacks()) {
             messageWriter.verbose("Installing %s", fp.getFPID());
@@ -261,8 +276,12 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             }
         }
 
-        // execute the plug-ins
-        executeInstallPlugins();
+        layout.visitPlugins(new FeaturePackPluginVisitor<InstallPlugin>() {
+            @Override
+            public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
+                plugin.postInstall(ProvisioningRuntime.this);
+            }
+        }, InstallPlugin.class);
 
         // save the config
         try {
@@ -277,16 +296,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         } catch (XMLStreamException | IOException e) {
             throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
         }
-    }
-
-    private void executeInstallPlugins() throws ProvisioningException {
-        FeaturePackPluginVisitor<InstallPlugin> visitor = new FeaturePackPluginVisitor<InstallPlugin>() {
-            @Override
-            public void visitPlugin(InstallPlugin plugin) throws ProvisioningException {
-                plugin.postInstall(ProvisioningRuntime.this);
-            }
-        };
-        layout.visitPlugins(visitor, InstallPlugin.class);
     }
 
     @Override
