@@ -17,6 +17,7 @@
 
 package org.jboss.galleon.layout;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -45,6 +46,7 @@ import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.diff.FsEntryFactory;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.progresstracking.ProgressTracker;
@@ -307,6 +309,8 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
 
+    private FsEntryFactory fsEntryFactory;
+
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
 
@@ -404,6 +408,34 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
     public FeaturePackLayoutFactory<F> getFeaturePackFactory() {
         return fpFactory;
+    }
+
+    public FsEntryFactory getFsEntryFactory() throws ProvisioningException {
+        if(fsEntryFactory != null) {
+            return fsEntryFactory;
+        }
+        fsEntryFactory = FsEntryFactory.getInstance().filterGalleonPaths();
+        if(!ordered.isEmpty()) {
+            Set<String> filteredPath = new HashSet<>();
+            for(F fp : ordered) {
+                final Path p = fp.getResource(Constants.GALLEON_DIFF_FILTER);
+                if(!Files.exists(p)) {
+                    continue;
+                }
+                try(BufferedReader reader = Files.newBufferedReader(p)) {
+                    String line = reader.readLine();
+                    while(line != null) {
+                        if(filteredPath.add(line)) {
+                            fsEntryFactory.filter(line);
+                        }
+                        line = reader.readLine();
+                    }
+                } catch (IOException e) {
+                    throw new ProvisioningException(Errors.readFile(p), e);
+                }
+            }
+        }
+        return fsEntryFactory;
     }
 
     public <O extends FeaturePackLayout> ProvisioningLayout<O> transform(FeaturePackLayoutFactory<O> fpFactory) throws ProvisioningException {
@@ -811,6 +843,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         fpPatches = Collections.emptyMap();
         this.config = config;
         handle.reset();
+        fsEntryFactory = null;
         build(cleanupTransitive, trackProgress);
     }
 
