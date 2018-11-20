@@ -71,6 +71,4 @@ public interface Constants {
     String NONE = "none";
     String PASSIVE = "passive";
     String PASSIVE_PLUS = "passive+";
-
-    String GALLEON_DIFF_FILTER = "galleon.diff.filter";
 }

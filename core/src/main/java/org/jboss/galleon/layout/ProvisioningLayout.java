@@ -17,7 +17,6 @@
 
 package org.jboss.galleon.layout;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -408,34 +407,6 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
     public FeaturePackLayoutFactory<F> getFeaturePackFactory() {
         return fpFactory;
-    }
-
-    public FsEntryFactory getFsEntryFactory() throws ProvisioningException {
-        if(fsEntryFactory != null) {
-            return fsEntryFactory;
-        }
-        fsEntryFactory = FsEntryFactory.getInstance().filterGalleonPaths();
-        if(!ordered.isEmpty()) {
-            Set<String> filteredPath = new HashSet<>();
-            for(F fp : ordered) {
-                final Path p = fp.getResource(Constants.GALLEON_DIFF_FILTER);
-                if(!Files.exists(p)) {
-                    continue;
-                }
-                try(BufferedReader reader = Files.newBufferedReader(p)) {
-                    String line = reader.readLine();
-                    while(line != null) {
-                        if(filteredPath.add(line)) {
-                            fsEntryFactory.filter(line);
-                        }
-                        line = reader.readLine();
-                    }
-                } catch (IOException e) {
-                    throw new ProvisioningException(Errors.readFile(p), e);
-                }
-            }
-        }
-        return fsEntryFactory;
     }
 
     public <O extends FeaturePackLayout> ProvisioningLayout<O> transform(FeaturePackLayoutFactory<O> fpFactory) throws ProvisioningException {

@@ -311,7 +311,7 @@ public class ProvisioningManager implements AutoCloseable {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             final UniverseSpec configuredUniverse = getConfiguredUniverse(fpConfig.getLocation());
             layout.install(configuredUniverse == null ? fpConfig : FeaturePackConfig.builder(fpConfig.getLocation().replaceUniverse(configuredUniverse)).init(fpConfig).build(), options);
-            doProvision(layout, getFsDiff(layout), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -339,7 +339,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID(), pluginOptions);
-            doProvision(layout, getFsDiff(layout), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -362,7 +362,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningConfig provisioningConfig, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(provisioningConfig, options)) {
-            doProvision(layout, getFsDiff(layout), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -374,7 +374,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(ProvisioningLayout<?> provisioningLayout) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = provisioningLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY)) {
-            doProvision(layout, getFsDiff(layout), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -397,7 +397,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void provision(Path provisioningXml, Map<String, String> options) throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(ProvisioningXmlParser.parse(provisioningXml), options)) {
-            doProvision(layout, getFsDiff(layout), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -467,7 +467,7 @@ public class ProvisioningManager implements AutoCloseable {
         }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.apply(plan, options);
-            doProvision(layout, getFsDiff(layout), false);
+            doProvision(layout, getFsDiff(), false);
         }
     }
 
@@ -480,7 +480,7 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case the merge fails
      */
     public boolean persistChanges() throws ProvisioningException {
-        final ProvisioningDiffProvider diffProvider = getDiffProvider();
+        final ProvisioningDiffProvider diffProvider = getDiffMergedConfig();
         if(diffProvider == null) {
             return false;
         }
@@ -543,7 +543,7 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public void undo() throws ProvisioningException {
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = newConfigLayout(StateHistoryUtils.readUndoConfig(home, log), Collections.emptyMap())) {
-            doProvision(layout, getFsDiff(layout), true);
+            doProvision(layout, getFsDiff(), true);
         }
     }
 
@@ -636,10 +636,6 @@ public class ProvisioningManager implements AutoCloseable {
      * @throws ProvisioningException  in case of an error during the status check
      */
     public FsDiff getFsDiff() throws ProvisioningException {
-        return getFsDiff(null);
-    }
-
-    private FsDiff getFsDiff(ProvisioningLayout<?> layout) throws ProvisioningException {
         final ProvisioningConfig config = getProvisioningConfig();
         if(config == null || !config.hasFeaturePackDeps()) {
             return null;
@@ -649,12 +645,12 @@ public class ProvisioningManager implements AutoCloseable {
         if(Files.exists(hashesDir)) {
             final FsEntry originalState = new FsEntry(null, hashesDir);
             readHashes(originalState, new ArrayList<>());
-            final FsEntry currentState = (layout == null ? getDefaultFsEntryFactory() : layout.getFsEntryFactory()).forPath(getInstallationHome());
+            final FsEntry currentState = getDefaultFsEntryFactory().forPath(getInstallationHome());
             return FsDiff.diff(originalState, currentState);
         }
         try(ProvisioningRuntime rt = getRuntime(config)) {
             rt.provision();
-            final FsEntryFactory fsFactory =  layout == null ? getDefaultFsEntryFactory() : layout.getFsEntryFactory();
+            final FsEntryFactory fsFactory =  getDefaultFsEntryFactory();
             final FsEntry originalState = fsFactory.forPath(rt.getStagedDir());
             final FsEntry currentState = fsFactory.forPath(getInstallationHome());
             final long startTime = System.nanoTime();
@@ -668,12 +664,12 @@ public class ProvisioningManager implements AutoCloseable {
         }
     }
 
-    private ProvisioningDiffProvider getDiffProvider() throws ProvisioningException {
+    private ProvisioningDiffProvider getDiffMergedConfig() throws ProvisioningException {
+        final FsDiff diff = getFsDiff();
+        if(diff == null || diff.isEmpty()) {
+            return null;
+        }
         try (ProvisioningLayout<FeaturePackRuntimeBuilder> layout = layoutFactory.newConfigLayout(getProvisioningConfig(), ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
-            final FsDiff diff = getFsDiff(layout);
-            if(diff == null || diff.isEmpty()) {
-                return null;
-            }
             final ProvisioningDiffProvider diffProvider = ProvisioningDiffProvider.newInstance(layout, getProvisionedState(), diff, log);
             layout.visitPlugins(new FeaturePackPluginVisitor<StateDiffPlugin>() {
                 @Override
