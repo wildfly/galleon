@@ -43,6 +43,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.layout.FeaturePackLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
@@ -86,6 +87,7 @@ public class ProvisioningRuntimeBuilder {
     String encoding;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
+    FsDiff fsDiff;
     private final MessageWriter messageWriter;
 
     Map<String, ConfigModelStack> nameOnlyConfigs = Collections.emptyMap();
@@ -131,6 +133,11 @@ public class ProvisioningRuntimeBuilder {
 
     public ProvisioningRuntimeBuilder initLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config) throws ProvisioningException {
         layout = layoutFactory.newConfigLayout(config, FP_RT_FACTORY, false);
+        return this;
+    }
+
+    public ProvisioningRuntimeBuilder setFsDiff(FsDiff fsDiff) {
+        this.fsDiff = fsDiff;
         return this;
     }
 

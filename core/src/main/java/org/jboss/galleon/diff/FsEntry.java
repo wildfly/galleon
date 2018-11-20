@@ -176,6 +176,22 @@ public class FsEntry {
         return hash;
     }
 
+    public boolean isDiffStatusAdded() {
+        return diffStatus == ADDED;
+    }
+
+    public boolean isDiffStatusRemoved() {
+        return diffStatus == REMOVED;
+    }
+
+    public boolean isDiffStatusModified() {
+        return diffStatus == MODIFIED;
+    }
+
+    boolean isDiffStatusSuppressed() {
+        return diffStatus == SUPPRESSED;
+    }
+
     void diffAdded() {
         diffStatus = ADDED;
         if(!children.isEmpty()) {
@@ -207,10 +223,6 @@ public class FsEntry {
         }
     }
 
-    boolean isDiffSuppressed() {
-        return diffStatus == SUPPRESSED;
-    }
-
     public void dumpAsTree(PrintStream out) throws IOException {
         dumpAsTree(children.isEmpty() ? Collections.emptyList() : new ArrayList<>(), out);
     }
@@ -234,7 +246,6 @@ public class FsEntry {
             out.print('(');
             out.print(diffStatus);
             out.print(')');
-            return;
         }
         out.println();
 
