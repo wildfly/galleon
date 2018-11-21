@@ -95,3 +95,25 @@ Let's see how it will look like in an actual configuration
 In the example above feature `interface:name=public` provides capability `org.wildfly.network.interface.public` which is required by feature `socket-binding:name=http`. And feature `interface:name=secure` provides capability `org.wildfly.network.interface.secure` which is required by feature `socket-binding:name=https`.
 
 NOTE: More than one parameter could be used in a capability name. The parameters may appear in any part of the name, not necessarily at the end as in the example. The only rule is to use dot as a separator for the parameters and the static parts of the name.
+
+###### Optional capabilities
+
+In the example above, parameter `interface` in both feature specs is not nillable, which means the capability will always be provided by `interface` and always be required `socket-binding`. There could be cases though, when a parameter referenced from the capability name is nillable. In fact, if the parameter is null, the capability name will fail to resolve and provisioning will fail. However, dynamic capabilities can be marked as optional. Optional dynamic capability will be provided (or required) only if its name could be resolved (i.e. all the parameters referenced were not null). Here is the example illustrating optional capabilities in a feature spec:
+
+[source,xml]
+----
+ <feature-spec name="specA" xmlns="urn:jboss:galleon:feature-spec:1.0">
+   <provides>
+     <capability name="$b" optional="true"/>
+   </provides>
+   <requires>
+     <capability name="$c" optional="true"/>
+   </requires>
+   <params>
+     <param name="id" feature-id="true"/>
+     <param name="b" nillable="true"/>
+     <param name="c" nillable="true"/>
+   </params>
+ </feature-spec>
+----
+

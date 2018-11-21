@@ -35,6 +35,10 @@ Patch basically provides a new version of certain content and/or redefines some 
 
 * feature groups (by providing updated feature groups);
 
+* layers;
+
+* configs;
+
 * various feature-pack resources;
 
 * provisioning plugins (by including new versions of the plugins).
