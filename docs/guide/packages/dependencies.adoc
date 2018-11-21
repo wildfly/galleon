@@ -6,25 +6,51 @@
 
 *Optional dependency* means that the dependency does not have to be satisfied for the package to be installed. For example if package `p1` declares an optional dependency on package `p2` and `p2` is explicitly excluded by the user, `p1` will still be installed. An example of an optional dependency could be a package called `documentation` which declares an optional dependency on package `examples`. If a user is not interested in `examples`, the rest of `documentation` could still be installed.
 
-Package dependencies are also used to determine the <<_feature_pack_without_dependencies,effective package set of a feature-pack>> to be installed described later.
+Package dependencies are also used to determine the <<_effective_package_set,effective package set of a feature-pack>> to be installed described later.
 
 Here is an example of how dependencies are expressed in the XML metadata:
 
 [source,xml]
 ----
- <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
+ <package-spec xmlns="urn:jboss:galleon:package:2.0" name="p1">
     <dependencies>
-        <package name="p2"/>
-        <package name="p3" optional=”true”/>
+        <package name="p2"/> <!--1-->
+        <package name="p3" optional=”true”/> <!--2-->
+    </dependencies>
+ </package-spec>
+----
+<1> required dependency on package `p2`
+<2> optional dependency on package `p3`
+
+A package may declare dependency on a package from the same or another feature-pack. During the dependency resolution, at first, the mechanism is trying to resolve the package dependency locally, i.e. in the current feature-pack. If the dependency could not be resolved locally, the mechanism will look for the package dependency in the feature-packs the current feature-pack depends on (in the order the feature-pack dependencies are listed in `feature-pack.xml` of the current feature-pack). The first found matching package will be used as the resolved dependency. If the package dependency could not be resolved, the mechanism will report an error.
+
+NOTE: Although a package may declare a dependency on a package from another feature-pack, it cannot specify the version of the feature-pack in the package dependency declaration.
+
+#### Passive dependencies
+
+An optional dependency may be also marked as passive, e.g.
+[source,xml]
+----
+ <package-spec xmlns="urn:jboss:galleon:package:2.0" name="p1">
+    <dependencies>
+        <package name="p2" optional=”true” passive="true"/>
     </dependencies>
  </package-spec>
 ----
 
-In this example `p2` is a required dependency of `p1` while `p3` is an optional one.
+Or, in fact, the example above can be re-written without `optional="true"` since only optional dependencies can be passive, i.e.
+[source,xml]
+----
+ <package-spec xmlns="urn:jboss:galleon:package:2.0" name="p1">
+    <dependencies>
+        <package name="p2" passive="true"/>
+    </dependencies>
+ </package-spec>
+----
 
-Package may declare dependency on a package from the same or another feature-pack. During the dependency resolution, at first, the mechanism is trying to resolve the package dependency locally, i.e. in the current feature-pack. If the dependency could not be resolved locally, the mechanism will look for the package dependency in the feature-packs the current feature-pack depends on (in the order the feature-pack dependencies are listed in the `feature-pack.xml` of the current feature-pack). The first found matching package will be used as the resolved dependency. If the package dependency could not be resolved, the mechanism will report an error.
+IMPORTANT: A passive dependency on a package is satisified only if all the required dependencies of that package are included into the installation (as the default packages or direct or required dependencies (possibly transitive) of the provisioned configs, layers, feature groups or features).
 
-NOTE: Although a package may declare a dependency on a package from another feature-pack, it cannot specify the version of the feature-pack in the package dependency declaration.
+Passive dependencies affect how the <<_effective_package_set,effective package set of a feature-pack>> is resolved.
 
 #### Explicit package dependency origin
 
@@ -51,7 +77,7 @@ And the `package.xml` file of `fp1:p1` might look like this:
 
 [source,xml]
 ----
- <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
+ <package-spec xmlns="urn:jboss:galleon:package:2.0" name="p1">
     <dependencies>
         <package name="p2" />
         <origin name=”fp2-dep”>

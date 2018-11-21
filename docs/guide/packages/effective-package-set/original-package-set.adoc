@@ -1,5 +1,18 @@
 #### Feature-pack original effective package set
 
-_Original_ in the title means not explicitly modified. I.e. a set of packages which is going to be installed when the feature-pack is installed as-is without any customizations from a user.
+_Original_ in the title means not explicitly modified. I.e. the set of packages which is going to be installed when the feature-pack is installed as-is without any customizations from a user.
 
-The feature-pack's original effective package set consists of all the default packages of the feature-pack plus all the packages that appear to be direct or transitive dependencies of the default packages.
+Generally speaking, the original effective package set of a feature-pack consists of all the default packages of the feature-pack plus all the packages that appear to be direct or transitive dependencies of the default packages, the default configs and layers, feature groups and features those configs consist of.
+
+While the required package dependencies are always included into the effective package set, the inclusion of optional packages can be controlled with one of the policies specified as the value of provisioning option `optional-packages`: `all`, `none`, `passive` and `passive+`.
+
+Here is the table illustrating which dependency types are automatically included and which are filtered out form the effective package set under each policy:
+
+.Optional package inclusion policies
+|===
+| |*all* |*passive+* |*passive* |*none*
+|*required* |+ |+ |+ |+
+|*passive* (satisfied) |+ |+ |+ |-
+|*passive* (unsatisfied) |+ |- |- |-
+|*optional* |+ |+ |- |-
+|===

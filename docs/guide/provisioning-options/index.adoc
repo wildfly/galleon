@@ -1,0 +1,52 @@
+## Provisioning options
+
+Every provisioning action (such as `provision`, `install`, `uninstall`, etc) may accept provisioning options. Provisioning options may control various things, e.g. enable debug mode in one of the product-specific provisioning plugins, activate a certain provisioning mode, etc.
+
+### Persistent and non-persistent options
+
+Provisioning options can be persistent and non-persistent.
+
+*Persistent options* are persisted in the provisioning configuration file when the provisioning process has succesfully finished. E.g. if `prod1` is installed with `option1`, the provisioned configuration will look like this
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+    <options>
+        <option name="option1" value="true"/>
+    </options>
+</installation>
+----
+
+Now if the user installs `prod2`, `option1` will still be effective during re-provisioning and the config will change to
+[source,xml]
+----
+<installation xmlns="urn:jboss:galleon:provisioning:2.0">
+    <feature-pack location="prod1@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+    <feature-pack location="prod2@maven(org.jboss.universe:community-universe):1#1.0.0.Final"/>
+    <options>
+        <option name="option1" value="true"/>
+    </options>
+</installation>
+----
+
+NOTE: Option values are not necessarily `true` or `false`, they may have various values. The only restriction is they *must* have some value.
+
+*Non-persistent* options, on the other hand, are not automatically stored in the provisioning configuration. They are used only for the provisioning action they were specified for.
+
+### Built-in and product-specific options
+
+Provisioning options can be provided by the core provisioning mechanism itself and the product-specific provisioning plugins.
+
+#### Built-in provisioning options
+
+There is only one built-in provisioning option (provided by the core mechanism) at the moment.
+
+.Provisioning option: optional-packages
+|===
+|Purpose |<<_feature_pack_original_effective_package_set,Optional package dependencies inclusion policy>>
+|Value set |`all`, `none`, `passive`, `passive+`
+|===
+
+#### Product provisioning options
+
+Product-specific provisioning options are exposed by the product-specific provisioning plugins attached to the feature-packs.

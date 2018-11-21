@@ -9,7 +9,7 @@ Here is an illustration of how `package.xml` might look like:
 
 [source,xml]
 ----
- <package-spec xmlns="urn:jboss:galleon:package:1.0" name="p1">
+ <package-spec xmlns="urn:jboss:galleon:package:2.0" name="p1">
     <dependencies>
         <package name="p2"/>
         <package name="p3" optional="true"/>
