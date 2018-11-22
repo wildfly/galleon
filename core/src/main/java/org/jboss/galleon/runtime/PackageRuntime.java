@@ -133,18 +133,21 @@ public class PackageRuntime implements ProvisionedPackage {
                 return false;
             }
             final int specRequiredDeps = spec.getRequiredPackageDepsTotal();
-            if(specRequiredDeps == 0 || !setFlag(VISITED)) {
+            if (specRequiredDeps == 0 || !setFlag(VISITED)) {
                 return true;
             }
-            if(specRequiredDeps != requiredDeps.size()) {
-                return false;
-            }
-            for(PackageRuntime.Builder dep : requiredDeps) {
-                if(!dep.isFlagOn(INCLUDED)) {
+            try {
+                if (specRequiredDeps != requiredDeps.size()) {
                     return false;
                 }
+                for (PackageRuntime.Builder dep : requiredDeps) {
+                    if (!dep.isFlagOn(INCLUDED) && !dep.isPassiveWithSatisfiedDeps()) {
+                        return false;
+                    }
+                }
+            } finally {
+                clearFlag(VISITED);
             }
-            clearFlag(VISITED);
             return true;
         }
 

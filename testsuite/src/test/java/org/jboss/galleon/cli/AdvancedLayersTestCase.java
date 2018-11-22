@@ -77,8 +77,9 @@ public class AdvancedLayersTestCase {
             assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-required"));
             assertTrue(pkgs.toString(), pkgs.contains("p1-optional"));
             assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-optional1"));
-             assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-optional2"));
+            assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-optional2"));
             assertFalse(pkgs.toString(), pkgs.contains("p1-passive"));
+            assertTrue(pkgs.toString(), pkgs.contains("p2-passive"));
         }
         {
             Path path = cli.newDir("prod2", false);
@@ -93,6 +94,7 @@ public class AdvancedLayersTestCase {
             assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-optional1"));
             assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-optional2"));
             assertTrue(pkgs.toString(), pkgs.contains("p1-passive"));
+            assertTrue(pkgs.toString(), pkgs.contains("p2-passive"));
             assertTrue(pkgs.toString(), pkgs.contains("p2-required"));
             assertTrue(pkgs.toString(), pkgs.contains("p2-optional"));
         }
@@ -154,6 +156,7 @@ public class AdvancedLayersTestCase {
                 .addFeatureSpec(FeatureSpec.builder().addPackageDep("p1-required").
                         addPackageDep("p1-optional", true).
                         addPackageDep(PackageDependencySpec.newInstance("p1-passive", PackageDependencySpec.PASSIVE)).
+                        addPackageDep(PackageDependencySpec.newInstance("p2-passive", PackageDependencySpec.PASSIVE)).
                         setName("feat1").build())
                 .addFeatureSpec(FeatureSpec.builder().addPackageDep("p2-required").
                         addPackageDep("p2-optional", true).
@@ -180,8 +183,10 @@ public class AdvancedLayersTestCase {
                 .writeContent("fp1/p1-ref-from-optional1.txt", "fp1 p1").getFeaturePack().
                 newPackage("p1-ref-from-optional2", false)
                 .writeContent("fp1/p1-ref-from-optional2.txt", "fp1 p1").getFeaturePack().
-                newPackage("p1-passive", false).addDependency("p2-required")
+                newPackage("p1-passive", false).addDependency("p2-required").addDependency("p2-passive")
                 .writeContent("fp1/p1-passive.txt", "fp1 p1").getFeaturePack().
+                newPackage("p2-passive", false).addDependency("p1-required")
+                .writeContent("fp1/p2-passive.txt", "fp1 p1").getFeaturePack().
                 newPackage("p2-required", false)
                 .writeContent("fp1/p2-required.txt", "fp1 p1").getFeaturePack().
                 newPackage("p2-optional", false)
