@@ -608,6 +608,9 @@ public class ProvisioningRuntimeBuilder {
         configStack.overwriteConfigDeps(config.getConfigDeps());
         try {
             if(config.hasPackageDeps()) {
+                if(currentOrigin == null) {
+                    throw new ProvisioningDescriptionException(Errors.topConfigsCantDefinePackageDeps(config.getId()));
+                }
                 processPackageDeps(config, null);
             }
             processConfigItemContainer(config);
