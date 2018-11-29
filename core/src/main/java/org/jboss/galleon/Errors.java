@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.runtime.ResolvedFeature;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
@@ -491,6 +492,13 @@ public interface Errors {
 
     static String classloaderClose() {
         return "Failed to close classloader";
+    }
+
+    static String topConfigsCantDefinePackageDeps(ConfigId configId) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Config models defined in provisioning configuration are not allowed to define package dependencies: ");
+        buf.append(configId);
+        return buf.toString();
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {
