@@ -18,13 +18,16 @@ package org.jboss.galleon.cli;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -45,14 +48,17 @@ public class StateTestCase {
     private static CliWrapper cli;
     private static MvnUniverse universe;
     private static FeaturePackLocation loc;
+    private static FeaturePackLocation locLayers;
 
     @BeforeClass
     public static void setup() throws Exception {
         cli = new CliWrapper();
         universe = MvnUniverse.getInstance(UNIVERSE_NAME, cli.getSession().getMavenRepoManager());
-        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1));
+        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2));
         install("1.0.0.Final");
+        installLayers("1.0.0.Final");
         loc = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null);
+        locLayers = CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, null);
     }
 
     @AfterClass
@@ -167,6 +173,146 @@ public class StateTestCase {
         }
     }
 
+    @Test
+    public void testLayers() throws Exception {
+        cli.execute("state new");
+        try {
+
+            cli.execute("add-dependency " + locLayers);
+            cli.execute("get-info --type=configs");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("testmodel"));
+
+            try {
+                cli.execute("include-layers testmodel/testmodel1 --layers=layer1");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected,config must exist.
+            }
+
+            cli.execute("define-config --model=testmodel --name=foo.xml");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("foo.xml"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer1"));
+
+            cli.execute("undo");
+            cli.execute("get-info --type=configs");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("foo.xml"));
+
+            cli.execute("define-config --model=testmodel --name=foo.xml");
+
+            cli.execute("include-layers testmodel/foo.xml --layers=layer1,layer2");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer2"));
+
+            cli.execute("undo");
+            cli.execute("get-info --type=configs");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer2"));
+
+            cli.execute("include-layers testmodel/foo.xml --layers=layer1,layer2");
+
+            cli.execute("remove-included-layers testmodel/foo.xml --layers=layer1,layer2");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("foo.xml"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer2"));
+
+            cli.execute("undo");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("foo.xml"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer2"));
+
+            cli.execute("remove-included-layers testmodel/foo.xml --layers=layer1,layer2");
+
+            try {
+                cli.execute("include-layers testmodel --layers=layer1");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected,config must exist.
+            }
+
+            try {
+                cli.execute("include-layers testmodel/ --layers=layer1");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected,config must exist.
+            }
+
+            cli.execute("reset-config testmodel/foo.xml");
+            cli.execute("get-info --type=configs");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("foo.xml"));
+
+            cli.execute("undo");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("foo.xml"));
+
+            cli.execute("reset-config testmodel/foo.xml");
+
+            cli.execute("include-config testmodel/testmodel1");
+            try {
+                cli.execute("exclude-layers testmodel/testmodel1 --layers=base");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected, base is required by layer1.
+            }
+
+            try {
+                cli.execute("include-layers testmodel/testmodel1 --layers=base");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected, base is already included.
+            }
+
+            try {
+                cli.execute("remove-included-layers testmodel/testmodel1 --layers=layer1");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected, layer1 is not explicitly included.
+            }
+
+            try {
+                cli.execute("remove-excluded-layers testmodel/testmodel1 --layers=layer1");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected, layer1 is not explicitly excluded.
+            }
+
+            try {
+                cli.execute("exclude-layers testmodel/testmodel1 --layers=layer2");
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // OK expected, layer2 is not included in default config.
+            }
+
+            cli.execute("exclude-layers testmodel/testmodel1 --layers=layer1");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer1(excluded)"));
+
+            cli.execute("undo");
+            cli.execute("get-info --type=configs");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer1(excluded)"));
+
+            cli.execute("exclude-layers testmodel/testmodel1 --layers=layer1");
+
+            cli.execute("remove-excluded-layers testmodel/testmodel1 --layers=layer1");
+            cli.execute("get-info --type=configs");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer1(excluded)"));
+
+            cli.execute("include-layers testmodel/testmodel1 --layers=layer2");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer2"));
+            cli.execute("remove-included-layers testmodel/testmodel1 --layers=layer2");
+            cli.execute("get-info --type=configs");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("layer1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("layer2"));
+        } finally {
+            cli.execute("leave-state");
+        }
+    }
+
     private void doNavigationTest() throws Exception {
         cli.execute("ls /configs/final");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("model1"));
@@ -239,6 +385,35 @@ public class StateTestCase {
                         .build()).
                 addConfig(ConfigModel.builder().setModel("model1").
                         setName("name1").addFeature(new FeatureConfig("specA").setParam("p1", "1")).build());
+        creator.install();
+    }
+
+    public static void installLayers(String version) throws ProvisioningException {
+        FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
+        FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
+                PRODUCER2, "1", null, version);
+        creator.newFeaturePack(fp1.getFPID())
+                .addFeatureSpec(FeatureSpec.builder(PRODUCER2 + "-FeatureA")
+                        .addParam(FeatureParameterSpec.createId("id"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("base")
+                        .addFeature(new FeatureConfig(PRODUCER2 + "-FeatureA").setParam("id", "base"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layer1")
+                        .addLayerDep("base")
+                        .addFeature(new FeatureConfig(PRODUCER2 + "-FeatureA").setParam("id", "layer1"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layer2")
+                        .addFeature(new FeatureConfig(PRODUCER2 + "-FeatureA").setParam("id", "layer2"))
+                        .build())
+                .newPackage("p1", true)
+                .writeContent("fp1/p1.txt", "fp1 p1").
+                getFeaturePack()
+                .addConfig(ConfigModel.builder().setModel("testmodel").
+                        setName("testmodel1").includeLayer("layer1").build());
         creator.install();
     }
 }

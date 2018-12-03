@@ -17,6 +17,9 @@
 package org.jboss.galleon.cli.cmd;
 
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Set;
+import org.jboss.galleon.config.ConfigId;
 
 /**
  *
@@ -48,8 +51,20 @@ public interface CliErrors {
         return failed("Clear history");
     }
 
+    static String configurationAlreadyExists(ConfigId id) {
+        return "Configuration " + id + " already exists";
+    }
+
+    static String configurationNotFound(ConfigId id) {
+        return "Configuration " + id + " not found";
+    }
+
     static String diffFailed() {
         return failed("Diff");
+    }
+
+    static String defineConfigFailed() {
+        return failed("Define config");
     }
 
     static String displayContentFailed() {
@@ -126,6 +141,22 @@ public interface CliErrors {
 
     static String infoFailed() {
         return failed("Retrieve info");
+    }
+
+    static String layerAlreadyExists(String l, Collection<ConfigId> layers) {
+        return "Layer " + l + " already exists in configuration: " + layers;
+    }
+
+    static String layerNotIncluded(String l, Collection<ConfigId> layers) {
+        return "Layer " + l + " not included in configuration: " + layers;
+    }
+
+    static String layerNotIncluded(String l, Set<String> layers) {
+        return "Layer " + l + " not present in included layers: " + layers;
+    }
+
+    static String layerNotExcluded(String l, Set<String> layers) {
+        return "Layer " + l + " not present in excluded layers: " + layers;
     }
 
     static String installFailed() {
@@ -278,5 +309,4 @@ public interface CliErrors {
     static String updateFailed() {
         return failed("Update");
     }
-
 }

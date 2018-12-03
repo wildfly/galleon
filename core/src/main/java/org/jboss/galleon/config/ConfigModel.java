@@ -95,6 +95,16 @@ public class ConfigModel extends FeatureGroupSupport {
             return this;
         }
 
+        public Builder removeIncludedLayer(String layer) {
+            includedLayers = CollectionUtils.remove(includedLayers, layer);
+            return this;
+        }
+
+        public Builder removeExcludedLayer(String layer) {
+            excludedLayers = CollectionUtils.remove(excludedLayers, layer);
+            return this;
+        }
+
         public Builder excludeLayer(String layerName) throws ProvisioningDescriptionException {
             if(includedLayers.contains(layerName)) {
                 throw new ProvisioningDescriptionException(Errors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));

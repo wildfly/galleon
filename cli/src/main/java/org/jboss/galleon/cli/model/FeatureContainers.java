@@ -94,6 +94,7 @@ public abstract class FeatureContainers {
         PackageGroupsBuilder pkgBuilder = new PackageGroupsBuilder();
         FeatureSpecsBuilder specsBuilder = new FeatureSpecsBuilder();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
+            fp.addLayers(rt.loadLayers());
             pkgBuilder.resetRoots();
             for (PackageRuntime pkg : rt.getPackages()) {
                 pkgBuilder.buildGroups(new PackageInfo(pkg, Identity.

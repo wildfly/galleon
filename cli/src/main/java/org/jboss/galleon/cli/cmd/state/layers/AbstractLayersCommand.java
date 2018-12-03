@@ -14,41 +14,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.cli.cmd.state.configuration;
+package org.jboss.galleon.cli.cmd.state.layers;
 
-import java.io.IOException;
-import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
-import org.jboss.galleon.cli.PmCommandInvocation;
-import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.cmd.state.AbstractStateCommand;
+import org.jboss.galleon.cli.cmd.state.configuration.ProvisionedConfigurationCompleter;
 import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.path.FeatureContainerPathConsumer;
 import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
+import org.jboss.galleon.config.ConfigId;
 
 /**
+ *
  * @author jdenise@redhat.com
  */
-@CommandDefinition(name = "reset-config", description = HelpDescriptions.RESET_CONFIG, activator = ResetConfigCommandActivator.class)
-public class StateResetConfigCommand extends AbstractStateCommand {
+abstract class AbstractLayersCommand extends AbstractStateCommand {
+
     @Argument(required = true, description = HelpDescriptions.CONFIGURATION_FULL_NAME,
             completer = ProvisionedConfigurationCompleter.class)
     private String configuration;
 
     @Override
-    protected void runCommand(PmCommandInvocation invoc, State state) throws IOException, ProvisioningException, CommandExecutionException {
-        try {
-            state.resetConfiguration(invoc.getPmSession(), getConfiguration(state));
-        } catch (Exception ex) {
-            throw new CommandExecutionException(invoc.getPmSession(), CliErrors.resetConfigFailed(), ex);
+    public CommandDomain getDomain() {
+        return CommandDomain.EDITING;
+    }
+
+    ConfigId getConfig() {
+        if (configuration == null || configuration.isEmpty()) {
+            return null;
         }
+        int sep = configuration.indexOf("/");
+        if (sep == -1 || sep == configuration.length() - 1) {
+            return null;
+        }
+        return new ConfigId(configuration.substring(0, sep), configuration.substring(sep + 1));
     }
 
     protected ConfigInfo getConfiguration(State state) throws PathParserException, PathConsumerException, ProvisioningException, Exception {
@@ -60,10 +65,5 @@ public class StateResetConfigCommand extends AbstractStateCommand {
             throw new ProvisioningException("Not a valid config " + configuration);
         }
         return ci;
-    }
-
-    @Override
-    public CommandDomain getDomain() {
-        return CommandDomain.EDITING;
     }
 }

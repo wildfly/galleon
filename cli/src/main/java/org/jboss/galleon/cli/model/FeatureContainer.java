@@ -19,8 +19,11 @@ package org.jboss.galleon.cli.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ProvisioningConfig;
 
 import org.jboss.galleon.runtime.ResolvedSpecId;
@@ -45,6 +48,7 @@ public abstract class FeatureContainer {
     private Map<Identity, Group> allPackages;
     private Map<ResolvedSpecId, List<FeatureInfo>> allFeatures;
     private final ProvisioningConfig config;
+    private final Set<ConfigId> layers = new HashSet<>();
 
     protected FeatureContainer(String name, FPID fpid, ProvisioningConfig config) {
         this.name = name;
@@ -130,5 +134,13 @@ public abstract class FeatureContainer {
 
     void setAllFeatures(Map<ResolvedSpecId, List<FeatureInfo>> allFeatures) {
         this.allFeatures = allFeatures;
+    }
+
+    void addLayers(Set<ConfigId> layers) {
+        this.layers.addAll(layers);
+    }
+
+    public Set<ConfigId> getLayers() {
+        return layers;
     }
 }
