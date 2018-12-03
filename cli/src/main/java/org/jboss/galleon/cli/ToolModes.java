@@ -57,10 +57,15 @@ import org.jboss.galleon.cli.cmd.state.StateProvisionCommand;
 import org.jboss.galleon.cli.cmd.state.StatePwdCommand;
 import org.jboss.galleon.cli.cmd.state.StateRemoveUniverseCommand;
 import org.jboss.galleon.cli.cmd.state.StateUndoCommand;
+import org.jboss.galleon.cli.cmd.state.configuration.StateDefineConfigCommand;
 import org.jboss.galleon.cli.cmd.state.configuration.StateExcludeConfigCommand;
+import org.jboss.galleon.cli.cmd.state.layers.StateExcludeLayersCommand;
 import org.jboss.galleon.cli.cmd.state.configuration.StateIncludeConfigCommand;
+import org.jboss.galleon.cli.cmd.state.layers.StateIncludeLayersCommand;
 import org.jboss.galleon.cli.cmd.state.configuration.StateRemoveExcludedConfigCommand;
+import org.jboss.galleon.cli.cmd.state.layers.StateRemoveExcludedLayersCommand;
 import org.jboss.galleon.cli.cmd.state.configuration.StateRemoveIncludedConfigCommand;
+import org.jboss.galleon.cli.cmd.state.layers.StateRemoveIncludedLayersCommand;
 import org.jboss.galleon.cli.cmd.state.configuration.StateResetConfigCommand;
 import org.jboss.galleon.cli.cmd.state.feature.StateAddFeatureCommand;
 import org.jboss.galleon.cli.cmd.state.feature.StateRemoveFeatureCommand;
@@ -144,6 +149,7 @@ public class ToolModes {
         editCommands.add(containerBuilder.create(new StateResetConfigCommand()));
         editCommands.add(containerBuilder.create(new StateRemoveExcludedConfigCommand()));
         editCommands.add(containerBuilder.create(new StateRemoveIncludedConfigCommand()));
+        editCommands.add(containerBuilder.create(new StateDefineConfigCommand()));
         // navigation
         editCommands.add(containerBuilder.create(new StateCdCommand()));
         editCommands.add(containerBuilder.create(new StateLsCommand()));
@@ -151,6 +157,11 @@ public class ToolModes {
         // universe
         editCommands.add(containerBuilder.create(new StateAddUniverseCommand()));
         editCommands.add(containerBuilder.create(new StateRemoveUniverseCommand()));
+        //layers
+        editCommands.add(containerBuilder.create(new StateIncludeLayersCommand()));
+        editCommands.add(containerBuilder.create(new StateExcludeLayersCommand()));
+        editCommands.add(containerBuilder.create(new StateRemoveIncludedLayersCommand()));
+        editCommands.add(containerBuilder.create(new StateRemoveExcludedLayersCommand()));
 
         setMode(Mode.NOMINAL);
     }

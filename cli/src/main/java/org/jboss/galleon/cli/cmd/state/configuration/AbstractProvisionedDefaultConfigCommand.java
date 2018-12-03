@@ -107,7 +107,7 @@ public abstract class AbstractProvisionedDefaultConfigCommand extends AbstractFP
         }
 
     }
-    @Argument(required = false, description = HelpDescriptions.CONFIGURATION_NAME,
+    @Argument(required = false, description = HelpDescriptions.CONFIGURATION_FULL_NAME,
             completer = ProvisionedConfigCompleter.class)
     private String configuration;
 

@@ -25,6 +25,8 @@ import java.util.Map;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.cli.cmd.CliErrors;
+import org.jboss.galleon.cli.model.ConfigInfo;
 import org.jboss.galleon.cli.model.FeatureInfo;
 import org.jboss.galleon.cli.model.FeatureSpecInfo;
 import org.jboss.galleon.config.ConfigId;
@@ -40,6 +42,251 @@ import org.jboss.galleon.spec.FeatureParameterSpec;
  * @author jdenise@redhat.com
  */
 public class ConfigProvisioning {
+
+    private class DefineConfigurationAction implements State.Action {
+
+        private final ConfigId id;
+
+        DefineConfigurationAction(ConfigId id) {
+            this.id = id;
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            for (ConfigModel m : builder.getDefinedConfigs()) {
+                if (m.getId().equals(id)) {
+                    throw new ProvisioningException(CliErrors.configurationAlreadyExists(id));
+                }
+            }
+            builder.addConfig(ConfigModel.builder(id.getModel(), id.getName()).build());
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeConfig(id);
+        }
+    }
+
+    private class IncludeLayersConfigurationAction implements State.Action {
+
+        private final ConfigId id;
+        private ConfigModel.Builder targetConfig;
+        private final String[] layers;
+        private boolean newConfig;
+        private final State state;
+
+        IncludeLayersConfigurationAction(ConfigId id, String[] layers, State state) {
+            this.id = id;
+            this.layers = layers;
+            this.state = state;
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            ConfigModel originalConfig = null;
+            for (ConfigModel m : builder.getDefinedConfigs()) {
+                if (m.getId().equals(id)) {
+                    targetConfig = m.getBuilder();
+                    originalConfig = m;
+                    break;
+                }
+            }
+            if (targetConfig == null) {
+                // Must create a new one;
+                targetConfig = ConfigModel.builder(id.getModel(), id.getName());
+                newConfig = true;
+            }
+            //Check that layers are not already included.
+            List<ConfigInfo> configs = state.getContainer().getFinalConfigs().get(id.getModel());
+            ConfigInfo existingConfig = null;
+            if (configs != null) {
+                for (ConfigInfo ci : configs) {
+                    if (ci.getName().equals(id.getName())) {
+                        existingConfig = ci;
+                    }
+                }
+            }
+            if (existingConfig != null) {
+                for (String l : layers) {
+                    if (existingConfig.getlayers().contains(new ConfigId(id.getModel(), l))) {
+                        throw new ProvisioningException(CliErrors.layerAlreadyExists(l, existingConfig.getlayers()));
+                    }
+                }
+            }
+            for (String layer : layers) {
+                targetConfig.includeLayer(layer);
+            }
+            if (!newConfig) {
+                builder.removeConfig(id);
+            }
+            builder.addConfig(targetConfig.build());
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeConfig(id);
+            if (!newConfig) {
+                for (String layer : layers) {
+                    targetConfig.removeIncludedLayer(layer);
+                }
+                builder.addConfig(targetConfig.build());
+            }
+        }
+    }
+
+    private class ExcludeLayersConfigurationAction implements State.Action {
+
+        private final ConfigId id;
+        private ConfigModel.Builder targetConfig;
+        private final String[] layers;
+        private boolean newConfig;
+        private final State state;
+
+        ExcludeLayersConfigurationAction(ConfigId id, String[] layers, State state) {
+            this.id = id;
+            this.layers = layers;
+            this.state = state;
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            for (ConfigModel m : builder.getDefinedConfigs()) {
+                if (m.getId().equals(id)) {
+                    targetConfig = m.getBuilder();
+                    break;
+                }
+            }
+            if (targetConfig == null) {
+                // Must create a new one;
+                targetConfig = ConfigModel.builder(id.getModel(), id.getName());
+                newConfig = true;
+            }
+            //Check that layers are included.
+            List<ConfigInfo> configs = state.getContainer().getFinalConfigs().get(id.getModel());
+            ConfigInfo existingConfig = null;
+            if (configs != null) {
+                for (ConfigInfo ci : configs) {
+                    if (ci.getName().equals(id.getName())) {
+                        existingConfig = ci;
+                    }
+                }
+            }
+            if (existingConfig != null) {
+                for (String l : layers) {
+                    if (!existingConfig.getlayers().contains(new ConfigId(id.getModel(), l))) {
+                        throw new ProvisioningException(CliErrors.layerNotIncluded(l, existingConfig.getlayers()));
+                    }
+                }
+            }
+            for (String layer : layers) {
+                targetConfig.excludeLayer(layer);
+            }
+            if (!newConfig) {
+                builder.removeConfig(id);
+            }
+            builder.addConfig(targetConfig.build());
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeConfig(id);
+            if (!newConfig) {
+                for (String layer : layers) {
+                    targetConfig.removeExcludedLayer(layer);
+                }
+                builder.addConfig(targetConfig.build());
+            }
+        }
+    }
+
+    private class RemoveIncludedLayersConfigurationAction implements State.Action {
+
+        private final ConfigId id;
+        private ConfigModel.Builder targetConfig;
+        private final String[] layers;
+
+        RemoveIncludedLayersConfigurationAction(ConfigId id, String[] layers) {
+            this.id = id;
+            this.layers = layers;
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            ConfigModel originalConfig = null;
+            for (ConfigModel m : builder.getDefinedConfigs()) {
+                if (m.getId().equals(id)) {
+                    targetConfig = m.getBuilder();
+                    originalConfig = m;
+                    break;
+                }
+            }
+            if (targetConfig == null) {
+                throw new ProvisioningException(CliErrors.configurationNotFound(id));
+            }
+
+            for (String layer : layers) {
+                if (!originalConfig.getIncludedLayers().contains(layer)) {
+                    throw new ProvisioningException(CliErrors.layerNotIncluded(layer, originalConfig.getIncludedLayers()));
+                }
+                targetConfig.removeIncludedLayer(layer);
+            }
+            builder.removeConfig(id);
+            builder.addConfig(targetConfig.build());
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeConfig(id);
+            for (String layer : layers) {
+                targetConfig.includeLayer(layer);
+            }
+            builder.addConfig(targetConfig.build());
+        }
+    }
+
+    private class RemoveExcludedLayersConfigurationAction implements State.Action {
+
+        private final ConfigId id;
+        private ConfigModel.Builder targetConfig;
+        private final String[] layers;
+
+        RemoveExcludedLayersConfigurationAction(ConfigId id, String[] layers) {
+            this.id = id;
+            this.layers = layers;
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            ConfigModel originalConfig = null;
+            for (ConfigModel m : builder.getDefinedConfigs()) {
+                if (m.getId().equals(id)) {
+                    targetConfig = m.getBuilder();
+                    originalConfig = m;
+                    break;
+                }
+            }
+            if (targetConfig == null) {
+                throw new ProvisioningException(CliErrors.configurationNotFound(id));
+            }
+            for (String layer : layers) {
+                if (!originalConfig.getExcludedLayers().contains(layer)) {
+                    throw new ProvisioningException(CliErrors.layerNotExcluded(layer, originalConfig.getExcludedLayers()));
+                }
+                targetConfig.removeExcludedLayer(layer);
+            }
+            builder.removeConfig(id);
+            builder.addConfig(targetConfig.build());
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeConfig(id);
+            for (String layer : layers) {
+                targetConfig.excludeLayer(layer);
+            }
+            builder.addConfig(targetConfig.build());
+        }
+    }
 
     private class ResetConfigurationAction implements State.Action {
 
@@ -60,7 +307,7 @@ public class ConfigProvisioning {
                 }
             }
             if (config == null) {
-                throw new ProvisioningException("Config " + id + " doesn't exist");
+                throw new ProvisioningException(CliErrors.configurationNotFound(id));
             }
             originalList = new ArrayList<>(builder.getDefinedConfigs());
             builder.removeConfig(id);
@@ -69,7 +316,7 @@ public class ConfigProvisioning {
         @Override
         public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
             builder.removeAllConfigs();
-            for(ConfigModel config : originalList) {
+            for (ConfigModel config : originalList) {
                 builder.addConfig(config);
             }
         }
@@ -85,6 +332,7 @@ public class ConfigProvisioning {
         private boolean newConfig;
         private boolean isExcluded;
         private FeatureConfig existingFeature;
+
         AddFeatureAction(ConfigId id, FeatureSpecInfo spec, Map<String, String> options) {
             this.id = id;
             this.spec = spec;
@@ -164,6 +412,7 @@ public class ConfigProvisioning {
         private ConfigModel.Builder targetConfig;
         private boolean newConfig;
         private boolean exclude;
+
         RemoveFeatureAction(ConfigId id, FeatureInfo feature) {
             this.id = id;
             this.feature = feature;
@@ -186,7 +435,7 @@ public class ConfigProvisioning {
                 // It has been included or is inherited.
                 if (!current.isInheritConfigs()) {
                     if (!current.getIncludedConfigs().contains(id)) {
-                        throw new ProvisioningException("Unknown config " + targetConfig);
+                        throw new ProvisioningException(CliErrors.configurationNotFound(id));
                     }
                 }
                 // So we need to create a config Item to exlude the feature.
@@ -244,6 +493,26 @@ public class ConfigProvisioning {
 
     State.Action resetConfiguration(ConfigId id) {
         return new ResetConfigurationAction(id);
+    }
+
+    State.Action includeLayersConfiguration(ConfigId id, String[] layers, State state) {
+        return new IncludeLayersConfigurationAction(id, layers, state);
+    }
+
+    State.Action excludeLayersConfiguration(ConfigId id, String[] layers, State state) {
+        return new ExcludeLayersConfigurationAction(id, layers, state);
+    }
+
+    State.Action removeIncludedLayersConfiguration(ConfigId id, String[] layers) {
+        return new RemoveIncludedLayersConfigurationAction(id, layers);
+    }
+
+    State.Action removeExcludedLayersConfiguration(ConfigId id, String[] layers) {
+        return new RemoveExcludedLayersConfigurationAction(id, layers);
+    }
+
+    State.Action newConfiguration(ConfigId id) {
+        return new DefineConfigurationAction(id);
     }
 
     State.Action addFeature(ConfigId id, FeatureSpecInfo spec, Map<String, String> options) throws ProvisioningDescriptionException, ProvisioningException, IOException {

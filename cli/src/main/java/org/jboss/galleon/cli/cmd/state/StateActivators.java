@@ -32,4 +32,12 @@ public class StateActivators {
             return !getSession().getState().getConfig().getFeaturePackDeps().isEmpty();
         }
     }
+
+    public static class ConfigDependentCommandActivator extends AbstractCommandActivator {
+
+        @Override
+        public boolean isActivated(ParsedCommand command) {
+            return !getSession().getState().getContainer().getFinalConfigs().isEmpty();
+        }
+    }
 }

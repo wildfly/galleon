@@ -221,6 +221,35 @@ public class State {
         config = pushState(action, pmSession);
     }
 
+    public void includeLayersConfiguration(PmSession pmSession, ConfigInfo configuration, String[] layers) throws ProvisioningException, IOException {
+        ConfigId id = new ConfigId(configuration.getModel(), configuration.getName());
+        Action action = configProvisioning.includeLayersConfiguration(id, layers, this);
+        config = pushState(action, pmSession);
+    }
+
+    public void excludeLayersConfiguration(PmSession pmSession, ConfigInfo configuration, String[] layers) throws ProvisioningException, IOException {
+        ConfigId id = new ConfigId(configuration.getModel(), configuration.getName());
+        Action action = configProvisioning.excludeLayersConfiguration(id, layers, this);
+        config = pushState(action, pmSession);
+    }
+
+    public void removeIncludedLayersConfiguration(PmSession pmSession, ConfigInfo configuration, String[] layers) throws ProvisioningException, IOException {
+        ConfigId id = new ConfigId(configuration.getModel(), configuration.getName());
+        Action action = configProvisioning.removeIncludedLayersConfiguration(id, layers);
+        config = pushState(action, pmSession);
+    }
+
+    public void removeExcludedLayersConfiguration(PmSession pmSession, ConfigInfo configuration, String[] layers) throws ProvisioningException, IOException {
+        ConfigId id = new ConfigId(configuration.getModel(), configuration.getName());
+        Action action = configProvisioning.removeExcludedLayersConfiguration(id, layers);
+        config = pushState(action, pmSession);
+    }
+
+    public void defineConfiguration(PmSession pmSession, ConfigId id) throws ProvisioningException, IOException {
+        Action action = configProvisioning.newConfiguration(id);
+        config = pushState(action, pmSession);
+    }
+
     public void export(Path file) throws Exception {
         ProvisioningXmlWriter.getInstance().write(config, file);
     }

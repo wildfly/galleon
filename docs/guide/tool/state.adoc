@@ -384,6 +384,35 @@ _[!edit!/]$ remove-excluded-config <model>/<name> [--origin=<fp origin>]_
 The completer only proposes the set of configurations that have been previously excluded.
 Origin is optional, by default will be removed from all feature-packs that exclude it.
 
+### Including layers into a configuration
+
+NB: Prior to be able to include layers into a configuration you need an included default or locally defined configuration.
+To define a new configuration call _define-config --model=<config model> --name=<config name>_
+
+_[!edit!/]$ include-layers <config model/config name> --layers=<comma separated list of layers>_
+
+NB: The completers for both configuration and layers propose you with the existing configurations and layers not already included.
+
+### Removing included layers from a configuration
+
+_[!edit!/]$ remove-included-layers <config model/config name> --layers=<comma separated list of included layers>_
+
+NB: You can only remove layers that have been explicitly included in your local configuration. Layers included in a default configuration
+can be excluded but their inclusion can't be removed. 
+
+### Excluding layers from a configuration
+
+NB: Prior to be able to exclude layers from a configuration you need an included default or locally defined configuration that contain layers.
+
+_[!edit!/]$ exclude-layers <config model/config name> --layers=<comma separated list of layers>_
+
+NB: The completers for both configuration and layers propose you with the existing configurations and included layers.
+
+### Removing excluded layers from a configuration
+
+_[!edit!/]$ remove-excluded-layers <config model/config name> --layers=<comma separated list of excluded layers>_
+
+NB: You can only remove layers that have been explicitly excluded in your local configuration.
 
 ### Reseting a configuration
 
