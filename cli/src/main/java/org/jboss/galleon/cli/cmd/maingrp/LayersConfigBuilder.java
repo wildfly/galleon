@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -153,6 +153,12 @@ public class LayersConfigBuilder {
                     for (ConfigLayerDependency dep : spec.getLayerDeps()) {
                         dependencies.add(dep.getName());
                     }
+                }
+                // Case where a layer is redefined in multiple FP. Add all deps.
+                Set<String> existingDependencies = names.get(layer.getName());
+                if(existingDependencies != null) {
+                    existingDependencies.addAll(dependencies);
+                    dependencies = existingDependencies;
                 }
                 names.put(layer.getName(), dependencies);
             }
