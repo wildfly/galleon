@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,10 @@
  */
 package org.jboss.galleon.cli.cmd;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.aesh.command.Command;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.CommandNotFoundException;
@@ -110,9 +110,9 @@ public class HelpCommand extends PmSessionCommand {
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
         if (command == null || command.isEmpty()) {
             try {
-                session.println(HelpSupport.getHelpCommandHelp(registry, session.getShell()));
-            } catch (IOException ex) {
-                throw new CommandExecutionException(ex.getLocalizedMessage());
+                session.println(HelpSupport.buildHelp(registry, registry.getAllCommandNames()));
+            } catch (CommandNotFoundException e) {
+                throw new CommandExecutionException(e.getLocalizedMessage());
             }
         } else {
             StringBuilder builder = new StringBuilder();

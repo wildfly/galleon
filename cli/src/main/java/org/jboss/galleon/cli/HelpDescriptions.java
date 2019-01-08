@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,6 @@
  */
 package org.jboss.galleon.cli;
 
-import org.aesh.utils.Config;
-
 /**
  *
  * @author jdenise@redhat.com
@@ -31,9 +29,7 @@ public interface HelpDescriptions {
     String DOMAIN_CONFIGURATION = "Commands to configure CLI tool";
     String DOMAIN_EDITING = "Commands to edit the current provisioning state. "
             + "Only available in edit mode";
-    String DOMAIN_EDIT_MODE = "Commands to switch the tool into edit mode." + Config.getLineSeparator()
-            + "This mode allows to create advanced provisioning state "
-            + "that you can then use to provision installations.";
+    String DOMAIN_EDIT_MODE = "Commands to create or modify provisioning state";
     String DOMAIN_FEATURE_PACK = "Commands to manage feature packs";
     String DOMAIN_INSTALLATION = "Commands to manage existing installations";
     String DOMAIN_PROVISIONING = "Commands to achieve main provisioning use cases";

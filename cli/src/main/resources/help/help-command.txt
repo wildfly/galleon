@@ -1,3 +1,3 @@
-$AVAILABLE_COMMANDS
+
 More information on each command is available in docs directory.
 Execute 'help <command name>' for more details on a given command.

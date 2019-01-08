@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,19 +22,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
+
 import org.aesh.command.Command;
 import org.aesh.command.CommandNotFoundException;
 import org.aesh.command.activator.CommandActivator;
 import org.aesh.command.impl.internal.ParsedCommand;
+import org.aesh.command.impl.internal.ProcessedCommand;
+import org.aesh.command.impl.internal.ProcessedOption;
 import org.aesh.command.impl.parser.CommandLineParser;
 import org.aesh.command.invocation.CommandInvocation;
 import org.aesh.command.registry.CommandRegistry;
-import org.aesh.command.shell.Shell;
 import org.aesh.utils.Config;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 
@@ -43,100 +46,18 @@ import org.jboss.galleon.cli.cmd.CommandDomain;
  * @author jdenise@redhat.com
  */
 public class HelpSupport {
-
-    private static class HelpCommandDomain {
-
-        private final CommandDomain domain;
-        Map<String, String> commands = new TreeMap<>();
-
-        HelpCommandDomain(CommandDomain domain) {
-            this.domain = domain;
-        }
-    }
-
-    private static final String AVAILABLE_COMMANDS = "$AVAILABLE_COMMANDS";
-    private static final String AVAILABLE_OPTIONS = "$AVAILABLE_OPTIONS";
     private static final String TAB = "    ";
 
     public static String getToolHelp(PmSession session,
-            CommandRegistry<? extends Command, ? extends CommandInvocation> registry, Shell shell) throws IOException {
-        String staticContent = getHelp(getHelpPath("help.txt"));
-        String availableOptions = format(Arguments.getToolOptions(), shell.size().getWidth());
-        String availableCommands = formatDomains(getAllModesCommandDomains(session, registry), shell);
-        staticContent = staticContent.replace(AVAILABLE_OPTIONS, availableOptions);
-        staticContent = staticContent.replace(AVAILABLE_COMMANDS, availableCommands);
-        return staticContent;
-    }
-
-    public static String getHelpCommandHelp(CommandRegistry<? extends Command, ? extends CommandInvocation> registry, Shell shell) throws IOException {
-        String staticContent = getHelp(getHelpPath("help-command.txt"));
-        Map<CommandDomain, HelpCommandDomain> domains = new TreeMap<>();
-        addCommandDomains(registry, true, true, domains);
-        String availableCommands = formatDomains(domains.values(), shell);
-        staticContent = staticContent.replace(AVAILABLE_COMMANDS, availableCommands);
-        return staticContent;
-    }
-
-    private static String formatDomains(Collection<HelpCommandDomain> domains, Shell shell) {
-        StringBuilder commands = new StringBuilder();
-        for (HelpCommandDomain domain : domains) {
-            commands.append(Config.getLineSeparator()).append(domain.domain.getDescription()).
-                    append(Config.getLineSeparator());
-            commands.append(format(domain.commands, shell.size().getWidth()));
-        }
-        return commands.toString();
-    }
-
-    private static String format(Map<String, String> options, int width) {
-        int max = 0;
-        List<String> keys = new ArrayList<>();
-        for (String k : options.keySet()) {
-            if (k.length() > max) {
-                max = k.length();
-            }
-            keys.add(k);
-        }
-        Collections.sort(keys);
-        StringBuilder builder = new StringBuilder();
-        builder.append(Config.getLineSeparator());
-        int remaining = width - max - TAB.length();
-        String maxPad = pad(max + TAB.length(), "");
-        for (String k : keys) {
-            String val = options.get(k);
-            builder.append(pad(max, k)).append(TAB);
-            if (val.length() <= remaining) {
-                builder.append(val).append(Config.getLineSeparator());
-            } else {
-                String pad = "";
-                do {
-                    int limit = Math.min(remaining, val.length());
-                    String content = val.substring(0, limit);
-                    val = val.substring(limit);
-                    String toNextLine = null;
-                    if (!val.isEmpty()) {
-                        // cut at the last whitespace
-                        int i = content.lastIndexOf(" ");
-                        if (i >= 0) {
-                            toNextLine = content.substring(i += 1);
-                            content = content.substring(0, i);
-                            val = toNextLine + val;
-                        }
-                    }
-                    builder.append(pad).append(content).append(Config.getLineSeparator());
-                    pad = maxPad;
-                } while (val.length() > 0);
-            }
-        }
-        return builder.toString();
-    }
-
-    private static String pad(int max, String k) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(k);
-        for (int i = k.length(); i < max; i++) {
-            builder.append(" ");
-        }
-        return builder.toString();
+            CommandRegistry<? extends Command, ? extends CommandInvocation> registry) throws CommandNotFoundException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("== DEFAULT MODE ==").append(Config.getLineSeparator());
+        session.getToolModes().setMode(ToolModes.Mode.NOMINAL);
+        sb.append(buildHelp(registry, registry.getAllCommandNames(), false));
+        sb.append(Config.getLineSeparator()).append("== EDIT MODE ==").append(Config.getLineSeparator());
+        session.getToolModes().setMode(ToolModes.Mode.EDIT);
+        sb.append(buildHelp(registry, registry.getAllCommandNames(), true));
+        return sb.toString();
     }
 
     public static List<String> getAvailableCommands(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
@@ -168,6 +89,164 @@ public class HelpSupport {
         return lst;
     }
 
+    public static String buildHelp(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
+                                    Set<String> commands) throws CommandNotFoundException {
+        return buildHelp(registry, commands, true);
+    }
+    private static String buildHelp(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
+            Set<String> commands, boolean footer) throws CommandNotFoundException {
+        TreeMap<CommandDomain, Set<String>> groupedCommands = new TreeMap<>();
+        for (String command : commands) {
+            CommandDomain group = CommandDomain.getDomain(registry.getCommand(command, null).getParser().getCommand());
+            String commandTree = getCommandTree(registry, command);
+
+            if (group == null) {
+                group = CommandDomain.OTHERS;
+            }
+
+            Set<String> currentDescriptions = groupedCommands.get(group);
+
+            if (currentDescriptions == null) {
+                currentDescriptions = new TreeSet<>();
+                groupedCommands.put(group, currentDescriptions);
+            }
+
+            currentDescriptions.add(commandTree);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (CommandDomain group : groupedCommands.keySet()) {
+            sb.append(Config.getLineSeparator());
+            sb.append("== ").append(group.getDescription()).append(" ==");
+            sb.append(Config.getLineSeparator());
+            for (String description : groupedCommands.get(group)) {
+                sb.append(description);
+                sb.append(Config.getLineSeparator());
+            }
+        }
+
+        if (footer) {
+            sb.append(getHelpFooter());
+        }
+
+        return sb.toString();
+    }
+
+    private static String getCommandTree(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
+            String command) throws CommandNotFoundException {
+        CommandLineParser<? extends Command> cmdParser = registry.getCommand(command, null).getParser();
+
+        StringBuilder sb = new StringBuilder();
+        ProcessedCommand<? extends Command> processedCommand = cmdParser.getProcessedCommand();
+
+        sb.append(processedCommand.name());
+
+        if (processedCommand.hasArguments() || processedCommand.hasArgument()) {
+            sb.append(" <arg>");
+        }
+
+        sb.append(" ").append(trimDescription(processedCommand.description()));
+        sb.append(getCommandOptions(processedCommand, 0));
+
+        if (!cmdParser.getAllChildParsers().isEmpty()) {
+            List<? extends CommandLineParser<? extends Command>> allChildParsers = cmdParser.getAllChildParsers();
+
+            allChildParsers.sort((Comparator<CommandLineParser<? extends Command>>) (o1, o2) -> {
+                ProcessedCommand<? extends Command> pc1 = o1.getProcessedCommand();
+                ProcessedCommand<? extends Command> pc2 = o2.getProcessedCommand();
+                return pc1.name().compareTo(pc2.name());
+            });
+
+            for (CommandLineParser<? extends Command> childParser : allChildParsers) {
+                ProcessedCommand<? extends Command> childProcessedCommand = childParser.getProcessedCommand();
+                sb.append(Config.getLineSeparator()).append("    ");
+                sb.append(childProcessedCommand.name());
+                if (childProcessedCommand.hasArguments() || childProcessedCommand.hasArgument()) {
+                    sb.append(" <arg>");
+                }
+                sb.append(" ").append(trimDescription(childProcessedCommand.description()));
+                sb.append(getCommandOptions(childProcessedCommand, 4));
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private static String getHelpFooter() {
+        try {
+            return getHelp(getHelpPath("help-command.txt"));
+        } catch (IOException e) {
+            return "Failed to read help-command.txt. " + e.getLocalizedMessage();
+        }
+    }
+
+    private static String getCommandOptions(ProcessedCommand<? extends Command> command, int offset) {
+        StringBuilder sb = new StringBuilder();
+        if (command.hasOptions()) {
+            TreeMap<String, String> orderedOptions = new TreeMap<>();
+            sb.append(Config.getLineSeparator());
+
+            if (command.hasArgument() || command.hasArguments()) {
+                processArguments(command, offset, sb);
+                // if the command has an empty or null argument we don't add a new line
+                if (sb.lastIndexOf(Config.getLineSeparator()) != sb.length() - 1) {
+                    sb.append(Config.getLineSeparator());
+                }
+            }
+
+            List<ProcessedOption> options = command.getOptions();
+            for (ProcessedOption option : options) {
+                orderedOptions.put(option.name(), trimDescription(
+                        option.getFormattedOption(offset + TAB.length(), 0, 80)));
+            }
+
+            for (Map.Entry<String, String> option : orderedOptions.entrySet()) {
+                sb.append(option.getValue());
+                if (!option.equals(orderedOptions.lastEntry())) {
+                    sb.append(Config.getLineSeparator());
+                }
+            }
+        } else if (command.hasArguments() || command.hasArgument()) {
+            sb.append(Config.getLineSeparator());
+            processArguments(command, offset, sb);
+        }
+
+        return sb.toString();
+    }
+
+    private static void processArguments(ProcessedCommand<? extends Command> command, int offset, StringBuilder sb) {
+        if (command.hasArgument()) {
+            if (command.getArgument().description() != null && !("".equals(command.getArgument().description()))) {
+                handleOffset(offset, sb);
+                sb.append(TAB).append("<arg> ").append(trimDescription(command.getArgument().description()));
+            }
+        } else if (command.hasArguments()) {
+            if (command.getArguments().description() != null && !("".equals(command.getArguments().description()))) {
+                handleOffset(offset, sb);
+                sb.append(TAB).append("<arg> ").append(trimDescription(command.getArguments().description()));
+            }
+        }
+    }
+
+    private static String trimDescription(String description) {
+        if (description.contains(".")) {
+            description = description.substring(0, description.indexOf("."));
+        }
+        return description;
+    }
+
+    private static void handleOffset(int offset, StringBuilder sb) {
+        if (offset > 0) {
+            if ((offset % TAB.length()) == 0) {
+                sb.append(TAB);
+            } else {
+                for (int i = 0; i < offset; i++) {
+                    sb.append(" ");
+                }
+            }
+        }
+    }
+
     private static String getHelp(String path) throws IOException {
         InputStream helpInput = CliMain.class.getResourceAsStream(path);
         if (helpInput != null) {
@@ -191,51 +270,5 @@ public class HelpSupport {
 
     private static String getHelpPath(String file) {
         return "/help/" + file;
-    }
-
-    private static Collection<HelpCommandDomain> getAllModesCommandDomains(PmSession session,
-            CommandRegistry<? extends Command, ? extends CommandInvocation> registry) {
-        Map<CommandDomain, HelpCommandDomain> domains = new TreeMap<>();
-        session.getToolModes().setMode(ToolModes.Mode.NOMINAL);
-        addCommandDomains(registry, true, false, domains);
-        session.getToolModes().setMode(ToolModes.Mode.EDIT);
-        addCommandDomains(registry, true, false, domains);
-        return domains.values();
-    }
-
-    private static void addCommandDomains(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
-            boolean includeChild, boolean onlyEnabled, Map<CommandDomain, HelpCommandDomain> domains) {
-        for (String c : registry.getAllCommandNames()) {
-            CommandLineParser<? extends Command> cmdParser;
-            try {
-                cmdParser = registry.getCommand(c, null).getParser();
-            } catch (CommandNotFoundException ex) {
-                continue;
-            }
-            CommandActivator activator = cmdParser.getProcessedCommand().getActivator();
-            if (!onlyEnabled || (activator == null || activator.isActivated(new ParsedCommand(cmdParser.getProcessedCommand())))) {
-                CommandDomain domain = CommandDomain.getDomain(cmdParser.getCommand());
-                HelpCommandDomain helpDomain = domains.get(domain);
-                if (helpDomain == null) {
-                    helpDomain = new HelpCommandDomain(domain);
-                    domains.put(domain, helpDomain);
-                }
-                if (includeChild && cmdParser.isGroupCommand()) {
-                    for (CommandLineParser child : cmdParser.getAllChildParsers()) {
-                        CommandActivator childActivator = child.getProcessedCommand().getActivator();
-                        if (!onlyEnabled || (childActivator == null
-                                || childActivator.isActivated(new ParsedCommand(child.getProcessedCommand())))) {
-                            helpDomain.commands.put(c + " " + child.getProcessedCommand().name(), removeNL(child.getProcessedCommand().description()));
-                        }
-                    }
-                } else {
-                    helpDomain.commands.put(c, removeNL(cmdParser.getProcessedCommand().description()));
-                }
-            }
-        }
-    }
-
-    private static String removeNL(String str) {
-        return str.replaceAll("\\R", " ");
     }
 }
