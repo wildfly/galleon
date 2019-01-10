@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -300,21 +300,26 @@ public class State {
                 .initLayout(pmSession.getLayoutFactory(), tmp)
                 .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build();
-        Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
-        for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
-            dependencies.add(rt.getFPID());
+        try {
+            Set<FeaturePackLocation.FPID> dependencies = new HashSet<>();
+            for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
+                dependencies.add(rt.getFPID());
+            }
+            FeatureContainer tmpContainer = FeatureContainers.fromProvisioningRuntime(pmSession, runtime);
+            // Need to have in sync the current with the full.
+            // If fullConainer creation is a failure, the container will be not updated.
+            Map<String, FeatureContainer> tmpDeps = new HashMap<>();
+            if (container != null) {
+                tmpDeps.putAll(container.getFullDependencies());
+            }
+            buildDependencies(pmSession, dependencies, tmpDeps);
+            container = tmpContainer;
+            container.setEdit(true);
+            container.setFullDependencies(tmpDeps);
+        } catch (ProvisioningException ex) {
+            runtime.close();
+            throw ex;
         }
-        FeatureContainer tmpContainer = FeatureContainers.fromProvisioningRuntime(pmSession, runtime);
-        // Need to have in sync the current with the full.
-        // If fullConainer creation is a failure, the container will be not updated.
-        Map<String, FeatureContainer> tmpDeps = new HashMap<>();
-        if (container != null) {
-            tmpDeps.putAll(container.getFullDependencies());
-        }
-        buildDependencies(pmSession, dependencies, tmpDeps);
-        container = tmpContainer;
-        container.setEdit(true);
-        container.setFullDependencies(tmpDeps);
         return tmp;
     }
 
