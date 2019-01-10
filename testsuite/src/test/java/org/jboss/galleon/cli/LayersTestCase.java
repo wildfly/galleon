@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,7 +101,7 @@ public class LayersTestCase {
         assertTrue(conf.getIncludedLayers().contains("layerC-" + PRODUCER1));
         String opt = config.getPluginOption(Constants.OPTIONAL_PACKAGES);
         assertNotNull(opt);
-        assertEquals(Constants.PASSIVE, opt);
+        assertEquals(Constants.PASSIVE_PLUS, opt);
 
         cli.execute("get-info --dir=" + path + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("layerA-" + PRODUCER1));
