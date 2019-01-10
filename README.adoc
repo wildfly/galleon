@@ -4,8 +4,8 @@
 = Galleon Provisioning
 
 ifdef::env-github[]
-[link=https://travis-ci.org/aloubyansky/pm]
-image:https://travis-ci.org/aloubyansky/pm.svg?branch=master["Build Status", link="https://travis-ci.org/aloubyansky/pm"]
+[link=https://travis-ci.org/wildfly/galleon]
+image:https://travis-ci.org/wildfly/galleon.svg?branch=master["Build Status", link="https://travis-ci.org/wildfly/galleon"]
 endif::[]
 
 toc::[]
