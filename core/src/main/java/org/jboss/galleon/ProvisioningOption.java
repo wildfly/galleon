@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,6 +76,11 @@ public class ProvisioningOption {
             return this;
         }
 
+        public Builder setBooleanValueSet() {
+            this.valueSet = getBooleanValueSet();
+            return this;
+        }
+
         public Builder addToValueSet(String... value) {
             if (value.length > 0) {
                 for (String v : value) {
@@ -118,18 +123,10 @@ public class ProvisioningOption {
         this.required = builder.required;
         this.persistent = builder.persistent;
         this.defaultValue = builder.defaultValue;
-        if(builder.valueSet.isEmpty()) {
-            if(defaultValue == null || getBooleanValueSet().contains(defaultValue)) {
-                this.valueSet = getBooleanValueSet();
-            } else {
-                valueSet = Collections.emptySet();
-            }
-        } else {
-            if(defaultValue != null && !builder.valueSet.contains(defaultValue)) {
-                throw new IllegalArgumentException("The default value " + defaultValue + " of provisioning option " + name +
-                        " is not in the allowed value set " + builder.valueSet);
-            }
-            this.valueSet = CollectionUtils.unmodifiable(builder.valueSet);
+        this.valueSet = CollectionUtils.unmodifiable(builder.valueSet);
+        if (!valueSet.isEmpty() && defaultValue != null && !valueSet.contains(defaultValue)) {
+            throw new IllegalArgumentException("The default value " + defaultValue + " of provisioning option " + name
+                    + " is not in the allowed value set " + builder.valueSet);
         }
     }
 

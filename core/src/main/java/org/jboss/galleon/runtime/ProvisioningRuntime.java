@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.Errors;
@@ -213,10 +215,11 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             }
             return null;
         }
-        if(!option.getValueSet().isEmpty() && !option.getValueSet().contains(value)) {
+        final Set<String> valueSet = option.getValueSet();
+        if(!valueSet.isEmpty() && !valueSet.contains(value)) {
             final StringBuilder buf = new StringBuilder();
             buf.append("Plugin option ").append(option.getName()).append(" is set to ").append(value).append(" but expects one of ");
-            StringUtils.append(buf, option.getValueSet());
+            StringUtils.append(buf, valueSet);
             throw new ProvisioningException(buf.toString());
         }
         return value;
