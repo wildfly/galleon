@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -469,7 +469,8 @@ public class ProvisioningRuntimeBuilder {
             if(configStack.isFilteredOut(feature.getSpecId(), feature.getId())) {
                 continue;
             }
-            configStack.includeFeature(feature.id, feature.spec, feature.params, feature.deps);
+            configStack.includeFeature(feature.id, feature.spec, feature.params,
+                    feature.deps, feature.unsetParams, feature.resetParams);
         }
     }
 
@@ -891,7 +892,9 @@ public class ProvisioningRuntimeBuilder {
             processPackageDeps(spec.xmlSpec, null);
         }
 
-        final ResolvedFeature resolvedFeature = configStack.includeFeature(resolvedId, spec, resolvedParams, resolveFeatureDeps(configStack, featureDeps, spec));
+        final ResolvedFeature resolvedFeature = configStack.includeFeature(resolvedId, spec,
+                resolvedParams, resolveFeatureDeps(configStack, featureDeps, spec),
+                Collections.emptySet(), Collections.emptySet());
 
         if(spec.xmlSpec.hasFeatureRefs()) {
             final ResolvedFeature myParent = parentFeature;
