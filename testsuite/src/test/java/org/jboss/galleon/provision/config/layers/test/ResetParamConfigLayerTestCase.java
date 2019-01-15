@@ -25,7 +25,6 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.ConfigLayerSpec;
-import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
@@ -38,9 +37,9 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
 
 /**
  *
- * @author jfdenise@gmail.com
+ * @author Alexey Loubyansky
  */
-public class UnsetParamConfigLayerTestCase extends ProvisionFromUniverseTestBase {
+public class ResetParamConfigLayerTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1;
 
@@ -61,19 +60,24 @@ public class UnsetParamConfigLayerTestCase extends ProvisionFromUniverseTestBase
                     .build())
             .addConfigLayer(ConfigLayerSpec.builder()
                     .setModel("model1")
-                    .setName("layer1")
+                    .setName("base")
                     .addFeature(new FeatureConfig("specA")
                             .setParam("id", "1")
-                            .setParam("p1", "layer1")
-                            .unsetParam("p3"))
+                            .setParam("p1", "base")
+                            .setParam("p2", "base")
+                            .setParam("p3", "base"))
+                    .build())
+            .addConfigLayer(ConfigLayerSpec.builder()
+                    .setModel("model1")
+                    .setName("layer1")
+                    .addLayerDep("base")
                     .addFeature(new FeatureConfig("specA")
-                            .setParam("id", "2")
-                            .setParam("p1", "layer1")
-                            .unsetParam("p3"))
+                            .setParam("id", "1")
+                            .setParam("p2", "layer1")
+                            .resetParam("p3"))
                     .build())
             .addConfig(ConfigModel.builder("model1", "name1")
                     .includeLayer("layer1")
-                    .includeFeature(FeatureId.create("specA", "id", "2"), new FeatureConfig().setParam("p3", "config"))
                     .build());
 
         creator.install();
@@ -97,15 +101,12 @@ public class UnsetParamConfigLayerTestCase extends ProvisionFromUniverseTestBase
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
+                        .addLayer("model1", "base")
                         .addLayer("model1", "layer1")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getProducer(), "specA", "id", "1"))
-                                .setConfigParam("p1", "layer1")
-                                .setConfigParam("p2", "fp1")
-                                .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getProducer(), "specA", "id", "2"))
-                                .setConfigParam("p1", "layer1")
-                                .setConfigParam("p2", "fp1")
-                                .setConfigParam("p3", "config")
+                                .setConfigParam("p1", "base")
+                                .setConfigParam("p2", "layer1")
+                                .setConfigParam("p3", "default_val_fp1")
                                 .build())
                         .build())
                 .build();
