@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -334,17 +334,27 @@ class ConfigModelStack {
         }
     }
 
-    ResolvedFeature includeFeature(ResolvedFeatureId id, ResolvedFeatureSpec spec, Map<String, Object> resolvedParams, Map<ResolvedFeatureId, FeatureDependencySpec> resolvedDeps)
+    ResolvedFeature includeFeature(ResolvedFeatureId id, ResolvedFeatureSpec spec,
+            Map<String, Object> resolvedParams, Map<ResolvedFeatureId, FeatureDependencySpec> resolvedDeps,
+            Set<String> unsetParams, Set<String> resetParams)
             throws ProvisioningException {
+        ResolvedFeature feature = null;
         if(id != null) {
-            final ResolvedFeature feature = features.get(id);
+            feature = features.get(id);
             if(feature != null) {
                 feature.merge(resolvedDeps, resolvedParams, true);
-                return feature;
             }
         }
-        final ResolvedFeature feature = new ResolvedFeature(id, spec, resolvedParams, resolvedDeps, ++featureIncludeCount);
-        addFeature(feature);
+        if(feature == null) {
+            feature = new ResolvedFeature(id, spec, resolvedParams, resolvedDeps, ++featureIncludeCount);
+            addFeature(feature);
+        }
+        if(!unsetParams.isEmpty()) {
+            feature.unsetAllParams(unsetParams, true);
+        }
+        if (!resetParams.isEmpty()) {
+            feature.resetAllParams(resetParams);
+        }
         return feature;
     }
 
