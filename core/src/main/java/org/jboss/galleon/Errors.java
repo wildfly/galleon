@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -499,6 +499,10 @@ public interface Errors {
         buf.append("Config models defined in provisioning configuration are not allowed to define package dependencies: ");
         buf.append(configId);
         return buf.toString();
+    }
+
+    static String layerNotFound(ConfigId layerId) {
+        return "Failed to locate layer " + layerId + " in the the installation feature-pack layout";
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {

@@ -478,30 +478,37 @@ public class ProvisioningRuntimeBuilder {
         ConfigModelStack layerStack = layers.get(layerId);
         if(layerStack == null) {
             layerStack = new ConfigModelStack(layerId, this);
+            boolean resolved = false;
             for (FeaturePackConfig fpConfig : config.getFeaturePackDeps()) {
-                resolveConfigLayer(layout.getFeaturePack(fpConfig.getLocation().getProducer()), layerStack, layerId);
+                resolved |= resolveConfigLayer(layout.getFeaturePack(fpConfig.getLocation().getProducer()), layerStack, layerId);
+            }
+            if(!resolved) {
+                throw new ProvisioningException(Errors.layerNotFound(layerId));
             }
             layers = CollectionUtils.put(layers, layerId, layerStack);
         }
         return layerStack;
     }
 
-    private void resolveConfigLayer(FeaturePackRuntimeBuilder fp, ConfigModelStack layerStack, ConfigId layerId) throws ProvisioningException {
+    private boolean resolveConfigLayer(FeaturePackRuntimeBuilder fp, ConfigModelStack layerStack, ConfigId layerId) throws ProvisioningException {
         final FeaturePackRuntimeBuilder prevOrigin = currentOrigin;
         try {
+            boolean resolved;
             final ConfigLayerSpec configLayer = fp.getConfigLayer(layerId);
-            if (configLayer != null) {
+            resolved = configLayer != null;
+            if (resolved) {
                 layerStack.pushGroup(configLayer);
             }
             if(fp.getSpec().hasFeaturePackDeps()) {
                 for(FeaturePackConfig depConfig : fp.getSpec().getFeaturePackDeps()) {
-                    resolveConfigLayer(layout.getFeaturePack(depConfig.getLocation().getProducer()), layerStack, layerId);
+                    resolved |= resolveConfigLayer(layout.getFeaturePack(depConfig.getLocation().getProducer()), layerStack, layerId);
                 }
             }
             if(configLayer != null) {
                 setOrigin(fp);
                 processConfigLayer(layerStack, popLayer(layerStack));
             }
+            return resolved;
         } finally {
             setOrigin(prevOrigin);
         }
