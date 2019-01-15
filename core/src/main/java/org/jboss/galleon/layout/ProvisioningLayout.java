@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,6 @@ import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.diff.FsEntryFactory;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.progresstracking.ProgressTracker;
@@ -307,8 +306,6 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private ArrayList<F> ordered = new ArrayList<>();
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
-
-    private FsEntryFactory fsEntryFactory;
 
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
@@ -814,7 +811,6 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         fpPatches = Collections.emptyMap();
         this.config = config;
         handle.reset();
-        fsEntryFactory = null;
         build(cleanupTransitive, trackProgress);
     }
 
