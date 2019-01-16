@@ -24,7 +24,7 @@
   <parent>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-parent</artifactId>
-    <version>3.0.1.CR1</version>
+    <version>3.0.1.Final-SNAPSHOT</version>
   </parent>
 
   <artifactId>galleon-core</artifactId>
