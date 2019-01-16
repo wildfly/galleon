@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,12 +68,12 @@ public abstract class ProgressTrackers {
             BuildLayoutTracker layout = new BuildLayoutTracker(session);
             trackers.put(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD, layout);
 
-            PackagesTracker packages = new PackagesTracker();
+            PackagesTracker packages = new PackagesTracker(session);
             trackers.put(ProvisioningLayoutFactory.TRACK_PACKAGES, packages);
 
-            trackers.put("JBMODULES", new JBossModulesTracker());
+            trackers.put("JBMODULES", new JBossModulesTracker(session));
 
-            ConfigsTracker configs = new ConfigsTracker();
+            ConfigsTracker configs = new ConfigsTracker(session);
             trackers.put(ProvisioningLayoutFactory.TRACK_CONFIGS, configs);
 
             UpdatesTracker updates = new UpdatesTracker(session);

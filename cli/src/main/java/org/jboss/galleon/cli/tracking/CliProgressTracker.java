@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import org.aesh.readline.terminal.impl.WinSysTerminal;
 import org.aesh.utils.ANSI;
 import org.aesh.utils.Config;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.progresstracking.ProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 
@@ -94,7 +95,7 @@ abstract class CliProgressTracker<T> implements ProgressCallback<T> {
     PmCommandInvocation invocation;
     private final Printer printer;
 
-    CliProgressTracker(String msgStart, String msgComplete) {
+    CliProgressTracker(PmSession session, String msgStart, String msgComplete) {
         this.msgStart = msgStart;
         this.msgComplete = msgComplete;
         if (Config.isWindows()) {
@@ -104,7 +105,11 @@ abstract class CliProgressTracker<T> implements ProgressCallback<T> {
                 printer = new BasicPrinter();
             }
         } else {
-            printer = new ANSIPrinter();
+            if(session.isAnsiSupported()) {
+                printer = new ANSIPrinter();
+            } else {
+                printer = new BasicPrinter();
+            }
         }
     }
 

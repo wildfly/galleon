@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.cli.tracking;
 
+import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.runtime.PackageRuntime;
 
@@ -25,8 +26,8 @@ import org.jboss.galleon.runtime.PackageRuntime;
  */
 public class PackagesTracker extends CliProgressTracker<PackageRuntime> {
 
-    public PackagesTracker() {
-        super("Installing packages", "Packages installed.");
+    public PackagesTracker(PmSession session) {
+        super(session, "Installing packages", "Packages installed.");
     }
 
     @Override

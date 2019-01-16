@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ public class UpdatesTracker extends CliProgressTracker<ProducerSpec> {
     private final PmSession session;
 
     public UpdatesTracker(PmSession session) {
-        super("Looking for update for", null);
+        super(session, "Looking for update for", null);
         this.session = session;
     }
 
