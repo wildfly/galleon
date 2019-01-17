@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import org.aesh.io.FileResource;
 import org.aesh.io.Resource;
 import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
+import org.aesh.terminal.Connection;
 import org.aesh.utils.Config;
 import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.RepositoryListener;
@@ -273,7 +274,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     private String promptRoot;
     private Path previousDir;
     private boolean commandRunning;
-
+    private Connection connection;
     public PmSession(Configuration config) throws Exception {
         this(config, true);
     }
@@ -668,5 +669,13 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     }
     public void enableMavenTrace(boolean b) {
         mavenListener.setActive(b);
+    }
+
+    void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public boolean isAnsiSupported() {
+        return connection != null && connection.supportsAnsi();
     }
 }

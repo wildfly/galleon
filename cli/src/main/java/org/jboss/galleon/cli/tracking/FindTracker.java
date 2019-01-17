@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ public class FindTracker extends CliProgressTracker<FPID> {
     private final PmSession session;
 
     public FindTracker(PmSession session) {
-        super("Searching in", "Search done.");
+        super(session, "Searching in", "Search done.");
         this.session = session;
     }
 

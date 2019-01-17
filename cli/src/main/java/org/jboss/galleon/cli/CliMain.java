@@ -67,6 +67,7 @@ public class CliMain {
         try {
             pmSession = new PmSession(Configuration.parse(arguments.getOptions()), interactive);
             CliTerminalConnection connection = new CliTerminalConnection();
+            pmSession.setConnection(connection.getConnection());
             if (arguments.isHelp()) {
                 try {
                     CommandRuntime<? extends Command, ? extends CommandInvocation> runtime =
