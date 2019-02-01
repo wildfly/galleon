@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,6 +78,41 @@ public class IoUtils {
         return dir;
     }
 
+    public static void emptyDir(Path p) {
+        if (p == null || !Files.exists(p)) {
+            return;
+        }
+        try {
+            Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                        throws IOException {
+                    try {
+                        Files.delete(file);
+                    } catch (IOException ex) {
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException e)
+                    throws IOException {
+                    if (e != null) {
+                        // directory iteration failed
+                        throw e;
+                    }
+                    if (dir != p) {
+                        try {
+                            Files.delete(dir);
+                        } catch (IOException ex) {
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+        }
+    }
+
     public static void recursiveDelete(Path root) {
         if (root == null || !Files.exists(root)) {
             return;
@@ -96,16 +131,15 @@ public class IoUtils {
                 @Override
                 public FileVisitResult postVisitDirectory(Path dir, IOException e)
                     throws IOException {
-                    if (e == null) {
-                        try {
-                            Files.delete(dir);
-                        } catch (IOException ex) {
-                        }
-                        return FileVisitResult.CONTINUE;
-                    } else {
+                    if (e != null) {
                         // directory iteration failed
                         throw e;
                     }
+                    try {
+                        Files.delete(dir);
+                    } catch (IOException ex) {
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException e) {

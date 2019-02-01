@@ -145,13 +145,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         protected Path newStagedDir() throws ProvisioningException {
             final Path stagedDir = getWorkDir().resolve(STAGED);
             if(Files.exists(stagedDir)) {
-                try(DirectoryStream<Path> stream = Files.newDirectoryStream(stagedDir)) {
-                    for(Path p : stream) {
-                        IoUtils.recursiveDelete(p);
-                    }
-                } catch (IOException e) {
-                    throw new ProvisioningException(Errors.readDirectory(stagedDir), e);
-                }
+                IoUtils.emptyDir(stagedDir);
             } else {
                 try {
                     Files.createDirectories(stagedDir);

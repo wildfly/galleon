@@ -62,6 +62,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final Path stagedDir;
     private final ProvisioningLayout<FeaturePackRuntime> layout;
     private final MessageWriter messageWriter;
+    private Boolean emptyStagedDir;
     private List<ProvisionedConfig> configs = Collections.emptyList();
 
     ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
@@ -75,11 +76,24 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         });
         this.fsDiff = builder.fsDiff;
 
+        Path stagedDir = null;
         try {
             this.configs = builder.getResolvedConfigs();
-            this.stagedDir = layout.newStagedDir();
+            if(builder.stagedDir == null) {
+                this.stagedDir = stagedDir = layout.newStagedDir();
+            } else {
+                this.stagedDir = stagedDir = builder.stagedDir;
+                this.emptyStagedDir = Files.exists(stagedDir);
+            }
         } catch (ProvisioningException | RuntimeException | Error e) {
             layout.close();
+            if(emptyStagedDir != null) {
+                if (emptyStagedDir) {
+                    IoUtils.emptyDir(stagedDir);
+                } else {
+                    IoUtils.recursiveDelete(stagedDir);
+                }
+            }
             throw e;
         }
 
@@ -299,11 +313,20 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         } catch (XMLStreamException | IOException e) {
             throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
         }
+
+        emptyStagedDir = null;
     }
 
     @Override
     public void close() {
         layout.close();
+        if(emptyStagedDir != null) {
+            if (emptyStagedDir) {
+                IoUtils.emptyDir(stagedDir);
+            } else {
+                IoUtils.recursiveDelete(stagedDir);
+            }
+        }
         if (messageWriter.isVerboseEnabled()) {
             final long time = System.currentTimeMillis() - startTime;
             final long seconds = time / 1000;
