@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -584,15 +584,24 @@ public class ProvisioningManager implements AutoCloseable {
 
     private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, FsDiff fsDiff)
             throws ProvisioningException {
-        return ProvisioningRuntimeBuilder.newInstance(log)
+        return getRuntimeInternal(layout, fsDiff, false);
+    }
+
+    private ProvisioningRuntime getRuntimeInternal(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, FsDiff fsDiff, boolean setStagedDir)
+            throws ProvisioningException {
+        final ProvisioningRuntimeBuilder rtBuilder = ProvisioningRuntimeBuilder.newInstance(log)
                 .initRtLayout(layout)
                 .setEncoding(encoding)
-                .setFsDiff(fsDiff)
-                .build();
+                .setFsDiff(fsDiff);
+        if(setStagedDir) {
+            rtBuilder.setStagedDir(home);
+        }
+        return rtBuilder.build();
     }
 
     private void doProvision(ProvisioningLayout<FeaturePackRuntimeBuilder> layout, FsDiff fsDiff, boolean undo) throws ProvisioningException {
-        try (ProvisioningRuntime runtime = getRuntimeInternal(layout, fsDiff)) {
+        final boolean freshInstall = PathsUtils.isNewHome(home);
+        try (ProvisioningRuntime runtime = getRuntimeInternal(layout, fsDiff, freshInstall)) {
             runtime.provision();
             if (runtime.getProvisioningConfig().hasFeaturePackDeps()) {
                 persistHashes(runtime);
@@ -622,7 +631,9 @@ public class ProvisioningManager implements AutoCloseable {
             if (fsDiff != null && !fsDiff.isEmpty()) {
                 undoTasks = FsDiff.replay(fsDiff, runtime.getStagedDir(), log);
             }
-            PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, undoTasks, log);
+            if(!freshInstall) {
+                PathsUtils.replaceDist(runtime.getStagedDir(), home, undo, undoTasks, log);
+            }
         } finally {
             this.provisioningConfig = null;
         }
@@ -762,7 +773,7 @@ public class ProvisioningManager implements AutoCloseable {
         if(log.isVerboseEnabled()) {
             final long timeMs = (System.nanoTime() - startTime) / 1000000;
             final long timeSec = timeMs / 1000;
-            log.print("Hashing took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+            log.verbose("Hashing took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,21 @@ import org.jboss.galleon.ProvisioningException;
  */
 public class PathsUtils {
 
+    public static boolean isNewHome(Path homeDir) throws ProvisioningException {
+        if (!Files.exists(homeDir)) {
+            return true;
+        }
+        if (!Files.isDirectory(homeDir)) {
+            throw new ProvisioningException(Errors.notADir(homeDir));
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(homeDir)) {
+            final Iterator<Path> i = stream.iterator();
+            return !i.hasNext();
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.readDirectory(homeDir), e);
+        }
+    }
+
     public static void assertInstallationDir(Path path) throws ProvisioningException {
         if (!Files.exists(path)) {
             return;
@@ -56,7 +71,7 @@ public class PathsUtils {
             }
             throw new ProvisioningException(Errors.homeDirNotUsable(path));
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.readDirectory(path));
+            throw new ProvisioningException(Errors.readDirectory(path), e);
         }
     }
 

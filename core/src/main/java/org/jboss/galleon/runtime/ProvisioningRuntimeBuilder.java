@@ -87,6 +87,7 @@ public class ProvisioningRuntimeBuilder {
     String encoding;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
+    Path stagedDir;
     FsDiff fsDiff;
     private final MessageWriter messageWriter;
 
@@ -138,6 +139,11 @@ public class ProvisioningRuntimeBuilder {
 
     public ProvisioningRuntimeBuilder setFsDiff(FsDiff fsDiff) {
         this.fsDiff = fsDiff;
+        return this;
+    }
+
+    public ProvisioningRuntimeBuilder setStagedDir(Path p) {
+        this.stagedDir = p;
         return this;
     }
 
