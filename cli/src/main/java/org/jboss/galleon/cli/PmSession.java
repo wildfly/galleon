@@ -18,15 +18,9 @@ package org.jboss.galleon.cli;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.function.Consumer;
 import org.aesh.command.activator.CommandActivator;
 import org.aesh.command.activator.CommandActivatorProvider;
 import org.aesh.command.activator.OptionActivator;
@@ -44,7 +38,6 @@ import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
 import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.MessageWriter;
-import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.config.Configuration;
@@ -53,8 +46,6 @@ import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.cli.resolver.ResourceResolver;
 import org.jboss.galleon.cli.tracking.ProgressTrackers;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
-import org.jboss.galleon.cache.FeaturePackCacheManager;
-import org.jboss.galleon.cache.FeaturePackCacheManager.OverwritePolicy;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -62,8 +53,6 @@ import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
-import org.jboss.galleon.util.IoUtils;
-import org.jboss.galleon.util.LayoutUtils;
 
 /**
  *
@@ -71,52 +60,6 @@ import org.jboss.galleon.util.LayoutUtils;
  */
 public class PmSession implements CompleterInvocationProvider<PmCompleterInvocation>,
         CommandActivatorProvider, OptionActivatorProvider<OptionActivator> {
-
-    private class CliOverwritePolicy implements OverwritePolicy {
-
-        // The same FPID can be seen during the execution of a single command.
-        // Re-use it if already seen (and un-packed).
-        // This set is also used to record what has been cached.
-        private final Set<FPID> seen = new HashSet<>();
-
-        void commandStart() {
-            seen.clear();
-        }
-
-        void commandEnd() {
-            if (seen.isEmpty()) {
-                return;
-            }
-            try {
-                Properties props = config.getLayoutCacheContent();
-                long time = System.currentTimeMillis();
-                for (FPID id : seen) {
-                    props.setProperty(id.toString(), "" + time);
-                }
-                config.storeLayoutCacheContent(props);
-            } catch (IOException ex) {
-                CliLogging.exception(ex);
-            }
-        }
-
-        @Override
-        public boolean hasExpired(Path fpDir, FeaturePackLocation.FPID fpid) {
-            try {
-                boolean devBuild = universe.getUniverse(fpid.getUniverse()).
-                        getProducer(fpid.getProducer().getName()).getChannel(fpid.getChannel().getName()).
-                        isDevBuild(fpid);
-                return devBuild && !seen.contains(fpid);
-            } catch (ProvisioningException ex) {
-                CliLogging.exception(ex);
-                return true;
-            }
-        }
-
-        @Override
-        public void cached(FPID fpid) {
-            seen.add(fpid);
-        }
-    }
 
     private class MavenListener implements RepositoryListener {
 
@@ -268,9 +211,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     private AeshContext ctx;
     private boolean rethrow = false;
     private boolean enableTrackers = true;
-    private final CliOverwritePolicy policy = new CliOverwritePolicy();
     private final boolean interactive;
-    private final FeaturePackCacheManager cacheManager;
     private ToolModes toolModes;
     private String promptRoot;
     private Path previousDir;
@@ -296,12 +237,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
         UniverseResolver universeResolver = UniverseResolver.builder().addArtifactResolver(maven).build();
         universe = new UniverseManager(this, config, maven, universeResolver, builtin);
         this.interactive = interactive;
-        cacheManager = new FeaturePackCacheManager(config.getLayoutCache(), policy);
-        if (interactive) {
-            layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver, cacheManager);
-        } else {
-            layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver);
-        }
+        layoutFactory = ProvisioningLayoutFactory.getInstance(universeResolver);
         resolver = new ResourceResolver(this);
         // Abort running universe resolution if any.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -319,60 +255,6 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
 
     public void clearLayoutCache() throws IOException {
         config.clearLayoutCache();
-    }
-
-    public void cleanupLayoutCache() {
-        try {
-            if (!Files.exists(cacheManager.getHome())) {
-                return;
-            }
-            Properties props = config.getLayoutCacheContent();
-            long now = System.currentTimeMillis();
-            Set<String> toRemove = new HashSet<>();
-            Set<Path> fpPaths = new HashSet<>();
-            for (String k : props.stringPropertyNames()) {
-                String time = props.getProperty(k);
-                long lastUsage = Long.decode(time);
-                Path p = LayoutUtils.getFeaturePackDir(config.getLayoutCache(),
-                        FeaturePackLocation.fromString(k).getFPID());
-                if (!Files.exists(p)) {
-                    toRemove.add(k);
-                } else if ((now - lastUsage) > Configuration.CACHE_PERIOD) {
-                    toRemove.add(k);
-                    try {
-                        cacheManager.remove(FeaturePackLocation.fromString(k).getFPID());
-                    } catch (ProvisioningException ex) {
-                        CliLogging.exception(ex);
-                    }
-                }
-                // keep root dir to check that the dirs located in cache are valid
-                // feature packs paths. On JDK8 and earlier due to JDK-8013099
-                // we can have layout dir that can't be deleted.
-                Iterator<Path> it = cacheManager.getHome().relativize(p).iterator();
-                if (it.hasNext()) {
-                    fpPaths.add(it.next());
-                }
-            }
-            if (!toRemove.isEmpty()) {
-                for (String k : toRemove) {
-                    props.remove(k);
-                }
-                config.storeLayoutCacheContent(props);
-            }
-
-            // Cleanup directories that are leftovers from previous executions
-            Files.list(cacheManager.getHome()).forEach(new Consumer<Path>() {
-                @Override
-                public void accept(Path t) {
-                    if (!fpPaths.contains(t.getFileName())) {
-                        IoUtils.recursiveDelete(t);
-                    }
-                }
-            });
-        } catch (ProvisioningDescriptionException | IOException ex) {
-            CliLogging.exception(ex);
-        }
-
     }
 
     public void enableTrackers(boolean enable) {
@@ -481,9 +363,6 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
 
 
     public void commandStart(PmCommandInvocation session) {
-        if (interactive) {
-            policy.commandStart();
-        }
         commandRunning = true;
         maven.commandStart();
         ProgressTrackers.commandStart(session);
@@ -491,9 +370,6 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     }
 
     public void commandEnd(PmCommandInvocation session) {
-        if (interactive) {
-            policy.commandEnd();
-        }
         maven.commandEnd();
         ProgressTrackers.commandEnd(session);
         unregisterTrackers();

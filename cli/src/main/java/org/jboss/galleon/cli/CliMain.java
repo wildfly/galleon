@@ -150,7 +150,6 @@ public class CliMain {
             CliTerminalConnection connection, boolean paging) throws Throwable {
         pmSession.setOut(connection.getOutput());
         pmSession.setErr(connection.getOutput());
-        pmSession.cleanupLayoutCache();
         // Side effect is to resolve plugins.
         pmSession.getUniverse().resolveBuiltinUniverse();
 

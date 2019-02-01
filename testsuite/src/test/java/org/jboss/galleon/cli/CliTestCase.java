@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,8 @@ import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.util.LayoutUtils;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -56,63 +53,6 @@ public class CliTestCase {
     @AfterClass
     public static void tearDown() {
         cli.close();
-    }
-
-    @Test
-    public void testCache() throws Exception {
-        CliTestUtils.install(cli, universeSpec, PRODUCER1, "1.0.0.Alpha1");
-        CliTestUtils.install(cli, universeSpec, PRODUCER1, "1.0.0.Alpha1-SNAPSHOT");
-        Path cache = cli.getSession().getPmConfiguration().getLayoutCache();
-
-        cli.execute("feature-pack clear-cache");
-
-        Path p = cli.newDir("install", false);
-        FeaturePackLocation fpl = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1");
-        cli.execute("install " + fpl + " --dir=" + p);
-        assertTrue(Files.exists(cache));
-        assertTrue(cache.toFile().list().length == 1);
-        assertTrue(Files.exists(LayoutUtils.getFeaturePackDir(cache, fpl.getFPID(), true)));
-        String lastUsage = cli.getSession().getPmConfiguration().getLayoutCacheContent().getProperty(fpl.getFPID().toString());
-        assertNotNull(lastUsage);
-        assertTrue(cli.getSession().getPmConfiguration().getLayoutCacheContent().size() == 1);
-
-        cli.execute("install " + fpl
-                + " --dir=" + p);
-        assertTrue(Files.exists(cache));
-        assertTrue(cache.toFile().list().length == 1);
-        assertTrue(Files.exists(LayoutUtils.getFeaturePackDir(cache, fpl.getFPID(), true)));
-        assertEquals(lastUsage, cli.getSession().getPmConfiguration().getLayoutCacheContent().getProperty(fpl.getFPID().toString()));
-
-        cli.execute("feature-pack clear-cache");
-        assertFalse(Files.exists(cache));
-        assertTrue(cli.getSession().getPmConfiguration().getLayoutCacheContent().isEmpty());
-
-        // SNAPSHOT MUST BE OVERWRITTEN each time.
-        FeaturePackLocation fplSnapshot = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "alpha", "1.0.0.Alpha1-SNAPSHOT");
-        Path snapshotPath = cli.newDir("install-snapshot", false);
-        cli.execute("install " + fplSnapshot
-                + " --dir=" + snapshotPath);
-        String time1 = cli.getSession().getPmConfiguration().getLayoutCacheContent().getProperty(fplSnapshot.getFPID().toString());
-        assertNotNull(time1);
-        cli.execute("install " + fplSnapshot
-                + " --dir=" + snapshotPath);
-        String time2 = cli.getSession().getPmConfiguration().getLayoutCacheContent().getProperty(fplSnapshot.getFPID().toString());
-        assertNotNull(time2);
-        assertFalse(time1.equals(time2));
-        Path path = LayoutUtils.getFeaturePackDir(cache, fplSnapshot.getFPID());
-        assertTrue(Files.exists(path));
-        cli.getSession().cleanupLayoutCache();
-        assertTrue(Files.exists(path));
-    }
-
-    @Test
-    public void testCleanupCache() throws Exception {
-        Path root = cli.getSession().getPmConfiguration().getLayoutCache();
-        Path useless = root.resolve("useless");
-        Files.createDirectory(useless);
-        assertTrue(Files.exists(useless));
-        cli.getSession().cleanupLayoutCache();
-        assertFalse(Files.exists(useless));
     }
 
     @Test
