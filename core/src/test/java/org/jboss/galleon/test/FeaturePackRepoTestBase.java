@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,7 @@ public class FeaturePackRepoTestBase {
     private Path tmpDir;
     protected RepositoryArtifactResolver repo;
     protected FeaturePackCreator creator;
+    private boolean recordState = true;
 
     @Before
     public void before() throws Exception {
@@ -68,6 +69,14 @@ public class FeaturePackRepoTestBase {
     protected void doAfter() throws Exception {
     }
 
+    protected void setRecordState(boolean recordState) {
+        this.recordState = recordState;
+    }
+
+    protected boolean isRecordState() {
+        return recordState;
+    }
+
     protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
         return LegacyGalleon1RepositoryManager.newInstance(repoHome);
     }
@@ -80,6 +89,7 @@ public class FeaturePackRepoTestBase {
         return ProvisioningManager.builder()
                 .addArtifactResolver(repo)
                 .setInstallationHome(installHome)
+                .setRecordState(recordState)
                 .build();
     }
 

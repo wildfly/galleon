@@ -22,11 +22,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.Map;
-
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
-import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 
 /**
@@ -100,24 +97,5 @@ public class PathsUtils {
             return path;
         }
         return path.replace(File.separatorChar, '/');
-    }
-
-    public static void replaceDist(Path stagedDir, Path home, boolean asUndo, Map<String, Boolean> undoTasks, MessageWriter log) throws ProvisioningException {
-        log.verbose("Moving the provisioned installation from the staged directory to %s", home);
-
-        // copy from the staged to the target installation directory
-        if (Files.exists(home)) {
-            if(asUndo) {
-                StateHistoryUtils.removeLastUndoConfig(home, stagedDir, log);
-            } else {
-                StateHistoryUtils.addNewUndoConfig(home, stagedDir, undoTasks, log);
-            }
-            IoUtils.recursiveDelete(home);
-        }
-        try {
-            IoUtils.copy(stagedDir, home);
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(stagedDir, home));
-        }
     }
 }

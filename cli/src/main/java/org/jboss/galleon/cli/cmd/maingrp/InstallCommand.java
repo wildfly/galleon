@@ -206,12 +206,14 @@ public class InstallCommand extends AbstractPluginsCommand {
                         model,
                         config, loc).build(), options);
             }
-            if (!loc.hasBuild()) {
-                loc = getManager(session).getProvisioningConfig().getFeaturePackDep(loc.getProducer()).getLocation();
-            }
             session.println("Feature pack installed.");
-            StateInfoUtil.printFeaturePack(session,
-                    session.getPmSession().getExposedLocation(manager.getInstallationHome(), loc));
+            if(manager.isRecordState()) {
+                if (!loc.hasBuild()) {
+                    loc = manager.getProvisioningConfig().getFeaturePackDep(loc.getProducer()).getLocation();
+                }
+                StateInfoUtil.printFeaturePack(session,
+                        session.getPmSession().getExposedLocation(manager.getInstallationHome(), loc));
+            }
         } catch (ProvisioningException | IOException ex) {
             throw new CommandExecutionException(session.getPmSession(), CliErrors.installFailed(), ex);
         }

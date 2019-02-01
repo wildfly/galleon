@@ -64,6 +64,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final ProvisioningLayout<FeaturePackRuntime> layout;
     private final MessageWriter messageWriter;
     private Boolean emptyStagedDir;
+    private final boolean recordState;
     private List<ProvisionedConfig> configs = Collections.emptyList();
 
     ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
@@ -99,6 +100,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             throw e;
         }
 
+        this.recordState = builder.recordState;
         this.messageWriter = messageWriter;
     }
 
@@ -306,18 +308,20 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             }
         }, InstallPlugin.class);
 
-        // save the config
-        try {
-            ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(stagedDir));
-        } catch (XMLStreamException | IOException e) {
-            throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisioningXml(stagedDir)), e);
-        }
+        if(recordState) {
+            // save the config
+            try {
+                ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(stagedDir));
+            } catch (XMLStreamException | IOException e) {
+                throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisioningXml(stagedDir)), e);
+            }
 
-        // save the provisioned state
-        try {
-            ProvisionedStateXmlWriter.getInstance().write(this, PathsUtils.getProvisionedStateXml(stagedDir));
-        } catch (XMLStreamException | IOException e) {
-            throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
+            // save the provisioned state
+            try {
+                ProvisionedStateXmlWriter.getInstance().write(this, PathsUtils.getProvisionedStateXml(stagedDir));
+            } catch (XMLStreamException | IOException e) {
+                throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
+            }
         }
 
         emptyStagedDir = null;
