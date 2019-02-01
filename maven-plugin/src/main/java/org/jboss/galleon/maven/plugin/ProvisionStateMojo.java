@@ -58,6 +58,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
+import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.xml.ConfigXmlParser;
 
 /**
@@ -135,6 +136,12 @@ public class ProvisionStateMojo extends AbstractMojo {
     private boolean logTime;
 
     /**
+     * Whether to record provisioned state in .galleon directory.
+     */
+    @Parameter(alias = "record-state", defaultValue = "true")
+    private boolean recordState = true;
+
+    /**
      * A list of artifacts and paths pointing to feature-pack archives that should be resolved locally without
      * involving the universe-based feature-pack resolver at provisioning time.
      */
@@ -168,10 +175,15 @@ public class ProvisionStateMojo extends AbstractMojo {
         final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
                 : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
 
+        final Path home = installDir.toPath();
+        if(!recordState) {
+            IoUtils.recursiveDelete(home);
+        }
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
-                .setInstallationHome(installDir.toPath())
+                .setInstallationHome(home)
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
                 .setLogTime(logTime)
+                .setRecordState(recordState)
                 .build()) {
 
             for (FeaturePack fp : featurePacks) {

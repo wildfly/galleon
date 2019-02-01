@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,6 +57,7 @@ public class FeaturePackInstaller {
     private List<String> includedPackages = Collections.emptyList();
     private List<String> excludedPackages = Collections.emptyList();
     private Map<String, String> pluginOptions = Collections.emptyMap();
+    private boolean recordState = true;
 
     private FeaturePackInstaller(Path repoHome, Path installationDir) {
         this.repoHome = repoHome;
@@ -132,10 +133,16 @@ public class FeaturePackInstaller {
         return this;
     }
 
+    public FeaturePackInstaller setRecordState(boolean recordState) {
+        this.recordState = recordState;
+        return this;
+    }
+
     public void install() {
         try(ProvisioningManager manager = ProvisioningManager.builder()
                 .addArtifactResolver(LegacyGalleon1RepositoryManager.newInstance(repoHome))
                 .setInstallationHome(installationDir)
+                .setRecordState(recordState)
                 .build()) {
             System.setProperty("org.wildfly.logging.skipLogManagerCheck", "true");
             ConfigModel config = null;

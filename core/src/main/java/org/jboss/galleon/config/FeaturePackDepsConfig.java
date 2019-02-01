@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.StringUtils;
 
 /**
  *
@@ -202,5 +203,25 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
         } else if (!universeSpecs.equals(other.universeSpecs))
             return false;
         return true;
+    }
+
+    protected void append(StringBuilder buf) {
+        if(defaultUniverse != null) {
+            buf.append("default-universe=").append(defaultUniverse);
+        }
+        if(!universeSpecs.isEmpty()) {
+            if(defaultUniverse != null) {
+                buf.append(' ');
+            }
+            buf.append("universes=[");
+            StringUtils.append(buf, universeSpecs.entrySet());
+            buf.append("] ");
+        }
+        if(!transitiveDeps.isEmpty()) {
+            StringUtils.append(buf.append("transitive="), transitiveDeps.values());
+            buf.append(' ');
+        }
+        StringUtils.append(buf, fpDeps.values());
+        super.append(buf);
     }
 }

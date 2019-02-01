@@ -89,6 +89,7 @@ public class ProvisioningRuntimeBuilder {
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
     Path stagedDir;
+    boolean recordState;
     FsDiff fsDiff;
     private final MessageWriter messageWriter;
 
@@ -150,6 +151,11 @@ public class ProvisioningRuntimeBuilder {
 
     public ProvisioningRuntimeBuilder setStagedDir(Path p) {
         this.stagedDir = p;
+        return this;
+    }
+
+    public ProvisioningRuntimeBuilder setRecordState(boolean recordState) {
+        this.recordState = recordState;
         return this;
     }
 

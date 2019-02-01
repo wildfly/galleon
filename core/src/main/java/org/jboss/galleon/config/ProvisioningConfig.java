@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -176,28 +176,11 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder().append('[');
-        if(defaultUniverse != null) {
-            buf.append("default-universe=").append(defaultUniverse);
-        }
-        if(!universeSpecs.isEmpty()) {
-            if(defaultUniverse != null) {
-                buf.append(' ');
-            }
-            buf.append("universes=[");
-            StringUtils.append(buf, universeSpecs.entrySet());
-            buf.append("] ");
-        }
+        append(buf);
         if(!options.isEmpty()) {
             buf.append("options=");
             StringUtils.append(buf, options.entrySet());
         }
-        if(!transitiveDeps.isEmpty()) {
-            buf.append("transitive=");
-            StringUtils.append(buf, transitiveDeps.values());
-            buf.append(' ');
-        }
-        StringUtils.append(buf, fpDeps.values());
-        append(buf);
         return buf.append(']').toString();
     }
 }

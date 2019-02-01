@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,9 @@
  */
 package org.jboss.galleon.test;
 
+import static org.junit.Assert.fail;
+
+import java.nio.file.Files;
 import java.util.Arrays;
 
 import org.jboss.galleon.Constants;
@@ -78,7 +81,11 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
     }
 
     protected DirBuilder newDirBuilder() {
-        return DirState.rootBuilder().skip(Constants.PROVISIONED_STATE_DIR);
+        final DirBuilder builder = DirState.rootBuilder();
+        if(isRecordState() || initialProvisioningConfig != null) {
+            builder.skip(Constants.PROVISIONED_STATE_DIR);
+        }
+        return builder;
     }
 
     protected String[] pmErrors() throws ProvisioningException {
@@ -97,8 +104,17 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
             if(errors != null) {
                 Assert.fail("Expected failures: " + Arrays.asList(errors));
             }
-            assertProvisionedConfig(pm);
-            assertProvisionedState(pm);
+            if(isRecordState()) {
+                assertProvisionedConfig(pm);
+                assertProvisionedState(pm);
+            } else if(initialProvisioningConfig != null) {
+                pm.close();
+                pm = getPm();
+                assertProvisionedConfig(pm);
+                assertProvisionedState(pm);
+            } else {
+                assertNoState();
+            }
         } catch(AssertionError e) {
             throw e;
         } catch(Throwable t) {
@@ -109,8 +125,15 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
                 assertErrors(t, errors);
             }
             if(pm != null) {
-                assertProvisioningConfig(pm, initialProvisioningConfig);
-                assertProvisionedState(pm, initialProvisionedState);
+                if(isRecordState()) {
+                    assertProvisioningConfig(pm, initialProvisioningConfig);
+                    assertProvisionedState(pm, initialProvisionedState);
+                } else if(initialProvisioningConfig != null) {
+                    pm.close();
+                    pm = getPm();
+                    assertProvisioningConfig(pm, initialProvisioningConfig);
+                    assertProvisionedState(pm, initialProvisionedState);
+                }
             }
         } finally {
             if(pm != null) {
@@ -126,7 +149,7 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
             if(failed || initialProvisioningConfig != null) {
                 expectedHomeDir = initialHomeDirState;
             } else {
-                expectedHomeDir = DirState.rootBuilder().skip(Constants.PROVISIONED_STATE_DIR).build();
+                expectedHomeDir = newDirBuilder().build();
             }
         }
         expectedHomeDir.assertState(installHome);
@@ -146,6 +169,12 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
 
     protected void assertProvisionedConfig(final ProvisioningManager pm) throws ProvisioningException {
         assertProvisioningConfig(pm, provisionedConfig());
+    }
+
+    protected void assertNoState() throws ProvisioningException {
+        if(Files.exists(installHome.resolve(Constants.PROVISIONED_STATE_DIR))) {
+            fail("Unexpected provisioning state " + installHome.resolve(Constants.PROVISIONED_STATE_DIR));
+        }
     }
 
     protected void assertErrors(Throwable t, String... msgs) {

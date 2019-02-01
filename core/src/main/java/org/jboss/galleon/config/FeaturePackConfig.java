@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -383,8 +383,13 @@ public class FeaturePackConfig extends ConfigCustomizations {
         }
         buf.append(fpl.toString());
         if(!patches.isEmpty()) {
-            buf.append(" patches=");
-            StringUtils.append(buf, patches);
+            StringUtils.append(buf.append(" patches="), patches);
+        }
+        if(!excludedPackages.isEmpty()) {
+            StringUtils.append(buf.append(" excludedPackages="), excludedPackages);
+        }
+        if(!includedPackages.isEmpty()) {
+            StringUtils.append(buf.append(" includedPackages="), includedPackages.values());
         }
         append(buf);
         return buf.append(']').toString();
