@@ -71,6 +71,7 @@ public class ProvisioningManager implements AutoCloseable {
         private ProvisioningLayoutFactory layoutFactory;
         private MessageWriter messageWriter;
         private UniverseResolver resolver;
+        private boolean logTime;
 
         private Builder() {
         }
@@ -123,6 +124,11 @@ public class ProvisioningManager implements AutoCloseable {
             return this;
         }
 
+        public Builder setLogTime(boolean logTime) {
+            this.logTime = logTime;
+            return this;
+        }
+
         public ProvisioningManager build() throws ProvisioningException {
             return new ProvisioningManager(this);
         }
@@ -139,6 +145,7 @@ public class ProvisioningManager implements AutoCloseable {
     private final String encoding;
     private final Path home;
     private final MessageWriter log;
+    private boolean logTime;
 
     private final UniverseResolver universeResolver;
     private ProvisioningLayoutFactory layoutFactory;
@@ -157,6 +164,7 @@ public class ProvisioningManager implements AutoCloseable {
         } else {
             universeResolver = builder.getUniverseResolver();
         }
+        this.logTime = builder.logTime;
     }
 
     /**
@@ -179,6 +187,24 @@ public class ProvisioningManager implements AutoCloseable {
      */
     public Path getInstallationHome() {
         return home;
+    }
+
+    /**
+     * Whether to log provisioning time
+     *
+     * @return  Whether provisioning time should be logged at the end
+     */
+    public boolean isLogTime() {
+        return logTime;
+    }
+
+    /**
+     * Whether to log provisioning time
+     *
+     * @return  Whether provisioning time should be logged at the end
+     */
+    public void setLogTime(boolean logTime) {
+        this.logTime = logTime;
     }
 
     /**
@@ -592,6 +618,7 @@ public class ProvisioningManager implements AutoCloseable {
         final ProvisioningRuntimeBuilder rtBuilder = ProvisioningRuntimeBuilder.newInstance(log)
                 .initRtLayout(layout)
                 .setEncoding(encoding)
+                .setLogTime(logTime)
                 .setFsDiff(fsDiff);
         if(setStagedDir) {
             rtBuilder.setStagedDir(home);
@@ -667,9 +694,7 @@ public class ProvisioningManager implements AutoCloseable {
             final long startTime = System.nanoTime();
             final FsDiff fsDiff = FsDiff.diff(originalState, currentState);
             if (log.isVerboseEnabled()) {
-                final long timeMs = (System.nanoTime() - startTime) / 1000000;
-                final long timeSec = timeMs / 1000;
-                log.verbose("  filesystem diff took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+                log.verbose(Errors.tookTime("  filesystem diff", startTime));
             }
             return fsDiff;
         }
@@ -771,9 +796,7 @@ public class ProvisioningManager implements AutoCloseable {
             }
         }
         if(log.isVerboseEnabled()) {
-            final long timeMs = (System.nanoTime() - startTime) / 1000000;
-            final long timeSec = timeMs / 1000;
-            log.verbose("Hashing took %d.%d seconds", timeSec, (timeMs - timeSec * 1000));
+            log.verbose(Errors.tookTime("Hashing", startTime));
         }
     }
 

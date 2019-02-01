@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,6 +129,12 @@ public class ProvisionStateMojo extends AbstractMojo {
     private boolean offline;
 
     /**
+     * Whether to log provisioning time at the end
+     */
+    @Parameter(alias = "log-time", defaultValue = "false")
+    private boolean logTime;
+
+    /**
      * A list of artifacts and paths pointing to feature-pack archives that should be resolved locally without
      * involving the universe-based feature-pack resolver at provisioning time.
      */
@@ -165,6 +171,7 @@ public class ProvisionStateMojo extends AbstractMojo {
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(installDir.toPath())
                 .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
+                .setLogTime(logTime)
                 .build()) {
 
             for (FeaturePack fp : featurePacks) {
