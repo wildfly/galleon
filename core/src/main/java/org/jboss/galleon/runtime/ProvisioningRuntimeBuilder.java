@@ -84,6 +84,7 @@ public class ProvisioningRuntimeBuilder {
     }
 
     final long startTime;
+    boolean logTime;
     String encoding;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
@@ -113,12 +114,17 @@ public class ProvisioningRuntimeBuilder {
     int includedPkgDeps;
 
     private ProvisioningRuntimeBuilder(final MessageWriter messageWriter) {
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         this.messageWriter = messageWriter;
     }
 
     public ProvisioningRuntimeBuilder setEncoding(String encoding) {
         this.encoding = encoding;
+        return this;
+    }
+
+    public ProvisioningRuntimeBuilder setLogTime(boolean logTime) {
+        this.logTime = logTime;
         return this;
     }
 

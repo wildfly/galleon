@@ -505,6 +505,12 @@ public interface Errors {
         return "Failed to locate layer " + layerId + " in the the installation feature-pack layout";
     }
 
+    static String tookTime(String action, long startTimeNanos) {
+        final long timeMs = (System.nanoTime() - startTimeNanos) / 1000000;
+        final long timeSec = timeMs / 1000;
+        return action + " took " + timeSec + "." + (timeMs - timeSec * 1000) + " seconds";
+    }
+
     static void appendConfig(final StringBuilder buf, String model, String name) {
         if (model != null) {
             buf.append(" model ").append(model);

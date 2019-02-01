@@ -57,6 +57,7 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable {
 
     private final long startTime;
+    private final boolean logTime;
     private ProvisioningConfig config;
     private FsDiff fsDiff;
     private final Path stagedDir;
@@ -67,6 +68,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
+        this.logTime = builder.logTime;
         this.config = builder.config;
         this.layout = builder.layout.transform(new FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
             @Override
@@ -98,6 +100,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         }
 
         this.messageWriter = messageWriter;
+    }
+
+    public boolean isLogTime() {
+        return logTime;
     }
 
     /**
@@ -327,10 +333,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 IoUtils.recursiveDelete(stagedDir);
             }
         }
-        if (messageWriter.isVerboseEnabled()) {
-            final long time = System.currentTimeMillis() - startTime;
-            final long seconds = time / 1000;
-            messageWriter.verbose("Done in %d.%d seconds", seconds, (time - seconds * 1000));
+        if (logTime) {
+            messageWriter.print(Errors.tookTime("Provisioning", startTime));
+        } else if (messageWriter.isVerboseEnabled()) {
+            messageWriter.verbose(Errors.tookTime("Provisioning", startTime));
         }
     }
 }
