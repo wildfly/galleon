@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,6 @@ import java.util.NoSuchElementException;
 import org.jboss.galleon.config.ConfigCustomizations;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.util.CollectionUtils;
@@ -241,8 +240,8 @@ class FpStack {
                 }
             }
             if(fpConfig.hasIncludedPackages()) {
-                for(PackageConfig included : fpConfig.getIncludedPackages()) {
-                    if(!isPackageIncluded(producer, included.getName()) && !isPackageExcluded(producer, included.getName())) {
+                for(String included : fpConfig.getIncludedPackages()) {
+                    if(!isPackageIncluded(producer, included) && !isPackageExcluded(producer, included)) {
                         return true;
                     }
                 }

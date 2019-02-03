@@ -41,7 +41,6 @@ import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeatureGroupSupport;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
-import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.layout.FeaturePackLayoutFactory;
@@ -429,11 +428,11 @@ public class ProvisioningRuntimeBuilder {
             }
 
             if (fpConfig.hasIncludedPackages()) {
-                for (PackageConfig pkgConfig : fpConfig.getIncludedPackages()) {
-                    if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgConfig.getName(), true)) {
+                for (String pkgName : fpConfig.getIncludedPackages()) {
+                    if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgName, true)) {
                         continue;
                     }
-                    resolvePackage(pkgConfig.getName(), null, PackageDependencySpec.REQUIRED);
+                    resolvePackage(pkgName, null, PackageDependencySpec.REQUIRED);
                 }
             }
 

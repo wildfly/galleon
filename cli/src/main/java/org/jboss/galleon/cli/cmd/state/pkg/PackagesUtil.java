@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,6 @@ import org.jboss.galleon.cli.path.PathConsumerException;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.cli.path.PathParserException;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.PackageConfig;
 
 /**
  *
@@ -56,12 +55,12 @@ public class PackagesUtil {
         Map<FeaturePackConfig, String> packages = new HashMap<>();
         if (config == null) {
             for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
-                if (c.getIncludedPackages().contains(PackageConfig.forName(pkg))) {
+                if (c.getIncludedPackages().contains(pkg)) {
                     packages.put(c, pkg);
                 }
             }
         } else {
-            if (config.getIncludedPackages().contains(PackageConfig.forName(pkg))) {
+            if (config.getIncludedPackages().contains(pkg)) {
                 packages.put(config, pkg);
             }
         }
