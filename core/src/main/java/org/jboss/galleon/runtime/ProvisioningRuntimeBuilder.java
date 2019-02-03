@@ -83,7 +83,7 @@ public class ProvisioningRuntimeBuilder {
         return new ProvisioningRuntimeBuilder(messageWriter);
     }
 
-    final long startTime;
+    long startTime;
     boolean logTime;
     String encoding;
     ProvisioningConfig config;
@@ -115,7 +115,6 @@ public class ProvisioningRuntimeBuilder {
     int includedPkgDeps;
 
     private ProvisioningRuntimeBuilder(final MessageWriter messageWriter) {
-        startTime = System.nanoTime();
         this.messageWriter = messageWriter;
     }
 
@@ -160,6 +159,7 @@ public class ProvisioningRuntimeBuilder {
     }
 
     public ProvisioningRuntime build() throws ProvisioningException {
+        startTime = logTime ? System.nanoTime() : -1;
         try {
             return doBuild();
         } catch(ProvisioningException | RuntimeException | Error e) {

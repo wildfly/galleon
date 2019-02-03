@@ -57,7 +57,6 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable {
 
     private final long startTime;
-    private final boolean logTime;
     private ProvisioningConfig config;
     private FsDiff fsDiff;
     private final Path stagedDir;
@@ -69,7 +68,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
-        this.logTime = builder.logTime;
         this.config = builder.config;
         this.layout = builder.layout.transform(new FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
             @Override
@@ -105,7 +103,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public boolean isLogTime() {
-        return logTime;
+        return startTime > 0;
     }
 
     /**
@@ -337,10 +335,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 IoUtils.recursiveDelete(stagedDir);
             }
         }
-        if (logTime) {
-            messageWriter.print(Errors.tookTime("Provisioning", startTime));
+        if (startTime > 0) {
+            messageWriter.print(Errors.tookTime("Overall Galleon provisioning", startTime));
         } else if (messageWriter.isVerboseEnabled()) {
-            messageWriter.verbose(Errors.tookTime("Provisioning", startTime));
+            messageWriter.verbose(Errors.tookTime("Overall Galleon provisioning", startTime));
         }
     }
 }

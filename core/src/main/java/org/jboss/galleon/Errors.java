@@ -506,9 +506,9 @@ public interface Errors {
     }
 
     static String tookTime(String action, long startTimeNanos) {
-        final long timeMs = (System.nanoTime() - startTimeNanos) / 1000000;
-        final long timeSec = timeMs / 1000;
-        return action + " took " + timeSec + "." + (timeMs - timeSec * 1000) + " seconds";
+        final long nanos = System.nanoTime() - startTimeNanos;
+        final long timeSec = nanos / 1000000000;
+        return action + " took " + timeSec + "." + ((nanos - timeSec * 1000000000) / 1000000) + " seconds";
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {
