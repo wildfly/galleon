@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,6 @@ import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
-import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -158,9 +157,9 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
             if (packages == null) {
                 packages = addElement(fp, Element.PACKAGES.getLocalName(), ns);
             }
-            for (PackageConfig included : featurePack.getIncludedPackages()) {
+            for (String included : featurePack.getIncludedPackages()) {
                 final ElementNode include = addElement(packages, Element.INCLUDE.getLocalName(), ns);
-                addAttribute(include, Attribute.NAME, included.getName());
+                addAttribute(include, Attribute.NAME, included);
             }
         }
     }

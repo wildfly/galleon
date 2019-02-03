@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,6 @@ import java.util.Deque;
 
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.PackageConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.junit.Assert;
@@ -96,7 +95,7 @@ public class FeaturePackProvisioningTestCase {
 
         // include a package
         builtConfig = performAction(provisioning.includePackage("package", getFeaturePackConfig()));
-        Assert.assertTrue(builtConfig.getIncludedPackages().contains(PackageConfig.forName("package")));
+        Assert.assertTrue(builtConfig.getIncludedPackages().contains("package"));
         Assert.assertTrue(builtConfig.getExcludedPackages().isEmpty());
 
         // exclude the same package
@@ -106,7 +105,7 @@ public class FeaturePackProvisioningTestCase {
 
         // include the same package again
         builtConfig = performAction(provisioning.includePackage("package", getFeaturePackConfig()));
-        Assert.assertTrue(builtConfig.getIncludedPackages().contains(PackageConfig.forName("package")));
+        Assert.assertTrue(builtConfig.getIncludedPackages().contains("package"));
         Assert.assertTrue(builtConfig.getExcludedPackages().isEmpty());
 
         // undo
@@ -115,7 +114,7 @@ public class FeaturePackProvisioningTestCase {
         Assert.assertTrue(builtConfig.getExcludedPackages().contains("package"));
 
         builtConfig = undo();
-        Assert.assertTrue(builtConfig.getIncludedPackages().contains(PackageConfig.forName("package")));
+        Assert.assertTrue(builtConfig.getIncludedPackages().contains("package"));
         Assert.assertTrue(builtConfig.getExcludedPackages().isEmpty());
 
         builtConfig = undo();

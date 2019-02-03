@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,6 @@ import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.CommandDomain;
 import org.jboss.galleon.cli.model.state.State;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.PackageConfig;
 
 /**
  *
@@ -49,8 +48,8 @@ public class StateRemoveIncludedPackageCommand extends AbstractProvisionedPackag
     @Override
     protected Set<String> getTargetedPackages(FeaturePackConfig cf) {
         Set<String> packages = new HashSet<>();
-        for (PackageConfig c : cf.getIncludedPackages()) {
-            packages.add(c.getName());
+        for (String c : cf.getIncludedPackages()) {
+            packages.add(c);
         }
         return packages;
     }

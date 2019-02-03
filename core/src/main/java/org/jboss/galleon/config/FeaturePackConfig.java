@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.jboss.galleon.Errors;
@@ -44,7 +43,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         protected boolean inheritPackages;
         protected boolean transitive;
         protected Set<String> excludedPackages = Collections.emptySet();
-        protected Map<String, PackageConfig> includedPackages = Collections.emptyMap();
+        protected Set<String> includedPackages = Collections.emptySet();
         protected Set<FPID> patches = Collections.emptySet();
 
         protected Builder(FeaturePackLocation fpl) {
@@ -109,7 +108,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         }
 
         public Builder excludePackage(String packageName) throws ProvisioningDescriptionException {
-            if(includedPackages.containsKey(packageName)) {
+            if(includedPackages.contains(packageName)) {
                 throw new ProvisioningDescriptionException(Errors.packageExcludeInclude(packageName));
             }
             excludedPackages = CollectionUtils.add(excludedPackages, packageName);
@@ -135,35 +134,31 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return excludedPackages.contains(packageName);
         }
 
-        public Builder includeAllPackages(Collection<PackageConfig> packageConfigs) throws ProvisioningDescriptionException {
-            for(PackageConfig packageConfig : packageConfigs) {
-                includePackage(packageConfig);
+        public Builder includeAllPackages(Collection<String> packageNames) throws ProvisioningDescriptionException {
+            for(String packageName : packageNames) {
+                includePackage(packageName);
             }
             return this;
         }
 
         public Builder includePackage(String packageName) throws ProvisioningDescriptionException {
-            return includePackage(PackageConfig.forName(packageName));
+            if(excludedPackages.contains(packageName)) {
+                throw new ProvisioningDescriptionException(Errors.packageExcludeInclude(packageName));
+            }
+            includedPackages = CollectionUtils.add(includedPackages, packageName);
+            return this;
         }
 
         public Builder removeIncludedPackage(String pkg) throws ProvisioningDescriptionException {
-            if (!includedPackages.containsKey(pkg)) {
+            if (!includedPackages.contains(pkg)) {
                 throw new ProvisioningDescriptionException("Package " + pkg + " is not included into the configuration");
             }
             includedPackages = CollectionUtils.remove(includedPackages, pkg);
             return this;
         }
 
-        private Builder includePackage(PackageConfig packageConfig) throws ProvisioningDescriptionException {
-            if(excludedPackages.contains(packageConfig.getName())) {
-                throw new ProvisioningDescriptionException(Errors.packageExcludeInclude(packageConfig.getName()));
-            }
-            includedPackages = CollectionUtils.put(includedPackages, packageConfig.getName(), packageConfig);
-            return this;
-        }
-
         public boolean isPackageIncluded(String packageName) {
-            return includedPackages.containsKey(packageName);
+            return includedPackages.contains(packageName);
         }
 
         @Override
@@ -247,7 +242,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     private final FeaturePackLocation fpl;
     protected final boolean inheritPackages;
     protected final Set<String> excludedPackages;
-    protected final Map<String, PackageConfig> includedPackages;
+    protected final Set<String> includedPackages;
     protected final boolean transitive;
     protected final List<FPID> patches;
     private final Builder builder;
@@ -306,11 +301,11 @@ public class FeaturePackConfig extends ConfigCustomizations {
     }
 
     public boolean isPackageIncluded(String packageName) {
-        return includedPackages.containsKey(packageName);
+        return includedPackages.contains(packageName);
     }
 
-    public Collection<PackageConfig> getIncludedPackages() {
-        return includedPackages.values();
+    public Collection<String> getIncludedPackages() {
+        return includedPackages;
     }
 
     public boolean hasExcludedPackages() {
@@ -389,7 +384,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
             StringUtils.append(buf.append(" excludedPackages="), excludedPackages);
         }
         if(!includedPackages.isEmpty()) {
-            StringUtils.append(buf.append(" includedPackages="), includedPackages.values());
+            StringUtils.append(buf.append(" includedPackages="), includedPackages);
         }
         append(buf);
         return buf.append(']').toString();
