@@ -42,8 +42,8 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
             if(original == null) {
                 return;
             }
-            if(original.hasPluginOptions()) {
-                addOptions(original.getPluginOptions());
+            if(original.hasOptions()) {
+                addOptions(original.getOptions());
             }
             for (FeaturePackConfig fp : original.getFeaturePackDeps()) {
                 addFeaturePackDep(original.originOf(fp.getLocation().getProducer()), fp);
@@ -110,26 +110,6 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
 
     public Builder getBuilder() {
         return builder;
-    }
-
-    @Deprecated
-    public boolean hasPluginOptions() {
-        return !options.isEmpty();
-    }
-
-    @Deprecated
-    public Map<String, String> getPluginOptions() {
-        return options;
-    }
-
-    @Deprecated
-    public boolean hasPluginOption(String name) {
-        return options.containsKey(name);
-    }
-
-    @Deprecated
-    public String getPluginOption(String name) {
-        return options.get(name);
     }
 
     public boolean hasOptions() {

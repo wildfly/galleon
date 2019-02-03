@@ -195,13 +195,13 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                     final Element element = Element.of(reader.getName().getLocalPart());
                     switch (element) {
                         case UNIVERSES:
-                            ProvisioningXmlParser20.readUniverses(reader, fpBuilder);
+                            ProvisioningXmlParser30.readUniverses(reader, fpBuilder);
                             break;
                         case DEPENDENCIES:
                             readFeaturePackDeps(reader, fpBuilder);
                             break;
                         case DEFAULT_CONFIGS:
-                            ProvisioningXmlParser10.parseDefaultConfigs(reader, fpBuilder);
+                            ProvisioningXmlParser30.parseDefaultConfigs(reader, fpBuilder);
                             break;
                         case CONFIG:
                             final ConfigModel.Builder config = ConfigModel.builder();
@@ -275,7 +275,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                     final Element element = Element.of(reader.getName().getLocalPart());
                     switch (element) {
                         case DEPENDENCY:
-                            ProvisioningXmlParser20.readFeaturePackDep(reader, fpBuilder);
+                            ProvisioningXmlParser30.readFeaturePackDep(reader, fpBuilder);
                             hasChildren = true;
                             break;
                         default:
@@ -358,7 +358,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                     final Element element = Element.of(reader.getLocalName());
                     switch (element) {
                         case DEPENDENCY:
-                            ProvisioningXmlParser20.readTransitiveFeaturePackDep(reader, builder);
+                            ProvisioningXmlParser30.readTransitiveFeaturePackDep(reader, builder);
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);
@@ -417,7 +417,7 @@ public class FeaturePackXmlParser20 implements PlugableXmlParser<FeaturePackSpec
                     } catch(IllegalArgumentException e) {
                         throw new XMLStreamException("Failed to parse patch for FPID '" + reader.getAttributeValue(i) + "'", e);
                     }
-                    patchFor = ProvisioningXmlParser20.resolveUniverse(builder, location).getFPID();
+                    patchFor = ProvisioningXmlParser30.resolveUniverse(builder, location).getFPID();
                     break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);

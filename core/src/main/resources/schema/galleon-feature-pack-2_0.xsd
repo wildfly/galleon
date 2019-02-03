@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
 
-    Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,8 @@
     limitations under the License.
 
 -->
-<xs:schema xmlns="urn:jboss:galleon:feature-pack:1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:jboss:galleon:feature-pack:1.0"
+<xs:schema xmlns="urn:jboss:galleon:feature-pack:2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:jboss:galleon:feature-pack:2.0"
   version="2.0">
 
   <xs:element name="feature-pack" type="feature-packType" />
@@ -32,12 +32,89 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence minOccurs="0" maxOccurs="1">
+      <xs:element name="universes" type="universesType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="patch" type="patchType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="transitive" type="transitiveType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="dependencies" type="dependenciesType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="config" type="configType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="default-configs" type="defaultConfigsType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="default-packages" type="packagesType" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="provisioning-plugins" type="provisioning-pluginsType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="plugins" type="provisioning-pluginsType" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
-    <xs:attributeGroup ref="gavAttributes"/>
+    <xs:attribute name="location" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Feature-pack location expression
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="patchType">
+    <xs:annotation>
+      <xs:documentation>
+        Indicates whether the current feature-pack is a patch
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="for" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Location of the feature-pack this feature-pack patches
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="universesType">
+    <xs:annotation>
+      <xs:documentation>
+        Universes used in the configuration
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="universe" type="universeType" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="universeType">
+    <xs:annotation>
+      <xs:documentation>
+        Defines either the default or named universe reference
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Universe short name. If the attribute is not set, the universe is
+          going to be used as the default one
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="factory" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Universe factory
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="location" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Universe location
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="transitiveType">
+    <xs:annotation>
+      <xs:documentation>
+        Describes transitive feature-pack configurations
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="feature-pack" type="feature-packType" />
+    </xs:choice>
   </xs:complexType>
 
   <xs:complexType name="dependenciesType">
@@ -61,7 +138,13 @@
       <xs:element name="origin" minOccurs="0" maxOccurs="1"/>
       <xs:element name="packages" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
-    <xs:attributeGroup ref="gavAttributes"/>
+    <xs:attribute name="location" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Feature-pack location expression
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
 
   <xs:complexType name="dependencyPackagesType">
@@ -83,6 +166,48 @@
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
+
+  <xs:complexType name="defaultConfigsType">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="include" type="configModelRefType"/>
+      <xs:element name="exclude" type="configModelRefType"/>
+    </xs:choice>
+    <xs:attribute name="inherit" type="xs:boolean" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>
+          Indicates whether to inherit default configs from the feature-pack spec. 
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inherit-unnamed-models" type="xs:boolean" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>
+          Indicates whether to inherit model-only configs. 
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="configModelRefType">
+    <xs:attributeGroup ref="configModelName"/>
+  </xs:complexType>
+
+  <xs:attributeGroup name="configModelName">
+    <xs:attribute name="name" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Config name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="model" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Config model name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:attributeGroup>
 
   <xs:complexType name="configType">
     <xs:annotation>
@@ -340,49 +465,33 @@
       </xs:documentation>
     </xs:annotation>
     <xs:choice maxOccurs="unbounded" minOccurs="1">
-      <xs:element name="artifact" type="artifactType" />
+      <xs:element name="plugin" type="pluginType" />
     </xs:choice>
   </xs:complexType>
 
 
-  <xs:complexType name="artifactType">
+  <xs:complexType name="pluginType">
     <xs:annotation>
       <xs:documentation>
-        Artifact coordinates.
+        Plugin metadata
       </xs:documentation>
     </xs:annotation>
-    <xs:attribute name="coords" type="xs:string" use="required">
+    <xs:attribute name="id" type="xs:string" use="optional">
       <xs:annotation>
         <xs:documentation>
-          Artifact coordinates.
+          Plugin ID which is important when feature-packs appearing higher
+          in the hierarchy wish to override a plugin included by one of the dependencies.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="location" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Plugin repository location.
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
-
-  <xs:attributeGroup name="gavAttributes">
-    <xs:attribute name="groupId" type="xs:string" use="required">
-      <xs:annotation>
-        <xs:documentation>
-          Group id of the artifact.
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="artifactId" type="xs:string" use="required">
-      <xs:annotation>
-        <xs:documentation>
-          Artifact Id.
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="version" type="xs:string" use="optional">
-      <xs:annotation>
-        <xs:documentation>
-          Version of the artifact.
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-  </xs:attributeGroup>
 
   <xs:complexType name="packageDepsType">
     <xs:annotation>

@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
@@ -36,9 +35,7 @@ import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.layout.FeaturePackLayoutTransformer;
 import org.jboss.galleon.layout.FeaturePackPluginVisitor;
 import org.jboss.galleon.layout.ProvisioningLayout;
-import org.jboss.galleon.layout.ProvisioningLayoutFactory;
 import org.jboss.galleon.plugin.InstallPlugin;
-import org.jboss.galleon.plugin.PluginOption;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.state.FeaturePackSet;
 import org.jboss.galleon.state.ProvisionedConfig;
@@ -132,15 +129,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return fsDiff;
     }
 
-    /**
-     * Deprecated in 3.0.0.Final
-     * @return  provisioning layout factory
-     */
-    @Deprecated
-    public ProvisioningLayoutFactory getLayoutFactory() {
-        return layout.getFactory();
-    }
-
     @Override
     public boolean hasFeaturePacks() {
         return layout.hasFeaturePacks();
@@ -191,27 +179,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return layout.getTmpPath(path);
     }
 
-    /**
-     * Deprecated in 3.0.0 in favor of the equivalent with ProvisioningOption
-     * @param option  plugin option
-     * @return  whether the value is set
-     * @throws ProvisioningException  in case of an error
-     */
-    @Deprecated
-    public boolean isOptionSet(PluginOption option) throws ProvisioningException {
-        return isOptionSet((ProvisioningOption)option);
-    }
-
-    @Deprecated
-    public String getOptionValue(PluginOption option) throws ProvisioningException {
-        return getOptionValue((ProvisioningOption)option);
-    }
-
-    @Deprecated
-    public String getOptionValue(PluginOption option, String defaultValue) throws ProvisioningException {
-        return getOptionValue((ProvisioningOption)option, defaultValue);
-    }
-
     public boolean isOptionSet(ProvisioningOption option) throws ProvisioningException {
         return layout.isOptionSet(option.getName());
     }
@@ -243,15 +210,6 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             throw new ProvisioningException(buf.toString());
         }
         return value;
-    }
-
-    /**
-     * Deprecated in 3.0.0
-     * @return  configured provisioning options
-     */
-    @Deprecated
-    public Map<String, String> getPluginOptions() {
-        return layout.getOptions();
     }
 
     /**

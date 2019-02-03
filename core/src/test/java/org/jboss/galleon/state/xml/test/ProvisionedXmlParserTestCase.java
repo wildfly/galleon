@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ import org.junit.Test;
 public class ProvisionedXmlParserTestCase {
 
     private static final XmlParserValidator<ProvisionedState> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-provisioned-state-2_0.xsd"), ProvisionedStateXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-provisioned-state-3_0.xsd"), ProvisionedStateXmlParser.getInstance());
 
     @Test
     public void readValid() throws Exception {

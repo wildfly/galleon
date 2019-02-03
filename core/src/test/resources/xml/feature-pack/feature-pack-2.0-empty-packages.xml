@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,16 +17,14 @@
     limitations under the License.
 
 -->
-<feature-pack xmlns="urn:jboss:galleon:feature-pack:1.0" artifactId="fp1" version="1.0.0" >
+<feature-pack xmlns="urn:jboss:galleon:feature-pack:2.0" location="org.jboss.fp.group1:fp1@galleon1:1#1.0.0" >
 
   <dependencies>
-    <dependency groupId="org.jboss.dep.group1" artifactId="dep1" version="0.0.1"  />
-    <dependency groupId="org.jboss.dep.group2" artifactId="dep2" version="0.0.2"  />
+    <dependency location="org.jboss.dep.group1:dep1@galleon1:0#0.0.1"  />
+    <dependency location="org.jboss.dep.group2:dep2@galleon1:0#0.0.2"  />
   </dependencies>
 
   <default-packages>
-    <package name="package1" />
-    <package name="package2" />
   </default-packages>
 
 </feature-pack>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -235,7 +235,7 @@ public class DefaultProgressTracker<T> implements ProgressTracker<T> {
             if(++i >= totalVolume) {
                 break;
             }
-            Thread.currentThread().sleep(500 - i*10);
+            Thread.sleep(500 - i*10);
         }
         tracker.complete();
     }
@@ -260,7 +260,7 @@ public class DefaultProgressTracker<T> implements ProgressTracker<T> {
             if(++i >= totalVolume) {
                 break;
             }
-            Thread.currentThread().sleep(500 - i*10);
+            Thread.sleep(500 - i*10);
         }
         tracker.complete();
     }

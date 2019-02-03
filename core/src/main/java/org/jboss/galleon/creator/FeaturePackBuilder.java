@@ -147,16 +147,6 @@ public class FeaturePackBuilder {
         return pkg;
     }
 
-    /**
-     * @deprecated in favor of addFeatureSpec(FeatureSpec spec)
-     * @param spec  feature spec
-     * @return  this builder
-     * @throws ProvisioningDescriptionException  in case of duplicate feature spec
-     */
-    public FeaturePackBuilder addSpec(FeatureSpec spec) throws ProvisioningDescriptionException {
-        return addFeatureSpec(spec);
-    }
-
     public FeaturePackBuilder addFeatureSpec(FeatureSpec spec) throws ProvisioningDescriptionException {
         if (specs.isEmpty()) {
             specs = new HashMap<>();

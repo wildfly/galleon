@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ import org.junit.Test;
 public class FeaturePackXmlParserTestCase  {
 
     private static final XmlParserValidator<FeaturePackSpec> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-feature-pack-1_0.xsd"), FeaturePackXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-feature-pack-2_0.xsd"), FeaturePackXmlParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 
@@ -54,51 +54,35 @@ public class FeaturePackXmlParserTestCase  {
 
     @Test
     public void readBadNamespace() throws Exception {
-        /*
-         * urn:jboss:galleon:feature-pack:1.0.1 used in feature-pack-1.0.1.xml is not registered in ProvisioningXmlParser
-         */
         validator.validateAndParse("xml/feature-pack/feature-pack-1.0.1.xml",
                 "Cannot find the declaration of element 'feature-pack'.",
                 "Message: Unexpected element '{urn:jboss:galleon:feature-pack:1.0.1}feature-pack'");
     }
 
     @Test
-    public void readFeaturePackGroupIdMissing() throws Exception {
-        validator.validateAndParse("xml/feature-pack/feature-pack-1.0-feature-pack-groupId-missing.xml",
-                "cvc-complex-type.4: Attribute 'groupId' must appear on element 'feature-pack'.",
-                "Message: Missing required attributes groupId");
-    }
-    @Test
-    public void readFeaturePackArtifactIdMissing() throws Exception {
-        validator.validateAndParse("xml/feature-pack/feature-pack-1.0-feature-pack-artifactId-missing.xml",
-                "cvc-complex-type.4: Attribute 'artifactId' must appear on element 'feature-pack'.",
-                "Message: Missing required attributes artifactId");
-    }
-
-    @Test
     public void readPackageNameMissing() throws Exception {
-        validator.validateAndParse("xml/feature-pack/feature-pack-1.0-package-name-missing.xml",
+        validator.validateAndParse("xml/feature-pack/feature-pack-2.0-package-name-missing.xml",
                 "cvc-complex-type.4: Attribute 'name' must appear on element 'package'.",
                 "Message: Missing required attributes name");
     }
 
     @Test
     public void readEmptyDependencies() throws Exception {
-        validator.validateAndParse("xml/feature-pack/feature-pack-1.0-empty-dependencies.xml",
-                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:jboss:galleon:feature-pack:1.0\":dependency}' is expected.",
+        validator.validateAndParse("xml/feature-pack/feature-pack-2.0-empty-dependencies.xml",
+                "cvc-complex-type.2.4.b: The content of element 'dependencies' is not complete. One of '{\"urn:jboss:galleon:feature-pack:2.0\":dependency}' is expected.",
                 "The content of element 'dependencies' is not complete. One of 'dependency' is expected.");
     }
 
     @Test
     public void readEmptyPackages() throws Exception {
-        validator.validateAndParse("xml/feature-pack/feature-pack-1.0-empty-packages.xml",
-                "cvc-complex-type.2.4.b: The content of element 'default-packages' is not complete. One of '{\"urn:jboss:galleon:feature-pack:1.0\":package}' is expected.",
+        validator.validateAndParse("xml/feature-pack/feature-pack-2.0-empty-packages.xml",
+                "cvc-complex-type.2.4.b: The content of element 'default-packages' is not complete. One of '{\"urn:jboss:galleon:feature-pack:2.0\":package}' is expected.",
                 "The content of element 'default-packages' is not complete. One of 'package' is expected.");
     }
 
     @Test
     public void readEmpty() throws Exception {
-        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-1.0-empty.xml", null, null);
+        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-2.0-empty.xml", null, null);
         FeaturePackSpec expected = FeaturePackSpec.builder()
                 .setFPID(LegacyGalleon1Universe.newFPID("org.jboss.fp.group1:fp1", "1", "1.0.0"))
                 .build();
@@ -126,7 +110,7 @@ public class FeaturePackXmlParserTestCase  {
 
     @Test
     public void readValid() throws Exception {
-        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-1.0.xml", null, null);
+        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-2.0.xml", null, null);
         FeaturePackSpec expected = FeaturePackSpec.builder()
                 .setFPID(LegacyGalleon1Universe.newFPID("org.jboss.fp.group1:fp1", "1", "1.0.0"))
                 .addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.jboss.dep.group1:dep1", "0", "0.0.1").getLocation()))
@@ -142,19 +126,6 @@ public class FeaturePackXmlParserTestCase  {
                         .excludePackage("excluded-package1")
                         .includePackage("included-package1")
                         .build())
-                .addDefaultPackage("package1")
-                .addDefaultPackage("package2")
-                .build();
-        Assert.assertEquals(expected, found);
-    }
-
-    @Test
-    public void readVersionOptional() throws Exception {
-        FeaturePackSpec found = validator.validateAndParse("xml/feature-pack/feature-pack-1.0-version-missing.xml", null, null);
-        FeaturePackSpec expected = FeaturePackSpec.builder()
-                .setFPID(LegacyGalleon1Universe.newFPID("org.jboss.fp.group1:fp1", null, null))
-                .addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.jboss.dep.group1:dep1", null, null).getLocation()))
-                .addFeaturePackDep(FeaturePackConfig.forLocation(LegacyGalleon1Universe.newFPID("org.jboss.dep.group2:dep2", null, null).getLocation()))
                 .addDefaultPackage("package1")
                 .addDefaultPackage("package2")
                 .build();
