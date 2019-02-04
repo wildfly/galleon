@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +44,7 @@ import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFactoryLoader;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.maven.MavenProducer;
 import org.jboss.galleon.universe.maven.MavenUniverse;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.util.PathsUtils;
@@ -110,12 +111,16 @@ public class UniverseManager implements MavenChangeListener {
                 }
                 try {
                     List<FeaturePackLocation> deps = new ArrayList<>();
-                    builtinUniverse = (MavenUniverse) universeResolver.getUniverse(builtinUniverseSpec);
+                    builtinUniverse = (MavenUniverse) universeResolver.getUniverse(builtinUniverseSpec, true);
                     if (closed) {
                         return;
                     }
                     //speed-up future completion and execution by retrieving producers and channels
                     for (Producer<?> p : builtinUniverse.getProducers()) {
+                        final MavenProducer mvnProducer = (MavenProducer)p;
+                        if(mvnProducer.isResolvedLocally()) {
+                            mvnProducer.refresh();
+                        }
                         if (closed) {
                             return;
                         }

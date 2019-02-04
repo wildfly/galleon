@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(producer.getFeaturePackGroupId());
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
+        artifact.setExtension(MavenArtifact.EXT_ZIP);
         artifact.setVersionRange(versionRange);
         try {
             return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl));
@@ -78,7 +78,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(producer.getFeaturePackGroupId());
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
+        artifact.setExtension(MavenArtifact.EXT_ZIP);
         artifact.setVersionRange(versionRange);
         try {
             return producer.getRepo().getAllVersions(artifact);
@@ -97,7 +97,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(producer.getFeaturePackGroupId());
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
+        artifact.setExtension(MavenArtifact.EXT_ZIP);
 
         if(fpl.getBuild() == null) {
             artifact.setVersionRange(versionRange);
@@ -248,7 +248,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(producer.getFeaturePackGroupId());
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
+        artifact.setExtension(MavenArtifact.EXT_ZIP);
 
         if (fpl.getBuild() == null) {
             artifact.setVersionRange(versionRange);
@@ -264,7 +264,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(producer.getFeaturePackGroupId());
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
-        artifact.setExtension("zip");
+        artifact.setExtension(MavenArtifact.EXT_ZIP);
         artifact.setVersionRange(versionRange);
         try {
             return producer.getRepo().getLatestVersion(artifact);

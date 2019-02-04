@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,11 +47,9 @@ public class LegacyGalleon1UniverseFactory implements UniverseFactory {
         return DEFAULT_REPO_ID;
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.galleon.universe.UniverseFactory#getUniverse(org.jboss.galleon.repomanager.RepositoryArtifactResolver, java.lang.String)
-     */
     @Override
-    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException {
+    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location, boolean absoluteLatest)
+            throws ProvisioningException {
         return new LegacyGalleon1Universe(artifactResolver);
     }
 }

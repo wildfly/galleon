@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,14 @@ import java.nio.file.Path;
  */
 public class MavenErrors {
 
+    public static String msgChannelNotFound(String producer, String channelName) {
+        return "Channel " + channelName + " is not found in producer " + producer;
+    }
+
+    public static String msgProducerNotFound(String producerName) {
+        return "Producer " + producerName + " is not found in the universe";
+    }
+
     public static void missingGroupId() throws MavenUniverseException {
         throw new MavenUniverseException("Artifact is missing groupId");
     }
@@ -46,11 +54,11 @@ public class MavenErrors {
     }
 
     public static MavenUniverseException producerNotFound(String producerName) {
-        return new MavenUniverseException("Producer " + producerName + " is not found in the universe");
+        return new MavenUniverseException(msgProducerNotFound(producerName));
     }
 
     public static MavenUniverseException channelNotFound(String producer, String channelName) {
-        return new MavenUniverseException("Channel " + channelName + " is not found in producer " + producer);
+        return new MavenUniverseException(msgChannelNotFound(producer, channelName));
     }
 
     public static MavenUniverseException artifactNotFound(MavenArtifact artifact, Path repoHome) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
@@ -44,39 +44,80 @@ import org.jboss.galleon.util.ZipUtils;
  */
 public class MavenUniverse extends MavenUniverseBase {
 
+    private static final int DEFAULT_CAPACITY = 5;
     private static final String DEFAULT_RANGE = "[0.0,)";
 
-    private Map<String, MavenProducer> producers = Collections.emptyMap();
-    private boolean fullyLoaded;
+    static boolean resolveUniverseArtifact(MavenRepoManager repoManager, MavenArtifact artifact, boolean locallyAvailablePreferred) throws MavenUniverseException {
+        if (artifact.getVersionRange() == null) {
+            if (artifact.hasVersion()) {
+                repoManager.resolve(artifact);
+                return false;
+            }
+            artifact.setVersionRange(DEFAULT_RANGE);
+        }
+        if(locallyAvailablePreferred) {
+            try {
+                repoManager.resolveLatestVersion(artifact, true);
+                return true;
+            } catch (MavenUniverseException e) {
+            }
+        }
+        repoManager.resolveLatestVersion(artifact, false);
+        return false;
+    }
 
-    private final ParsedCallbackHandler<MavenUniverseBase, MavenProducer> parsedProducerHandler = new ParsedCallbackHandler<MavenUniverseBase, MavenProducer>() {
+    private Map<String, MavenProducer> producers = new HashMap<>(DEFAULT_CAPACITY);
+    private boolean fullyLoaded;
+    private boolean resolvedLocally;
+
+    private final ParsedCallbackHandler<MavenUniverse, MavenProducer> parsedProducerHandler = new ParsedCallbackHandler<MavenUniverse, MavenProducer>() {
         @Override
-        public MavenUniverseBase getParent() {
+        public MavenUniverse getParent() {
             return MavenUniverse.this;
         }
         @Override
         public void parsed(MavenProducer producer) throws XMLStreamException {
-            producers = CollectionUtils.put(producers, producer.getName(), producer);
+            producers.put(producer.getName(), producer);
         }
     };
 
+    /**
+     * This method will be looking for the latest locally available version of the universe
+     * artifact. If no version is available locally, it will fallback to resolving the latest
+     * available in remote repositories.
+     *
+     * @param repoManager  maven repository manager
+     * @param artifact  universe artifact
+     * @throws MavenUniverseException  in case of a failure
+     */
     public MavenUniverse(MavenRepoManager repoManager, MavenArtifact artifact) throws MavenUniverseException {
-        super(repoManager, artifact);
-        if(!artifact.isResolved()) {
-            if(artifact.getVersionRange() != null) {
-                repoManager.resolveLatestVersion(artifact);
-            } else if(artifact.getVersion() != null) {
-                repoManager.resolve(artifact);
-            } else {
-                artifact.setVersionRange(DEFAULT_RANGE);
-                repoManager.resolveLatestVersion(artifact);
-            }
-        }
+        this(repoManager, artifact, false);
     }
 
-    public void resetCache() {
-        fullyLoaded = false;
-        producers = Collections.emptyMap();
+    public MavenUniverse(MavenRepoManager repoManager, MavenArtifact artifact, boolean absoluteLatest) throws MavenUniverseException {
+        super(repoManager, artifact);
+        if(artifact.isResolved()) {
+            return;
+        }
+        resolvedLocally = resolveUniverseArtifact(repoManager, artifact, !absoluteLatest);
+    }
+
+    public void refresh() throws MavenUniverseException {
+        if(fullyLoaded) {
+            fullyLoaded = false;
+            producers = new HashMap<>(DEFAULT_CAPACITY);
+        } else {
+            producers.clear();
+        }
+        artifact.setPath(null);
+        if (artifact.getVersionRange() != null) {
+            repo.resolveLatestVersion(artifact, false);
+        } else if (artifact.hasVersion()) {
+            repo.resolve(artifact);
+        } else {
+            throw new MavenUniverseException("Universe artifact is missing version and version range: " + artifact);
+        }
+        resolvedLocally = false;
     }
 
     /**
@@ -90,7 +131,8 @@ public class MavenUniverse extends MavenUniverseBase {
     public synchronized boolean hasProducer(String producerName) throws MavenUniverseException {
         if(producers.containsKey(producerName)) {
             return true;
-        } if(fullyLoaded) {
+        }
+        if(fullyLoaded) {
             return false;
         }
         try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
@@ -112,7 +154,18 @@ public class MavenUniverse extends MavenUniverseBase {
     @Override
     public MavenProducer getProducer(String producerName) throws MavenUniverseException {
         if(!hasProducer(producerName)) {
-            throw MavenErrors.producerNotFound(producerName);
+            boolean found = false;
+            if(resolvedLocally) {
+                try {
+                    refresh();
+                } catch(MavenUniverseException e) {
+                    throw new MavenUniverseException(MavenErrors.msgProducerNotFound(producerName), e);
+                }
+                found = hasProducer(producerName);
+            }
+            if(!found) {
+                throw MavenErrors.producerNotFound(producerName);
+            }
         }
         return producers.get(producerName);
     }

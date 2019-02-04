@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 
 package org.jboss.galleon.universe;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -31,14 +32,33 @@ import org.junit.Before;
  */
 public class UniverseRepoTestBase {
 
+    private Path workDir;
     protected Path repoHome;
     protected SimplisticMavenRepoManager repo;
 
     @Before
     public void init() throws Exception {
-        repoHome = Files.createTempDirectory("galleon-test");
-        repo = SimplisticMavenRepoManager.getInstance(repoHome);
+        workDir = Files.createTempDirectory("galleon-test");
+        repoHome = mkdirs("repo");
+        repo = initResolver(repoHome);
         doInit();
+    }
+
+    protected Path mkdirs(String... el) {
+        Path p = workDir;
+        for(String e : el) {
+            p = p.resolve(e);
+        }
+        try {
+            Files.createDirectories(p);
+        } catch (IOException e1) {
+            throw new IllegalStateException("Failed to create dirs " + p);
+        }
+        return p;
+    }
+
+    protected SimplisticMavenRepoManager initResolver(Path repoHome) {
+        return SimplisticMavenRepoManager.getInstance(repoHome);
     }
 
     protected void doInit() throws Exception {
@@ -50,7 +70,7 @@ public class UniverseRepoTestBase {
             doCleanUp();
         } finally {
             repo = null;
-            IoUtils.recursiveDelete(repoHome);
+            IoUtils.recursiveDelete(workDir);
         }
     }
 

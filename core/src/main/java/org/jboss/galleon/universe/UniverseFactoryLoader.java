@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,9 +93,22 @@ public class UniverseFactoryLoader {
         return factory.getUniverse(artifactResolver, location);
     }
 
+    /**
+     * This method will be looking for the latest locally available version of the universe
+     * artifact. If no version is available locally, it will fallback to resolving the latest
+     * available in remote repositories.
+     *
+     * @param universeSpec  universe spec
+     * @return  resolved universe
+     * @throws ProvisioningException  in case of a failure
+     */
     public Universe<?> getUniverse(UniverseSpec universeSpec) throws ProvisioningException {
+        return getUniverse(universeSpec, false);
+    }
+
+    public Universe<?> getUniverse(UniverseSpec universeSpec, boolean absoluteLatest) throws ProvisioningException {
         final UniverseFactory factory = getUniverseFactory(universeSpec.getFactory());
-        return factory.getUniverse(getArtifactResolver(factory.getRepositoryId()), universeSpec.getLocation());
+        return factory.getUniverse(getArtifactResolver(factory.getRepositoryId()), universeSpec.getLocation(), absoluteLatest);
     }
 
     private UniverseFactory getUniverseFactory(String factoryId) throws ProvisioningException {

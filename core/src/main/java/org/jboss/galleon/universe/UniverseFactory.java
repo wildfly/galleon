@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,5 +30,19 @@ public interface UniverseFactory {
 
     String getRepositoryId();
 
-    Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException;
+    /**
+     * This method will be looking for the latest locally available version of the universe
+     * artifact. If no version is available locally, it will fallback to resolving the latest
+     * available in remote repositories.
+     *
+     * @param artifactResolver  artifact resolver
+     * @param location  location of the universe artifact
+     * @return  instance of the universe
+     * @throws ProvisioningException  in case of a failure
+     */
+    default Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException {
+        return getUniverse(artifactResolver, location, false);
+    }
+
+    Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location, boolean absoluteLatest) throws ProvisioningException;
 }

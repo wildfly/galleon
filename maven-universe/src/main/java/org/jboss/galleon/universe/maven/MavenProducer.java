@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,12 +60,21 @@ public class MavenProducer extends MavenProducerBase {
     private String defaultFrequency;
     private Map<String, MavenChannel> channels = Collections.emptyMap();
     private boolean fullyLoaded;
+    private boolean resolvedLocally;
 
     public MavenProducer(String name, MavenRepoManager repoManager, MavenArtifact artifact) throws MavenUniverseException {
+        this(name, repoManager, artifact, false);
+    }
+
+    public MavenProducer(String name, MavenRepoManager repoManager, MavenArtifact artifact, boolean absoluteLatest) throws MavenUniverseException {
         super(name, repoManager, artifact);
         if(!artifact.isResolved()) {
-            repoManager.resolve(artifact);
+            resolvedLocally = MavenUniverse.resolveUniverseArtifact(repoManager, artifact, !absoluteLatest);
         }
+        init();
+    }
+
+    private void init() throws MavenUniverseException {
         try (FileSystem zipfs = ZipUtils.newFileSystem(artifact.getPath())) {
             final Path producerXml = getProducerXml(zipfs, name);
             if(!Files.exists(producerXml)) {
@@ -113,6 +122,27 @@ public class MavenProducer extends MavenProducerBase {
                 frequencies = CollectionUtils.add(frequencies, defaultFrequency);
             }
         }
+    }
+
+    public boolean isResolvedLocally() {
+        return resolvedLocally;
+    }
+
+    public void refresh() throws MavenUniverseException {
+        fullyLoaded = false;
+        this.channels = Collections.emptyMap();
+        this.frequencies = Collections.emptySet();
+        this.defaultFrequency = null;
+        artifact.setPath(null);
+        if (artifact.getVersionRange() != null) {
+            repo.resolveLatestVersion(artifact, false);
+        } else if (artifact.hasVersion()) {
+            repo.resolve(artifact);
+        } else {
+            throw new MavenUniverseException("Producer artifact is missing version and version range: " + artifact);
+        }
+        resolvedLocally = false;
+        init();
     }
 
     @Override
@@ -168,7 +198,18 @@ public class MavenProducer extends MavenProducerBase {
     @Override
     public MavenChannel getChannel(String channelName) throws MavenUniverseException {
         if(!hasChannel(channelName)) {
-            throw MavenErrors.channelNotFound(name, channelName);
+            boolean found = false;
+            if(resolvedLocally) {
+                try {
+                    refresh();
+                } catch(MavenUniverseException e) {
+                    throw new MavenUniverseException(MavenErrors.msgChannelNotFound(name, channelName), e);
+                }
+                found = hasChannel(channelName);
+            }
+            if(!found) {
+                throw MavenErrors.channelNotFound(name, channelName);
+            }
         }
         return channels.get(channelName);
     }
