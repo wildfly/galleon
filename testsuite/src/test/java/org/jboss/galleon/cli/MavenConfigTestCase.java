@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -208,7 +208,7 @@ public class MavenConfigTestCase {
     @Test
     public void testOffline() throws Exception {
         MavenConfig config = cli.getSession().getPmConfiguration().getMavenConfig();
-        Assert.assertFalse(config.isOffline());
+        Assert.assertTrue(config.isOffline());
         try {
             cli.execute("maven enable-offline foo");
             throw new Exception("Should have failed");
@@ -216,10 +216,10 @@ public class MavenConfigTestCase {
             // XXX OK
         }
 
-        cli.execute("maven enable-offline true");
-        Assert.assertTrue(config.isOffline());
+        cli.execute("maven enable-offline false");
+        Assert.assertFalse(config.isOffline());
 
-        Assert.assertTrue(Configuration.parse().getMavenConfig().isOffline());
+        Assert.assertFalse(Configuration.parse().getMavenConfig().isOffline());
 
         cli.execute("maven reset-offline");
         Assert.assertFalse(config.isOffline());
