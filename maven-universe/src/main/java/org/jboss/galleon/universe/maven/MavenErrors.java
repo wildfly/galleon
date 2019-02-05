@@ -33,6 +33,10 @@ public class MavenErrors {
         return "Producer " + producerName + " is not found in the universe";
     }
 
+    public static String msgUniverseNotFound(String location) {
+        return "Failed to resolve Maven universe " + location;
+    }
+
     public static void missingGroupId() throws MavenUniverseException {
         throw new MavenUniverseException("Artifact is missing groupId");
     }
@@ -66,6 +70,6 @@ public class MavenErrors {
     }
 
     public static String failedToResolveLatestVersion(String str) {
-        return "Failed to determine the latest version of " + str;
+        return "Failed to determine the latest version of " + str + ". Make sure the remote Maven repository is properly configured and available.";
     }
 }
