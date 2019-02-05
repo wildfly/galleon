@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,12 +49,15 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.plugin.ProvisioningPlugin;
 import org.jboss.galleon.progresstracking.ProgressTracker;
+import org.jboss.galleon.repo.RepositoryArtifactResolver;
+import org.jboss.galleon.spec.FeaturePackPlugin;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.Universe;
+import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -138,6 +142,34 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     IoUtils.copy(fpPlugins, pluginsDir);
                 } catch (IOException e) {
                     throw new ProvisioningException(Errors.copyFile(fpPlugins, pluginsDir), e);
+                }
+            }
+        }
+
+        private void addPlugins(Collection<FeaturePackPlugin> plugins) throws ProvisioningException {
+            if(pluginsDir == null) {
+                pluginsDir = getWorkDir().resolve(Constants.PLUGINS);
+                try {
+                    Files.createDirectory(pluginsDir);
+                } catch (IOException e) {
+                    throw new ProvisioningException(Errors.mkdirs(pluginsDir), e);
+                }
+            }
+
+            final UniverseResolver universeResolver = layoutFactory.getUniverseResolver();
+            for(FeaturePackPlugin plugin : plugins) {
+                String pluginId = plugin.getId();
+                if(!pluginId.endsWith(".jar")) {
+                    pluginId += ".jar";
+                }
+                final RepositoryArtifactResolver resolver = universeResolver.getArtifactResolver(plugin.getRepoId());
+                if(resolver == null) {
+                    throw new ProvisioningException("Failed to resolve plugin " + plugin + ": artifact resolver " + plugin.getRepoId() + " has not been configured");
+                }
+                try {
+                    Files.copy(resolver.resolve(plugin.getLocation()), pluginsDir.resolve(pluginId), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new ProvisioningException("Failed to copy feature-pack plugin", e);
                 }
             }
         }
@@ -300,6 +332,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private ArrayList<F> ordered = new ArrayList<>();
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
+    private Map<String, FeaturePackPlugin> pluginLocations = Collections.emptyMap();
 
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
@@ -876,6 +909,9 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             for (F f : ordered) {
                 final List<F> patches = fpPatches.get(f.getFPID());
                 if(patches == null) {
+                    if(f.getSpec().hasPlugins()) {
+                        pluginLocations = CollectionUtils.putAll(pluginLocations, f.getSpec().getPlugins());
+                    }
                     final Path fpResources = f.getDir().resolve(Constants.RESOURCES);
                     if (Files.exists(fpResources)) {
                         patchDir(getResources(), fpResources);
@@ -913,10 +949,16 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                         patchDir(fpDir.resolve(Constants.RESOURCES), patchContent);
                         patchDir(getResources(), patchContent);
                     }
+                    if(patch.getSpec().hasPlugins()) {
+                        pluginLocations = CollectionUtils.putAll(pluginLocations, patch.getSpec().getPlugins());
+                    }
                 }
             }
         }
 
+        if(!pluginLocations.isEmpty()) {
+            handle.addPlugins(pluginLocations.values());
+        }
         buildTracker.complete();
     }
 
@@ -1013,7 +1055,11 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
         if(!queue.isEmpty()) {
             for(F p : queue) {
-                layout(p.getSpec(), branch, FeaturePackLayout.TRANSITIVE_DEP);
+                final FeaturePackSpec spec = p.getSpec();
+                layout(spec, branch, FeaturePackLayout.TRANSITIVE_DEP);
+                if(spec.hasPlugins()) {
+                    pluginLocations = CollectionUtils.putAll(pluginLocations, spec.getPlugins());
+                }
                 handle.copyResources(p.getDir());
                 ordered.add(p);
             }

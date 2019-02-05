@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.jboss.galleon.spec;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
@@ -39,6 +40,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         private FPID fpid;
         private Set<String> defPackages = Collections.emptySet();
         private FPID patchFor;
+        private Map<String, FeaturePackPlugin> plugins = Collections.emptyMap();
 
         protected Builder() {
         }
@@ -76,6 +78,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
             return this;
         }
 
+        public Builder addPlugin(FeaturePackPlugin plugin) {
+            plugins = CollectionUtils.putLinked(plugins, plugin.getId(), plugin);
+            return this;
+        }
+
         public FeaturePackSpec build() throws ProvisioningDescriptionException {
             try {
                 return new FeaturePackSpec(this);
@@ -95,12 +102,14 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
     private final FPID fpid;
     private final Set<String> defPackages;
+    private final Map<String, FeaturePackPlugin> plugins;
     private final FPID patchFor;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
         this.fpid = builder.fpid;
         this.defPackages = CollectionUtils.unmodifiable(builder.defPackages);
+        this.plugins = CollectionUtils.unmodifiable(builder.plugins);
         this.patchFor = builder.patchFor;
     }
 
@@ -128,12 +137,22 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         return defPackages.contains(name);
     }
 
+    public boolean hasPlugins() {
+        return !plugins.isEmpty();
+    }
+
+    public Map<String, FeaturePackPlugin> getPlugins() {
+        return plugins;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((defPackages == null) ? 0 : defPackages.hashCode());
         result = prime * result + ((fpid == null) ? 0 : fpid.hashCode());
+        result = prime * result + ((patchFor == null) ? 0 : patchFor.hashCode());
+        result = prime * result + ((plugins == null) ? 0 : plugins.hashCode());
         return result;
     }
 
@@ -156,6 +175,16 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
                 return false;
         } else if (!fpid.equals(other.fpid))
             return false;
+        if (patchFor == null) {
+            if (other.patchFor != null)
+                return false;
+        } else if (!patchFor.equals(other.patchFor))
+            return false;
+        if (plugins == null) {
+            if (other.plugins != null)
+                return false;
+        } else if (!plugins.equals(other.plugins))
+            return false;
         return true;
     }
 
@@ -167,16 +196,16 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
             buf.append(" patch-for=").append(patchFor);
         }
         if(!fpDeps.isEmpty()) {
-            buf.append("; dependencies: ");
-            StringUtils.append(buf, fpDeps.keySet());
+            StringUtils.append(buf.append(" dependencies="), fpDeps.keySet());
         }
         if(!definedConfigs.isEmpty()) {
-            buf.append("; defaultConfigs: ");
-            StringUtils.append(buf, definedConfigs.values());
+            StringUtils.append(buf.append(" defaultConfigs="), definedConfigs.values());
         }
         if(!defPackages.isEmpty()) {
-            buf.append("; defaultPackages: ");
-            StringUtils.append(buf, defPackages);
+            StringUtils.append(buf.append(" defaultPackages="), defPackages);
+        }
+        if(!plugins.isEmpty()) {
+            StringUtils.append(buf.append(" plugins="), plugins.values());
         }
         return buf.append("]").toString();
     }
