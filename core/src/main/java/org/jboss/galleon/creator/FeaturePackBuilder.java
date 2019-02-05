@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ import org.jboss.galleon.creator.tasks.FsTaskContext;
 import org.jboss.galleon.creator.tasks.FsTaskList;
 import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.spec.ConfigLayerSpec;
+import org.jboss.galleon.spec.FeaturePackPlugin;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageSpec;
@@ -67,7 +68,7 @@ public class FeaturePackBuilder {
     private Set<Class<?>> classes = Collections.emptySet();
     private Map<String, Set<String>> services = Collections.emptyMap();
     private String pluginFileName = "plugins.jar";
-    private List<Path> plugins = Collections.emptyList();
+    private Set<Path> plugins = Collections.emptySet();
     private Map<String, FeatureSpec> specs = Collections.emptyMap();
     private Map<String, FeatureGroup> featureGroups = Collections.emptyMap();
     private Map<ConfigId, ConfigModel> configs = Collections.emptyMap();
@@ -216,18 +217,21 @@ public class FeaturePackBuilder {
     }
 
     public FeaturePackBuilder addClassToPlugin(Class<?> cls) {
-        if(classes.contains(cls)) {
-            return this;
-        }
         classes = CollectionUtils.add(classes, cls);
         return this;
     }
 
     public FeaturePackBuilder addPlugin(Path file) {
-        if(plugins.contains(file)) {
-            return this;
-        }
         plugins = CollectionUtils.add(plugins, file);
+        return this;
+    }
+
+    public FeaturePackBuilder addPlugin(String id, String location) {
+        return addPlugin(FeaturePackPlugin.getInstance(id, location));
+    }
+
+    public FeaturePackBuilder addPlugin(FeaturePackPlugin plugin) {
+        fpBuilder.addPlugin(plugin);
         return this;
     }
 
@@ -312,8 +316,15 @@ public class FeaturePackBuilder {
                 }
             }
 
-            if(!classes.isEmpty() || !plugins.isEmpty()) {
-                addPlugins(fpWorkDir);
+            if(!classes.isEmpty()) {
+                createPluginJar(classes, services, fpWorkDir.resolve(Constants.PLUGINS).resolve(pluginFileName));
+            }
+            if(!plugins.isEmpty()) {
+                final Path pluginsDir = fpWorkDir.resolve(Constants.PLUGINS);
+                ensureDir(pluginsDir);
+                for (Path plugin : plugins) {
+                    Files.copy(plugin, pluginsDir.resolve(plugin.getFileName()));
+                }
             }
 
             if(!layers.isEmpty()) {
@@ -354,7 +365,7 @@ public class FeaturePackBuilder {
         }
     }
 
-    private void addPlugins(Path fpDir) throws IOException {
+    public static void createPluginJar(Set<Class<?>> classes, Map<String, Set<String>> services, Path target) throws IOException {
         final Path tmpDir = IoUtils.createRandomTmpDir();
         try {
             byte[] bytes = new byte[65536];
@@ -400,20 +411,14 @@ public class FeaturePackBuilder {
                 }
             }
 
-            final Path pluginsDir = fpDir.resolve(Constants.PLUGINS);
-            ensureDir(pluginsDir);
-            ZipUtils.zip(tmpDir, pluginsDir.resolve(pluginFileName));
-            if(!plugins.isEmpty()) {
-                for(Path plugin : plugins) {
-                    Files.copy(plugin, pluginsDir.resolve(plugin.getFileName()));
-                }
-            }
+            ensureDir(target.getParent());
+            ZipUtils.zip(tmpDir, target);
         } finally {
             IoUtils.recursiveDelete(tmpDir);
         }
     }
 
-    private void ensureDir(Path dir) throws IOException {
+    private static void ensureDir(Path dir) throws IOException {
         if(!Files.exists(dir)) {
             Files.createDirectories(dir);
         } else if(!Files.isDirectory(dir)) {

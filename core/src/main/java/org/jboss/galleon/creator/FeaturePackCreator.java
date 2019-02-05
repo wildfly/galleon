@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,6 +53,7 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
     private Path buildDir;
     private UniverseResolver universeResolver;
     private boolean universeResolution = true;
+
     public FeaturePackBuilder newFeaturePack() {
         final FeaturePackBuilder fp = new FeaturePackBuilder(this);
         addFeaturePack(fp);

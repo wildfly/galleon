@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.jboss.galleon.patching.plugin.test;
+package org.jboss.galleon.plugin.locations.test;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -31,39 +30,44 @@ import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
+import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.util.IoUtils;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class BasicPluginPatchingTestCase extends ProvisionFromUniverseTestBase {
+public class SimplePluginPatchTestCase extends PluginLocationsTestBase {
 
-    public static class Plugin1 implements InstallPlugin {
+    public static class Fp1Plugin1 implements InstallPlugin {
         @Override
-        public void postInstall(ProvisioningRuntime ctx) throws ProvisioningException {
+        public void postInstall(ProvisioningRuntime runtime) throws ProvisioningException {
             try {
-                final Path baseDir = ctx.getStagedDir().resolve("plugin");
-                Files.createDirectories(baseDir);
-                IoUtils.writeFile(baseDir.resolve("file1.txt"), "plugin1");
-                IoUtils.writeFile(baseDir.resolve("file2.txt"), "plugin1");
+                IoUtils.writeFile(runtime.getStagedDir().resolve("fp1-plugin.txt"), "fp1");
             } catch (IOException e) {
-                throw new ProvisioningException("Failed to write a file");
+                throw new ProvisioningException(getClass().getName() + " has failed", e);
             }
         }
     }
 
-    public static class Plugin2 implements InstallPlugin {
+    public static class TestPlugin1 implements InstallPlugin {
         @Override
-        public void postInstall(ProvisioningRuntime ctx) throws ProvisioningException {
+        public void postInstall(ProvisioningRuntime runtime) throws ProvisioningException {
             try {
-                final Path baseDir = ctx.getStagedDir().resolve("plugin");
-                Files.createDirectories(baseDir);
-                IoUtils.writeFile(baseDir.resolve("file1.txt"), "plugin1");
-                IoUtils.writeFile(baseDir.resolve("file2.txt"), "patched");
+                IoUtils.writeFile(runtime.getStagedDir().resolve("plugin1.txt"), "plugin1");
             } catch (IOException e) {
-                throw new ProvisioningException("Failed to write a file");
+                throw new ProvisioningException(getClass().getName() + " has failed", e);
+            }
+        }
+    }
+
+    public static class TestPlugin2 implements InstallPlugin {
+        @Override
+        public void postInstall(ProvisioningRuntime runtime) throws ProvisioningException {
+            try {
+                IoUtils.writeFile(runtime.getStagedDir().resolve("plugin2.txt"), "plugin2");
+            } catch (IOException e) {
+                throw new ProvisioningException(getClass().getName() + " has failed", e);
             }
         }
     }
@@ -78,22 +82,43 @@ public class BasicPluginPatchingTestCase extends ProvisionFromUniverseTestBase {
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
+
+        final MavenArtifact fp1Plugin =  installPluginArtifact(
+                new MavenArtifact()
+                .setGroupId("org.jboss.galleon.plugin.test")
+                .setArtifactId("fp1-plugin")
+                .setVersion("1"),
+                Fp1Plugin1.class);
+
+        final MavenArtifact plugin1 =  installPluginArtifact(
+                new MavenArtifact()
+                .setGroupId("org.jboss.galleon.plugin.test")
+                .setArtifactId("test-plugin")
+                .setVersion("1"),
+                TestPlugin1.class);
+
+        final MavenArtifact plugin2 = installPluginArtifact(
+                new MavenArtifact()
+                .setGroupId("org.jboss.galleon.plugin.test")
+                .setArtifactId("test-plugin")
+                .setVersion("2"),
+                TestPlugin2.class);
+
         fp1 = newFpl("prod1", "1", "1.0.0.Final");
         creator.newFeaturePack(fp1.getFPID())
-            .addPlugin(Plugin1.class)
-            .newPackage("p1", true)
-                .writeContent("fp1/p1.txt", "fp1 p1");
+            .addPlugin("test-plugin", plugin1.getCoordsAsString())
+            .addPlugin("fp1-plugin", fp1Plugin.getCoordsAsString());
 
         fp1Patch1 = newFpl("prod1", "1", "1.0.0.Patch1.Final");
         creator.newFeaturePack(fp1Patch1.getFPID())
             .setPatchFor(fp1.getFPID())
-            .addPlugin(Plugin2.class);
+            .addPlugin("test-plugin", plugin2.getCoordsAsString());
 
         creator.install();
     }
 
     @Override
-    protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
+    protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig.builder(fp1)
                         .addPatch(fp1Patch1.getFPID())
@@ -101,12 +126,10 @@ public class BasicPluginPatchingTestCase extends ProvisionFromUniverseTestBase {
                 .build();
     }
 
-
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp1.getFPID())
-                        .addPackage("p1")
                         .build())
                 .build();
     }
@@ -114,9 +137,8 @@ public class BasicPluginPatchingTestCase extends ProvisionFromUniverseTestBase {
     @Override
     protected DirState provisionedHomeDir() {
         return newDirBuilder()
-                .addFile("fp1/p1.txt", "fp1 p1")
-                .addFile("plugin/file1.txt", "plugin1")
-                .addFile("plugin/file2.txt", "patched")
+                .addFile("fp1-plugin.txt", "fp1")
+                .addFile("plugin2.txt", "plugin2")
                 .build();
     }
 }
