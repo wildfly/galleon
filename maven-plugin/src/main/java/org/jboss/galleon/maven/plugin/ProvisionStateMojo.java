@@ -126,7 +126,7 @@ public class ProvisionStateMojo extends AbstractMojo {
      * Whether to use offline mode when the plugin resolves an artifact.
      * In offline mode the plugin will only use the local Maven repository for an artifact resolution.
      */
-    @Parameter(alias = "offline", defaultValue = "true")
+    @Parameter(alias = "offline", defaultValue = "false")
     private boolean offline;
 
     /**
@@ -159,7 +159,7 @@ public class ProvisionStateMojo extends AbstractMojo {
         try {
             doProvision();
         } catch (ProvisioningException e) {
-            throw new MojoExecutionException("Failed to provision the state", e);
+            throw new MojoExecutionException("Provisioning failed", e);
         } finally {
             if(originalMavenRepoLocal == null) {
                 System.clearProperty(MAVEN_REPO_LOCAL);

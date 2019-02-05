@@ -57,6 +57,10 @@ public class MavenUniverseFactory implements UniverseFactory {
         } else {
             repo = SimplisticMavenRepoManager.getInstance();
         }
-        return new MavenUniverse(repo, MavenArtifact.fromString(location), absoluteLatest);
+        try {
+            return new MavenUniverse(repo, MavenArtifact.fromString(location), absoluteLatest);
+        } catch (MavenUniverseException e) {
+            throw new MavenUniverseException(MavenErrors.msgUniverseNotFound(location), e);
+        }
     }
 }
