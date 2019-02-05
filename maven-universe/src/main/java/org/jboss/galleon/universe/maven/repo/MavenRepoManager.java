@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,10 +54,18 @@ public interface MavenRepoManager extends RepositoryArtifactResolver {
     boolean isLatestVersionResolved(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
 
     default void resolveLatestVersion(MavenArtifact artifact) throws MavenUniverseException {
-        resolveLatestVersion(artifact, null);
+        resolveLatestVersion(artifact, false);
     }
 
-    void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException;
+    default void resolveLatestVersion(MavenArtifact artifact, boolean locallyAvailable) throws MavenUniverseException {
+        resolveLatestVersion(artifact, null, locallyAvailable);
+    }
+
+    default void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        resolveLatestVersion(artifact, lowestQualifier, false);
+    }
+
+    void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier, boolean locallyAvailable) throws MavenUniverseException;
 
     default String getLatestFinalVersion(MavenArtifact artifact) throws MavenUniverseException {
         return getLatestVersion(artifact, null);

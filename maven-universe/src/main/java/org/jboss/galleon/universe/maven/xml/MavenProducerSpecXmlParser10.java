@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +28,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenProducer;
-import org.jboss.galleon.universe.maven.MavenUniverseBase;
+import org.jboss.galleon.universe.maven.MavenUniverse;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
-import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.ParsingUtils;
 import org.jboss.galleon.xml.PlugableXmlParser;
 import org.jboss.galleon.xml.XmlNameProvider;
@@ -41,7 +40,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  *
  * @author Alexey Loubyansky
  */
-public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCallbackHandler<MavenUniverseBase, MavenProducer>> {
+public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCallbackHandler<MavenUniverse, MavenProducer>> {
 
     public static final String NAMESPACE_1_0 = "urn:jboss:galleon:maven:producer:spec:1.0";
     public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.PRODUCER.name);
@@ -155,7 +154,7 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
     }
 
     @Override
-    public void readElement(XMLExtendedStreamReader reader, ParsedCallbackHandler<MavenUniverseBase, MavenProducer> builder) throws XMLStreamException {
+    public void readElement(XMLExtendedStreamReader reader, ParsedCallbackHandler<MavenUniverse, MavenProducer> builder) throws XMLStreamException {
         String name = null;
         for (int i = 0; i < reader.getAttributeCount(); i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i));
@@ -175,9 +174,7 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
                     try {
-                        final MavenRepoManager repo = builder.getParent().getRepo();
-                        repo.resolveLatestVersion(artifact);
-                        builder.parsed(new MavenProducer(name, repo, artifact));
+                        builder.parsed(new MavenProducer(name, builder.getParent().getRepo(), artifact));
                     } catch (MavenUniverseException e) {
                         throw new XMLStreamException(getParserMessage("Failed to instantiate producer " + name, reader.getLocation()), e);
                     }

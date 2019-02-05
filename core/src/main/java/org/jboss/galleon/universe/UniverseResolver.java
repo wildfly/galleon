@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,16 +70,22 @@ public class UniverseResolver {
     }
 
     /**
-     * Returns universe object for the source.
+     * This method will be looking for the latest locally available version of the universe
+     * artifact. If no version is available locally, it will fallback to resolving the latest
+     * available in remote repositories.
      *
      * @param universeSpec  universe source
      * @return  universe object for the source
      * @throws ProvisioningException  in universe object could not be resolved
      */
     public Universe<?> getUniverse(UniverseSpec universeSpec) throws ProvisioningException {
-        Universe<?> resolved = resolvedUniverses.get(universeSpec);
+        return getUniverse(universeSpec, false);
+    }
+
+    public Universe<?> getUniverse(UniverseSpec universeSpec, boolean absoluteLatest) throws ProvisioningException {
+        Universe<?> resolved = absoluteLatest ? null : resolvedUniverses.get(universeSpec);
         if(resolved == null) {
-            resolved = ufl.getUniverse(universeSpec);
+            resolved = ufl.getUniverse(universeSpec, absoluteLatest);
             resolvedUniverses = CollectionUtils.put(resolvedUniverses, universeSpec, resolved);
         }
         return resolved;

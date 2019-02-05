@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,26 +18,21 @@
 package org.jboss.galleon.universe.maven.repo;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
-import org.jboss.galleon.universe.maven.MavenLatestVersionNotAvailableException;
 import org.jboss.galleon.util.IoUtils;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class SimplisticMavenRepoManager implements MavenRepoManager {
+public class SimplisticMavenRepoManager extends LocalArtifactVersionRangeResolver implements MavenRepoManager {
 
     public static final String REPOSITORY_ID = MavenRepoManager.REPOSITORY_ID;
     public static final String SIMPLISTIC_MAVEN_REPO_HOME = "simplistic.maven.repo.home";
@@ -55,14 +50,20 @@ public class SimplisticMavenRepoManager implements MavenRepoManager {
         return new SimplisticMavenRepoManager(repoHome, fallback);
     }
 
-    private static final MavenArtifactVersionRangeParser versionRangeParser = new MavenArtifactVersionRangeParser();
-
-    private final Path repoHome;
     private final MavenRepoManager fallback;
+    private boolean locallyAvailableVersionRangesPreferred = true;
 
     private SimplisticMavenRepoManager(Path repoHome, MavenRepoManager fallback) {
-        this.repoHome = repoHome;
+        super(repoHome);
         this.fallback = fallback;
+    }
+
+    public boolean isLocallyAvailableVersionRangesPreferred() {
+        return locallyAvailableVersionRangesPreferred;
+    }
+
+    public void setLocallyAvailableVersionRangesPreferred(boolean locallyAvailableVersionRangesPreferred) {
+        this.locallyAvailableVersionRangesPreferred = locallyAvailableVersionRangesPreferred;
     }
 
     @Override
@@ -101,35 +102,52 @@ public class SimplisticMavenRepoManager implements MavenRepoManager {
     }
 
     @Override
-    public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        if(artifact.isResolved()) {
-            throw new MavenUniverseException("Artifact is already resolved");
-        }
-        Path path = null;
-        try {
-            path = resolveLatestVersionDir(artifact, lowestQualifier);
-            artifact.setVersion(path.getFileName().toString());
-            path = path.resolve(artifact.getArtifactFileName());
-            if (!Files.exists(path)) {
-                throw new MavenUniverseException(pathDoesNotExist(artifact, path));
+    public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier, boolean locally) throws MavenUniverseException {
+        if(locallyAvailableVersionRangesPreferred) {
+            try {
+                super.resolveLatestVersion(artifact, lowestQualifier);
+                return;
+            } catch (MavenUniverseException e) {
+                if (fallback == null) {
+                    throw e;
+                }
             }
-            artifact.setPath(path);
+            fallback.resolveLatestVersion(artifact, lowestQualifier);
             return;
-        } catch (MavenUniverseException e) {
-            if (fallback == null) {
+        }
+        if(locally) {
+            super.resolveLatestVersion(artifact, lowestQualifier);
+            return;
+        }
+        if(fallback == null) {
+            throw new MavenUniverseException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()));
+        }
+        fallback.resolveLatestVersion(artifact, lowestQualifier);
+    }
+
+    @Override
+    public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        try {
+            super.resolveLatestVersion(artifact, lowestQualifier);
+            return;
+        } catch(MavenUniverseException e) {
+            if(fallback == null) {
                 throw e;
             }
         }
         fallback.resolveLatestVersion(artifact, lowestQualifier);
     }
 
-    private String pathDoesNotExist(MavenArtifact artifact, Path path) throws MavenUniverseException {
-        return "Failed to resolve " + artifact.getCoordsAsString() + ": " + path + " does not exist";
-    }
-
     @Override
     public String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        return resolveLatestVersionDir(artifact, lowestQualifier).getFileName().toString();
+        try {
+            return super.getLatestVersion(artifact, lowestQualifier);
+        } catch(MavenUniverseException e) {
+            if(fallback == null) {
+                throw e;
+            }
+        }
+        return fallback.getLatestVersion(artifact, lowestQualifier);
     }
 
     @Override
@@ -144,79 +162,6 @@ public class SimplisticMavenRepoManager implements MavenRepoManager {
             throw new MavenUniverseException("Failed to install " + artifact.getCoordsAsString(), e);
         }
         artifact.setPath(targetPath);
-    }
-
-    private Path resolveLatestVersionDir(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        if(artifact.getGroupId() == null) {
-            MavenErrors.missingGroupId();
-        }
-        if(artifact.getArtifactId() == null) {
-            MavenErrors.missingArtifactId();
-        }
-        if(artifact.getVersionRange() == null) {
-            throw new MavenUniverseException("Version range is missing for " + artifact.getCoordsAsString());
-        }
-        Path artifactDir = repoHome;
-        final String[] groupParts = artifact.getGroupId().split("\\.");
-        for (String part : groupParts) {
-            artifactDir = artifactDir.resolve(part);
-        }
-        artifactDir = artifactDir.resolve(artifact.getArtifactId());
-        if(!Files.exists(artifactDir)) {
-            throw MavenErrors.artifactNotFound(artifact, repoHome);
-        }
-        final MavenArtifactVersionRange range = versionRangeParser.parseRange(artifact.getVersionRange());
-        if(lowestQualifier == null) {
-            lowestQualifier = "";
-        }
-        try(DirectoryStream<Path> stream = Files.newDirectoryStream(artifactDir)) {
-
-            final Iterable<String> versions = new Iterable<String>() {
-                @Override
-                public Iterator<String> iterator() {
-                    return new Iterator<String>() {
-                        final Iterator<Path> i = stream.iterator();
-                        Path nextPath = toNext(range);
-
-                        @Override
-                        public boolean hasNext() {
-                            return nextPath != null;
-                        }
-
-                        @Override
-                        public String next() {
-                            if(nextPath != null) {
-                                final String s = nextPath.getFileName().toString();
-                                nextPath = toNext(range);
-                                return s;
-                            }
-                            throw new NoSuchElementException();
-                        }
-
-                        private Path toNext(final MavenArtifactVersionRange range) {
-                            while(i.hasNext()) {
-                                final Path path = i.next();
-                                final MavenArtifactVersion next = new MavenArtifactVersion(path.getFileName().toString());
-                                if(range.includesVersion(next)) {
-                                    return path;
-                                }
-                            }
-                            return null;
-                        }
-                    };
-                }
-            };
-
-            final MavenArtifactVersion latest = MavenArtifactVersion.getLatest(versions, lowestQualifier);
-            if(latest == null) {
-                throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()));
-            }
-            return artifactDir.resolve(latest.toString());
-        } catch(MavenUniverseException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new MavenUniverseException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()), e);
-        }
     }
 
     private Path getArtifactPath(MavenArtifact artifact) throws MavenUniverseException {

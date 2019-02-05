@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,11 +46,8 @@ public class MavenUniverseFactory implements UniverseFactory {
         return DEFAULT_REPO_ID;
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.galleon.universe.UniverseFactory#getUniverse(java.lang.String)
-     */
     @Override
-    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location) throws ProvisioningException {
+    public Universe<?> getUniverse(RepositoryArtifactResolver artifactResolver, String location, boolean absoluteLatest) throws ProvisioningException {
         final MavenRepoManager repo;
         if(artifactResolver != null) {
             if(!(artifactResolver instanceof MavenRepoManager)) {
@@ -60,6 +57,6 @@ public class MavenUniverseFactory implements UniverseFactory {
         } else {
             repo = SimplisticMavenRepoManager.getInstance();
         }
-        return new MavenUniverse(repo, MavenArtifact.fromString(location));
+        return new MavenUniverse(repo, MavenArtifact.fromString(location), absoluteLatest);
     }
 }
