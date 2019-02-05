@@ -42,7 +42,6 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.Constants;
-import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigModel;
@@ -52,6 +51,7 @@ import org.jboss.galleon.maven.plugin.util.Configuration;
 import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
+import org.jboss.galleon.maven.plugin.util.MvnMessageWriter;
 import org.jboss.galleon.maven.plugin.util.ResolveLocalItem;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -181,7 +181,7 @@ public class ProvisionStateMojo extends AbstractMojo {
         }
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(home)
-                .setMessageWriter(new DefaultMessageWriter(System.out, System.err, getLog().isDebugEnabled()))
+                .setMessageWriter(new MvnMessageWriter(getLog()))
                 .setLogTime(logTime)
                 .setRecordState(recordState)
                 .build()) {
@@ -292,15 +292,13 @@ public class ProvisionStateMojo extends AbstractMojo {
     }
 
     private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MavenUniverseException {
-        final MavenArtifact artifact = new MavenArtifact();
-        artifact.setGroupId(coordinate.getGroupId());
-        artifact.setArtifactId(coordinate.getArtifactId());
-        artifact.setVersion(coordinate.getVersion());
-        artifact.setExtension(coordinate.getExtension());
-        artifact.setClassifier(coordinate.getClassifier());
-
+        final MavenArtifact artifact = new MavenArtifact()
+                .setGroupId(coordinate.getGroupId())
+                .setArtifactId(coordinate.getArtifactId())
+                .setVersion(coordinate.getVersion())
+                .setExtension(coordinate.getExtension())
+                .setClassifier(coordinate.getClassifier());
         resolver.resolve(artifact);
-
         return artifact.getPath();
     }
 }
