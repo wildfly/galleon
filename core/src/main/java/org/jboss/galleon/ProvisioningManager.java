@@ -748,9 +748,9 @@ public class ProvisioningManager implements AutoCloseable {
             final FsEntryFactory fsFactory =  getDefaultFsEntryFactory();
             final FsEntry originalState = fsFactory.forPath(rt.getStagedDir());
             final FsEntry currentState = fsFactory.forPath(getInstallationHome());
-            final long startTime = System.nanoTime();
+            final long startTime = log.isVerboseEnabled() ? System.nanoTime() : -1;
             final FsDiff fsDiff = FsDiff.diff(originalState, currentState);
-            if (log.isVerboseEnabled()) {
+            if (startTime != -1) {
                 log.verbose(Errors.tookTime("  filesystem diff", startTime));
             }
             return fsDiff;
@@ -835,7 +835,7 @@ public class ProvisioningManager implements AutoCloseable {
     }
 
     private void persistHashes(ProvisioningRuntime runtime) throws ProvisioningException {
-        final long startTime = System.nanoTime();
+        final long startTime = log.isVerboseEnabled() ? System.nanoTime() : -1;
         final FsEntry root = getDefaultFsEntryFactory().forPath(runtime.getStagedDir());
         if (root.hasChildren()) {
             final Path hashes = LayoutUtils.getHashesDir(runtime.getStagedDir());
@@ -852,7 +852,7 @@ public class ProvisioningManager implements AutoCloseable {
                 }
             }
         }
-        if(log.isVerboseEnabled()) {
+        if(startTime != -1) {
             log.verbose(Errors.tookTime("Hashing", startTime));
         }
     }

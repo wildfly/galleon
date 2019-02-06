@@ -158,7 +158,7 @@ public class ProvisioningRuntimeBuilder {
     }
 
     public ProvisioningRuntime build() throws ProvisioningException {
-        startTime = logTime ? System.nanoTime() : -1;
+        startTime = logTime || messageWriter.isVerboseEnabled() ? System.nanoTime() : -1;
         try {
             return doBuild();
         } catch(ProvisioningException | RuntimeException | Error e) {

@@ -103,7 +103,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public boolean isLogTime() {
-        return startTime > 0;
+        return startTime != -1;
     }
 
     /**
@@ -335,7 +335,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 IoUtils.recursiveDelete(stagedDir);
             }
         }
-        if (startTime > 0) {
+        if (startTime != -1) {
             messageWriter.print(Errors.tookTime("Overall Galleon provisioning", startTime));
         } else if (messageWriter.isVerboseEnabled()) {
             messageWriter.verbose(Errors.tookTime("Overall Galleon provisioning", startTime));
