@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.config.ConfigId;
@@ -47,9 +48,10 @@ public class LayersConfigBuilder {
     private final String config;
     private final String model;
     private final FeaturePackLocation loc;
-
-    LayersConfigBuilder(PmSession session, String[] layers, String model,
+    private final ProvisioningManager mgr;
+    LayersConfigBuilder(ProvisioningManager mgr, PmSession session, String[] layers, String model,
             String config, FeaturePackLocation loc) throws ProvisioningException, IOException {
+        this.mgr = mgr;
         this.layers = layers;
         this.loc = loc;
 
@@ -167,14 +169,45 @@ public class LayersConfigBuilder {
     }
 
     ProvisioningConfig build() throws ProvisioningException, IOException {
-        final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
-        ConfigModel.Builder configBuilder = ConfigModel.builder(model, config);
-        for (String layer : layers) {
-            configBuilder.includeLayer(layer);
+        // Reuse existing configuration builder.
+        ProvisioningConfig existing = mgr.getProvisioningConfig();
+        ProvisioningConfig.Builder builder = null;
+        FeaturePackConfig.Builder fpBuilder = null;
+        ConfigModel.Builder configBuilder = null;
+        if (existing != null) {
+            builder = existing.getBuilder();
+            ConfigId id = new ConfigId(model, config);
+            if (existing.hasDefinedConfig(id)) {
+                ConfigModel cmodel = existing.getDefinedConfig(id);
+                configBuilder = cmodel.getBuilder();
+                for (String layer : layers) {
+                    if (!cmodel.getIncludedLayers().contains(layer)) {
+                        configBuilder.includeLayer(layer);
+                    }
+                }
+                builder.removeConfig(id);
+            }
+            if (builder.hasFeaturePackDep(loc.getProducer())) {
+                FeaturePackConfig fp = existing.getFeaturePackDep(loc.getProducer());
+                fpBuilder = fp.getBuilder();
+                builder.removeFeaturePackDep(fp.getLocation());
+            }
+        }
+        if (builder == null) {
+            builder = ProvisioningConfig.builder();
+        }
+        if (configBuilder == null) {
+            configBuilder = ConfigModel.builder(model, config);
+            for (String layer : layers) {
+                configBuilder.includeLayer(layer);
+            }
+        }
+        if (fpBuilder == null) {
+            fpBuilder = FeaturePackConfig.builder(loc).setInheritConfigs(false).
+                    setInheritPackages(false);
         }
         builder.addConfig(configBuilder.build());
-        builder.addFeaturePackDep(FeaturePackConfig.builder(loc).setInheritConfigs(false).
-                setInheritPackages(false).build());
+        builder.addFeaturePackDep(fpBuilder.build());
         return builder.build();
     }
 }

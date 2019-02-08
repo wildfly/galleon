@@ -55,7 +55,6 @@ import static org.jboss.galleon.cli.cmd.plugin.AbstractProvisionWithPlugins.DIR_
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackDescriber;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.PathsUtils;
@@ -176,13 +175,11 @@ public class InstallCommand extends AbstractPluginsCommand {
                 if (configurations == null) {
                     manager.install(loc, options);
                 } else {
-                    final ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
                     FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(loc).setInheritConfigs(false);
                     for (ConfigId c : parseConfigurations(configurations)) {
                         fpConfig.includeDefaultConfig(c);
                     }
-                    builder.addFeaturePackDep(fpConfig.build());
-                    manager.provision(builder.build(), options);
+                    manager.install(fpConfig.build(), options);
                 }
             } else {
                 if (!options.containsKey(Constants.OPTIONAL_PACKAGES)) {
@@ -202,7 +199,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                         config = id.getName();
                     }
                 }
-                manager.provision(new LayersConfigBuilder(pmSession, layers.split(",+"),
+                manager.provision(new LayersConfigBuilder(manager, pmSession, layers.split(",+"),
                         model,
                         config, loc).build(), options);
             }
