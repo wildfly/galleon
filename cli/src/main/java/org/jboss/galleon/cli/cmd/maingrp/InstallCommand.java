@@ -199,7 +199,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                         config = id.getName();
                     }
                 }
-                manager.provision(new LayersConfigBuilder(pmSession, layers.split(",+"),
+                manager.provision(new LayersConfigBuilder(manager, pmSession, layers.split(",+"),
                         model,
                         config, loc).build(), options);
             }

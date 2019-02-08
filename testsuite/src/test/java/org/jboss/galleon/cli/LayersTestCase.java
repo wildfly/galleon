@@ -169,52 +169,65 @@ public class LayersTestCase {
             // XXX OK, expected
         }
 
-        cli.execute("install " + prod1 + " --dir=" + path3
+        Path path4 = cli.newDir("prod4", false);
+        cli.execute("install " + prod1 + " --dir=" + path4
                 + " --config=testmodel/ --layers=" + "layerB-" + PRODUCER1);
-        cli.execute("get-info --dir=" + path3 + " --type=configs");
+        cli.execute("get-info --dir=" + path4 + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("testmodel"));
         assertTrue(cli.getOutput(), cli.getOutput().contains("testmodel.xml"));
         config = ProvisioningManager.builder().
-                setInstallationHome(path3).build().getProvisioningConfig();
+                setInstallationHome(path4).build().getProvisioningConfig();
         assertTrue(config.getDefinedConfigs().size() == 1);
         conf = config.getDefinedConfig(new ConfigId("testmodel", "testmodel.xml"));
         assertNotNull(conf);
 
         //Install a specified config without layers
-        Path path4 = cli.newDir("prod4", false);
-        cli.execute("install " + prod1 + " --dir=" + path4);
-        cli.execute("get-info --dir=" + path4 + " --type=configs");
+        Path path5 = cli.newDir("prod5", false);
+        cli.execute("install " + prod1 + " --dir=" + path5);
+        cli.execute("get-info --dir=" + path5 + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
         assertTrue(cli.getOutput(), cli.getOutput().contains("config2.xml"));
 
-        cli.execute("install " + prod1 + " --dir=" + path4
+        cli.execute("install " + prod1 + " --dir=" + path5
                 + " --default-configs=testmodel/config1.xml");
-        cli.execute("get-info --dir=" + path4 + " --type=configs");
+        cli.execute("get-info --dir=" + path5 + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
         assertFalse(cli.getOutput(), cli.getOutput().contains("config2.xml"));
 
-        cli.execute("install " + prod1 + " --dir=" + path4
+        cli.execute("install " + prod1 + " --dir=" + path5
                 + " --default-configs=testmodel/config1.xml,testmodel/config2.xml");
-        cli.execute("get-info --dir=" + path4 + " --type=configs");
+        cli.execute("get-info --dir=" + path5 + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
         assertTrue(cli.getOutput(), cli.getOutput().contains("config2.xml"));
 
         //Install multiple producers, installing default-config should not erase existing producer.
-        Path path5 = cli.newDir("prod5", false);
-        cli.execute("install " + prod2 + " --dir=" + path5);
-        cli.execute("install " + prod1 + " --dir=" + path5
+        Path path6 = cli.newDir("prod6", false);
+        cli.execute("install " + prod2 + " --dir=" + path6);
+        cli.execute("install " + prod1 + " --dir=" + path6
                 + " --default-configs=testmodel/config1.xml");
-        cli.execute("get-info --dir=" + path5);
+        cli.execute("get-info --dir=" + path6);
         assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
 
         //Install a default-config into empty directory
-        Path path6 = cli.newDir("prod6", false);
-        cli.execute("install " + prod1 + " --dir=" + path6
+        Path path7 = cli.newDir("prod7", false);
+        cli.execute("install " + prod1 + " --dir=" + path7
                 + " --default-configs=testmodel/config1.xml");
-        cli.execute("get-info --dir=" + path6 + " --type=configs");
+        cli.execute("get-info --dir=" + path7 + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
         assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
+
+        //Install layers in multiple steps
+        Path path8 = cli.newDir("prod8", false);
+        cli.execute("install " + prod1 + " --dir=" + path8 + " --layers=" + "layerA-" + PRODUCER1);
+        cli.execute("install " + prod1 + " --dir=" + path8 + " --layers=" + "layerC-" + PRODUCER1);
+        ProvisioningConfig config3 = ProvisioningManager.builder().
+                setInstallationHome(path8).build().getProvisioningConfig();
+        ConfigModel conf3 = config3.getDefinedConfig(new ConfigId("testmodel", "testmodel.xml"));
+        assertNotNull(conf3);
+        assertTrue(conf3.getIncludedLayers().size() == 2);
+        assertTrue(conf3.getIncludedLayers().contains("layerA-" + PRODUCER1));
+        assertTrue(conf3.getIncludedLayers().contains("layerC-" + PRODUCER1));
     }
 
     protected FeaturePackLocation newFpl(String producer, String channel, String build) {
