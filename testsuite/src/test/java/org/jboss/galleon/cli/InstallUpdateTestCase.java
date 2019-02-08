@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertFalse;
@@ -172,5 +173,23 @@ public class InstallUpdateTestCase {
         Assert.assertEquals(cf1.getLocation().toString(), cf1.getLocation(), CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", "snapshot", "1.0.0.Alpha1"));
         cf2 = config.getFeaturePackDep(CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, null).getProducer());
         Assert.assertEquals(cf2.getLocation().toString(), cf2.getLocation(), CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, "1.0.0.Alpha1-SNAPSHOT"));
+    }
+
+    @Test
+    public void testLegacy() throws Exception {
+        FeaturePackLocation loc = LegacyGalleon1Universe.toFpl("org.jboss.galleon.test", "test-galleon1", "1.0");
+        Path directory = cli.newDir("local-repo", true);
+        CliTestUtils.legacyInstall(cli, directory, loc);
+        Path fpPath = directory.toFile().listFiles()[0].toPath();
+        Path target = cli.newDir("legacytest1", false);
+        cli.execute("install --file=" + fpPath + " --dir=" + target);
+        cli.execute("get-info --dir=" + target);
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("test-galleon1"));
+
+        // Side effect on local install is universe installation.
+        Path target2 = cli.newDir("legacytest2", false);
+        cli.execute("install " + loc + " --dir=" + target2);
+        cli.execute("get-info --dir=" + target2);
+        Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("test-galleon1"));
     }
 }

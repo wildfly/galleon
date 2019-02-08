@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +77,6 @@ public class LegacyGalleon1Channel implements Channel {
 
     @Override
     public boolean isDevBuild(FeaturePackLocation.FPID fpid) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return false;
     }
 }

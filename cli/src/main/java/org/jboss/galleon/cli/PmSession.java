@@ -60,6 +60,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseResolver;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -635,6 +636,9 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     private FeaturePackLocation getResolvedLocation(Path installation, FeaturePackLocation fplocation) throws ProvisioningException {
         UniverseSpec spec = fplocation.getUniverse();
         if (spec != null) {
+            if (LegacyGalleon1UniverseFactory.ID.equals(spec.getFactory())) {
+                return fplocation;
+            }
             if (spec.getLocation() == null) {
                 spec = universe.getUniverseSpec(installation, spec.getFactory());
                 if (spec == null) {
