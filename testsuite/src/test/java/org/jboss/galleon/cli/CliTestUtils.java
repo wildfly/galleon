@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -147,6 +147,14 @@ public abstract class CliTestUtils {
                 .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1");
         creator.install();
+    }
+
+    public static void legacyInstall(CliWrapper cli, Path directory, FeaturePackLocation loc) throws ProvisioningException {
+        FeaturePackCreator creator = new FeaturePackCreator();
+        creator.newFeaturePack(loc.getFPID())
+                .newPackage("p1", true)
+                .writeContent("fp1/p1.txt", "fp1 p1");
+        creator.install(directory);
     }
 
     public static FPID installPatch(CliWrapper cli, UniverseSpec universeSpec,

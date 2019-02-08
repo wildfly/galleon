@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ package org.jboss.galleon.universe.galleon1;
 
 import java.nio.file.Path;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.repo.RepositoryArtifactInstaller;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ChannelSpec;
 import org.jboss.galleon.universe.Universe;
@@ -43,10 +44,10 @@ public class LegacyGalleon1FeaturePackInstaller implements UniverseFeaturePackIn
         // make sure the channel exists
         producer.getChannel(channel.getName());
 
-        if(!(mvnUni.artifactResolver instanceof LegacyGalleon1RepositoryManager)) {
+        if (!(mvnUni.artifactResolver instanceof RepositoryArtifactInstaller)) {
             throw new ProvisioningException(mvnUni.artifactResolver.getClass().getName() + " is not an instance of " + LegacyGalleon1RepositoryManager.class.getName());
         }
 
-        ((LegacyGalleon1RepositoryManager) mvnUni.artifactResolver).install(LegacyGalleon1Universe.toMavenCoords(fpid.getLocation()), fpZip);
+        ((RepositoryArtifactInstaller) mvnUni.artifactResolver).install(LegacyGalleon1Universe.toMavenCoords(fpid.getLocation()), fpZip);
     }
 }

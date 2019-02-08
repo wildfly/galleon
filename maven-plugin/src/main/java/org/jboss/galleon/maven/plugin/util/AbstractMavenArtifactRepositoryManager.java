@@ -37,6 +37,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.version.Version;
 import org.jboss.galleon.maven.plugin.FpMavenErrors;
+import org.jboss.galleon.repo.RepositoryArtifactInstaller;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
 import org.jboss.galleon.universe.maven.MavenLatestVersionNotAvailableException;
@@ -52,7 +53,7 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
  * @author jdenise@redhat.com
  * @author Alexey Loubyansky
  */
-public abstract class AbstractMavenArtifactRepositoryManager implements MavenRepoManager {
+public abstract class AbstractMavenArtifactRepositoryManager implements MavenRepoManager, RepositoryArtifactInstaller {
 
     private static final MavenArtifactVersionRangeParser versionRangeParser = new MavenArtifactVersionRangeParser();
 
@@ -157,6 +158,11 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
             versions.add(v.toString());
         }
         return versions;
+    }
+
+    @Override
+    public void install(String coords, Path path) throws MavenUniverseException {
+        install(MavenArtifact.fromString(coords), path);
     }
 
     @Override

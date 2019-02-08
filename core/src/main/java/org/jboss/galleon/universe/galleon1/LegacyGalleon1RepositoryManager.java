@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.repo.RepositoryArtifactInstaller;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.util.ZipUtils;
 
@@ -31,7 +32,7 @@ import org.jboss.galleon.util.ZipUtils;
  *
  * @author Alexey Loubyansky
  */
-public class LegacyGalleon1RepositoryManager implements RepositoryArtifactResolver {
+public class LegacyGalleon1RepositoryManager implements RepositoryArtifactResolver, RepositoryArtifactInstaller {
 
     private static final String REPOSITORY_ID = RepositoryArtifactResolver.ID_PREFIX + "maven";
 
