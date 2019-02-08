@@ -22,6 +22,7 @@ import org.aesh.command.CommandException;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
@@ -50,7 +51,7 @@ public class LayersTestCase {
     public static void setup() throws Exception {
         cli = new CliWrapper();
         universe = MvnUniverse.getInstance(UNIVERSE_NAME, cli.getSession().getMavenRepoManager());
-        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1));
+        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2));
     }
 
     @AfterClass
@@ -61,7 +62,10 @@ public class LayersTestCase {
     @Test
     public void test() throws Exception {
         FeaturePackLocation prod1 = newFpl(PRODUCER1, "1", "1.0.0.Final");
+        FeaturePackLocation prod2 = newFpl(PRODUCER2, "1", "1.0.0.Final");
         CliTestUtils.installWithLayers(cli, universeSpec, PRODUCER1, "1.0.0.Final");
+        CliTestUtils.install(cli, universeSpec, PRODUCER2, "1.0.0.Final");
+
         cli.execute("find * --layers=layerZ --universe=" + universeSpec);
         assertFalse(cli.getOutput(), cli.getOutput().contains(prod1.toString()));
         cli.execute("find * --layers=layerB --universe=" + universeSpec);
@@ -194,6 +198,23 @@ public class LayersTestCase {
         cli.execute("get-info --dir=" + path4 + " --type=configs");
         assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
         assertTrue(cli.getOutput(), cli.getOutput().contains("config2.xml"));
+
+        //Install multiple producers, installing default-config should not erase existing producer.
+        Path path5 = cli.newDir("prod5", false);
+        cli.execute("install " + prod2 + " --dir=" + path5);
+        cli.execute("install " + prod1 + " --dir=" + path5
+                + " --default-configs=testmodel/config1.xml");
+        cli.execute("get-info --dir=" + path5);
+        assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER2));
+
+        //Install a default-config into empty directory
+        Path path6 = cli.newDir("prod6", false);
+        cli.execute("install " + prod1 + " --dir=" + path6
+                + " --default-configs=testmodel/config1.xml");
+        cli.execute("get-info --dir=" + path6 + " --type=configs");
+        assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER1));
+        assertTrue(cli.getOutput(), cli.getOutput().contains("config1.xml"));
     }
 
     protected FeaturePackLocation newFpl(String producer, String channel, String build) {
