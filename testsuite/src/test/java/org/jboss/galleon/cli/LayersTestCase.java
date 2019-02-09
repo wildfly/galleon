@@ -103,7 +103,7 @@ public class LayersTestCase {
         assertTrue(conf.getIncludedLayers().size() == 2);
         assertTrue(conf.getIncludedLayers().contains("layerA-" + PRODUCER1));
         assertTrue(conf.getIncludedLayers().contains("layerC-" + PRODUCER1));
-        String opt = config.getPluginOption(Constants.OPTIONAL_PACKAGES);
+        String opt = config.getOption(Constants.OPTIONAL_PACKAGES);
         assertNotNull(opt);
         assertEquals(Constants.PASSIVE_PLUS, opt);
 
