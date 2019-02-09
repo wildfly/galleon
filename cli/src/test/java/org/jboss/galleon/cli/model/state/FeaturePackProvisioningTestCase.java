@@ -34,15 +34,15 @@ public class FeaturePackProvisioningTestCase {
     private static ConfigId CONFIG_ID = new ConfigId("model", "name");
 
     private FeaturePackProvisioning provisioning;
-    private FeaturePackConfig.Builder featurePackConfigBuilder;
+    private FeaturePackConfig featurePackConfig;
     private ProvisioningConfig.Builder provisioningConfigBuilder;
     private Deque<State.Action> actions = new ArrayDeque<>();
 
     public FeaturePackProvisioningTestCase() throws Exception {
         provisioning = new FeaturePackProvisioning();
-        featurePackConfigBuilder = FeaturePackConfig.builder(FEATURE_PACK_LOCATION);
+        featurePackConfig = FeaturePackConfig.builder(FEATURE_PACK_LOCATION).build();
         provisioningConfigBuilder = ProvisioningConfig.builder()
-                .addFeaturePackDep(featurePackConfigBuilder.build());
+                .addFeaturePackDep(featurePackConfig);
     }
 
     @Test
@@ -125,16 +125,18 @@ public class FeaturePackProvisioningTestCase {
     private FeaturePackConfig performAction(State.Action action) throws Exception {
         action.doAction(provisioningConfigBuilder.build(), provisioningConfigBuilder);
         actions.push(action);
-        return featurePackConfigBuilder.build();
+        featurePackConfig = provisioningConfigBuilder.build().getFeaturePackDep(FEATURE_PACK_LOCATION.getProducer());
+        return featurePackConfig;
     }
 
     private FeaturePackConfig undo() throws Exception {
         State.Action action = actions.pop();
         action.undoAction(provisioningConfigBuilder);
-        return featurePackConfigBuilder.build();
+        featurePackConfig = provisioningConfigBuilder.build().getFeaturePackDep(FEATURE_PACK_LOCATION.getProducer());
+        return featurePackConfig;
     }
 
-    private FeaturePackConfig getFeaturePackConfig() {
-        return featurePackConfigBuilder.build();
+    private FeaturePackConfig getFeaturePackConfig() throws Exception {
+        return featurePackConfig;
     }
 }

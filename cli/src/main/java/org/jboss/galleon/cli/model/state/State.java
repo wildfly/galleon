@@ -94,7 +94,7 @@ public class State {
         for (FeaturePackConfig cf : conf.getFeaturePackDeps()) {
             dependencies.add(cf.getLocation().getFPID());
         }
-        builder = conf.getBuilder();
+        builder = ProvisioningConfig.builder(conf);
         config = buildNewConfig(pmSession);
         path = "" + PathParser.PATH_SEPARATOR;
         name = installation.getFileName().toString();

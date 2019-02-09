@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,7 +136,6 @@ public class ConfigModel extends FeatureGroupSupport {
     final boolean inheritLayers;
     final Set<String> includedLayers;
     final Set<String> excludedLayers;
-    private final Builder builder;
 
     protected ConfigModel(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -146,11 +145,6 @@ public class ConfigModel extends FeatureGroupSupport {
         this.inheritLayers = builder.inheritLayers;
         this.includedLayers = CollectionUtils.unmodifiable(builder.includedLayers);
         this.excludedLayers = CollectionUtils.unmodifiable(builder.excludedLayers);
-        this.builder = builder;
-    }
-
-    public Builder getBuilder() {
-        return builder;
     }
 
     public ConfigId getId() {
