@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,11 +83,9 @@ public class ConfigProvisioning {
 
         @Override
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
-            ConfigModel originalConfig = null;
             for (ConfigModel m : builder.getDefinedConfigs()) {
                 if (m.getId().equals(id)) {
-                    targetConfig = m.getBuilder();
-                    originalConfig = m;
+                    targetConfig = ConfigModel.builder(m);
                     break;
                 }
             }
@@ -152,7 +150,7 @@ public class ConfigProvisioning {
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
             for (ConfigModel m : builder.getDefinedConfigs()) {
                 if (m.getId().equals(id)) {
-                    targetConfig = m.getBuilder();
+                    targetConfig = ConfigModel.builder(m);
                     break;
                 }
             }
@@ -215,7 +213,7 @@ public class ConfigProvisioning {
             ConfigModel originalConfig = null;
             for (ConfigModel m : builder.getDefinedConfigs()) {
                 if (m.getId().equals(id)) {
-                    targetConfig = m.getBuilder();
+                    targetConfig = ConfigModel.builder(m);
                     originalConfig = m;
                     break;
                 }
@@ -260,7 +258,7 @@ public class ConfigProvisioning {
             ConfigModel originalConfig = null;
             for (ConfigModel m : builder.getDefinedConfigs()) {
                 if (m.getId().equals(id)) {
-                    targetConfig = m.getBuilder();
+                    targetConfig = ConfigModel.builder(m);
                     originalConfig = m;
                     break;
                 }
@@ -359,7 +357,7 @@ public class ConfigProvisioning {
 
             for (ConfigModel cm : current.getDefinedConfigs()) {
                 if (cm.getName().equals(id.getName()) && cm.getModel().equals(id.getModel())) {
-                    targetConfig = cm.getBuilder();
+                    targetConfig = ConfigModel.builder(cm);
                     existingFeature = getExistingFeature(cm, featId);
                     if (existingFeature != null) {
                         targetConfig.removeFeature(featId);
@@ -426,7 +424,7 @@ public class ConfigProvisioning {
             // first retrieve the configuration to remove the feature.
             for (ConfigModel cm : current.getDefinedConfigs()) {
                 if (cm.getName().equals(id.getName()) && cm.getModel().equals(id.getModel())) {
-                    targetConfig = cm.getBuilder();
+                    targetConfig = ConfigModel.builder(cm);
                     exclude = getExistingFeature(cm, feature.getFeatureId()) == null;
                     break;
                 }

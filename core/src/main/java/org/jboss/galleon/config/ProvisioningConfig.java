@@ -100,16 +100,10 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
     }
 
     private final Map<String, String> options;
-    private final Builder builder;
 
     private ProvisioningConfig(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
         this.options = CollectionUtils.unmodifiable(builder.options);
-        this.builder = builder;
-    }
-
-    public Builder getBuilder() {
-        return builder;
     }
 
     public boolean hasOptions() {

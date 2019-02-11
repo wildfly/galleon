@@ -175,11 +175,11 @@ public class LayersConfigBuilder {
         FeaturePackConfig.Builder fpBuilder = null;
         ConfigModel.Builder configBuilder = null;
         if (existing != null) {
-            builder = existing.getBuilder();
+            builder = ProvisioningConfig.builder(existing);
             ConfigId id = new ConfigId(model, config);
             if (existing.hasDefinedConfig(id)) {
                 ConfigModel cmodel = existing.getDefinedConfig(id);
-                configBuilder = cmodel.getBuilder();
+                configBuilder = ConfigModel.builder(cmodel);
                 for (String layer : layers) {
                     if (!cmodel.getIncludedLayers().contains(layer)) {
                         configBuilder.includeLayer(layer);
@@ -189,7 +189,7 @@ public class LayersConfigBuilder {
             }
             if (builder.hasFeaturePackDep(loc.getProducer())) {
                 FeaturePackConfig fp = existing.getFeaturePackDep(loc.getProducer());
-                fpBuilder = fp.getBuilder();
+                fpBuilder = FeaturePackConfig.builder(fp);
                 builder.removeFeaturePackDep(fp.getLocation());
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,12 +91,10 @@ class FeaturePackProvisioning {
 
         protected abstract boolean doAction(FeaturePackConfig.Builder fpBuilder, T id) throws ProvisioningException;
 
-        protected abstract void undoAction(FeaturePackConfig.Builder fpBuilder, T id) throws ProvisioningException;
-
         @Override
         public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
             for (Entry<FeaturePackConfig, T> entry : cf.entrySet()) {
-                FeaturePackConfig.Builder fpBuilder = entry.getKey().getBuilder();
+                FeaturePackConfig.Builder fpBuilder = FeaturePackConfig.builder(entry.getKey());
                 boolean doit = doAction(fpBuilder, entry.getValue());
                 // this complexity is due to the fact that some fp could already have the configuration included/excluded/...
                 if (doit) {
@@ -114,10 +112,8 @@ class FeaturePackProvisioning {
                 Integer index = indexes.get(entry.getKey().getLocation().getFPID());
                 // index could be null if doAction failed or did not execute.
                 if (index != null) {
-                    FeaturePackConfig.Builder fpBuilder = entry.getKey().getBuilder();
-                    undoAction(fpBuilder, entry.getValue());
                     builder.removeFeaturePackDep(entry.getKey().getLocation());
-                    builder.addFeaturePackDep(index, fpBuilder.build());
+                    builder.addFeaturePackDep(index, entry.getKey());
                 }
             }
         }
@@ -125,8 +121,6 @@ class FeaturePackProvisioning {
     }
 
     private class IncludeConfigurationAction extends AbstractAction<ConfigId> {
-
-        private boolean wasExcluded = false;
 
         IncludeConfigurationAction(Map<FeaturePackConfig, ConfigId> cf) {
             super(cf);
@@ -136,7 +130,6 @@ class FeaturePackProvisioning {
         protected boolean doAction(FeaturePackConfig.Builder fpBuilder, ConfigId id) throws ProvisioningException {
             try {
                 if (fpBuilder.isDefaultConfigExcluded(id)) {
-                    wasExcluded = true;
                     fpBuilder.removeExcludedDefaultConfig(id);
                 }
                 fpBuilder.includeDefaultConfig(id);
@@ -147,20 +140,9 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, ConfigId id) throws ProvisioningException {
-            fpBuilder.removeIncludedDefaultConfig(id);
-            if (wasExcluded) {
-                fpBuilder.excludeDefaultConfig(id);
-            }
-        }
-
     }
 
     private class ExcludeConfigurationAction extends AbstractAction<ConfigId> {
-
-        private boolean wasIncluded = false;
 
         ExcludeConfigurationAction(Map<FeaturePackConfig, ConfigId> cf) {
             super(cf);
@@ -169,21 +151,11 @@ class FeaturePackProvisioning {
         @Override
         protected boolean doAction(FeaturePackConfig.Builder fpBuilder, ConfigId id) throws ProvisioningException {
             if (fpBuilder.isDefaultConfigIncluded(id)) {
-                wasIncluded = true;
                 fpBuilder.removeIncludedDefaultConfig(id);
             }
             fpBuilder.excludeDefaultConfig(id);
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, ConfigId id) throws ProvisioningException {
-            fpBuilder.removeExcludedDefaultConfig(id);
-            if (wasIncluded) {
-                fpBuilder.includeDefaultConfig(id);
-            }
-        }
-
     }
 
     private class RemoveExcludedConfigurationAction extends AbstractAction<ConfigId> {
@@ -203,12 +175,6 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, ConfigId id) throws ProvisioningException {
-            fpBuilder.excludeDefaultConfig(id);
-        }
-
     }
 
     private class RemoveIncludedConfigurationAction extends AbstractAction<ConfigId> {
@@ -228,18 +194,10 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, ConfigId id) throws ProvisioningException {
-            fpBuilder.includeDefaultConfig(id);
-        }
-
     }
 
 
     private class IncludePackageAction extends AbstractAction<String> {
-
-        private boolean wasExcluded = false;
 
         IncludePackageAction(Map<FeaturePackConfig, String> cf) {
             super(cf);
@@ -249,7 +207,6 @@ class FeaturePackProvisioning {
         protected boolean doAction(FeaturePackConfig.Builder fpBuilder, String pkg) throws ProvisioningException {
             try {
                 if (fpBuilder.isPackageExcluded(pkg)) {
-                    wasExcluded = true;
                     fpBuilder.removeExcludedPackage(pkg);
                 }
                 fpBuilder.includePackage(pkg);
@@ -260,20 +217,9 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, String pkg) throws ProvisioningException {
-            fpBuilder.removeIncludedPackage(pkg);
-            if (wasExcluded) {
-                fpBuilder.excludePackage(pkg);
-            }
-        }
-
     }
 
     private class ExcludePackageAction extends AbstractAction<String> {
-
-        private boolean wasIncluded = false;
 
         ExcludePackageAction(Map<FeaturePackConfig, String> cf) {
             super(cf);
@@ -283,7 +229,6 @@ class FeaturePackProvisioning {
         protected boolean doAction(FeaturePackConfig.Builder fpBuilder, String pkg) throws ProvisioningException {
             try {
                 if (fpBuilder.isPackageIncluded(pkg)) {
-                    wasIncluded = true;
                     fpBuilder.removeIncludedPackage(pkg);
                 }
                 fpBuilder.excludePackage(pkg);
@@ -294,15 +239,6 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, String pkg) throws ProvisioningException {
-            fpBuilder.removeExcludedPackage(pkg);
-            if (wasIncluded) {
-                fpBuilder.includePackage(pkg);
-            }
-        }
-
     }
 
     private class RemoveIncludedPackageAction extends AbstractAction<String> {
@@ -322,12 +258,6 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, String pkg) throws ProvisioningException {
-            fpBuilder.includePackage(pkg);
-        }
-
     }
 
     private class RemoveExcludedPackageAction extends AbstractAction<String> {
@@ -347,12 +277,6 @@ class FeaturePackProvisioning {
             }
             return true;
         }
-
-        @Override
-        protected void undoAction(FeaturePackConfig.Builder fpBuilder, String pkg) throws ProvisioningException {
-            fpBuilder.excludePackage(pkg);
-        }
-
     }
 
     State.Action removeDependency(FeaturePackLocation fpl) throws

@@ -245,7 +245,6 @@ public class FeaturePackConfig extends ConfigCustomizations {
     protected final Set<String> includedPackages;
     protected final boolean transitive;
     protected final List<FPID> patches;
-    private final Builder builder;
 
     protected FeaturePackConfig(Builder builder) {
         super(builder);
@@ -269,11 +268,6 @@ public class FeaturePackConfig extends ConfigCustomizations {
                 }
                 patches = Collections.unmodifiableList(tmp);
         }
-        this.builder = builder;
-    }
-
-    public Builder getBuilder() {
-        return builder;
     }
 
     public FeaturePackLocation getLocation() {
