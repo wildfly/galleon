@@ -128,7 +128,7 @@ public class MavenProducer extends MavenProducerBase {
         return resolvedLocally;
     }
 
-    public void refresh() throws MavenUniverseException {
+    public synchronized void refresh() throws MavenUniverseException {
         fullyLoaded = false;
         this.channels = Collections.emptyMap();
         this.frequencies = Collections.emptySet();
