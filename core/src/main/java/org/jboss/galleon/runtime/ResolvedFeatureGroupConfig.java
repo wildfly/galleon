@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,6 @@ import java.util.Set;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroupSupport;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
-import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
@@ -45,35 +44,6 @@ public class ResolvedFeatureGroupConfig {
         this.configStack = configStack;
         this.producer = producer;
         this.fg = fg;
-    }
-
-    ResolvedFeatureGroupConfig setInheritFeatures(boolean inheritFeatures) {
-        this.inheritFeatures = inheritFeatures;
-        return this;
-    }
-
-    void includeSpec(ResolvedSpecId specId) {
-        includedSpecs = CollectionUtils.add(includedSpecs, specId);
-    }
-
-    void excludeSpec(ResolvedSpecId specId) {
-        excludedSpecs = CollectionUtils.add(excludedSpecs, specId);
-    }
-
-    void includeFeature(ResolvedFeatureId id, FeatureConfig fc) {
-        includedFeatures = CollectionUtils.putLinked(includedFeatures, id, fc);
-    }
-
-    void excludeFeature(ResolvedFeatureId id) {
-        excludedFeatures = CollectionUtils.add(excludedFeatures, id);
-    }
-
-    public boolean hasExcludedSpecs() {
-        return !excludedSpecs.isEmpty();
-    }
-
-    public boolean hasExcludedFeatures() {
-        return !excludedFeatures.isEmpty();
     }
 
     boolean isSubsetOf(ResolvedFeatureGroupConfig other) {

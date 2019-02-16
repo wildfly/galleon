@@ -157,7 +157,7 @@ public class IoUtils {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
                         throws IOException {
-                        final Path targetDir = target.resolve(source.relativize(dir));
+                        final Path targetDir = target.resolve(source.relativize(dir).toString());
                         try {
                             Files.copy(dir, targetDir);
                         } catch (FileAlreadyExistsException e) {
@@ -170,7 +170,7 @@ public class IoUtils {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                         throws IOException {
-                        Files.copy(file, target.resolve(source.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(file, target.resolve(source.relativize(file).toString()), StandardCopyOption.REPLACE_EXISTING);
                         return FileVisitResult.CONTINUE;
                     }
                 });
@@ -194,7 +194,7 @@ public class IoUtils {
         Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
     }
 
-     public static Map<Path, String> listContents(Path root, PathFilter filter) throws IOException {
+    public static Map<Path, String> listContents(Path root, PathFilter filter) throws IOException {
         if (root == null || !Files.exists(root)) {
             return Collections.emptyMap();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ package org.jboss.galleon.layout;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -33,7 +34,6 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.cache.FeaturePackCacheManager;
 import org.jboss.galleon.progresstracking.DefaultProgressTracker;
 import org.jboss.galleon.progresstracking.NoOpProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressCallback;
@@ -44,7 +44,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseFeaturePackInstaller;
 import org.jboss.galleon.universe.UniverseResolver;
-import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
 
 /**
@@ -68,14 +68,6 @@ public class ProvisioningLayoutFactory implements Closeable {
         return new ProvisioningLayoutFactory(universeResolver);
     }
 
-    public static ProvisioningLayoutFactory getInstance(Path home, UniverseResolver universeResolver) {
-        return getInstance(universeResolver, new FeaturePackCacheManager(home));
-    }
-
-    public static ProvisioningLayoutFactory getInstance(UniverseResolver universeResolver, FeaturePackCacheManager cacheManager) {
-        return new ProvisioningLayoutFactory(universeResolver, cacheManager);
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> ProgressTracker<T> getNoOpProgressTracker() {
         return (ProgressTracker<T>) (NO_OP_PROGRESS_TRACKER == null ?
@@ -87,20 +79,10 @@ public class ProvisioningLayoutFactory implements Closeable {
     private AtomicInteger openHandles = new AtomicInteger();
     private Map<String, UniverseFeaturePackInstaller> universeInstallers;
     private Map<String, ProgressTracker<?>> progressTrackers = new HashMap<>();
-    private final FeaturePackCacheManager cacheManager;
+    private final Map<FPID, FileSystem> cachedPacks = new HashMap<>();
 
     private ProvisioningLayoutFactory(UniverseResolver universeResolver) {
-        this(universeResolver, null);
-    }
-
-    private ProvisioningLayoutFactory(UniverseResolver universeResolver,
-            FeaturePackCacheManager cacheManager) {
         this.universeResolver = universeResolver;
-        this.cacheManager = cacheManager == null ? new FeaturePackCacheManager() : cacheManager;
-    }
-
-    public Path getHome() {
-        return cacheManager.getHome();
     }
 
     public void setProgressCallback(String id, ProgressCallback<?> callback) {
@@ -144,7 +126,7 @@ public class ProvisioningLayoutFactory implements Closeable {
      */
     public synchronized FeaturePackLocation addLocal(Path featurePack, boolean installInUniverse) throws ProvisioningException {
         final FPID fpid = FeaturePackDescriber.readSpec(featurePack).getFPID();
-        cacheManager.put(featurePack, fpid);
+        put(featurePack, fpid);
         if(!installInUniverse) {
             return fpid.getLocation();
         }
@@ -209,7 +191,34 @@ public class ProvisioningLayoutFactory implements Closeable {
     }
 
     private synchronized Path resolveFeaturePackDir(FeaturePackLocation fpl) throws ProvisioningException {
-        return cacheManager.put(universeResolver, fpl);
+        final FPID fpid = fpl.getFPID();
+        FileSystem packFs = cachedPacks.get(fpid);
+        if(packFs != null) {
+            return getFpDir(packFs);
+        }
+        final Path resolvedPath = universeResolver.resolve(fpl);
+        try {
+            packFs = ZipUtils.newFileSystem(resolvedPath);
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.openFile(resolvedPath), e);
+        }
+        cachedPacks.put(fpid, packFs);
+        return getFpDir(packFs);
+    }
+
+    private Path put(Path featurePack, FeaturePackLocation.FPID fpid) throws ProvisioningException {
+        final FileSystem packFs;
+        try {
+            packFs = ZipUtils.newFileSystem(featurePack);
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.openFile(featurePack), e);
+        }
+        cachedPacks.put(fpid, packFs);
+        return getFpDir(packFs);
+    }
+
+    private static Path getFpDir(FileSystem packFs) {
+        return packFs.getRootDirectories().iterator().next();
     }
 
     ProvisioningLayout.Handle createHandle() {
@@ -222,13 +231,15 @@ public class ProvisioningLayoutFactory implements Closeable {
         openHandles.decrementAndGet();
     }
 
-    Path newConfigLayoutDir() {
-        return IoUtils.createRandomDir(cacheManager.getHome());
-    }
-
     @Override
     public void close() {
-        cacheManager.close();
+        for(FileSystem fs : cachedPacks.values()) {
+            try {
+                fs.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         checkOpenLayouts();
     }
 

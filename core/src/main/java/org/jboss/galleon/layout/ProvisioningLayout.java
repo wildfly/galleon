@@ -299,7 +299,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
 
         private Path getWorkDir() {
-            return workDir == null ? workDir = layoutFactory.newConfigLayoutDir() : workDir;
+            return workDir == null ? workDir = IoUtils.createRandomTmpDir() : workDir;
         }
 
         public boolean isClosed() {
