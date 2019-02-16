@@ -27,6 +27,6 @@ Where
 
 * *resources* - optional directory containing various resources needed to properly assemble and configure the product;
 
-* *plugins* - optional directory containing product-specific provisioning plug-ins;
+* *plugins* - optional directory containing product-specific provisioning plug-ins (note, that alternatively plugin artifacts can also be referenced from `feature-pack.xml` using their repository coordinates);
 
 * *feature-pack.xml* - metadata describing the feature-pack and the default product configuration.

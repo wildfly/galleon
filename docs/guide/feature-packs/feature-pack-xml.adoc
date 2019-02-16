@@ -10,6 +10,7 @@ Generally, feature-pack metadata contains the following information:
 
 * _(optional)_ *default packages* - names of the packages that are installed by default.
 
+* _(optional)_ *plugins* - various provisioning plugins.
 
 Here is an illustration of how it may look like in a `feature-pack.xml` file:
 
@@ -37,10 +38,13 @@ Here is an illustration of how it may look like in a `feature-pack.xml` file:
         <package name="docs"/>
         <package name="modules.all"/>
     </default-packages>
+    <plugins> <!--5-->
+        <plugin location="org.jboss.galleon.example:galleon-example-plugin:1.0.0.Final"/>
+    </plugins>
 </feature-pack>
 ----
-<1> Feature-pack location and build info;
-<2> Dependency on another feature-pack;
-<3> Description of the default `standalone.xml` configuration;
-<4> List of packages that should be installed by default.
-
+<1> Feature-pack location and build info
+<2> Dependency on another feature-pack
+<3> Description of the default `standalone.xml` configuration
+<4> List of packages that should be installed by default
+<5> List of provisioning plugins
