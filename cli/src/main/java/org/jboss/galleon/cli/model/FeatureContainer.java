@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ProvisioningConfig;
 
@@ -49,6 +51,13 @@ public abstract class FeatureContainer {
     private Map<ResolvedSpecId, List<FeatureInfo>> allFeatures;
     private final ProvisioningConfig config;
     private final Set<ConfigId> layers = new HashSet<>();
+
+    private final Set<String> optionalPackagesProducers = new TreeSet<>();
+    private final Map<String, Map<String, Set<String>>> optionalPackages = new TreeMap<>();
+    private final Map<String, Map<String, Set<String>>> passivePackages = new TreeMap<>();
+
+    private final Map<String, Set<String>> orphanOptionalPackages = new TreeMap<>();
+    private final Map<String, Set<String>> orphanPassivePackages = new TreeMap<>();
 
     protected FeatureContainer(String name, FPID fpid, ProvisioningConfig config) {
         this.name = name;
@@ -142,5 +151,75 @@ public abstract class FeatureContainer {
 
     public Set<ConfigId> getLayers() {
         return layers;
+    }
+
+    void addOptionalPackage(String producer, String spec, String pkg) {
+        Map<String, Set<String>> map = optionalPackages.get(producer);
+        if (map == null) {
+            optionalPackagesProducers.add(producer);
+            map = new TreeMap<>();
+            optionalPackages.put(producer, map);
+        }
+        Set<String> set = map.get(spec);
+        if (set == null) {
+            set = new TreeSet<>();
+            map.put(spec, set);
+        }
+        set.add(pkg);
+    }
+
+    void addPassivePackage(String producer, String spec, String pkg) {
+        Map<String, Set<String>> map = passivePackages.get(producer);
+        if (map == null) {
+            optionalPackagesProducers.add(producer);
+            map = new TreeMap<>();
+            passivePackages.put(producer, map);
+        }
+        Set<String> set = map.get(spec);
+        if (set == null) {
+            set = new TreeSet<>();
+            map.put(spec, set);
+        }
+        set.add(pkg);
+    }
+
+    void addOrphanOptionalPackage(String producer, String pkg) {
+        Set<String> set = orphanOptionalPackages.get(producer);
+        if (set == null) {
+            optionalPackagesProducers.add(producer);
+            set = new TreeSet<>();
+            orphanOptionalPackages.put(producer, set);
+        }
+        set.add(pkg);
+    }
+
+    void addOrphanPassivePackage(String producer, String pkg) {
+        Set<String> set = orphanPassivePackages.get(producer);
+        if (set == null) {
+            optionalPackagesProducers.add(producer);
+            set = new TreeSet<>();
+            orphanPassivePackages.put(producer, set);
+        }
+        set.add(pkg);
+    }
+
+    public Set<String> getOptionalPackagesProducers() {
+        return Collections.unmodifiableSet(optionalPackagesProducers);
+    }
+
+    public Map<String, Map<String, Set<String>>> getOptionalPackages() {
+        return Collections.unmodifiableMap(optionalPackages);
+    }
+
+    public Map<String, Map<String, Set<String>>> getPassivePackages() {
+        return Collections.unmodifiableMap(passivePackages);
+    }
+
+    public Map<String, Set<String>> getOrphanOptionalPackages() {
+        return Collections.unmodifiableMap(orphanOptionalPackages);
+    }
+
+    public Map<String, Set<String>> getOrphanPassivePackages() {
+        return Collections.unmodifiableMap(orphanPassivePackages);
     }
 }

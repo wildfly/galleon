@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,10 +30,13 @@ public class Headers {
     public static final String DEFAULT_VALUE = "Default Value";
     public static final String DEPENDENCY = "Dependency";
     public static final String DEPENDENCIES = "Dependencies";
+    public static final String FEATURE = "Feature";
     public static final String LATEST_BUILD = "Latest Build";
     public static final String LAYERS = "Layers";
     public static final String NAME = "Name";
     public static final String OPTION = "Option";
+    public static final String PACKAGE = "Package";
+    public static final String PASSIVE = "Passive";
     public static final String PATCH = "Patch";
     public static final String PATCHES = "Patches";
     public static final String PATCH_FOR = "Patch For";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.PmCommandInvocation;
+import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import org.jboss.galleon.cli.cmd.Headers;
 import org.jboss.galleon.cli.cmd.Table;
@@ -39,6 +40,7 @@ import org.jboss.galleon.cli.cmd.Table.Cell;
 import org.jboss.galleon.cli.cmd.maingrp.LayersConfigBuilder;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.LAYERS;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.OPTIONAL_PACKAGES;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.PATCHES;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.UNIVERSES;
 import org.jboss.galleon.cli.model.ConfigInfo;
@@ -70,6 +72,7 @@ import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.UniverseSpec;
 
 /**
@@ -83,6 +86,7 @@ public class StateInfoUtil {
     public static final String NO_CONFIGURATIONS = "No configurations.";
     public static final String NO_DEPENDENCIES = "No dependencies.";
     public static final String NO_LAYERS = "No layers.";
+    public static final String NO_OPTIONAL_PACKAGES = "No optional packages.";
     public static final String NO_OPTIONS = "No options.";
     public static final String NO_PATCHES = "No patches.";
     public static final String NO_UNIVERSES = "No custom universes.";
@@ -357,6 +361,110 @@ public class StateInfoUtil {
         return null;
     }
 
+    public static String buildOptionalPackages(PmSession session, FeatureContainer container,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        String optionValue
+                = container.getProvisioningConfig().getOption(ProvisioningOption.OPTIONAL_PACKAGES.getName());
+        if (optionValue == null) {
+            optionValue = Constants.ALL;
+        }
+        Table.Tree t = null;
+        boolean passivePresent = !container.getPassivePackages().isEmpty()
+                || !container.getOrphanPassivePackages().isEmpty();
+        Set<String> optionalProducers = container.getOptionalPackagesProducers();
+        if (!optionalProducers.isEmpty()) {
+            if (passivePresent) {
+                t = new Table.Tree(Headers.PRODUCT, Headers.FEATURE, Headers.PACKAGE, Headers.PASSIVE);
+            } else {
+                t = new Table.Tree(Headers.PRODUCT, Headers.FEATURE, Headers.PACKAGE);
+            }
+            for (String producer : optionalProducers) {
+                String displayProducer = producer;
+                try {
+                    ProducerSpec pSpec = FeaturePackLocation.fromString(producer).getProducer();
+                    if (session.getUniverse().getBuiltinUniverseSpec().equals(pSpec.getUniverse())) {
+                        displayProducer = pSpec.getName();
+                    }
+                } catch (Exception ex) {
+                    // Not a producerSpec, keep original one.
+                }
+                Table.Node producerNode = new Table.Node(displayProducer);
+                t.add(producerNode);
+                Map<String, Set<String>> optionalPkgs = container.getOptionalPackages().get(producer);
+                if (optionalPkgs != null && !optionalPkgs.isEmpty()) {
+                    for (Entry<String, Set<String>> entry : optionalPkgs.entrySet()) {
+                        Table.Node feat = new Table.Node(entry.getKey());
+                        producerNode.addNext(feat);
+                        for (String p : entry.getValue()) {
+                            Table.Node pkg = new Table.Node(p);
+                            feat.addNext(pkg);
+                            if (passivePresent) {
+                                pkg.addNext(new Table.Node(""));
+                            }
+                        }
+                        Map<String, Set<String>> passivePkgs = container.getPassivePackages().get(producer);
+                        if (passivePkgs != null) {
+                            Set<String> passives = passivePkgs.get(entry.getKey());
+                            if (passives != null) {
+                                for (String p : passives) {
+                                    Table.Node pkg = new Table.Node(p);
+                                    feat.addNext(pkg);
+                                    pkg.addNext(new Table.Node("true"));
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Map<String, Set<String>> passivePkgs = container.getPassivePackages().get(producer);
+                    if (passivePkgs != null && !passivePkgs.isEmpty()) {
+                        for (Entry<String, Set<String>> entry : passivePkgs.entrySet()) {
+                            Table.Node feat = new Table.Node(entry.getKey());
+                            producerNode.addNext(feat);
+                            for (String p : entry.getValue()) {
+                                Table.Node pkg = new Table.Node(p);
+                                feat.addNext(pkg);
+                                pkg.addNext(new Table.Node("true"));
+                            }
+                        }
+                    }
+                }
+                Set<String> orphanOptionals = container.getOrphanOptionalPackages().get(producer);
+                Set<String> orphanPassives = container.getOrphanPassivePackages().get(producer);
+                if (orphanOptionals != null
+                        || orphanPassives != null) {
+                    Table.Node feat = new Table.Node("{no-feature}");
+                    producerNode.addNext(feat);
+
+                    if (orphanOptionals != null) {
+                        for (String p : orphanOptionals) {
+                            Table.Node pkg = new Table.Node(p);
+                            feat.addNext(pkg);
+                            if (passivePresent) {
+                                pkg.addNext(new Table.Node(""));
+                            }
+                        }
+                    }
+                    if (orphanPassives != null) {
+                        for (String p : orphanPassives) {
+                            Table.Node pkg = new Table.Node(p);
+                            feat.addNext(pkg);
+                            pkg.addNext(new Table.Node("true"));
+                        }
+                    }
+                }
+            }
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append("Optional packages (Provisioning option: " + optionValue + ")"
+                + Config.getLineSeparator());
+        if (t == null) {
+            builder.append(NO_OPTIONAL_PACKAGES);
+        } else {
+            builder.append(t.build());
+        }
+        return builder.toString();
+    }
+
     public static String buildLayers(ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
         Map<String, Map<String, Set<String>>> layersMap = LayersConfigBuilder.getAllLayers(pLayout);
         if (!layersMap.isEmpty()) {
@@ -562,6 +670,9 @@ public class StateInfoUtil {
                             if (displayLayers(invoc, layout)) {
                                 invoc.println("");
                             }
+                            if (displayOptionalPackages(invoc, container, layout)) {
+                                invoc.println("");
+                            }
                             if (displayOptions(invoc, layout)) {
                                 invoc.println("");
                             }
@@ -623,6 +734,13 @@ public class StateInfoUtil {
                             }
                             break;
                         }
+                        case OPTIONAL_PACKAGES: {
+                            FeatureContainer container = supplier.apply(layout);
+                            String packages = buildOptionalPackages(invoc.getPmSession(),
+                                    container, layout);
+                            invoc.print(packages);
+                            break;
+                        }
                         default: {
                             throw new CommandExecutionException(CliErrors.invalidInfoType());
                         }
@@ -646,6 +764,13 @@ public class StateInfoUtil {
     private static String buildConfigs(PmCommandInvocation invoc, FeatureContainer container,
             ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
         return buildConfigs(container.getFinalConfigs(), pLayout);
+    }
+
+    private static boolean displayOptionalPackages(PmCommandInvocation invoc, FeatureContainer container,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        String str = buildOptionalPackages(invoc.getPmSession(), container, pLayout);
+        invoc.print(str);
+        return true;
     }
 
     private static void displayFeaturePacks(PmCommandInvocation invoc, Path installation,

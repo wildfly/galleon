@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.jboss.galleon.Constants;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -38,6 +40,8 @@ import org.jboss.galleon.runtime.PackageRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
 import org.jboss.galleon.runtime.ResolvedSpecId;
+import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.state.ProvisionedConfig;
 import org.jboss.galleon.state.ProvisionedFeature;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -93,10 +97,52 @@ public abstract class FeatureContainers {
         CliPlugin plugin = cliPlugins.isEmpty() ? null : cliPlugins.get(0);
         PackageGroupsBuilder pkgBuilder = new PackageGroupsBuilder();
         FeatureSpecsBuilder specsBuilder = new FeatureSpecsBuilder();
+        String optionalOption = runtime.getProvisioningConfig().
+                getOption(ProvisioningOption.OPTIONAL_PACKAGES.getName());
+        if (optionalOption == null) {
+            optionalOption = Constants.ALL;
+        }
+        boolean includeOptional = false;
+        boolean includePassive = false;
+        boolean checkPassive = false;
+        if (optionalOption.equals(Constants.ALL)) {
+            includePassive = true;
+            includeOptional = true;
+        } else {
+            if (optionalOption.equals(Constants.NONE)) {
+                // No optional included.
+                includeOptional = false;
+                includePassive = false;
+            } else {
+                if (optionalOption.equals(Constants.PASSIVE)) {
+                    // Include passives that have dependencies present.
+                    includeOptional = false;
+                    includePassive = true;
+                    checkPassive = true;
+                } else {
+                    if (optionalOption.equals(Constants.PASSIVE_PLUS)) {
+                        // Include passives that have dependencies present and optionals
+                        includeOptional = true;
+                        includePassive = true;
+                        checkPassive = true;
+                    } else {
+                        throw new ProvisioningException("Not recognized value for " + Constants.OPTIONAL_PACKAGES);
+                    }
+                }
+            }
+        }
+        boolean includeOptionalF = includeOptional;
+        boolean includePassiveF = includePassive;
+        Map<String, Map<String, PackageRuntime>> allPackages = new HashMap<>();
         for (FeaturePackRuntime rt : runtime.getFeaturePacks()) {
             fp.addLayers(rt.loadLayers());
             pkgBuilder.resetRoots();
+            allPackages.put(rt.getFPID().getProducer().toString(), new HashMap<>());
             for (PackageRuntime pkg : rt.getPackages()) {
+                if (checkPassive && pkg.isPassive() && !pkg.isPassiveIncluded()) { // exclude passives that don't match.
+                    continue;
+                }
+                allPackages.get(rt.getFPID().getProducer().toString()).put(pkg.getName(), pkg);
                 pkgBuilder.buildGroups(new PackageInfo(pkg, Identity.
                         fromChannel(rt.getFPID().getProducer(), pkg.getName()), plugin), new PackageGroupsBuilder.PackageInfoBuilder() {
                     @Override
@@ -176,6 +222,35 @@ public abstract class FeatureContainers {
             c.handle(new ProvisionedConfigHandler() {
                 @Override
                 public void nextFeature(ProvisionedFeature feature) throws ProvisioningException {
+                    FeaturePackRuntime rt = runtime.getFeaturePack(feature.getSpecId().getProducer());
+                    FeatureSpec featureSpec = rt.getFeatureSpec(feature.getSpecId().getName());
+                    ProducerSpec producer = feature.getSpecId().getProducer();
+                    for (PackageDependencySpec spec : featureSpec.getLocalPackageDeps()) {
+                        PackageRuntime pkg = allPackages.get(producer.toString()).get(spec.getName());
+                        if(pkg != null) {
+                            if (includePassiveF && pkg.isPassive()) {
+                                fp.addPassivePackage(producer.toString(), feature.getSpecId().getName(), spec.getName());
+                            } else {
+                                if (includeOptionalF && pkg.isOptional()) {
+                                    fp.addOptionalPackage(producer.toString(), feature.getSpecId().getName(), spec.getName());
+                                }
+                            }
+                        }
+                    }
+                    if (featureSpec.hasExternalPackageDeps()) {
+                        for (String origin : featureSpec.getPackageOrigins()) {
+                            for (PackageDependencySpec spec : featureSpec.getExternalPackageDeps(origin)) {
+                                PackageRuntime pkg = allPackages.get(origin).get(spec.getName());
+                                if (pkg != null) {
+                                    if (includePassiveF && pkg.isPassive()) {
+                                        fp.addPassivePackage(origin, feature.getSpecId().getName(), spec.getName());
+                                    } else if (includeOptionalF && pkg.isOptional()) {
+                                        fp.addOptionalPackage(origin, feature.getSpecId().getName(), spec.getName());
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Set<ResolvedSpecId> set = actualSet.get(feature.getSpecId().getProducer());
                     if (set == null) {
                         set = new HashSet<>();
@@ -202,6 +277,35 @@ public abstract class FeatureContainers {
                 }
             });
             config.setFeatureGroupRoot(grpBuilder.getRoot());
+        }
+        // Handle packages that are not directly referenced from a feature.
+        for (String producer : allPackages.keySet()) {
+            Set<String> allOptionals = new HashSet<>();
+            Set<String> allPassives = new HashSet<>();
+            Map<String, Set<String>> optionals = fp.getOptionalPackages().get(producer);
+            if (optionals != null) {
+                for (Set<String> vals : optionals.values()) {
+                    allOptionals.addAll(vals);
+                }
+            }
+            Map<String, Set<String>> passives = fp.getPassivePackages().get(producer);
+            if (passives != null) {
+                for (Set<String> vals : passives.values()) {
+                    allPassives.addAll(vals);
+                }
+            }
+            Map<String, PackageRuntime> packages = allPackages.get(producer);
+            for (Entry<String, PackageRuntime> entry : packages.entrySet()) {
+                String name = entry.getKey();
+                PackageRuntime pkg = entry.getValue();
+                if (!allOptionals.contains(name) && !allPassives.contains(name)) {
+                    if (includePassiveF && pkg.isPassive()) {
+                        fp.addOrphanPassivePackage(producer, name);
+                    } else if (includeOptionalF && pkg.isOptional()) {
+                        fp.addOrphanOptionalPackage(producer, name);
+                    }
+                }
+            }
         }
         if (!allSpecs) {
             // Build the set of FeatureSpecInfo, side effect is to connect
