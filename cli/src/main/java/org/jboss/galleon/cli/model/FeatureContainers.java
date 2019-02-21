@@ -192,8 +192,8 @@ public abstract class FeatureContainers {
                             }
 
                             if (p == null) {
-                                throw new RuntimeException("Package " + pkg.getName()
-                                        + ", unknown dependency " + identity + " local is " + currentRuntime.getFPID());
+                                // Optional package that has been excluded
+                                return null;
                             }
 
                             return new PackageInfo(p, resolvedIdentity, plugin);

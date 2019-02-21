@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,10 @@ public class PackageGroupsBuilder {
     }
 
     private void buildGroups(Group grp, PackageInfo pkg, PackageInfoBuilder builder) {
+        if (pkg == null) {
+            // Excluded optional package referenced from other package.
+            return;
+        }
         Group gp = allPackagesGroups.get(pkg.getIdentity());
         if (gp == null) {
             gp = Group.fromIdentity(pkg.getIdentity());
