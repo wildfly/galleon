@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -164,10 +164,30 @@ public class PackageRuntime implements ProvisionedPackage {
     private final PackageSpec spec;
     private final Path layoutDir;
 
+    private final int status;
+    private final boolean isPassiveIncluded;
+    private final boolean passive;
+
     private PackageRuntime(Builder builder, FeaturePackRuntime fp) {
         this.fp = fp;
         this.spec = builder.spec;
         this.layoutDir = builder.dir;
+        passive = builder.type == PackageDependencySpec.PASSIVE;
+        isPassiveIncluded = passive
+                && builder.isPassiveWithSatisfiedDeps();
+        status = builder.status;
+    }
+
+    public boolean isPassive() {
+        return passive;
+    }
+
+    public boolean isOptional() {
+        return (status & INCLUDED) == 0 && ((status & PARENT_INCLUDED) > 0 || (status & ROOT) > 0);
+    }
+
+    public boolean isPassiveIncluded() {
+        return isPassiveIncluded;
     }
 
     public FeaturePackRuntime getFeaturePackRuntime() {

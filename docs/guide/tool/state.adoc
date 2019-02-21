@@ -197,17 +197,36 @@ into the provisioning configuration, this operation has no side effect.
 
 ### Observing an installation
 
-_[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|layers|patches]_
+_[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|layers|optional-packages|options|patches|universes]_
 
 Display the set of installed feature-packs FPID. In addition can display configurations, dependencies layers and patches. + 
 NB: If some patches are applied, the applied patches information is displayed.
 
 ### Observing a feature-pack
 
-_[my-dir]$ feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|layers|options]_
+_[my-dir]$ feature-pack get-info <[FPL|FPID] | [--file=<path to fp zip file>]> --type=[all|configs|dependencies|layers|optional-packages|options]_
 
 Display the FPID of a feature-pack. In addition can display dependencies, configurations, 
 layers and options usable when installing/provisioning/upgrading.
+
+### Optional packages
+
+When getting information on an installation or a feature-pack, using _--type=optional-packages_ option, you can retrieve the list of
+optional packages. At installation time the set of optional packages installed is controlled by the option _--optional-packages=<all|none|passive|passive+>_. 
+
+There are 2 kind of optional packages. _passive_ ones, that are installed only if all their dependencies are installed and _optional_ 
+ones that have no requirements on their dependencies. Generally passive optional packages shouldn't be excluded from an installation. They
+are needed for the package to properly operate when the other packages on which it depends are provisioned. Optional packages that are not passive
+can be excluded if not needed (according to the execution context). 
+
+When installing a complete feature-pack or installing a default configuration, the default value for _--optional-packages_ is 
+_all_ (all optional and passive packages are installed).
+
+When installing layers with the install commands the default value for _--optional-packages_ is 
+_passive+_ (all optional and passive packages that have all their dependencies installed are installed).
+
+You can override these default values by using the _--optional-packages_ option. 
+Use _none_ value to not install any optional nor passive packages, _passive_ value to only install passive packages that have all their dependencies installed.
 
 ### Managing the local cache of feature-packs
 
