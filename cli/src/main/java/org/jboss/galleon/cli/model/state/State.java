@@ -45,6 +45,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntimeBuilder;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
@@ -247,6 +248,16 @@ public class State {
 
     public void defineConfiguration(PmSession pmSession, ConfigId id) throws ProvisioningException, IOException {
         Action action = configProvisioning.newConfiguration(id);
+        config = pushState(action, pmSession);
+    }
+
+    public void excludePackageFromNewTransitive(PmSession pmSession, ProducerSpec producer, String pkg) throws ProvisioningException, IOException {
+        Action action = fpProvisioning.excludePackageFromNewTransitive(producer, pkg);
+        config = pushState(action, pmSession);
+    }
+
+    public void includePackageInNewTransitive(PmSession pmSession, ProducerSpec producer, String pkg) throws ProvisioningException, IOException {
+        Action action = fpProvisioning.includePackageInNewTransitive(producer, pkg);
         config = pushState(action, pmSession);
     }
 
