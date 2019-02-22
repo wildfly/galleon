@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,11 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.cli.cmd.CliErrors;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.ALL;
 import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.LAYERS;
+import static org.jboss.galleon.cli.cmd.state.InfoTypeCompleter.OPTIONAL_PACKAGES;
 import org.jboss.galleon.cli.cmd.state.StateInfoUtil;
 import org.jboss.galleon.cli.model.ConfigInfo;
+import org.jboss.galleon.cli.model.FeatureContainer;
+import org.jboss.galleon.cli.model.FeatureContainers;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.CONFIGS;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.DEPENDENCIES;
 import static org.jboss.galleon.cli.path.FeatureContainerPathConsumer.OPTIONS;
@@ -65,7 +68,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         @Override
         protected List<String> getItems(PmCompleterInvocation completerInvocation) {
             // No patch for un-customized FP.
-            return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, LAYERS, OPTIONS);
+            return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, LAYERS, OPTIONAL_PACKAGES, OPTIONS);
         }
 
     }
@@ -147,6 +150,9 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                             if (displayLayers(commandInvocation, layout)) {
                                 commandInvocation.println("");
                             }
+                            if (displayOptionalPackages(commandInvocation, layout)) {
+                                commandInvocation.println("");
+                            }
                             displayOptions(commandInvocation, layout);
                             break;
                         }
@@ -171,6 +177,12 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
                         case OPTIONS: {
                             if (!displayOptions(commandInvocation, layout)) {
                                 commandInvocation.println(StateInfoUtil.NO_OPTIONS);
+                            }
+                            break;
+                        }
+                        case OPTIONAL_PACKAGES: {
+                            if (!displayOptionalPackages(commandInvocation, layout)) {
+                                commandInvocation.println(StateInfoUtil.NO_OPTIONAL_PACKAGES);
                             }
                             break;
                         }
@@ -240,5 +252,24 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
             commandInvocation.print(str);
         }
         return str != null;
+    }
+
+    private boolean displayOptionalPackages(PmCommandInvocation commandInvocation,
+            ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
+        Map<String, List<ConfigInfo>> configs = new HashMap<>();
+        try (ProvisioningRuntime rt = ProvisioningRuntimeBuilder.
+                newInstance(commandInvocation.getPmSession().getMessageWriter(false))
+                .initRtLayout(pLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY))
+                .setEncoding(ProvisioningManager.Builder.ENCODING)
+                .build()) {
+            FeatureContainer container = FeatureContainers.
+                    fromProvisioningRuntime(commandInvocation.getPmSession(), rt);
+            String str = StateInfoUtil.buildOptionalPackages(commandInvocation.getPmSession(),
+                    container, pLayout);
+            if (str != null) {
+                commandInvocation.print(str);
+            }
+            return str != null;
+        }
     }
 }
