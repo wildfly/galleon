@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,15 @@ public class StateIncludePackageCommand extends AbstractPackageCommand {
     @Override
     protected void runCommand(PmCommandInvocation invoc, State session, FeaturePackConfig config) throws IOException, ProvisioningException, CommandExecutionException {
         try {
-            session.includePackage(invoc.getPmSession(), PackagesUtil.getPackage(invoc.getPmSession(), config.getLocation().getFPID(), getPackage()), config);
+            int i = getPackage().indexOf("/");
+            String name = getPackage().substring(i + 1);
+            // If the config is null, it means that the package exists in a transitive dependency
+            // but no transitive dependency has been created yet.
+            if (config == null) {
+                session.includePackageInNewTransitive(invoc.getPmSession(), getProducer(invoc.getPmSession()), name);
+            } else {
+                session.includePackage(invoc.getPmSession(), name, config);
+            }
         } catch (Exception ex) {
             throw new CommandExecutionException(invoc.getPmSession(), CliErrors.includeFailed(), ex);
         }

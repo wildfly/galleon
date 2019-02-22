@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +20,17 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER3;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER4;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeatureParameterSpec;
@@ -49,16 +54,21 @@ public class StateTestCase {
     private static MvnUniverse universe;
     private static FeaturePackLocation loc;
     private static FeaturePackLocation locLayers;
+    private static FeaturePackLocation locWithTransitive;
+    private static FeaturePackLocation transitive;
 
     @BeforeClass
     public static void setup() throws Exception {
         cli = new CliWrapper();
         universe = MvnUniverse.getInstance(UNIVERSE_NAME, cli.getSession().getMavenRepoManager());
-        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2));
+        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3, PRODUCER4));
         install("1.0.0.Final");
         installLayers("1.0.0.Final");
+        installWithDependency("1.0.0.Final");
         loc = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null);
         locLayers = CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, null);
+        locWithTransitive = CliTestUtils.buildFPL(universeSpec, PRODUCER4, "1", null, null);
+        transitive = CliTestUtils.buildFPL(universeSpec, PRODUCER3, "1", null, "1.0.0.Final");
     }
 
     @AfterClass
@@ -168,6 +178,182 @@ public class StateTestCase {
             cli.execute("add-dependency " + loc + " --default-configs-inherit --packages-inherit");
             doNavigationTest();
             doEditionTest();
+        } finally {
+            cli.execute("leave-state");
+        }
+    }
+
+    @Test
+    public void testTransitivePackages() throws Exception {
+        cli.execute("state new");
+        try {
+            cli.execute("add-dependency " + locWithTransitive + " --default-configs-inherit");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("exclude-package " + transitive.getProducer() + "/p1");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+
+            Path p1 = cli.newDir("exported-transitive1", false);
+            cli.execute("provision --dir=" + p1.toFile().getAbsolutePath());
+            ProvisioningManager mgr1 = ProvisioningManager.builder().setInstallationHome(p1).build();
+            Assert.assertTrue(mgr1.getProvisioningConfig().getTransitiveDeps().size() == 1);
+            Assert.assertTrue(mgr1.getProvisioningConfig().getTransitiveDeps().iterator().next().
+                    getExcludedPackages().contains("p1"));
+            cli.execute("undo");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+
+            cli.execute("exclude-package " + transitive.getProducer() + "/p1");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("remove-excluded-package p1");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("undo");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+
+            cli.execute("remove-excluded-package p1");
+            Path p2 = cli.newDir("exported-transitive2", false);
+            cli.execute("provision --dir=" + p2.toFile().getAbsolutePath());
+            ProvisioningManager mgr2 = ProvisioningManager.builder().setInstallationHome(p2).build();
+            Assert.assertTrue(mgr2.getProvisioningConfig().getTransitiveDeps().isEmpty());
+
+            boolean failed = false;
+            try {
+                cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            } catch (Exception ex) {
+                // expected.
+                failed = true;
+            }
+            if (!failed) {
+                throw new Exception("Package p2 shouldn't be present");
+            }
+            cli.execute("include-package " + transitive.getProducer() + "/p2");
+
+            Path p3 = cli.newDir("exported-transitive3", false);
+            cli.execute("provision --dir=" + p3.toFile().getAbsolutePath());
+            ProvisioningManager mgr3 = ProvisioningManager.builder().setInstallationHome(p3).build();
+            Assert.assertTrue(mgr3.getProvisioningConfig().getTransitiveDeps().size() == 1);
+            Assert.assertTrue(mgr3.getProvisioningConfig().getTransitiveDeps().iterator().next().
+                    getIncludedPackages().contains("p2"));
+            cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            cli.execute("undo");
+            failed = false;
+            try {
+                cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            } catch (Exception ex) {
+                // expected.
+                failed = true;
+            }
+            if (!failed) {
+                throw new Exception("Package p2 shouldn't be present");
+            }
+            cli.execute("include-package " + transitive.getProducer() + "/p2");
+
+            cli.execute("remove-included-package p2");
+            failed = false;
+            try {
+                cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            } catch (Exception ex) {
+                // expected.
+                failed = true;
+            }
+            if (!failed) {
+                throw new Exception("Package p2 shouldn't be present");
+            }
+            cli.execute("undo");
+            cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            cli.execute("remove-included-package p2");
+
+            Path p4 = cli.newDir("exported-transitive4", false);
+            cli.execute("provision --dir=" + p4.toFile().getAbsolutePath());
+            ProvisioningManager mgr4 = ProvisioningManager.builder().setInstallationHome(p4).build();
+            Assert.assertTrue(mgr4.getProvisioningConfig().getTransitiveDeps().isEmpty());
+        } finally {
+            cli.execute("leave-state");
+        }
+    }
+
+    @Test
+    public void testTransitiveWithVersion() throws Exception {
+        ProvisioningConfig config = ProvisioningConfig.builder().addFeaturePackDep(locWithTransitive).
+                addTransitiveDep(transitive).build();
+        Path p = cli.newDir("version_transitive", false);
+        //Provision a config with a transitive with version set.
+        ProvisioningManager mgr1 = cli.getSession().newProvisioningManager(p, true);
+        mgr1.provision(config);
+        cli.execute("state edit " + p.toFile().getAbsolutePath());
+        try {
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("exclude-package " + transitive.getProducer() + "/p1");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("undo");
+            // Check that we still have the transitive dep.
+            ProvisioningManager mgr2 = ProvisioningManager.builder().setInstallationHome(p).build();
+            Assert.assertTrue(mgr2.getProvisioningConfig().getTransitiveDeps().size() == 1);
+            Assert.assertTrue(mgr2.getProvisioningConfig().getTransitiveDeps().iterator().next().
+                    getExcludedPackages().isEmpty());
+        } finally {
+            cli.execute("leave-state");
+        }
+    }
+
+    @Test
+    public void testTransitiveWithExistingPackages() throws Exception {
+        FeaturePackConfig transitiveConfig = FeaturePackConfig.transitiveBuilder(transitive).
+                excludePackage("p1").includePackage("p2").build();
+        FeaturePackConfig topLevelConfig = FeaturePackConfig.builder(locWithTransitive).setInheritPackages(false).build();
+        ProvisioningConfig config = ProvisioningConfig.builder().addFeaturePackDep(topLevelConfig).
+                addFeaturePackDep(transitiveConfig).build();
+        Path p = cli.newDir("transitive_packages", false);
+        //Provision a config with a transitive with already excluded package
+        ProvisioningManager mgr1 = cli.getSession().newProvisioningManager(p, true);
+        mgr1.provision(config);
+        cli.execute("state edit " + p.toFile().getAbsolutePath());
+        try {
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertFalse(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("remove-excluded-package p1");
+            cli.execute("get-info --type=optional-packages");
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("p1"));
+            Assert.assertTrue(cli.getOutput(), cli.getOutput().contains(PRODUCER3));
+            cli.execute("undo");
+
+            cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            cli.execute("remove-included-package p2");
+            boolean failed = false;
+            try {
+                cli.execute("ls /packages/" + transitive.getProducer() + "/p2");
+            } catch (Exception ex) {
+                // expected.
+                failed = true;
+            }
+            if (!failed) {
+                throw new Exception("Package p2 shouldn't be present");
+            }
+            cli.execute("undo");
+            Path p2 = cli.newDir("transitive_packages_reprovisioned", false);
+            cli.execute("provision --dir=" + p2.toFile().getAbsolutePath());
+            // Check that we still have the transitive dep and its original content.
+            ProvisioningManager mgr2 = ProvisioningManager.builder().setInstallationHome(p2).build();
+            Assert.assertTrue(mgr2.getProvisioningConfig().getTransitiveDeps().size() == 1);
+            Assert.assertTrue(mgr2.getProvisioningConfig().getTransitiveDeps().iterator().next().
+                    getExcludedPackages().contains("p1"));
+            Assert.assertTrue(mgr2.getProvisioningConfig().getTransitiveDeps().iterator().next().
+                    getIncludedPackages().contains("p2"));
         } finally {
             cli.execute("leave-state");
         }
@@ -385,6 +571,34 @@ public class StateTestCase {
                         .build()).
                 addConfig(ConfigModel.builder().setModel("model1").
                         setName("name1").addFeature(new FeatureConfig("specA").setParam("p1", "1")).build());
+        creator.install();
+    }
+
+    public static void installWithDependency(String version) throws ProvisioningException {
+        FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
+        FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
+                PRODUCER3, "1", null, version);
+        creator.newFeaturePack(fp1.getFPID()).addFeatureSpec(FeatureSpec.builder("specA").addPackageDep("p1", true)
+                .addParam(FeatureParameterSpec.createId("p1"))
+                .build())
+                .addConfig(ConfigModel.builder().setModel("model1").
+                        setName("name1").
+                        addFeature(new FeatureConfig("specA").setParam("p1", "1")).build(), true)
+                .newPackage("p1", false)
+                .writeContent("fp1/p1.txt", "fp1 p1").getFeaturePack().
+                newPackage("p2", true)
+                .writeContent("fp2/p2.txt", "fp1 p2");
+
+        FeaturePackLocation fp2 = new FeaturePackLocation(universeSpec,
+                PRODUCER4, "1", null, version);
+        FeaturePackConfig dep = FeaturePackConfig.builder(fp1).setInheritConfigs(false).setInheritPackages(false).build();
+        creator.newFeaturePack(fp2.getFPID())
+                .addDependency(dep).addFeatureSpec(FeatureSpec.builder("specB")
+                .addParam(FeatureParameterSpec.createId("p1"))
+                .build()).
+                addConfig(ConfigModel.builder().setModel("model1").
+                        setName("name1").addFeature(new FeatureConfig("specB").setParam("p1", "1")).
+                        addFeature(new FeatureConfig("specA").setParam("p1", "1")).build(), true);
         creator.install();
     }
 

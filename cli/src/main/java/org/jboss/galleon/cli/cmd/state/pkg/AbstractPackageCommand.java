@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,6 @@ package org.jboss.galleon.cli.cmd.state.pkg;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.aesh.command.option.Argument;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
@@ -137,11 +136,10 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
             String orig = getPackage().substring(0, i);
             String name = getPackage().substring(i + 1);
             FeaturePackLocation.FPID fpid = null;
-            for (Entry<String, FeatureContainer> entry : session.getContainer().getFullDependencies().entrySet()) {
-                FeatureContainer container = entry.getValue();
+            FeatureContainer container = session.getContainer().getFullDependencies().get(orig);
+            if (container != null) {
                 if (container.getAllPackages().containsKey(Identity.fromString(orig, name))) {
                     fpid = container.getFPID();
-                    break;
                 }
             }
             if (fpid == null) {
@@ -153,9 +151,17 @@ public abstract class AbstractPackageCommand extends AbstractFPProvisionedComman
                     break;
                 }
             }
-        }
-        if (config == null) {
-            throw new CommandExecutionException("No feature pack found for " + getPackage());
+            if (config == null) {
+                // reset buildID
+                FeaturePackLocation noBuildLocation = new FeaturePackLocation(fpid.getUniverse(), fpid.getProducer().getName(),
+                        null, null, null);
+                for (FeaturePackConfig c : session.getState().getConfig().getTransitiveDeps()) {
+                    if (c.getLocation().equals(c.getLocation().hasBuild() ? fpid.getLocation() : noBuildLocation)) {
+                        config = c;
+                        break;
+                    }
+                }
+            }
         }
         return config;
     }
