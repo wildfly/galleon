@@ -17,7 +17,9 @@
 package org.jboss.galleon.cli.model.state;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -28,6 +30,7 @@ import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
  *
@@ -84,7 +87,7 @@ class FeaturePackProvisioning {
 
         private final Map<FeaturePackConfig, T> cf;
         private final Map<FeaturePackLocation.FPID, Integer> indexes = new HashMap<>();
-
+        private final List<FeaturePackConfig> transitives = new ArrayList<>();
         AbstractAction(Map<FeaturePackConfig, T> cf) {
             this.cf = cf;
         }
@@ -98,12 +101,30 @@ class FeaturePackProvisioning {
                 boolean doit = doAction(fpBuilder, entry.getValue());
                 // this complexity is due to the fact that some fp could already have the configuration included/excluded/...
                 if (doit) {
-                    int index = builder.getFeaturePackDepIndex(entry.getKey().getLocation());
-                    indexes.put(entry.getKey().getLocation().getFPID(), index);
-                    builder.removeFeaturePackDep(entry.getKey().getLocation());
-                    builder.addFeaturePackDep(index, fpBuilder.build());
+                    FeaturePackConfig cfg = fpBuilder.build();
+                    if (cfg.isTransitive()) {
+                        builder.removeTransitiveDep(cfg.getLocation().getFPID());
+                        // Do not add back empty transitive
+                        if (cfg.getLocation().getBuild() != null || !isEmptyConfig(cfg)) {
+                            builder.addFeaturePackDep(cfg);
+                        }
+                        transitives.add(entry.getKey());
+                    } else {
+                        int index = builder.getFeaturePackDepIndex(entry.getKey().getLocation());
+                        indexes.put(entry.getKey().getLocation().getFPID(), index);
+                        builder.removeFeaturePackDep(entry.getKey().getLocation());
+                        builder.addFeaturePackDep(index, fpBuilder.build());
+                    }
                 }
             }
+        }
+
+        private boolean isEmptyConfig(FeaturePackConfig cfg) {
+            return !cfg.hasDefinedConfigs() && !cfg.hasExcludedConfigs()
+                    && !cfg.hasExcludedPackages() && !cfg.hasFullModelsExcluded()
+                    && !cfg.hasFullModelsIncluded() && !cfg.hasIncludedConfigs()
+                    && !cfg.hasIncludedPackages() && !cfg.hasPatches() && cfg.isInheritPackages()
+                    && cfg.isInheritConfigs();
         }
 
         @Override
@@ -115,6 +136,13 @@ class FeaturePackProvisioning {
                     builder.removeFeaturePackDep(entry.getKey().getLocation());
                     builder.addFeaturePackDep(index, entry.getKey());
                 }
+            }
+            for (FeaturePackConfig t : transitives) {
+                // Empty transitive are not added, so could no more exist
+                if (builder.hasTransitiveFeaturePackDep(t.getLocation().getProducer())) {
+                    builder.removeTransitiveDep(t.getLocation().getFPID());
+                }
+                builder.addFeaturePackDep(t);
             }
         }
 
@@ -241,6 +269,51 @@ class FeaturePackProvisioning {
         }
     }
 
+    private class ExcludePackageFromNewTransitiveAction implements State.Action {
+
+        private final String pkg;
+        private final FeaturePackLocation loc;
+        ExcludePackageFromNewTransitiveAction(ProducerSpec producer, String pkg) {
+            this.pkg = pkg;
+            // New transitive are created without build ID.
+            loc = FeaturePackLocation.fromString(producer.toString());
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            FeaturePackConfig config = FeaturePackConfig.transitiveBuilder(loc).excludePackage(pkg).build();
+            builder.addFeaturePackDep(config);
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeTransitiveDep(loc.getFPID());
+        }
+    }
+
+    private class IncludePackageInNewTransitiveAction implements State.Action {
+
+        private final String pkg;
+        private final FeaturePackLocation loc;
+
+        IncludePackageInNewTransitiveAction(ProducerSpec producer, String pkg) {
+            this.pkg = pkg;
+            // New transitive are created without build ID.
+            loc = FeaturePackLocation.fromString(producer.toString());
+        }
+
+        @Override
+        public void doAction(ProvisioningConfig current, ProvisioningConfig.Builder builder) throws ProvisioningException {
+            FeaturePackConfig config = FeaturePackConfig.transitiveBuilder(loc).includePackage(pkg).build();
+            builder.addFeaturePackDep(config);
+        }
+
+        @Override
+        public void undoAction(ProvisioningConfig.Builder builder) throws ProvisioningException {
+            builder.removeTransitiveDep(loc.getFPID());
+        }
+    }
+
     private class RemoveIncludedPackageAction extends AbstractAction<String> {
 
         RemoveIncludedPackageAction(Map<FeaturePackConfig, String> cf) {
@@ -325,5 +398,13 @@ class FeaturePackProvisioning {
 
     State.Action removeExcludedPackage(Map<FeaturePackConfig, String> cf) throws ProvisioningDescriptionException, ProvisioningException, IOException {
         return new RemoveExcludedPackageAction(cf);
+    }
+
+    State.Action excludePackageFromNewTransitive(ProducerSpec producer, String pkg) {
+        return new ExcludePackageFromNewTransitiveAction(producer, pkg);
+    }
+
+    State.Action includePackageInNewTransitive(ProducerSpec producer, String pkg) {
+        return new IncludePackageInNewTransitiveAction(producer, pkg);
     }
 }

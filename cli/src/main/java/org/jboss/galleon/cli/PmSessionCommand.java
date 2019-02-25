@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ public abstract class PmSessionCommand implements Command<PmCommandInvocation> {
         if (session.getPmSession().isExceptionRethrown()) {
             throw new CommandException(t);
         }
-        // t.printStackTrace();
+        //t.printStackTrace();
         printException(session.getPmSession(), t);
     }
 

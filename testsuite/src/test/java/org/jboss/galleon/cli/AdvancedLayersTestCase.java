@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,11 @@ import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER3;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.ConfigLayerSpec;
+import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.state.ProvisionedState;
@@ -59,7 +61,7 @@ public class AdvancedLayersTestCase {
 
     @AfterClass
     public static void tearDown() {
-        cli.close();
+        //cli.close();
     }
 
     @Test
@@ -80,6 +82,12 @@ public class AdvancedLayersTestCase {
             assertTrue(pkgs.toString(), pkgs.contains("p1-ref-from-optional2"));
             assertFalse(pkgs.toString(), pkgs.contains("p1-passive"));
             assertTrue(pkgs.toString(), pkgs.contains("p2-passive"));
+
+            cli.execute("get-info --dir=" + path + " --type=optional-packages");
+            assertTrue(cli.getOutput(), cli.getOutput().contains("p1-optional"));
+            assertFalse(cli.getOutput().contains("p1-passive"));
+            assertTrue(cli.getOutput().contains("p2-passive"));
+            assertFalse(cli.getOutput().contains("p1-required"));
         }
         {
             Path path = cli.newDir("prod2", false);
@@ -97,6 +105,44 @@ public class AdvancedLayersTestCase {
             assertTrue(pkgs.toString(), pkgs.contains("p2-passive"));
             assertTrue(pkgs.toString(), pkgs.contains("p2-required"));
             assertTrue(pkgs.toString(), pkgs.contains("p2-optional"));
+        }
+        {
+            Path path = cli.newDir("prod3", false);
+            cli.execute("install " + prod1 + " --dir=" + path
+                    + " --layers=layerA-" + PRODUCER1 + " --optional-packages=none");
+
+            cli.execute("get-info --dir=" + path + " --type=optional-packages");
+            assertTrue(cli.getOutput().contains("No optional packages."));
+            assertFalse(cli.getOutput().contains("p1-passive"));
+            assertFalse(cli.getOutput().contains("p2-passive"));
+            assertFalse(cli.getOutput().contains("p1-optional"));
+        }
+        {
+            Path path = cli.newDir("prod4", false);
+            cli.execute("install " + prod1 + " --dir=" + path
+                    + " --layers=layerA-" + PRODUCER1 + " --optional-packages=passive");
+
+            cli.execute("get-info --dir=" + path + " --type=optional-packages");
+            assertFalse(cli.getOutput().contains("p1-passive"));
+            assertTrue(cli.getOutput().contains("p2-passive"));
+            assertFalse(cli.getOutput().contains("p1-optional"));
+        }
+        {
+            Path path = cli.newDir("prod4", false);
+            cli.execute("install " + prod1 + " --dir=" + path
+                    + " --layers=layerA-" + PRODUCER1 + " --optional-packages=all");
+
+            cli.execute("get-info --dir=" + path + " --type=optional-packages");
+            assertTrue(cli.getOutput().contains("p1-passive"));
+            assertTrue(cli.getOutput().contains("p2-passive"));
+            assertTrue(cli.getOutput().contains("p1-optional"));
+            assertFalse(cli.getOutput().contains("p2-optional"));
+
+            cli.execute("feature-pack get-info " + prod1 + " --type=optional-packages");
+            assertTrue(cli.getOutput().contains("p1-passive"));
+            assertTrue(cli.getOutput().contains("p2-passive"));
+            assertTrue(cli.getOutput().contains("p1-optional"));
+            assertTrue(cli.getOutput().contains("p2-optional"));
         }
     }
 
@@ -157,21 +203,24 @@ public class AdvancedLayersTestCase {
                         addPackageDep("p1-optional", true).
                         addPackageDep(PackageDependencySpec.newInstance("p1-passive", PackageDependencySpec.PASSIVE)).
                         addPackageDep(PackageDependencySpec.newInstance("p2-passive", PackageDependencySpec.PASSIVE)).
-                        setName("feat1").build())
+                        setName("feat1").addParam(FeatureParameterSpec.createId("p1")).build())
                 .addFeatureSpec(FeatureSpec.builder().addPackageDep("p2-required").
                         addPackageDep("p2-optional", true).
-                        setName("feat2").build())
+                        setName("feat2").addParam(FeatureParameterSpec.createId("p2")).build())
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("base-" + producer)
                         .build())
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("layerA-" + producer)
-                        .addLayerDep("base-" + producer).addConfigItem(FeatureConfig.newConfig("feat1"))
+                        .addLayerDep("base-" + producer).addFeature(FeatureConfig.newConfig("feat1").setParam("p1", "1"))
                         .build())
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("layerB-" + producer)
-                        .addLayerDep("base-" + producer).addConfigItem(FeatureConfig.newConfig("feat2"))
+                        .addLayerDep("base-" + producer).addFeature(FeatureConfig.newConfig("feat2").setParam("p2", "1"))
                         .build())
+                .addConfig(ConfigModel.builder("testmodel", "foo.xml").
+                        includeLayer("layerA-" + producer).
+                        includeLayer("layerB-" + producer).build(), true)
                 .newPackage("p1-required", false).addDependency("p1-ref-from-required")
                 .writeContent("fp1/p1-required.txt", "fp1 p1").getFeaturePack().
                 newPackage("p1-ref-from-required", false)

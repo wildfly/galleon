@@ -59,6 +59,11 @@ public class PackagesUtil {
                     packages.put(c, pkg);
                 }
             }
+            for (FeaturePackConfig c : session.getState().getConfig().getTransitiveDeps()) {
+                if (c.getIncludedPackages().contains(pkg)) {
+                    packages.put(c, pkg);
+                }
+            }
         } else {
             if (config.getIncludedPackages().contains(pkg)) {
                 packages.put(config, pkg);
@@ -74,6 +79,11 @@ public class PackagesUtil {
         Map<FeaturePackConfig, String> packages = new HashMap<>();
         if (config == null) {
             for (FeaturePackConfig c : session.getState().getConfig().getFeaturePackDeps()) {
+                if (c.getExcludedPackages().contains(pkg)) {
+                    packages.put(c, pkg);
+                }
+            }
+            for (FeaturePackConfig c : session.getState().getConfig().getTransitiveDeps()) {
                 if (c.getExcludedPackages().contains(pkg)) {
                     packages.put(c, pkg);
                 }

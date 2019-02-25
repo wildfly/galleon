@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,11 +35,12 @@ public class InfoTypeCompleter extends AbstractCompleter {
     public static final String ALL = "all";
     public static final String PATCHES = "patches";
     public static final String LAYERS = "layers";
+    public static final String OPTIONAL_PACKAGES = "optional-packages";
     public static final String UNIVERSES = "universes";
 
     @Override
     protected List<String> getItems(PmCompleterInvocation completerInvocation) {
-        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONS, LAYERS, PATCHES, UNIVERSES);
+        return Arrays.asList(ALL, CONFIGS, DEPENDENCIES, OPTIONAL_PACKAGES, OPTIONS, LAYERS, PATCHES, UNIVERSES);
     }
 
 }
