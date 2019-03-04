@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,112 @@ import org.junit.Test;
  * @author Alexey Loubyansky
  */
 public class FeaturePackLocationStringTestCase {
+
+    @Test
+    public void testProducerChannelFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer:channel");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertNull(parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertEquals("channel", parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertNull(parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerChannelBuildFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer:channel#build");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertNull(parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertEquals("channel", parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertEquals("build", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testGavFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("groupId:artifactId:version");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals("maven", parsedSrc.getUniverse().getFactory());
+        Assert.assertNull(parsedSrc.getUniverse().getLocation());
+        Assert.assertEquals("groupId:artifactId::zip", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull("frequency", parsedSrc.getFrequency());
+        Assert.assertEquals("version", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testGavToString() throws Exception {
+        Assert.assertEquals("groupId:artifactId:version",
+                new FeaturePackLocation(
+                        new UniverseSpec("maven"),
+                        "groupId:artifactId::zip", null, null, "version")
+        .toString());
+    }
+
+    @Test
+    public void testGacvFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("groupId:artifactId:classifier:version");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals("maven", parsedSrc.getUniverse().getFactory());
+        Assert.assertNull(parsedSrc.getUniverse().getLocation());
+        Assert.assertEquals("groupId:artifactId:classifier:zip", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertEquals("version", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testGacvToString() throws Exception {
+        Assert.assertEquals("groupId:artifactId:classifier:version",
+                new FeaturePackLocation(
+                        new UniverseSpec("maven"),
+                        "groupId:artifactId:classifier:zip", null, null, "version")
+        .toString());
+    }
+
+    @Test
+    public void testGactvFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("groupId:artifactId:classifier:type:version");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals("maven", parsedSrc.getUniverse().getFactory());
+        Assert.assertNull(parsedSrc.getUniverse().getLocation());
+        Assert.assertEquals("groupId:artifactId:classifier:type", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertEquals("version", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testGactvToString() throws Exception {
+        Assert.assertEquals("groupId:artifactId:classifier:type:version",
+                new FeaturePackLocation(
+                        new UniverseSpec("maven"),
+                        "groupId:artifactId:classifier:type", null, null, "version")
+        .toString());
+    }
+
+    @Test
+    public void testGatvFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("groupId:artifactId::type:version");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals("maven", parsedSrc.getUniverse().getFactory());
+        Assert.assertNull(parsedSrc.getUniverse().getLocation());
+        Assert.assertEquals("groupId:artifactId::type", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertEquals("version", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testGatvToString() throws Exception {
+        Assert.assertEquals("groupId:artifactId::type:version",
+                new FeaturePackLocation(
+                        new UniverseSpec("maven"),
+                        "groupId:artifactId::type", null, null, "version")
+        .toString());
+    }
 
     @Test
     public void testCompleteLocationToString() throws Exception {

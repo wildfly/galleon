@@ -551,15 +551,16 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
     private ProvisioningConfig.Builder install(FeaturePackConfig fpConfig, ProvisioningConfig.Builder configBuilder) throws ProvisioningException {
         FeaturePackLocation fpl = fpConfig.getLocation();
-        final FPID fpid = fpl.getFPID();
-        if(allPatches.containsKey(fpid)) {
-            throw new ProvisioningException(Errors.patchAlreadyApplied(fpid));
-        }
         if(!fpl.hasBuild()) {
             fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
         }
+
         final FeaturePackSpec fpSpec = layoutFactory.resolveFeaturePack(fpl, FeaturePackLayout.DIRECT_DEP, fpFactory).getSpec();
+        final FPID fpid = fpSpec.getFPID();
         if(fpSpec.isPatch()) {
+            if(allPatches.containsKey(fpid)) {
+                throw new ProvisioningException(Errors.patchAlreadyApplied(fpid));
+            }
             F patchTarget = featurePacks.get(fpSpec.getPatchFor().getProducer());
             if(patchTarget == null || !patchTarget.getFPID().equals(fpSpec.getPatchFor())) {
                 throw new ProvisioningException(Errors.patchNotApplicable(fpid, fpSpec.getPatchFor()));
@@ -574,6 +575,11 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             }
             return configBuilder.updateFeaturePackDep(
                     FeaturePackConfig.builder(installedFpConfig.getLocation()).init(installedFpConfig).addPatch(fpid).build());
+        }
+
+        if(fpl.isMavenCoordinates()) {
+            fpl = new FeaturePackLocation(fpid.getUniverse(), fpid.getProducer().getName(), fpid.getChannel().getName(), fpl.getFrequency(), fpid.getBuild());
+            fpConfig = FeaturePackConfig.builder(fpl).init(fpConfig).build();
         }
 
         final F installedFp = featurePacks.get(fpid.getProducer());
@@ -887,13 +893,13 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
 
         if(resolvedVersions != null) {
-            final ProvisioningConfig.Builder builder = ProvisioningConfig.builder(config);
-            for (FeaturePackConfig fpConfig : config.getFeaturePackDeps()) {
-                final ProducerSpec producer = fpConfig.getLocation().getProducer();
-                final FeaturePackLocation resolvedFpl = resolvedVersions.remove(producer);
-                if(resolvedFpl != null) {
-                    builder.updateFeaturePackDep(config.originOf(producer), FeaturePackConfig.builder(resolvedFpl).init(fpConfig).build());
-                }
+            final ProvisioningConfig.Builder builder = ProvisioningConfig.builder()
+                    .addOptions(config.getOptions())
+                    .initUniverses(config)
+                    .initConfigs(config);
+            addFpDeps(builder, config.getFeaturePackDeps());
+            if(config.hasTransitiveDeps()) {
+                addFpDeps(builder, config.getTransitiveDeps());
             }
             if(!resolvedVersions.isEmpty()) {
                 for(FeaturePackLocation fpl : resolvedVersions.values()) {
@@ -962,6 +968,20 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         buildTracker.complete();
     }
 
+    protected void addFpDeps(final ProvisioningConfig.Builder builder, Collection<FeaturePackConfig> deps)
+            throws ProvisioningDescriptionException {
+        for (FeaturePackConfig fpConfig : deps) {
+            final ProducerSpec producer = fpConfig.getLocation().getProducer();
+            final FeaturePackLocation resolvedFpl = resolvedVersions.remove(producer);
+            if (resolvedFpl != null) {
+                builder.addFeaturePackDep(config.originOf(producer),
+                        FeaturePackConfig.builder(resolvedFpl).init(fpConfig).build());
+            } else {
+                builder.addFeaturePackDep(config.originOf(producer), fpConfig);
+            }
+        }
+    }
+
     private void patchFpDir(final Path fpDir, final Path patchDir, String dirName) throws ProvisioningException {
         Path patchContent = patchDir.resolve(dirName);
         if(Files.exists(patchContent)) {
@@ -1012,37 +1032,32 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 addPatches(fpConfig);
             }
 
-            final FPID branchId = branch.get(fpl.getProducer());
-            if(branchId == null) {
-                if(fpl.getBuild() == null) {
-                    fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
-                    if(resolvedVersions == null) {
-                        resolvedVersions = new LinkedHashMap<>();
-                    }
-                    resolvedVersions.put(fpl.getProducer(), fpl);
-                }
-            } else if(!branchId.getBuild().equals(fpl.getBuild())) {
-                fpl = fpl.replaceBuild(branchId.getBuild());
-            }
-
+            FPID branchId = branch.get(fpl.getProducer());
+            fpl = resolveVersion(fpl, branchId);
             F fp = featurePacks.get(fpl.getProducer());
             if(fp != null) {
-                if(branchId == null && !fpl.getBuild().equals(fp.getFPID().getBuild())) {
-                    Set<FPID> versions = conflicts.get(fp.getFPID().getProducer());
-                    if(versions != null) {
-                        versions.add(fpl.getFPID());
-                        continue;
-                    }
-                    versions = new LinkedHashSet<>();
-                    versions.add(fp.getFPID());
-                    versions.add(fpl.getFPID());
-                    conflicts = CollectionUtils.putLinked(conflicts, fpl.getProducer(), versions);
+                if(branchId == null) {
+                    conflictCheck(fpl, fp);
                 }
                 continue;
             }
 
             buildTracker.processing(fpl.getFPID());
             fp = layoutFactory.resolveFeaturePack(fpl, type, fpFactory);
+            if(fpl.isMavenCoordinates()) {
+                branchId = branch.get(fpl.getProducer());
+                final FeaturePackLocation resolvedFpl = resolveVersion(fp.getFPID().getLocation(), branchId);
+                final F existingFp = featurePacks.get(resolvedFpl.getProducer());
+                if(existingFp != null) {
+                    if(branchId == null) {
+                        conflictCheck(resolvedFpl, existingFp);
+                    }
+                    continue;
+                }
+                registerResolvedVersion(fpl.getProducer(), resolvedFpl);
+                featurePacks.put(fpl.getProducer(), fp);
+                fpl = resolvedFpl;
+            }
             buildTracker.processed(fpl.getFPID());
             featurePacks.put(fpl.getProducer(), fp);
 
@@ -1068,6 +1083,39 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             for (ProducerSpec producer : added) {
                 branch.remove(producer);
             }
+        }
+    }
+
+    protected FeaturePackLocation resolveVersion(FeaturePackLocation fpl, final FPID branchId) throws ProvisioningException {
+        if(branchId == null) {
+            if(fpl.getBuild() == null) {
+                fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
+                registerResolvedVersion(fpl.getProducer(), fpl);
+            }
+        } else if(!branchId.getBuild().equals(fpl.getBuild())) {
+            fpl = fpl.replaceBuild(branchId.getBuild());
+        }
+        return fpl;
+    }
+
+    protected void registerResolvedVersion(ProducerSpec producer, FeaturePackLocation fpl) {
+        if(resolvedVersions == null) {
+            resolvedVersions = new LinkedHashMap<>();
+        }
+        resolvedVersions.put(producer, fpl);
+    }
+
+    private void conflictCheck(FeaturePackLocation fpl, F fp) {
+        if(!fpl.getBuild().equals(fp.getFPID().getBuild())) {
+            Set<FPID> versions = conflicts.get(fp.getFPID().getProducer());
+            if(versions != null) {
+                versions.add(fpl.getFPID());
+                return;
+            }
+            versions = new LinkedHashSet<>();
+            versions.add(fp.getFPID());
+            versions.add(fpl.getFPID());
+            conflicts = CollectionUtils.putLinked(conflicts, fpl.getProducer(), versions);
         }
     }
 

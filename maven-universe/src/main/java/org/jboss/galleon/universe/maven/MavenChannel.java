@@ -189,60 +189,6 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         return frequency;
     }
 
-    /*
-    public static void main(String[] args) throws Exception {
-
-        applyFrequency("(,1.0]", "alpha");
-        applyFrequency("1.0", "alpha");
-        applyFrequency("[1.0]", "alpha");
-        applyFrequency("[1.2,1.3]", "alpha");
-        applyFrequency("[1.0,2.0)", "alpha");
-        applyFrequency("[1.5,)", "alpha");
-        applyFrequency("(,1.0],[1.2,)", "alpha");
-        applyFrequency("(,1.1),(1.1,)", "alpha");
-    }
-
-    private static String applyFrequency(String range, String frequency) {
-        final StringBuilder buf = new StringBuilder();
-        final String[] split = range.split(",");
-
-        if(split.length == 1) {
-            final char lastChar = range.charAt(range.length() - 1);
-            if(lastChar == ']' || lastChar == ')') {
-                buf.append(range.substring(0, range.length() - 1));
-                buf.append('-');
-                buf.append(frequency);
-                buf.append(lastChar);
-            } else {
-                buf.append(range).append('-').append(frequency);
-            }
-        } else {
-            int i = 0;
-            while(i < split.length) {
-                if(i > 0) {
-                    buf.append(',');
-                }
-                final String str = split[i++];
-                final char lastChar = str.charAt(str.length() - 1);
-                if(lastChar == '[' || lastChar == '(') {
-                    buf.append(str);
-                } else if(lastChar == ']' || lastChar == ')') {
-                    if(str.length() == 1) {
-                        buf.append(str);
-                    } else {
-                        buf.append(str.substring(0, str.length() - 1));
-                        buf.append('-');
-                        buf.append(frequency);
-                        buf.append(lastChar);
-                    }
-                } else {
-                    buf.append(str).append('-').append(frequency);
-                }
-            }
-        }
-        return buf.toString();
-    }
-    */
     @Override
     public boolean isResolved(FeaturePackLocation fpl) throws ProvisioningException {
         final MavenArtifact artifact = new MavenArtifact();
@@ -277,7 +223,6 @@ public class MavenChannel implements Channel, MavenChannelDescription {
 
     @Override
     public boolean isDevBuild(FeaturePackLocation.FPID fpid) {
-        MavenArtifactVersion version = new MavenArtifactVersion(fpid.getBuild());
-        return version.isSnapshot();
+        return new MavenArtifactVersion(fpid.getBuild()).isSnapshot();
     }
 }
