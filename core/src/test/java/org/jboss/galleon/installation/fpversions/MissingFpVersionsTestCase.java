@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,7 @@ public class MissingFpVersionsTestCase extends PmProvisionConfigTestBase {
     @Override
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {
-                "Failed to determine the latest build for " + FP3_GA + ": operation not supported"
+            "No version is available for " + FP3_GA
         };
     }
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 
 /**
  *
@@ -62,7 +63,7 @@ public class LegacyGalleon1Channel implements Channel {
 
     @Override
     public String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
-        throw new ProvisioningException("Failed to determine the latest build for " + fpl + ": operation not supported");
+        throw new LatestVersionNotAvailableException(fpl);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class LegacyGalleon1Channel implements Channel {
 
     @Override
     public String getLatestBuild(FeaturePackLocation.FPID fpid) throws ProvisioningException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new LatestVersionNotAvailableException(fpid.getLocation());
     }
 
     @Override
