@@ -1008,19 +1008,20 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 transitiveDeps = new HashSet<>();
             }
             for(FeaturePackConfig transitiveConfig : config.getTransitiveDeps()) {
-                final FeaturePackLocation fpl = transitiveConfig.getLocation();
-                transitiveDeps.add(fpl.getProducer());
+                final FPID fpid = toFpid(transitiveConfig.getLocation());
+                transitiveDeps.add(fpid.getProducer());
                 if(transitiveConfig.hasPatches()) {
                     addPatches(transitiveConfig);
                 }
-                if(branch.containsKey(fpl.getProducer())) {
+                final FPID effectiveFpid = branch.get(fpid.getProducer());
+                if (effectiveFpid != null) {
+                    if (!effectiveFpid.getChannel().getName().equals(fpid.getChannel().getName())) {
+                        addConflict(fpid, effectiveFpid);
+                    }
                     continue;
                 }
-                if(fpl.getBuild() == null) {
-                    continue;
-                }
-                branch.put(fpl.getProducer(), fpl.getFPID());
-                added = CollectionUtils.add(added, fpl.getProducer());
+                branch.put(fpid.getProducer(), fpid);
+                added = CollectionUtils.add(added, fpid.getProducer());
             }
         }
 
@@ -1036,34 +1037,31 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             fpl = resolveVersion(fpl, branchId);
             F fp = featurePacks.get(fpl.getProducer());
             if(fp != null) {
-                if(branchId == null) {
-                    conflictCheck(fpl, fp);
-                }
+                conflictCheck(branchId, fpl.getFPID(), fp.getFPID());
                 continue;
             }
 
             buildTracker.processing(fpl.getFPID());
             fp = layoutFactory.resolveFeaturePack(fpl, type, fpFactory);
             if(fpl.isMavenCoordinates()) {
-                branchId = branch.get(fpl.getProducer());
                 final FeaturePackLocation resolvedFpl = resolveVersion(fp.getFPID().getLocation(), branchId);
-                final F existingFp = featurePacks.get(resolvedFpl.getProducer());
-                if(existingFp != null) {
-                    if(branchId == null) {
-                        conflictCheck(resolvedFpl, existingFp);
+                if (!fpl.equals(resolvedFpl)) {
+                    final F existingFp = featurePacks.get(resolvedFpl.getProducer());
+                    if (existingFp != null) {
+                        conflictCheck(branchId, resolvedFpl.getFPID(), existingFp.getFPID());
+                        continue;
                     }
-                    continue;
+                    registerResolvedVersion(fpl.getProducer(), resolvedFpl);
+                    featurePacks.put(fpl.getProducer(), fp);
+                    fpl = resolvedFpl;
                 }
-                registerResolvedVersion(fpl.getProducer(), resolvedFpl);
-                featurePacks.put(fpl.getProducer(), fp);
-                fpl = resolvedFpl;
             }
             buildTracker.processed(fpl.getFPID());
             featurePacks.put(fpl.getProducer(), fp);
 
             queue.add(fp);
 
-            if(branchId == null) {
+            if(branchId == null || branchId.getBuild() == null) {
                 branch.put(fpl.getProducer(), fpl.getFPID());
                 added = CollectionUtils.add(added, fpl.getProducer());
             }
@@ -1088,14 +1086,51 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
     protected FeaturePackLocation resolveVersion(FeaturePackLocation fpl, final FPID branchId) throws ProvisioningException {
         if(branchId == null) {
-            if(fpl.getBuild() == null) {
-                fpl = layoutFactory.getUniverseResolver().resolveLatestBuild(fpl);
-                registerResolvedVersion(fpl.getProducer(), fpl);
-            }
-        } else if(!branchId.getBuild().equals(fpl.getBuild())) {
-            fpl = fpl.replaceBuild(branchId.getBuild());
+            return normalize(fpl);
         }
-        return fpl;
+        if(branchId.getChannel().getName() == null || branchId.getChannel().getName().equals(fpl.getChannelName())) {
+            if(branchId.getBuild() == null) {
+                return normalize(fpl);
+            }
+            return branchId.getBuild().equals(fpl.getBuild()) ? fpl : fpl.replaceBuild(branchId.getBuild());
+        }
+        addConflict(fpl.getFPID(), branchId);
+        return branchId.getLocation();
+    }
+
+    private FeaturePackLocation normalize(FeaturePackLocation fpl) throws ProvisioningException {
+        if(fpl.isMavenCoordinates()) {
+            return fpl;
+        }
+        if(fpl.getChannelName() != null) {
+            if(fpl.getBuild() != null) {
+                return fpl;
+            }
+            return resolveLatestBuild(fpl, layoutFactory.getUniverseResolver().getChannel(fpl));
+        }
+        final Channel channel = layoutFactory.getUniverseResolver().getChannel(fpl);
+        if(fpl.getBuild() != null) {
+            final FeaturePackLocation updatedFpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), channel.getName(), fpl.getFrequency(),
+                    fpl.getBuild());
+            registerResolvedVersion(fpl.getProducer(), updatedFpl);
+            return updatedFpl;
+        }
+        return resolveLatestBuild(fpl, channel);
+    }
+
+    private FPID toFpid(FeaturePackLocation fpl) throws ProvisioningException {
+        return fpl.getChannelName() == null ? new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(),
+                layoutFactory.getUniverseResolver().getChannel(fpl).getName(), fpl.getFrequency(), fpl.getBuild()).getFPID()
+                : fpl.getFPID();
+    }
+
+    private FeaturePackLocation resolveLatestBuild(FeaturePackLocation fpl, final Channel channel)
+            throws ProvisioningException {
+        final FeaturePackLocation latestLocation = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(),
+                channel.getName(), fpl.getFrequency(), channel.getLatestBuild(fpl));
+        channel.resolve(latestLocation);
+        registerResolvedVersion(fpl.getProducer(), latestLocation);
+        return latestLocation;
     }
 
     protected void registerResolvedVersion(ProducerSpec producer, FeaturePackLocation fpl) {
@@ -1105,18 +1140,23 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         resolvedVersions.put(producer, fpl);
     }
 
-    private void conflictCheck(FeaturePackLocation fpl, F fp) {
-        if(!fpl.getBuild().equals(fp.getFPID().getBuild())) {
-            Set<FPID> versions = conflicts.get(fp.getFPID().getProducer());
-            if(versions != null) {
-                versions.add(fpl.getFPID());
-                return;
-            }
-            versions = new LinkedHashSet<>();
-            versions.add(fp.getFPID());
-            versions.add(fpl.getFPID());
-            conflicts = CollectionUtils.putLinked(conflicts, fpl.getProducer(), versions);
+    private void conflictCheck(FPID branchId, FPID currentFpid, FPID effectiveFpid) {
+        if (branchId != null && branchId.getBuild() != null || currentFpid.equals(effectiveFpid)) {
+            return;
         }
+        addConflict(currentFpid, effectiveFpid);
+    }
+
+    private void addConflict(FPID currentFpid, FPID effectiveFp) {
+        Set<FPID> versions = conflicts.get(effectiveFp.getProducer());
+        if (versions != null) {
+            versions.add(currentFpid);
+            return;
+        }
+        versions = new LinkedHashSet<>();
+        versions.add(effectiveFp);
+        versions.add(currentFpid);
+        conflicts = CollectionUtils.putLinked(conflicts, currentFpid.getProducer(), versions);
     }
 
     private void addPatches(FeaturePackConfig fpConfig) throws ProvisioningException {

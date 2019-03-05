@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ import org.jboss.galleon.test.util.fs.state.DirState;
 public class InstallFpWhichIsExistingTransitiveDependencyTestCase extends PmInstallFeaturePackTestBase {
 
     private static final FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
-    private static final FPID FP1_200_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "2", "2.0.0.Final");
+    private static final FPID FP1_200_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "2.0.0.Final");
     private static final FPID FP2_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp2", "1", "1.0.0.Final");
 
     @Override

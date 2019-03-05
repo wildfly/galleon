@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,11 +37,12 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  */
 public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedProducerCallbackHandler> {
 
-    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:maven:producer:1.0";
-    public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.PRODUCER.name);
+    public static final String NS = "urn:jboss:galleon:maven:producer:1.0";
+    public static final QName ROOT = new QName(NS, Element.PRODUCER.name);
 
     enum Element implements XmlNameProvider {
 
+        DEFAULT_CHANNEL("default-channel"),
         FP_ARTIFACT_ID("feature-pack-artifactId"),
         FP_GROUP_ID("feature-pack-groupId"),
         FREQUENCIES("frequencies"),
@@ -54,19 +55,20 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
         private static final Map<QName, Element> elements;
 
         static {
-            elements = new HashMap<>(6);
-            elements.put(new QName(NAMESPACE_1_0, FP_ARTIFACT_ID.name), FP_ARTIFACT_ID);
-            elements.put(new QName(NAMESPACE_1_0, FP_GROUP_ID.name), FP_GROUP_ID);
-            elements.put(new QName(NAMESPACE_1_0, FREQUENCIES.name), FREQUENCIES);
-            elements.put(new QName(NAMESPACE_1_0, FREQUENCY.name), FREQUENCY);
-            elements.put(new QName(NAMESPACE_1_0, PRODUCER.name), PRODUCER);
+            elements = new HashMap<>(7);
+            elements.put(new QName(NS, DEFAULT_CHANNEL.name), DEFAULT_CHANNEL);
+            elements.put(new QName(NS, FP_ARTIFACT_ID.name), FP_ARTIFACT_ID);
+            elements.put(new QName(NS, FP_GROUP_ID.name), FP_GROUP_ID);
+            elements.put(new QName(NS, FREQUENCIES.name), FREQUENCIES);
+            elements.put(new QName(NS, FREQUENCY.name), FREQUENCY);
+            elements.put(new QName(NS, PRODUCER.name), PRODUCER);
             elements.put(null, UNKNOWN);
         }
 
         static Element of(QName qName) {
             QName name;
             if (qName.getNamespaceURI().equals("")) {
-                name = new QName(NAMESPACE_1_0, qName.getLocalPart());
+                name = new QName(NS, qName.getLocalPart());
             } else {
                 name = qName;
             }
@@ -75,7 +77,7 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
         }
 
         private final String name;
-        private final String namespace = NAMESPACE_1_0;
+        private final String namespace = NS;
 
         Element(final String name) {
             this.name = name;
@@ -149,7 +151,7 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
 
     @Override
     public QName getRoot() {
-        return ROOT_1_0;
+        return ROOT;
     }
 
     @Override
@@ -185,6 +187,9 @@ public class MavenProducerXmlParser10 implements PlugableXmlParser<MavenParsedPr
                             break;
                         case FREQUENCIES:
                             readFrequencies(reader, builder);
+                            break;
+                        case DEFAULT_CHANNEL:
+                            builder.parsedDefaultChannel(reader.getElementText());
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);

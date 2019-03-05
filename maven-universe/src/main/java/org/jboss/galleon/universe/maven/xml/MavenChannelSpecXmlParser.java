@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ import java.io.Reader;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.universe.maven.MavenProducerBase;
 import org.jboss.galleon.universe.maven.MavenChannel;
+import org.jboss.galleon.universe.maven.MavenProducerBase;
 import org.jboss.galleon.xml.XmlParsers;
 
 /**

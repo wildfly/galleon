@@ -32,6 +32,7 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlParser;
 import org.jboss.galleon.universe.maven.xml.MavenParsedProducerCallbackHandler;
@@ -47,11 +48,13 @@ import org.jboss.galleon.util.ZipUtils;
 public class MavenProducer extends MavenProducerBase {
 
     private final ParsedCallbackHandler<MavenProducerBase, MavenChannel> parsedChannelHandler = new ParsedCallbackHandler<MavenProducerBase, MavenChannel>() {
+        @Override
         public MavenProducerBase getParent() {
             return MavenProducer.this;
         }
 
-        public void parsed(MavenChannel channel) {
+        @Override
+        public void parsed(MavenChannel channel) throws XMLStreamException {
             channels = CollectionUtils.put(channels, channel.getName(), channel);
         }
     };
@@ -59,6 +62,7 @@ public class MavenProducer extends MavenProducerBase {
     private Set<String> frequencies = Collections.emptySet();
     private String defaultFrequency;
     private Map<String, MavenChannel> channels = Collections.emptyMap();
+    private String defaultChannel;
     private boolean fullyLoaded;
     private boolean resolvedLocally;
 
@@ -108,6 +112,11 @@ public class MavenProducer extends MavenProducerBase {
                     @Override
                     public void parsedFpArtifactId(String artifactId) {
                         fpArtifactId = artifactId;
+                    }
+
+                    @Override
+                    public void parsedDefaultChannel(String channelName) throws XMLStreamException {
+                        defaultChannel = channelName;
                     }
                 });
             } catch (XMLStreamException e) {
@@ -197,6 +206,17 @@ public class MavenProducer extends MavenProducerBase {
 
     @Override
     public MavenChannel getChannel(String channelName) throws MavenUniverseException {
+        if(channelName == null) {
+            if(defaultChannel != null) {
+                channelName = defaultChannel;
+            } else {
+                final Collection<MavenChannel> channels = getChannels();
+                if(channels.size() == 1) {
+                    return channels.iterator().next();
+                }
+                throw new MavenUniverseException(Errors.defaultChannelNotConfigured(getName()));
+            }
+        }
         if(!hasChannel(channelName)) {
             boolean found = false;
             if(resolvedLocally) {
@@ -245,5 +265,23 @@ public class MavenProducer extends MavenProducerBase {
         fullyLoaded = true;
         channels = CollectionUtils.unmodifiable(channels);
         return channels.values();
+    }
+
+    @Override
+    public boolean hasDefaultChannel() {
+        return defaultChannel != null;
+    }
+
+    @Override
+    public String getDefaultChannelName() {
+        return defaultChannel;
+    }
+
+    @Override
+    public MavenChannel getDefaultChannel() throws MavenUniverseException {
+        if(defaultChannel != null) {
+            return getChannel(defaultChannel);
+        }
+        return null;
     }
 }

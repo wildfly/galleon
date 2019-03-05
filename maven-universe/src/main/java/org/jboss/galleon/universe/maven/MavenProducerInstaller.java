@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,7 @@ public class MavenProducerInstaller extends MavenProducerBase {
 
     private Set<String> frequencies = Collections.emptySet();
     private String defaultFrequency;
+    private MavenChannel defaultChannel;
     private Map<String, MavenChannel> channels = new HashMap<>();
     private boolean installed;
 
@@ -82,6 +83,9 @@ public class MavenProducerInstaller extends MavenProducerBase {
         }
         for(MavenChannel channel : otherProducer.getChannels()) {
             addChannel(channel);
+        }
+        if(defaultChannel == null) {
+            defaultChannel = otherProducer.getDefaultChannel();
         }
         return this;
     }
@@ -137,7 +141,11 @@ public class MavenProducerInstaller extends MavenProducerBase {
     }
 
     public MavenProducerInstaller addChannel(String channelName, String versionRange) throws MavenUniverseException {
-        return addChannel(new MavenChannel(this, channelName, versionRange));
+        return addChannel(channelName, versionRange, false);
+    }
+
+    public MavenProducerInstaller addChannel(String channelName, String versionRange, boolean isDefault) throws MavenUniverseException {
+        return addChannel(new MavenChannel(this, channelName, versionRange), isDefault);
     }
 
     public MavenProducerInstaller addChannel(MavenChannel channel) throws MavenUniverseException {
@@ -145,9 +153,19 @@ public class MavenProducerInstaller extends MavenProducerBase {
         return this;
     }
 
+    public MavenProducerInstaller addChannel(MavenChannel channel, boolean isDefault) throws MavenUniverseException {
+        channels.put(channel.getName(), channel);
+        if(isDefault) {
+            defaultChannel = channel;
+        }
+        return this;
+    }
+
     public MavenProducerInstaller removeChannel(String channelName) {
         if(!channels.isEmpty()) {
-            channels.remove(channelName);
+            if(channels.remove(channelName) == defaultChannel) {
+                defaultChannel = null;
+            }
         }
         return this;
     }
@@ -169,6 +187,21 @@ public class MavenProducerInstaller extends MavenProducerBase {
     @Override
     public Collection<MavenChannel> getChannels() throws MavenUniverseException {
         return channels.values();
+    }
+
+    @Override
+    public boolean hasDefaultChannel() {
+        return defaultChannel != null;
+    }
+
+    @Override
+    public String getDefaultChannelName() {
+        return defaultChannel == null ? null : defaultChannel.getName();
+    }
+
+    @Override
+    public MavenChannel getDefaultChannel() {
+        return defaultChannel;
     }
 
     public MavenProducerInstaller install() throws MavenUniverseException {

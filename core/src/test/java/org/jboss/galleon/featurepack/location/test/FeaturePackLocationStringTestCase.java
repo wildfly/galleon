@@ -31,6 +31,150 @@ import org.junit.Test;
 public class FeaturePackLocationStringTestCase {
 
     @Test
+    public void testProducerFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertNull(parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertNull(parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerToString() throws Exception {
+        Assert.assertEquals("producer",
+                new FeaturePackLocation(null, "producer", null, null, null)
+        .toString());
+    }
+
+    @Test
+    public void testProducerBuildFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer#build");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertNull(parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertEquals("build", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerBuildToString() throws Exception {
+        Assert.assertEquals("producer#build",
+                new FeaturePackLocation(null, "producer", null, null, "build")
+        .toString());
+    }
+
+    @Test
+    public void testProducerFrequencyBuildToString() throws Exception {
+        Assert.assertEquals("producer/frequency#build",
+                new FeaturePackLocation(null, "producer", null, "frequency", "build")
+        .toString());
+    }
+
+    @Test
+    public void testProducerFrequencyBuildFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer/frequency#build");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertNull(parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertEquals("frequency", parsedSrc.getFrequency());
+        Assert.assertEquals("build", parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerFrequencyToString() throws Exception {
+        Assert.assertEquals("producer/frequency",
+                new FeaturePackLocation(null, "producer", null, "frequency", null)
+        .toString());
+    }
+
+    @Test
+    public void testProducerFrequencyFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer/frequency");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertNull(parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertEquals("frequency", parsedSrc.getFrequency());
+        Assert.assertNull(null, parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryToString() throws Exception {
+        Assert.assertEquals("producer@factory",
+                new FeaturePackLocation(new UniverseSpec("factory"), "producer", null, null, null)
+        .toString());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer@factory");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals(new UniverseSpec("factory"), parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertNull(parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryLocationToString() throws Exception {
+        Assert.assertEquals("producer@factory(location)",
+                new FeaturePackLocation(new UniverseSpec("factory", "location"), "producer", null, null, null)
+        .toString());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryLocationFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer@factory(location)");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals(new UniverseSpec("factory", "location"), parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertNull(parsedSrc.getFrequency());
+        Assert.assertNull(parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryLocationFrequencyToString() throws Exception {
+        Assert.assertEquals("producer@factory(location)/frequency",
+                new FeaturePackLocation(new UniverseSpec("factory", "location"), "producer", null, "frequency", null)
+        .toString());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryLocationFrequencyFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer@factory(location)/frequency");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals(new UniverseSpec("factory", "location"), parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertEquals("frequency", parsedSrc.getFrequency());
+        Assert.assertNull(parsedSrc.getBuild());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryLocationFrequencyBuildToString() throws Exception {
+        Assert.assertEquals("producer@factory(location)/frequency#build",
+                new FeaturePackLocation(new UniverseSpec("factory", "location"), "producer", null, "frequency", "build")
+        .toString());
+    }
+
+    @Test
+    public void testProducerUniverseFactoryLocationFrequencyBuildFromString() throws Exception {
+        final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer@factory(location)/frequency#build");
+        Assert.assertNotNull(parsedSrc);
+        Assert.assertEquals(new UniverseSpec("factory", "location"), parsedSrc.getUniverse());
+        Assert.assertEquals("producer", parsedSrc.getProducerName());
+        Assert.assertNull(parsedSrc.getChannelName());
+        Assert.assertEquals("frequency", parsedSrc.getFrequency());
+        Assert.assertEquals("build", parsedSrc.getBuild());
+    }
+
+    @Test
     public void testProducerChannelFromString() throws Exception {
         final FeaturePackLocation parsedSrc = FeaturePackLocation.fromString("producer:channel");
         Assert.assertNotNull(parsedSrc);

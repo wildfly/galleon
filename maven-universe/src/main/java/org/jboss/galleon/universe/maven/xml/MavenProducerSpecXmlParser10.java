@@ -42,8 +42,8 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
  */
 public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCallbackHandler<MavenUniverse, MavenProducer>> {
 
-    public static final String NAMESPACE_1_0 = "urn:jboss:galleon:maven:producer:spec:1.0";
-    public static final QName ROOT_1_0 = new QName(NAMESPACE_1_0, Element.PRODUCER.name);
+    public static final String NS = "urn:jboss:galleon:maven:producer:spec:1.0";
+    public static final QName ROOT = new QName(NS, Element.PRODUCER.name);
 
     enum Element implements XmlNameProvider {
 
@@ -59,17 +59,17 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
 
         static {
             elements = new HashMap<>(5);
-            elements.put(new QName(NAMESPACE_1_0, ARTIFACT_ID.name), ARTIFACT_ID);
-            elements.put(new QName(NAMESPACE_1_0, GROUP_ID.name), GROUP_ID);
-            elements.put(new QName(NAMESPACE_1_0, PRODUCER.name), PRODUCER);
-            elements.put(new QName(NAMESPACE_1_0, VERSION_RANGE.name), VERSION_RANGE);
+            elements.put(new QName(NS, ARTIFACT_ID.name), ARTIFACT_ID);
+            elements.put(new QName(NS, GROUP_ID.name), GROUP_ID);
+            elements.put(new QName(NS, PRODUCER.name), PRODUCER);
+            elements.put(new QName(NS, VERSION_RANGE.name), VERSION_RANGE);
             elements.put(null, UNKNOWN);
         }
 
         static Element of(QName qName) {
             QName name;
             if (qName.getNamespaceURI().equals("")) {
-                name = new QName(NAMESPACE_1_0, qName.getLocalPart());
+                name = new QName(NS, qName.getLocalPart());
             } else {
                 name = qName;
             }
@@ -78,7 +78,7 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
         }
 
         private final String name;
-        private final String namespace = NAMESPACE_1_0;
+        private final String namespace = NS;
 
         Element(final String name) {
             this.name = name;
@@ -113,7 +113,7 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
         private static final Map<QName, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(1);
+            attributes = new HashMap<>(2);
             attributes.put(new QName(NAME.name), NAME);
             attributes.put(null, UNKNOWN);
         }
@@ -150,7 +150,7 @@ public class MavenProducerSpecXmlParser10 implements PlugableXmlParser<ParsedCal
 
     @Override
     public QName getRoot() {
-        return ROOT_1_0;
+        return ROOT;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,17 +85,27 @@ public class MvnUniverse {
     }
 
     public MvnUniverse createProducer(String producerName, int channelsTotal) throws ProvisioningException {
-        return createProducer(producerName, producerName + FP_SUFFIX, channelsTotal);
+        return createProducer(producerName, -1, channelsTotal);
+    }
+
+    public MvnUniverse createProducer(String producerName, int defaultChannel, int channelsTotal) throws ProvisioningException {
+        return createProducer(producerName, producerName + FP_SUFFIX, defaultChannel, channelsTotal);
     }
 
     public MvnUniverse createProducer(String producerName, String fpArtifactId, int channels) throws ProvisioningException {
+        return createProducer(producerName, fpArtifactId, -1, channels);
+    }
+
+    public MvnUniverse createProducer(String producerName, String fpArtifactId, int defaultChannel, int channels) throws ProvisioningException {
         MavenProducerInstaller producer = new MavenProducerInstaller(producerName, repoManager,
                 new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
                         .setVersion("1.0.0.Final"),
                 TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId);
+        producer.addFrequencies(frequencies);
         while(channels > 0) {
-            producer.addFrequencies(frequencies).addChannel(Integer.toString(channels),
-                    new StringBuilder().append('[').append(channels).append(".0.0-alpha,").append(channels + 1).append(".0.0-alpha)").toString());
+            producer.addChannel(Integer.toString(channels),
+                    new StringBuilder().append('[').append(channels).append(".0.0-alpha,").append(channels + 1).append(".0.0-alpha)").toString(),
+                    defaultChannel == channels);
             --channels;
         }
         producers = CollectionUtils.add(producers, producer.install());
