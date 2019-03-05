@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,11 @@ public class LayoutUtils {
         if (universe.getLocation() != null) {
             fpPath = fpPath.resolve(ensureValidFileName(universe.getLocation()));
         }
-        fpPath = fpPath.resolve(ensureValidFileName(fps.getProducerName())).resolve(fps.getChannelName()).resolve(ensureValidFileName(fpid.getBuild()));
+        fpPath = fpPath.resolve(ensureValidFileName(fps.getProducerName()));
+        if(fps.getChannelName() != null) {
+            fpPath = fpPath.resolve(fps.getChannelName());
+        }
+        fpPath = fpPath.resolve(ensureValidFileName(fpid.getBuild()));
         if (existing && !Files.exists(fpPath)) {
             throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpPath));
         }

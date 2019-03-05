@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 
 package org.jboss.galleon.universe;
+
+import org.jboss.galleon.Constants;
 
 /**
  * Complete feature-pack location incorporates two things: the feature-pack
@@ -282,7 +284,7 @@ public class FeaturePackLocation {
                 case UNIVERSE_START:
                     producerEnd = universeEnd;
                     universeEnd = buildSep;
-                case CHANNEL_START:
+               case CHANNEL_START:
                     break loop;
                 case UNIVERSE_LOCATION_END:
                     ++universeEnd;
@@ -302,6 +304,37 @@ public class FeaturePackLocation {
             if(producerEnd == 0) {
                 throw unexpectedFormat(str);
             }
+            if(producerEnd == universeEnd && channelNameEnd == str.length()) {
+                // maven coordinates suspect
+                int i = 1;
+                String[] parts = null;
+                int partI = 1;
+                int lastColon = -1;
+                while(i < producerEnd) {
+                    if(str.charAt(i) == ':') {
+                        if(parts == null) {
+                            parts = new String[5];
+                            parts[0] = str.substring(0, i);
+                            parts[4] = str.substring(universeEnd + 1, channelNameEnd);
+                            lastColon = i;
+                        } else {
+                            parts[partI++] = str.substring(lastColon + 1, i);
+                            lastColon = i;
+                        }
+                    }
+                    i++;
+                }
+                if(parts != null) {
+                    parts[partI] = str.substring(lastColon + 1, producerEnd);
+                    return new FeaturePackLocation(
+                            new UniverseSpec(Constants.MAVEN),
+                            parts[0] + ':' + parts[1] + ':' + (parts[2] == null ? "" : parts[2]) + ':' + (partI != 3 ? Constants.ZIP : parts[3]),
+                            null,
+                            null,
+                            parts[4]
+                            );
+                }
+            }
         }
         return new FeaturePackLocation(
                 producerEnd == universeEnd ? null : UniverseSpec.fromString(str.substring(producerEnd + 1, universeEnd)),
@@ -320,6 +353,17 @@ public class FeaturePackLocation {
         final StringBuilder buf = new StringBuilder();
         buf.append(producer);
         if(universeSpec != null) {
+            if(universeSpec.getLocation() == null && build != null && universeSpec.getFactory().equals(Constants.MAVEN)) {
+                // maven coordinates
+                int lastColon = producer.lastIndexOf(':');
+                if(lastColon > 0 && producer.endsWith(Constants.ZIP)) {
+                    if(producer.charAt(lastColon - 1) == ':') {
+                        --lastColon;
+                    }
+                    buf.setLength(lastColon);
+                }
+                return buf.append(':').append(build).toString();
+            }
             buf.append(UNIVERSE_START).append(universeSpec);
         }
         if(channel != null) {
@@ -410,6 +454,10 @@ public class FeaturePackLocation {
 
     public FeaturePackLocation replaceBuild(String build) {
         return new FeaturePackLocation(universeSpec, producer, channel, frequency, build);
+    }
+
+    public boolean isMavenCoordinates() {
+        return universeSpec != null && universeSpec.getLocation() == null && universeSpec.getFactory().equals(Constants.MAVEN);
     }
 
     @Override

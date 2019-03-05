@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
 
 package org.jboss.galleon.universe.maven;
 
+import org.jboss.galleon.Constants;
+
 /**
  *
  * @author Alexey Loubyansky
@@ -26,7 +28,7 @@ public interface MavenUniverseConstants {
     String CHANNELS = "channels";
     String GALLEON = "galleon";
     String LOCATIONS = "locations";
-    String MAVEN = "maven";
+    String MAVEN = Constants.MAVEN;
     String MAVEN_CHANNEL_XML = "maven-channel.xml";
     String MAVEN_PRODUCER_XML = "maven-producer.xml";
     String PRODUCER = "producer";

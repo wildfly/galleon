@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,7 @@ public interface Constants {
     String KEEP = "keep";
     String LAYERS = "layers";
     String LAYER_SPEC_XML = "layer-spec.xml";
+    String MAVEN = "maven";
     String MODEL_XML = "model.xml";
     String MODULES_XML = "module.xml";
     String PACKAGE_XML = "package.xml";
@@ -47,6 +48,7 @@ public interface Constants {
     String SPEC_XML = "spec.xml";
     String THIS = "this";
     String UNDO_TASKS = "undo.tasks";
+    String ZIP = "zip";
 
     String PROVISIONED_STATE_DIR = ".galleon";
     String PROVISIONED_STATE_XML = "provisioned.xml";

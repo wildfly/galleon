@@ -270,9 +270,11 @@ public class FeaturePackBuilder {
         if(fps.getProducerName() == null) {
             throw new ProvisioningDescriptionException("Feature-pack producer has not been set");
         }
+        /*
         if(fps.getChannelName() == null) {
             throw new ProvisioningDescriptionException("Feature-pack channel has not been set");
         }
+        */
         if(fps.getBuild() == null) {
             throw new ProvisioningDescriptionException("Feature-pack build number has not been set");
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +40,10 @@ public class MavenFeaturePackInstaller implements UniverseFeaturePackInstaller {
 
     @Override
     public void install(Universe<?> universe, FPID fpid, Path fpZip) throws ProvisioningException {
+        if(MvnNoLocUniverse.class.isAssignableFrom(universe.getClass())) {
+            ((MvnNoLocUniverse) universe).install(fpid, fpZip);
+            return;
+        }
         final MavenUniverse mvnUni = (MavenUniverse) universe;
         final FeaturePackLocation fps = fpid.getLocation();
         final MavenProducer producer = mvnUni.getProducer(fps.getProducerName());

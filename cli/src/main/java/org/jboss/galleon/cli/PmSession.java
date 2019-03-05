@@ -349,15 +349,21 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     }
 
     public FeaturePackLocation getResolvedLocation(Path installation, String location) throws ProvisioningException {
-        if (location.endsWith("" + FeaturePackLocation.FREQUENCY_START)
-                || location.endsWith("" + FeaturePackLocation.BUILD_START)) {
+        final char endC = location.charAt(location.length() - 1);
+        if (endC == FeaturePackLocation.FREQUENCY_START
+                || endC == FeaturePackLocation.BUILD_START) {
             location = location.substring(0, location.length() - 1);
         }
         // A producer spec without any universe nor channel.
+        /*
         if (!location.contains("" + FeaturePackLocation.UNIVERSE_START) && !location.contains("" + FeaturePackLocation.CHANNEL_START)) {
             location = new FeaturePackLocation(universe.getDefaultUniverseSpec(installation), location, null, null, null).toString();
         }
+        */
         FeaturePackLocation loc = FeaturePackLocation.fromString(location);
+        if(loc.getUniverse() == null) {
+            loc = loc.replaceUniverse(universe.getDefaultUniverseSpec(installation));
+        }
         return getResolvedLocation(installation, loc);
     }
 
@@ -512,7 +518,7 @@ public class PmSession implements CompleterInvocationProvider<PmCompleterInvocat
     private FeaturePackLocation getResolvedLocation(Path installation, FeaturePackLocation fplocation) throws ProvisioningException {
         UniverseSpec spec = fplocation.getUniverse();
         if (spec != null) {
-            if (LegacyGalleon1UniverseFactory.ID.equals(spec.getFactory())) {
+            if (fplocation.isMavenCoordinates() || LegacyGalleon1UniverseFactory.ID.equals(spec.getFactory())) {
                 return fplocation;
             }
             if (spec.getLocation() == null) {
