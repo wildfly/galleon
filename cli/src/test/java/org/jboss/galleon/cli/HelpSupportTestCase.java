@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,23 +49,23 @@ public class HelpSupportTestCase {
         CommandRuntime runtime
                 = CliMain.newRuntime(session, new PrintStream(out, false, StandardCharsets.UTF_8.name()));
         @SuppressWarnings("unchecked")
-        CommandRegistry<? extends Command, ? extends CommandInvocation> registry
+        CommandRegistry<? extends CommandInvocation> registry
                 = runtime.getCommandRegistry();
         test(registry);
         session.getToolModes().setMode(ToolModes.Mode.EDIT);
         test(registry);
     }
 
-    private void test(CommandRegistry<? extends Command, ? extends CommandInvocation> registry) throws Exception {
+    private void test(CommandRegistry<? extends CommandInvocation> registry) throws Exception {
         for (String c : registry.getAllCommandNames()) {
-            CommandLineParser<? extends Command> cmdParser = registry.getCommand(c, null).getParser();
+            CommandLineParser<? extends CommandInvocation> cmdParser = registry.getCommand(c, null).getParser();
             // XXX TODO jfdenise, to be removed when extensions are fixed.
             if (isExtension(cmdParser)) {
                 continue;
             }
             checkCommand(cmdParser.getProcessedCommand(), false);
             if (cmdParser.isGroupCommand()) {
-                for (CommandLineParser<? extends Command> child : cmdParser.getAllChildParsers()) {
+                for (CommandLineParser<? extends CommandInvocation> child : cmdParser.getAllChildParsers()) {
                     checkCommand(child.getProcessedCommand(), true);
                 }
             }
@@ -96,11 +96,12 @@ public class HelpSupportTestCase {
         }
     }
 
-    private boolean isExtension(CommandLineParser<? extends Command> cmdParser) {
+    private boolean isExtension(CommandLineParser<? extends CommandInvocation> cmdParser) {
         return cmdParser.getProcessedCommand().getCommand().getClass().getPackage().getName().startsWith("org.aesh.extensions");
     }
 
-    private void checkCommand(ProcessedCommand<? extends Command> processedCommand, boolean child) {
+    private void checkCommand(ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> processedCommand,
+            boolean child) {
         CommandDomain domain = CommandDomain.getDomain(processedCommand.getCommand());
         assertTrue(processedCommand.name(), processedCommand.description() != null && !processedCommand.description().isEmpty());
         if (child) {

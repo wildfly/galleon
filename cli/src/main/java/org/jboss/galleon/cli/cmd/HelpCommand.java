@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.aesh.command.Command;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.CommandNotFoundException;
 import org.aesh.command.activator.CommandActivator;
@@ -73,7 +72,7 @@ public class HelpCommand extends PmSessionCommand {
                 }
             } else {
                 try {
-                    CommandLineParser<? extends Command> p = cmd.registry.getCommand(mainCommand, null).getParser();
+                    CommandLineParser<? extends CommandInvocation> p = cmd.registry.getCommand(mainCommand, null).getParser();
                     for (CommandLineParser child : p.getAllChildParsers()) {
                         if (child.getProcessedCommand().name().startsWith(buff)) {
                             CommandActivator childActivator = child.getProcessedCommand().getActivator();
@@ -97,12 +96,12 @@ public class HelpCommand extends PmSessionCommand {
     @Arguments(description = HelpDescriptions.HELP_COMMAND_NAME, completer = CommandCompleter.class)
     private List<String> command;
 
-    private CommandRegistry<? extends Command, ? extends CommandInvocation> registry;
+    private CommandRegistry<? extends CommandInvocation> registry;
 
     public HelpCommand() {
     }
 
-    public void setRegistry(CommandRegistry<? extends Command, ? extends CommandInvocation> registry) {
+    public void setRegistry(CommandRegistry<? extends CommandInvocation> registry) {
         this.registry = registry;
     }
 
@@ -121,7 +120,7 @@ public class HelpCommand extends PmSessionCommand {
             }
             String cmd = builder.toString().trim();
             try {
-                CommandContainer<?, ?> container = registry.getCommand(command.get(0), null);
+                CommandContainer<?> container = registry.getCommand(command.get(0), null);
                 if (command.size() > 1) {
                     if (container.getParser().getChildParser(command.get(1)) == null) {
                         throw new CommandExecutionException(CliErrors.commandNotFound(cmd));

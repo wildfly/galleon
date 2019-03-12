@@ -49,7 +49,7 @@ public class HelpSupport {
     private static final String TAB = "    ";
 
     public static String getToolHelp(PmSession session,
-            CommandRegistry<? extends Command, ? extends CommandInvocation> registry) throws CommandNotFoundException {
+            CommandRegistry<? extends CommandInvocation> registry) throws CommandNotFoundException {
         StringBuilder sb = new StringBuilder();
         sb.append("== DEFAULT MODE ==").append(Config.getLineSeparator());
         session.getToolModes().setMode(ToolModes.Mode.NOMINAL);
@@ -60,12 +60,12 @@ public class HelpSupport {
         return sb.toString();
     }
 
-    public static List<String> getAvailableCommands(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
+    public static List<String> getAvailableCommands(CommandRegistry<? extends CommandInvocation> registry,
             boolean includeChilds, boolean onlyEnabled) {
         List<String> lst = new ArrayList<>();
         // First aesh
         for (String c : registry.getAllCommandNames()) {
-            CommandLineParser<? extends Command> cmdParser;
+            CommandLineParser<? extends CommandInvocation> cmdParser;
             try {
                 cmdParser = registry.getCommand(c, null).getParser();
             } catch (CommandNotFoundException ex) {
@@ -89,11 +89,10 @@ public class HelpSupport {
         return lst;
     }
 
-    public static String buildHelp(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
-                                    Set<String> commands) throws CommandNotFoundException {
+    public static String buildHelp(CommandRegistry<? extends CommandInvocation> registry,                                    Set<String> commands) throws CommandNotFoundException {
         return buildHelp(registry, commands, true);
     }
-    private static String buildHelp(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
+    private static String buildHelp(CommandRegistry<? extends CommandInvocation> registry,
             Set<String> commands, boolean footer) throws CommandNotFoundException {
         TreeMap<CommandDomain, Set<String>> groupedCommands = new TreeMap<>();
         for (String command : commands) {
@@ -132,12 +131,13 @@ public class HelpSupport {
         return sb.toString();
     }
 
-    private static String getCommandTree(CommandRegistry<? extends Command, ? extends CommandInvocation> registry,
+    private static String getCommandTree(CommandRegistry<? extends CommandInvocation> registry,
             String command) throws CommandNotFoundException {
-        CommandLineParser<? extends Command> cmdParser = registry.getCommand(command, null).getParser();
+        CommandLineParser<? extends CommandInvocation> cmdParser = registry.getCommand(command, null).getParser();
 
         StringBuilder sb = new StringBuilder();
-        ProcessedCommand<? extends Command> processedCommand = cmdParser.getProcessedCommand();
+        ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> processedCommand
+                = cmdParser.getProcessedCommand();
 
         sb.append(processedCommand.name());
 
@@ -149,16 +149,19 @@ public class HelpSupport {
         sb.append(getCommandOptions(processedCommand, 0));
 
         if (!cmdParser.getAllChildParsers().isEmpty()) {
-            List<? extends CommandLineParser<? extends Command>> allChildParsers = cmdParser.getAllChildParsers();
+            List<? extends CommandLineParser<? extends CommandInvocation>> allChildParsers = cmdParser.getAllChildParsers();
 
-            allChildParsers.sort((Comparator<CommandLineParser<? extends Command>>) (o1, o2) -> {
-                ProcessedCommand<? extends Command> pc1 = o1.getProcessedCommand();
-                ProcessedCommand<? extends Command> pc2 = o2.getProcessedCommand();
+            allChildParsers.sort((Comparator<CommandLineParser<? extends CommandInvocation>>) (o1, o2) -> {
+                ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> pc1
+                        = o1.getProcessedCommand();
+                ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> pc2
+                        = o2.getProcessedCommand();
                 return pc1.name().compareTo(pc2.name());
             });
 
-            for (CommandLineParser<? extends Command> childParser : allChildParsers) {
-                ProcessedCommand<? extends Command> childProcessedCommand = childParser.getProcessedCommand();
+            for (CommandLineParser<? extends CommandInvocation> childParser : allChildParsers) {
+                ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> childProcessedCommand
+                        = childParser.getProcessedCommand();
                 sb.append(Config.getLineSeparator()).append("    ");
                 sb.append(childProcessedCommand.name());
                 if (childProcessedCommand.hasArguments() || childProcessedCommand.hasArgument()) {
@@ -180,7 +183,8 @@ public class HelpSupport {
         }
     }
 
-    private static String getCommandOptions(ProcessedCommand<? extends Command> command, int offset) {
+    private static String getCommandOptions(ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> command,
+            int offset) {
         StringBuilder sb = new StringBuilder();
         if (command.hasOptions()) {
             TreeMap<String, String> orderedOptions = new TreeMap<>();
@@ -214,7 +218,8 @@ public class HelpSupport {
         return sb.toString();
     }
 
-    private static void processArguments(ProcessedCommand<? extends Command> command, int offset, StringBuilder sb) {
+    private static void processArguments(ProcessedCommand<? extends Command<? extends CommandInvocation>, ? extends CommandInvocation> command,
+            int offset, StringBuilder sb) {
         if (command.hasArgument()) {
             if (command.getArgument().description() != null && !("".equals(command.getArgument().description()))) {
                 handleOffset(offset, sb);

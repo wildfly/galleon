@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,8 @@ import org.aesh.command.impl.internal.ProcessedOptionBuilder;
 import org.aesh.command.impl.parser.AeshCommandLineParser;
 import org.aesh.command.map.MapCommand;
 import org.aesh.command.map.MapProcessedCommandBuilder;
-import org.aesh.command.map.MapProcessedCommandBuilder.MapProcessedCommand;
+import org.aesh.command.map.MapProcessedCommand;
+import org.aesh.command.map.MapProcessedOptionProvider;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.parser.OptionParserException;
 import org.aesh.parser.ParsedLine;
@@ -89,7 +90,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     private final Map<String, String> renamedOptions = new HashMap<>();
 
-    private class DynamicOptionsProvider implements MapProcessedCommandBuilder.ProcessedOptionProvider {
+    private class DynamicOptionsProvider implements MapProcessedOptionProvider {
 
         @Override
         public List<ProcessedOption> getOptions(List<ProcessedOption> currentOptions) {
@@ -138,7 +139,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     protected final PmSession pmSession;
     private final Set<String> staticOptions = new HashSet<>();
-    private MapProcessedCommand cmd;
+    private MapProcessedCommand<?> cmd;
     private final boolean onlyAtCompletion;
     private final boolean checkForRequired;
     private final boolean optimizeRetrieval;
@@ -168,7 +169,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
         cmd = buildCommand();
         @SuppressWarnings("unchecked")
         CommandContainer container =
-                new AeshCommandContainer(new AeshCommandLineParser<>(cmd));
+                new AeshCommandContainer(new AeshCommandLineParser(cmd));
         return container;
     }
 
@@ -217,7 +218,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
     }
 
     private MapProcessedCommand buildCommand() throws CommandLineParserException {
-        MapProcessedCommandBuilder builder = new MapProcessedCommandBuilder();
+        MapProcessedCommandBuilder<PmCommandInvocation> builder = MapProcessedCommandBuilder.builder();
         builder.command(this);
         builder.lookupAtCompletionOnly(onlyAtCompletion);
         builder.name(getName());
