@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,6 @@ import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.shell.Shell;
 import org.aesh.command.validator.CommandValidatorException;
 import org.aesh.command.validator.OptionValidatorException;
-import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
 import org.aesh.readline.action.KeyAction;
 import org.jboss.galleon.cli.PmCommandInvocation;
@@ -37,7 +36,6 @@ import org.jboss.galleon.cli.PmSession;
  *
  * @author jdenise@redhat.com
  */
-@SuppressWarnings("deprecation")
 class OutputPmCommandInvocation extends PmCommandInvocation {
 
     private final CommandInvocation delegate;
@@ -69,12 +67,6 @@ class OutputPmCommandInvocation extends PmCommandInvocation {
     @Override
     public void stop() {
         delegate.stop();
-    }
-
-    @Deprecated
-    @Override
-    public AeshContext getAeshContext() {
-        return delegate.getConfiguration().getAeshContext();
     }
 
     @Override
@@ -114,6 +106,7 @@ class OutputPmCommandInvocation extends PmCommandInvocation {
         delegate.executeCommand(input);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Executor<? extends CommandInvocation> buildExecutor(String line) throws CommandNotFoundException, CommandLineParserException, OptionValidatorException, CommandValidatorException, IOException {
         return delegate.buildExecutor(line);
@@ -127,5 +120,10 @@ class OutputPmCommandInvocation extends PmCommandInvocation {
     @Override
     public void println(String msg, boolean paging) {
         getPmSession().println(msg);
+    }
+
+    @Override
+    public String getHelpInfo() {
+        return delegate.getHelpInfo();
     }
 }

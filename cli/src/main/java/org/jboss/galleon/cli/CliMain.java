@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.util.List;
 import org.jboss.galleon.cli.config.Configuration;
 import org.aesh.command.AeshCommandRuntimeBuilder;
-import org.aesh.command.Command;
 import org.aesh.command.CommandException;
 import org.aesh.command.CommandNotFoundHandler;
 import org.aesh.command.CommandRuntime;
@@ -70,8 +69,8 @@ public class CliMain {
             pmSession.setConnection(connection.getConnection());
             if (arguments.isHelp()) {
                 try {
-                    CommandRuntime<? extends Command, ? extends CommandInvocation> runtime =
-                            newRuntime(pmSession, connection);
+                    CommandRuntime<? extends CommandInvocation> runtime
+                            =                            newRuntime(pmSession, connection);
                     connection.getOutput().println(HelpSupport.getToolHelp(pmSession, runtime.getCommandRegistry()));
                 } finally {
                     connection.close();
@@ -153,7 +152,7 @@ public class CliMain {
         // Side effect is to resolve plugins.
         pmSession.getUniverse().resolveBuiltinUniverse();
 
-        Settings<? extends Command, ? extends CommandInvocation,
+        Settings<? extends CommandInvocation,
                 ? extends ConverterInvocation,
                 ? extends CompleterInvocation,
                 ? extends ValidatorInvocation,
@@ -170,15 +169,14 @@ public class CliMain {
         console.start();
     }
 
-    private static Settings<? extends Command,
-        ? extends CommandInvocation,
+    private static Settings<? extends CommandInvocation,
         ? extends ConverterInvocation,
         ? extends CompleterInvocation,
         ? extends ValidatorInvocation,
         ? extends OptionActivator,
         ? extends CommandActivator> buildSettings(PmSession pmSession, CliTerminalConnection connection,
             CommandInvocationProvider<PmCommandInvocation> provider) throws CommandLineParserException {
-        Settings<? extends Command, ? extends CommandInvocation,
+        Settings<? extends CommandInvocation,
                 ? extends ConverterInvocation,
                 ? extends CompleterInvocation,
                 ? extends ValidatorInvocation,
@@ -210,33 +208,33 @@ public class CliMain {
     }
 
     private static CommandRegistry buildRegistry(PmSession pmSession) throws CommandLineParserException {
-        MutableCommandRegistry registry = (MutableCommandRegistry) new AeshCommandRegistryBuilder().create();
+        MutableCommandRegistry registry = (MutableCommandRegistry) AeshCommandRegistryBuilder.builder().create();
         ToolModes modes = ToolModes.getModes(pmSession, registry);
         pmSession.setModes(modes);
         return registry;
     }
 
     // A runtime attached to cli terminal connection to execute a single command.
-    private static CommandRuntime<? extends Command, ? extends CommandInvocation> newRuntime(PmSession session,
+    private static CommandRuntime<? extends CommandInvocation> newRuntime(PmSession session,
             CliTerminalConnection connection) throws CommandLineParserException {
         return newRuntime(session, connection, connection.getOutput(), new CliShellInvocationProvider(session, connection));
     }
 
     // Used by tests. Tests don't rely on advanced output/input.
-    public static CommandRuntime<? extends Command, ? extends CommandInvocation> newRuntime(PmSession session,
+    public static CommandRuntime<? extends CommandInvocation> newRuntime(PmSession session,
             PrintStream out) throws CommandLineParserException {
         return newRuntime(session, null, out, new OutputInvocationProvider(session));
     }
 
-    private static CommandRuntime<? extends Command, ? extends CommandInvocation> newRuntime(PmSession session,
+    private static CommandRuntime<? extends CommandInvocation> newRuntime(PmSession session,
             CliTerminalConnection connection, PrintStream out,
             CommandInvocationProvider<PmCommandInvocation> provider) throws CommandLineParserException {
-        AeshCommandRuntimeBuilder builder = AeshCommandRuntimeBuilder.builder();
+        AeshCommandRuntimeBuilder<? extends CommandInvocation> builder = AeshCommandRuntimeBuilder.builder();
         builder.settings(buildSettings(session, connection, provider));
         session.setOut(out);
         session.setErr(out);
         @SuppressWarnings("unchecked")
-        CommandRuntime<? extends Command, ? extends CommandInvocation> runtime =
+        CommandRuntime<? extends CommandInvocation> runtime =
                 builder.build();
         session.setAeshContext(runtime.getAeshContext());
         return runtime;
