@@ -55,7 +55,7 @@ public abstract class AbstractDynamicCommand extends MapCommand<PmCommandInvocat
 
     public static final String ARGUMENT_NAME = "";
 
-    public class DynamicOption {
+    public static class DynamicOption {
 
         private final String name;
         private final boolean required;

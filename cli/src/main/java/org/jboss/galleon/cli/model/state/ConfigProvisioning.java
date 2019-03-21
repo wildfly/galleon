@@ -43,7 +43,7 @@ import org.jboss.galleon.spec.FeatureParameterSpec;
  */
 public class ConfigProvisioning {
 
-    private class DefineConfigurationAction implements State.Action {
+    private static class DefineConfigurationAction implements State.Action {
 
         private final ConfigId id;
 
@@ -67,7 +67,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class IncludeLayersConfigurationAction implements State.Action {
+    private static class IncludeLayersConfigurationAction implements State.Action {
 
         private final ConfigId id;
         private ConfigModel.Builder targetConfig;
@@ -132,7 +132,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class ExcludeLayersConfigurationAction implements State.Action {
+    private static class ExcludeLayersConfigurationAction implements State.Action {
 
         private final ConfigId id;
         private ConfigModel.Builder targetConfig;
@@ -197,7 +197,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class RemoveIncludedLayersConfigurationAction implements State.Action {
+    private static class RemoveIncludedLayersConfigurationAction implements State.Action {
 
         private final ConfigId id;
         private ConfigModel.Builder targetConfig;
@@ -242,7 +242,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class RemoveExcludedLayersConfigurationAction implements State.Action {
+    private static class RemoveExcludedLayersConfigurationAction implements State.Action {
 
         private final ConfigId id;
         private ConfigModel.Builder targetConfig;
@@ -286,7 +286,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class ResetConfigurationAction implements State.Action {
+    private static class ResetConfigurationAction implements State.Action {
 
         private final ConfigId id;
         private ConfigModel config;
@@ -320,7 +320,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class AddFeatureAction implements State.Action {
+    private static class AddFeatureAction implements State.Action {
 
         private final ConfigId id;
         private final FeatureSpecInfo spec;
@@ -403,7 +403,7 @@ public class ConfigProvisioning {
         }
     }
 
-    private class RemoveFeatureAction implements State.Action {
+    private static class RemoveFeatureAction implements State.Action {
 
         private final ConfigId id;
         private final FeatureInfo feature;

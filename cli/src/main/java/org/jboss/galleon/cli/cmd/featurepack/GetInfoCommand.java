@@ -63,7 +63,7 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
 
     public static final String PATCH_FOR = "Patch for ";
 
-    public class InfoTypeCompleter extends AbstractCompleter {
+    public static class InfoTypeCompleter extends AbstractCompleter {
 
         @Override
         protected List<String> getItems(PmCompleterInvocation completerInvocation) {
@@ -256,7 +256,6 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
 
     private boolean displayOptionalPackages(PmCommandInvocation commandInvocation,
             ProvisioningLayout<FeaturePackLayout> pLayout) throws ProvisioningException, IOException {
-        Map<String, List<ConfigInfo>> configs = new HashMap<>();
         try (ProvisioningRuntime rt = ProvisioningRuntimeBuilder.
                 newInstance(commandInvocation.getPmSession().getMessageWriter(false))
                 .initRtLayout(pLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY))

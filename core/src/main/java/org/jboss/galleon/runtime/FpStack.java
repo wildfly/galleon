@@ -40,7 +40,7 @@ class FpStack {
     private static final int INHERIT_PKGS_TRANSITIVE = 1;
     private static final int INHERIT_PKGS_TRUE = 2;
 
-    private class Level {
+    private static class Level {
 
         private List<FeaturePackConfig> fpConfigs = Collections.emptyList();
         private Map<ProducerSpec, FeaturePackConfig> transitive = Collections.emptyMap();
