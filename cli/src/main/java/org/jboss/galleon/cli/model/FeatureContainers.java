@@ -279,7 +279,8 @@ public abstract class FeatureContainers {
             config.setFeatureGroupRoot(grpBuilder.getRoot());
         }
         // Handle packages that are not directly referenced from a feature.
-        for (String producer : allPackages.keySet()) {
+        for (Entry<String,Map<String, PackageRuntime>> packageEntry : allPackages.entrySet()) {
+            String producer = packageEntry.getKey();
             Set<String> allOptionals = new HashSet<>();
             Set<String> allPassives = new HashSet<>();
             Map<String, Set<String>> optionals = fp.getOptionalPackages().get(producer);
@@ -294,7 +295,7 @@ public abstract class FeatureContainers {
                     allPassives.addAll(vals);
                 }
             }
-            Map<String, PackageRuntime> packages = allPackages.get(producer);
+            Map<String, PackageRuntime> packages = packageEntry.getValue();
             for (Entry<String, PackageRuntime> entry : packages.entrySet()) {
                 String name = entry.getKey();
                 PackageRuntime pkg = entry.getValue();

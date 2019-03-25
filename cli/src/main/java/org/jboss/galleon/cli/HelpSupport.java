@@ -114,11 +114,11 @@ public class HelpSupport {
         }
 
         StringBuilder sb = new StringBuilder();
-        for (CommandDomain group : groupedCommands.keySet()) {
+        for (Map.Entry<CommandDomain, Set<String>> groupedCommand : groupedCommands.entrySet()) {
             sb.append(Config.getLineSeparator());
-            sb.append("== ").append(group.getDescription()).append(" ==");
+            sb.append("== ").append(groupedCommand.getKey().getDescription()).append(" ==");
             sb.append(Config.getLineSeparator());
-            for (String description : groupedCommands.get(group)) {
+            for (String description : groupedCommand.getValue()) {
                 sb.append(description);
                 sb.append(Config.getLineSeparator());
             }

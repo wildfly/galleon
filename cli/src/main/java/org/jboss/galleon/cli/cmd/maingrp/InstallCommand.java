@@ -100,7 +100,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     }
 
-    private class ArgOptionActivator implements OptionActivator {
+    private static class ArgOptionActivator implements OptionActivator {
 
         @Override
         public boolean isActivated(ParsedCommand parsedCommand) {
@@ -110,7 +110,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     }
 
-    private class FileOptionActivator implements OptionActivator {
+    private static class FileOptionActivator implements OptionActivator {
 
         @Override
         public boolean isActivated(ParsedCommand parsedCommand) {
@@ -120,7 +120,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     }
 
-    private class LayersOptionActivator implements OptionActivator {
+    private static class LayersOptionActivator implements OptionActivator {
 
         @Override
         public boolean isActivated(ParsedCommand parsedCommand) {
@@ -130,7 +130,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     }
 
-    private class DefaultConfigsOptionActivator implements OptionActivator {
+    private static class DefaultConfigsOptionActivator implements OptionActivator {
 
         @Override
         public boolean isActivated(ParsedCommand parsedCommand) {
@@ -140,7 +140,7 @@ public class InstallCommand extends AbstractPluginsCommand {
 
     }
 
-    private class ConfigOptionActivator implements OptionActivator {
+    private static class ConfigOptionActivator implements OptionActivator {
 
         @Override
         public boolean isActivated(ParsedCommand parsedCommand) {

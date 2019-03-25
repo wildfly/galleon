@@ -38,7 +38,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
  */
 class FeaturePackProvisioning {
 
-    private class AddDependencyAction implements State.Action {
+    private static class AddDependencyAction implements State.Action {
 
         private final FeaturePackConfig.Builder newDepBuilder;
         private final FeaturePackLocation fpl;
@@ -59,7 +59,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class RemoveDependencyAction implements State.Action {
+    private static class RemoveDependencyAction implements State.Action {
 
         private final FeaturePackLocation fpl;
         private int index;
@@ -83,7 +83,7 @@ class FeaturePackProvisioning {
 
     }
 
-    private abstract class AbstractAction<T> implements State.Action {
+    private abstract static class AbstractAction<T> implements State.Action {
 
         private final Map<FeaturePackConfig, T> cf;
         private final Map<FeaturePackLocation.FPID, Integer> indexes = new HashMap<>();
@@ -148,7 +148,7 @@ class FeaturePackProvisioning {
 
     }
 
-    private class IncludeConfigurationAction extends AbstractAction<ConfigId> {
+    private static class IncludeConfigurationAction extends AbstractAction<ConfigId> {
 
         IncludeConfigurationAction(Map<FeaturePackConfig, ConfigId> cf) {
             super(cf);
@@ -170,7 +170,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class ExcludeConfigurationAction extends AbstractAction<ConfigId> {
+    private static class ExcludeConfigurationAction extends AbstractAction<ConfigId> {
 
         ExcludeConfigurationAction(Map<FeaturePackConfig, ConfigId> cf) {
             super(cf);
@@ -186,7 +186,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class RemoveExcludedConfigurationAction extends AbstractAction<ConfigId> {
+    private static class RemoveExcludedConfigurationAction extends AbstractAction<ConfigId> {
 
         RemoveExcludedConfigurationAction(Map<FeaturePackConfig, ConfigId> cf) {
             super(cf);
@@ -205,7 +205,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class RemoveIncludedConfigurationAction extends AbstractAction<ConfigId> {
+    private static class RemoveIncludedConfigurationAction extends AbstractAction<ConfigId> {
 
         RemoveIncludedConfigurationAction(Map<FeaturePackConfig, ConfigId> cf) {
             super(cf);
@@ -225,7 +225,7 @@ class FeaturePackProvisioning {
     }
 
 
-    private class IncludePackageAction extends AbstractAction<String> {
+    private static class IncludePackageAction extends AbstractAction<String> {
 
         IncludePackageAction(Map<FeaturePackConfig, String> cf) {
             super(cf);
@@ -247,7 +247,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class ExcludePackageAction extends AbstractAction<String> {
+    private static class ExcludePackageAction extends AbstractAction<String> {
 
         ExcludePackageAction(Map<FeaturePackConfig, String> cf) {
             super(cf);
@@ -269,7 +269,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class ExcludePackageFromNewTransitiveAction implements State.Action {
+    private static class ExcludePackageFromNewTransitiveAction implements State.Action {
 
         private final String pkg;
         private final FeaturePackLocation loc;
@@ -291,7 +291,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class IncludePackageInNewTransitiveAction implements State.Action {
+    private static class IncludePackageInNewTransitiveAction implements State.Action {
 
         private final String pkg;
         private final FeaturePackLocation loc;
@@ -314,7 +314,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class RemoveIncludedPackageAction extends AbstractAction<String> {
+    private static class RemoveIncludedPackageAction extends AbstractAction<String> {
 
         RemoveIncludedPackageAction(Map<FeaturePackConfig, String> cf) {
             super(cf);
@@ -333,7 +333,7 @@ class FeaturePackProvisioning {
         }
     }
 
-    private class RemoveExcludedPackageAction extends AbstractAction<String> {
+    private static class RemoveExcludedPackageAction extends AbstractAction<String> {
 
         RemoveExcludedPackageAction(Map<FeaturePackConfig, String> cf) {
             super(cf);
