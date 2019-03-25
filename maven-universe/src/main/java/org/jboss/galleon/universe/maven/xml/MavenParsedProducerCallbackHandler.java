@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ public interface MavenParsedProducerCallbackHandler {
 
     void parsedName(String name) throws XMLStreamException;
     void parsedFrequency(String frequency, boolean isDefault) throws XMLStreamException;
+    void parsedDefaultChannel(String defaultChannel) throws XMLStreamException;
     void parsedFpGroupId(String groupId) throws XMLStreamException;
     void parsedFpArtifactId(String artifactId) throws XMLStreamException;
 }

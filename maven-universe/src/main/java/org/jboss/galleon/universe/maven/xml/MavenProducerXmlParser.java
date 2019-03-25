@@ -36,7 +36,7 @@ public class MavenProducerXmlParser {
     }
 
     private MavenProducerXmlParser() {
-        XmlParsers.getInstance().plugin(MavenProducerXmlParser10.ROOT_1_0, new MavenProducerXmlParser10());
+        XmlParsers.getInstance().plugin(MavenProducerXmlParser10.ROOT, new MavenProducerXmlParser10());
     }
 
     public void parse(final Reader input, final MavenParsedProducerCallbackHandler builder) throws XMLStreamException {

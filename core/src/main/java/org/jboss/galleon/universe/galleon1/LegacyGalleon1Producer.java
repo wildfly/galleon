@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,5 +83,15 @@ class LegacyGalleon1Producer implements Producer<LegacyGalleon1Channel> {
     @Override
     public Collection<LegacyGalleon1Channel> getChannels() throws ProvisioningException {
         return channels.values();
+    }
+
+    @Override
+    public boolean hasDefaultChannel() {
+        return false;
+    }
+
+    @Override
+    public LegacyGalleon1Channel getDefaultChannel() {
+        return null;
     }
 }

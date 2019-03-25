@@ -291,9 +291,14 @@ public class FeaturePackLocation {
                     break loop;
             }
         }
+        /*
         if(universeEnd <= 0) {
-            throw unexpectedFormat(str);
+            if(buildSep == str.length()) {
+                return new FeaturePackLocation(null, str, null, null, null);
+            }
+            return new FeaturePackLocation(null, str.substring(0, buildSep), null, null, str.substring(buildSep + 1));
         }
+        */
         if (producerEnd == 0) {
             while (producerEnd < universeEnd) {
                 if (str.charAt(producerEnd) == UNIVERSE_START) {
@@ -302,17 +307,16 @@ public class FeaturePackLocation {
                 ++producerEnd;
             }
             if(producerEnd == 0) {
-                throw unexpectedFormat(str);
-            }
-            if(producerEnd == universeEnd && channelNameEnd == str.length()) {
+                producerEnd = Math.min(channelNameEnd, buildSep);
+            } else if (producerEnd == universeEnd && channelNameEnd == str.length()) {
                 // maven coordinates suspect
                 int i = 1;
                 String[] parts = null;
                 int partI = 1;
                 int lastColon = -1;
-                while(i < producerEnd) {
-                    if(str.charAt(i) == ':') {
-                        if(parts == null) {
+                while (i < producerEnd) {
+                    if (str.charAt(i) == ':') {
+                        if (parts == null) {
                             parts = new String[5];
                             parts[0] = str.substring(0, i);
                             parts[4] = str.substring(universeEnd + 1, channelNameEnd);
@@ -324,29 +328,22 @@ public class FeaturePackLocation {
                     }
                     i++;
                 }
-                if(parts != null) {
+                if (parts != null) {
                     parts[partI] = str.substring(lastColon + 1, producerEnd);
                     return new FeaturePackLocation(
-                            new UniverseSpec(Constants.MAVEN),
-                            parts[0] + ':' + parts[1] + ':' + (parts[2] == null ? "" : parts[2]) + ':' + (partI != 3 ? Constants.ZIP : parts[3]),
-                            null,
-                            null,
-                            parts[4]
-                            );
+                            new UniverseSpec(Constants.MAVEN), parts[0] + ':' + parts[1] + ':'
+                                    + (parts[2] == null ? "" : parts[2]) + ':' + (partI != 3 ? Constants.ZIP : parts[3]),
+                            null, null, parts[4]);
                 }
             }
         }
         return new FeaturePackLocation(
-                producerEnd == universeEnd ? null : UniverseSpec.fromString(str.substring(producerEnd + 1, universeEnd)),
+                universeEnd == 0 || producerEnd == universeEnd ? null : UniverseSpec.fromString(str.substring(producerEnd + 1, universeEnd)),
                 str.substring(0, producerEnd),
-                universeEnd == channelNameEnd ? null : str.substring(universeEnd + 1, channelNameEnd),
+                universeEnd == 0 || universeEnd == channelNameEnd ? null : str.substring(universeEnd + 1, channelNameEnd),
                 channelNameEnd == buildSep ? null : str.substring(channelNameEnd + 1, buildSep),
                 buildSep == str.length() ? null : str.substring(buildSep + 1)
                 );
-    }
-
-    private static IllegalArgumentException unexpectedFormat(String str) {
-        return new IllegalArgumentException(str + " does not follow format producer[@factory[(location)]]:channel[/frequency]#build");
     }
 
     private static String toString(UniverseSpec universeSpec, String producer, String channel, String frequency, String build) {

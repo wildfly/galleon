@@ -117,13 +117,13 @@ public interface Errors {
         return p + " has to be empty or contain a provisioned installation to be used by the tool";
     }
 
-    static String fpVersionCheckFailed(Collection<Set<FeaturePackLocation.FPID>> versionConflicts) throws ProvisioningException {
+    static String fpVersionCheckFailed(Collection<Set<FPID>> versionConflicts) throws ProvisioningException {
         final StringWriter strWriter = new StringWriter();
         try(BufferedWriter writer = new BufferedWriter(strWriter)) {
             writer.write("Feature-pack versions check failed with the following errors:");
             writer.newLine();
             if(!versionConflicts.isEmpty()) {
-                for (Collection<FeaturePackLocation.FPID> entry : versionConflicts) {
+                for (Collection<FPID> entry : versionConflicts) {
                     writer.write(" * ");
                     writer.write(Errors.featurePackVersionConflict(entry));
                     writer.write(';');
@@ -176,13 +176,13 @@ public interface Errors {
     static String featurePackVersionConflict(Collection<FeaturePackLocation.FPID> fpids) {
         final Iterator<FeaturePackLocation.FPID> i = fpids.iterator();
         FeaturePackLocation.FPID fpid = i.next();
-        final StringBuilder buf = new StringBuilder("Please pick the desired build number for ")
+        final StringBuilder buf = new StringBuilder("Please pick the desired channel and/or build for ")
                 .append(fpid.getProducer())
-                .append(" explicitly in the provisioning config. Current configuration references the following versions ")
-                .append(fpid.getBuild());
+                .append(" explicitly in the provisioning config. Current configuration includes ")
+                .append(fpid);
         while(i.hasNext()) {
             fpid = i.next();
-            buf.append(", ").append(fpid.getBuild());
+            buf.append(", ").append(fpid);
         }
         return buf.toString();
     }
@@ -509,6 +509,10 @@ public interface Errors {
         final long nanos = Math.abs(System.nanoTime() - startTimeNanos);
         final long timeSec = nanos / 1000000000;
         return action + " took " + timeSec + "." + ((nanos - timeSec * 1000000000) / 1000000) + " seconds";
+    }
+
+    static String defaultChannelNotConfigured(String producer) {
+        return "Default channel has not been configured for feature-pack producer " + producer;
     }
 
     static void appendConfig(final StringBuilder buf, String model, String name) {

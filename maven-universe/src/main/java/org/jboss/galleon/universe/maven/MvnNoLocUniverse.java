@@ -111,6 +111,16 @@ public class MvnNoLocUniverse implements Universe<MvnNoLocUniverse>, Producer<Mv
     }
 
     @Override
+    public boolean hasDefaultChannel() {
+        return false;
+    }
+
+    @Override
+    public MvnNoLocUniverse getDefaultChannel() {
+        return null;
+    }
+
+    @Override
     public String getLatestBuild(FeaturePackLocation fpl) throws ProvisioningException {
         return getLatestBuild(fpl.getFPID());
     }

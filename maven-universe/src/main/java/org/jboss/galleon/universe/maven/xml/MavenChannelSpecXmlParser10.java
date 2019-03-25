@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,7 +108,7 @@ public class MavenChannelSpecXmlParser10 implements PlugableXmlParser<ParsedCall
         private static final Map<QName, Attribute> attributes;
 
         static {
-            attributes = new HashMap<>(1);
+            attributes = new HashMap<>(2);
             attributes.put(new QName(NAME.name), NAME);
             attributes.put(null, UNKNOWN);
         }

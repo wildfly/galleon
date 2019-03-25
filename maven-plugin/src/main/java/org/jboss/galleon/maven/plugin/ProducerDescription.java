@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,6 +85,12 @@ public class ProducerDescription implements MavenProducerDescription<ChannelDesc
     @Parameter(required = true)
     List<ChannelDescription> channels = Collections.emptyList();
 
+    /**
+     * Default channel
+     */
+    @Parameter(required = false)
+    String defaultChannel;
+
     @Override
     public String getName() {
         return name;
@@ -113,5 +119,15 @@ public class ProducerDescription implements MavenProducerDescription<ChannelDesc
     @Override
     public Collection<ChannelDescription> getChannels() throws MavenUniverseException {
         return channels;
+    }
+
+    @Override
+    public boolean hasDefaultChannel() {
+        return defaultChannel != null;
+    }
+
+    @Override
+    public String getDefaultChannelName() {
+        return defaultChannel;
     }
 }
