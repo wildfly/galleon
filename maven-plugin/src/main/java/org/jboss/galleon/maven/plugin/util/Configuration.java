@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.maven.plugin.util;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,8 +27,8 @@ public class Configuration {
 
     private String model;
     private String name;
-    private List<String> layers;
-    private List<String> excludedLayers;
+    private List<String> layers = Collections.emptyList();
+    private List<String> excludedLayers = Collections.emptyList();
 
     public String getModel() {
         return model;

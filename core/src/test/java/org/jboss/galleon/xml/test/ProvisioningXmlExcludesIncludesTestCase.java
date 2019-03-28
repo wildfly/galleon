@@ -100,6 +100,7 @@ public class ProvisioningXmlExcludesIncludesTestCase {
                         .build())
                 .addFeaturePackDep(FeaturePackConfig
                         .builder(FeaturePackLocation.fromString("fp3@maven(universe):0#0.0.3"))
+                        .setInheritPackages(true)
                         .excludePackage("p2")
                         .includePackage("p3")
                         .build())
