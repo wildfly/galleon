@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ import org.jboss.galleon.util.CollectionUtils;
  */
 public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizationsBuilder<B>> {
 
-    protected boolean inheritConfigs = true;
+    protected Boolean inheritConfigs;
     protected boolean inheritModelOnlyConfigs = true;
     protected Set<String> includedModels = Collections.emptySet();
     protected Set<ConfigId> includedConfigs = Collections.emptySet();
@@ -53,7 +53,7 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
     }
 
     protected void resetConfigs() {
-        inheritConfigs = true;
+        inheritConfigs = null;
         inheritModelOnlyConfigs = true;
         includedModels = Collections.emptySet();
         includedConfigs = Collections.emptySet();
@@ -78,9 +78,6 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
     @SuppressWarnings("unchecked")
     public B addConfig(ConfigModel config) throws ProvisioningDescriptionException {
         final ConfigId id = config.getId();
-        if(id.isAnonymous()) {
-            throw new ProvisioningDescriptionException("Anonymous configs are not supported in " + getClass().getName());
-        }
         definedConfigs = CollectionUtils.putLinked(definedConfigs, id, config);
         this.hasModelOnlyConfigs |= config.id.isModelOnly();
         return (B) this;

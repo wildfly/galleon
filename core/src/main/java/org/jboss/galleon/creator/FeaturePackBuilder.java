@@ -173,9 +173,6 @@ public class FeaturePackBuilder {
 
     public FeaturePackBuilder addConfig(ConfigModel config, boolean asDefault) throws ProvisioningDescriptionException {
         final ConfigId id = config.getId();
-        if(id.isAnonymous()) {
-            throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": attempt to add an anonymous config");
-        }
         if(asDefault && id.isModelOnly()) {
             throw new ProvisioningDescriptionException("Feature-pack " + fpBuilder.getFPID() + ": model-only config can not be added as the default one");
         }

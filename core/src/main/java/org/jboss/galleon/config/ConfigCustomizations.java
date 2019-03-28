@@ -29,7 +29,7 @@ import org.jboss.galleon.util.StringUtils;
  */
 public class ConfigCustomizations {
 
-    protected final boolean inheritConfigs;
+    protected final Boolean inheritConfigs;
     protected final boolean inheritModelOnlyConfigs;
     protected final Set<String> includedModels;
     protected final Map<String, Boolean> excludedModels;
@@ -49,7 +49,11 @@ public class ConfigCustomizations {
         this.hasModelOnlyConfigs = builder.hasModelOnlyConfigs;
     }
 
-    public boolean isInheritConfigs() {
+    public boolean isInheritConfigs(boolean defaultValue) {
+        return inheritConfigs == null ? defaultValue : inheritConfigs.booleanValue();
+    }
+
+    public Boolean getInheritConfigs() {
         return inheritConfigs;
     }
 
@@ -138,7 +142,7 @@ public class ConfigCustomizations {
         result = prime * result + ((excludedModels == null) ? 0 : excludedModels.hashCode());
         result = prime * result + ((includedConfigs == null) ? 0 : includedConfigs.hashCode());
         result = prime * result + ((includedModels == null) ? 0 : includedModels.hashCode());
-        result = prime * result + (inheritConfigs ? 1231 : 1237);
+        result = prime * result + ((inheritConfigs == null) ? 0 : inheritConfigs.hashCode());
         result = prime * result + (inheritModelOnlyConfigs ? 1231 : 1237);
         return result;
     }
@@ -177,7 +181,10 @@ public class ConfigCustomizations {
                 return false;
         } else if (!includedModels.equals(other.includedModels))
             return false;
-        if (inheritConfigs != other.inheritConfigs)
+        if (inheritConfigs == null) {
+            if (other.inheritConfigs != null)
+                return false;
+        } else if (!inheritConfigs.equals(other.inheritConfigs))
             return false;
         if (inheritModelOnlyConfigs != other.inheritModelOnlyConfigs)
             return false;
@@ -185,8 +192,8 @@ public class ConfigCustomizations {
     }
 
     protected void append(StringBuilder builder) {
-        if(!inheritConfigs) {
-            builder.append(" inheritConfigs=false");
+        if(inheritConfigs != null) {
+            builder.append(" inheritConfigs=").append(inheritConfigs);
         }
         if(!inheritModelOnlyConfigs) {
             builder.append(" inheritModelOnlyConfigs=false");

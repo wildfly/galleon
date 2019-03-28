@@ -72,8 +72,19 @@ class FpStack {
             return FpStack.isFilteredOut(fpConfigs.get(currentFp), configId);
         }
 
+        Boolean isIncluded(ProducerSpec producer, ConfigId configId) {
+            final FeaturePackConfig fpConfig = transitive.get(producer);
+            if(fpConfig != null) {
+                final Boolean included = FpStack.isIncluded(fpConfig, configId);
+                if(included != null) {
+                    return included;
+                }
+            }
+            return FpStack.isIncluded(fpConfigs.get(currentFp), configId);
+        }
+
         boolean isInheritConfigs() {
-            return fpConfigs.get(currentFp).isInheritConfigs();
+            return fpConfigs.get(currentFp).isInheritConfigs(true);
         }
 
         boolean isInheritModelOnlyConfigs() {
@@ -192,13 +203,10 @@ class FpStack {
     }
 
     private static boolean isFilteredOut(ConfigCustomizations configCustoms, ConfigId configId) {
-        if(configId.isAnonymous()) {
-            return !configCustoms.isInheritConfigs();
-        }
         if(configId.isModelOnly()) {
             return configCustoms.isConfigModelExcluded(configId) || !configCustoms.isInheritModelOnlyConfigs();
         }
-        if(configCustoms.isInheritConfigs()) {
+        if(configCustoms.isInheritConfigs(true)) {
             if(configCustoms.isConfigExcluded(configId)) {
                 return true;
             }
@@ -220,6 +228,51 @@ class FpStack {
             return false;
         }
         return true;
+    }
+
+    boolean isIncluded(ProducerSpec producer, ConfigId configId, boolean fromPrevLevel) {
+        Boolean included = isIncluded(config, configId);
+        if(included != null) {
+            return included;
+        }
+        final int end = levels.size() - (fromPrevLevel ? 1 : 0);
+        int i = 0;
+        while(i < end) {
+            included = levels.get(i++).isIncluded(producer, configId);
+            if(included != null) {
+                return included;
+            }
+        }
+        return false;
+    }
+
+    private static Boolean isIncluded(ConfigCustomizations configCustoms, ConfigId configId) {
+        if(configId.isModelOnly()) {
+            return configCustoms.isConfigModelIncluded(configId) || configCustoms.isInheritModelOnlyConfigs();
+        }
+        Boolean inheritConfigs = configCustoms.getInheritConfigs();
+        if(inheritConfigs == null || !inheritConfigs.booleanValue()) {
+            if(configCustoms.isConfigIncluded(configId)) {
+                return true;
+            }
+            if(configCustoms.isConfigModelIncluded(configId)) {
+                if(configCustoms.isConfigExcluded(configId)) {
+                    return false;
+                }
+                return false;
+            }
+            return inheritConfigs;
+        }
+        if (configCustoms.isConfigExcluded(configId)) {
+            return false;
+        }
+        if (configCustoms.isConfigModelExcluded(configId)) {
+            if (configCustoms.isConfigIncluded(configId)) {
+                return true;
+            }
+            return false;
+        }
+        return inheritConfigs;
     }
 
     private boolean isRelevant(FeaturePackConfig fpConfig) {

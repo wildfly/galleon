@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,11 @@ public class ConfigId {
     final String name;
 
     public ConfigId(String model, String name) {
+        if(model == null && name == null) {
+            throw new IllegalArgumentException("Anonymous configs aren't supported");
+        }
         this.model = model;
         this.name = name;
-    }
-
-    public boolean isAnonymous() {
-        return model == null && name == null;
     }
 
     public boolean isModelOnly() {

@@ -431,7 +431,7 @@ public class ConfigProvisioning {
             }
             if (targetConfig == null) {
                 // It has been included or is inherited.
-                if (!current.isInheritConfigs()) {
+                if (!current.isInheritConfigs(true)) {
                     if (!current.getIncludedConfigs().contains(id)) {
                         throw new ProvisioningException(CliErrors.configurationNotFound(id));
                     }

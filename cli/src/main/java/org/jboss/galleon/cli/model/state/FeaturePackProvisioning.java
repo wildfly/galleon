@@ -124,7 +124,7 @@ class FeaturePackProvisioning {
                     && !cfg.hasExcludedPackages() && !cfg.hasFullModelsExcluded()
                     && !cfg.hasFullModelsIncluded() && !cfg.hasIncludedConfigs()
                     && !cfg.hasIncludedPackages() && !cfg.hasPatches() && cfg.isInheritPackages()
-                    && cfg.isInheritConfigs();
+                    && cfg.getInheritConfigs() == null;
         }
 
         @Override
