@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -150,5 +150,16 @@ public class ZipUtils {
      */
      public static FileSystem newFileSystem(Path path) throws IOException {
          return FileSystems.newFileSystem(path, null);
+     }
+
+    /**
+     * This call is thread safe, a new FS is created for each invocation.
+     * @param path The zip file.
+     * @param env A map of provider specific properties to configure the file system; may be empty
+     * @return A new FileSystem instance
+     * @throws IOException  in case of a failure
+     */
+     public static FileSystem newFileSystem(Path path, Map<String, String> env) throws IOException {
+        return FileSystems.newFileSystem(ZipUtils.toZipUri(path), env);
      }
 }
