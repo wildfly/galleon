@@ -427,6 +427,13 @@ class ConfigModelStack {
                 }
             }
         }
+        if(other.includedLayers != null && !other.includedLayers.isEmpty()) {
+            for(ConfigId layerId : other.includedLayers) {
+                if(addLayer(layerId)) {
+                    includedLayer(layerId);
+                }
+            }
+        }
 
         if(other.specFeatures.isEmpty()) {
             return;
