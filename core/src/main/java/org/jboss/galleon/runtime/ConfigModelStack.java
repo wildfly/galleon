@@ -182,6 +182,10 @@ class ConfigModelStack {
         newFgScope();
     }
 
+    int size() {
+        return configs.size();
+    }
+
     boolean addLayer(ConfigId layerId) {
         return (addedLayers == null ? addedLayers = new LinkedHashSet<>() : addedLayers).add(layerId);
     }

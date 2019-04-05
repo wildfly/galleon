@@ -168,9 +168,10 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
 
         ElementNode defConfigsE = null;
 
-        if(!configCustoms.isInheritConfigs()) {
+        final Boolean inheritConfigs = configCustoms.getInheritConfigs();
+        if(inheritConfigs != null) {
             defConfigsE = addElement(parent, Element.DEFAULT_CONFIGS.getLocalName(), ns);
-            addAttribute(defConfigsE, Attribute.INHERIT, FALSE);
+            addAttribute(defConfigsE, Attribute.INHERIT, inheritConfigs.toString());
         }
         if(!configCustoms.isInheritModelOnlyConfigs()) {
             if(defConfigsE == null) {

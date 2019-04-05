@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,6 +163,7 @@ public class ConfigXml {
 
     public static void readConfig(XMLExtendedStreamReader reader, ConfigModel.Builder configBuilder) throws XMLStreamException {
         String name = null;
+        String model = null;
         Boolean inheritFeatures = null;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
@@ -173,7 +174,8 @@ public class ConfigXml {
                     configBuilder.setName(name);
                     break;
                 case MODEL:
-                    configBuilder.setModel(reader.getAttributeValue(i));
+                    model = reader.getAttributeValue(i);
+                    configBuilder.setModel(model);
                     break;
                 case INHERIT_FEATURES:
                     inheritFeatures = Boolean.parseBoolean(reader.getAttributeValue(i));
@@ -183,8 +185,13 @@ public class ConfigXml {
                     throw ParsingUtils.unexpectedAttribute(reader, i);
             }
         }
-        if (name == null && inheritFeatures != null) {
-            throw new XMLStreamException(Attribute.INHERIT_FEATURES + " attribute can't be used w/o attribute " + Attribute.NAME);
+        if (name == null) {
+            if(inheritFeatures != null) {
+                throw new XMLStreamException(Attribute.INHERIT_FEATURES + " attribute can't be used w/o attribute " + Attribute.NAME);
+            }
+            if(model == null) {
+                throw new XMLStreamException("Either one name or model or both attributes have to be present", reader.getLocation());
+            }
         }
         while (reader.hasNext()) {
             switch (reader.nextTag()) {

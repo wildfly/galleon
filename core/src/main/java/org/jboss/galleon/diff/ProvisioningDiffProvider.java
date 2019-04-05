@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -235,7 +235,7 @@ public class ProvisioningDiffProvider {
                         }
                     }
                     if(getProvisionedConfig(baseConfigs, configId.getModel(), configId.getName()) != null) {
-                        if(provisionedConfig.isInheritConfigs()) {
+                        if(provisionedConfig.isInheritConfigs(true)) {
                             if(!provisionedConfig.isConfigModelExcluded(configId)) {
                                 configBuilder.excludeDefaultConfig(configId);
                             }
@@ -243,7 +243,7 @@ public class ProvisioningDiffProvider {
                             configBuilder.excludeDefaultConfig(configId);
                         }
                     }
-                } else if(provisionedConfig.isInheritConfigs()) {
+                } else if(provisionedConfig.isInheritConfigs(true)) {
                     if(!provisionedConfig.isConfigModelExcluded(configId)) {
                         configBuilder.excludeDefaultConfig(configId);
                     }
@@ -282,7 +282,10 @@ public class ProvisioningDiffProvider {
             configBuilder.addFeaturePackDep(fpcBuilder.build());
         }
 
-        configBuilder.setInheritConfigs(provisionedConfig.isInheritConfigs());
+        final Boolean inheritConfigs = provisionedConfig.getInheritConfigs();
+        if(inheritConfigs != null) {
+            configBuilder.setInheritConfigs(inheritConfigs);
+        }
         configBuilder.setInheritModelOnlyConfigs(provisionedConfig.isInheritModelOnlyConfigs());
         if(provisionedConfig.hasFullModelsExcluded()) {
             for(Map.Entry<String, Boolean> entry : provisionedConfig.getFullModelsExcluded().entrySet()) {

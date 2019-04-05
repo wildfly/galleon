@@ -173,6 +173,6 @@ public class FeaturePackXmlParserTestCase  {
     public void readUnnamedConfigs() throws Exception {
         validator.validateAndParse("xml/feature-pack/feature-pack-unnamed-config.xml",
                 null,
-                "Failed to parse config element");
+                "Either one name or model or both attributes have to be present");
     }
 }
