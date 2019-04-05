@@ -25,7 +25,6 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.ConfigLayerSpec;
-import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
@@ -41,22 +40,19 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFromUniverseTestBase {
+public class ConfigLayerIncludedInModelOnlyConfigTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation prod1;
-    private FeaturePackLocation prod2;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
         universe.createProducer("prod1");
-        universe.createProducer("prod2");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
 
         prod1 = newFpl("prod1", "1", "1.0.0.Final");
-        prod2 = newFpl("prod2", "1", "1.0.0.Final");
 
         creator.newFeaturePack()
             .setFPID(prod1.getFPID())
@@ -64,38 +60,21 @@ public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFro
                     .addParam(FeatureParameterSpec.createId("id"))
                     .addParam(FeatureParameterSpec.create("p1", "spec"))
                     .addParam(FeatureParameterSpec.create("p2", "spec"))
+                    .addParam(FeatureParameterSpec.create("p3", "spec"))
                     .build())
             .addConfigLayer(ConfigLayerSpec.builder()
                     .setModel("model1").setName("base")
                     .addFeature(new FeatureConfig("specA")
-                            .setParam("id", "1")
-                            .setParam("p1", "prod1"))
-                    .addFeature(new FeatureConfig("specA")
-                            .setParam("id", "2")
-                            .setParam("p1", "prod1"))
-                    .addPackageDep("prod1")
+                            .setParam("id", "base-prod1")
+                            .setParam("p2", "base"))
+                    .addPackageDep("base")
                     .build())
-            .newPackage("prod1")
-                .writeContent("prod1.txt", "prod1");
-
-        creator.newFeaturePack()
-            .setFPID(prod2.getFPID())
-            .addDependency(prod1)
-            .addFeatureSpec(FeatureSpec.builder("specB")
-                .addParam(FeatureParameterSpec.createId("id"))
-                .addParam(FeatureParameterSpec.create("p1", "spec"))
-                .addParam(FeatureParameterSpec.create("p2", "spec"))
-                .build())
-        .addConfigLayer(ConfigLayerSpec.builder()
-                .setModel("model1").setName("base")
-                .excludeFeature(FeatureId.create("specA", "id", "1"))
-                .addFeature(new FeatureConfig("specB")
-                        .setParam("id", "1")
-                        .setParam("p2", "prod2"))
-                .addPackageDep("prod2")
-                .build())
-        .newPackage("prod2")
-            .writeContent("prod2.txt", "prod2");
+            .addConfig(ConfigModel.builder("model1", null)
+                    .setProperty("prop1", "value1")
+                    .includeLayer("base")
+                    .build())
+            .newPackage("base")
+                .writeContent("base.txt", "base");
 
         creator.install();
     }
@@ -103,9 +82,8 @@ public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFro
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forLocation(prod2))
+                .addFeaturePackDep(FeaturePackConfig.forLocation(prod1))
                 .addConfig(ConfigModel.builder("model1", "name1")
-                        .includeLayer("base")
                         .build())
                 .build();
     }
@@ -114,24 +92,18 @@ public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFro
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.builder(prod1.getFPID())
-                        .addPackage("prod1")
-                        .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(prod2.getFPID())
-                        .addPackage("prod2")
+                        .addPackage("base")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
+                        .setProperty("prop1", "value1")
                         .addLayer("model1", "base")
                         .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(prod1.getProducer(), "specA", "id", "2"))
-                                .setConfigParam("p1", "prod1")
-                                .setConfigParam("p2", "spec")
-                                .build())
-                        .addFeature(ProvisionedFeatureBuilder.builder(
-                                ResolvedFeatureId.create(prod2.getProducer(), "specB", "id", "1"))
+                                ResolvedFeatureId.create(prod1.getProducer(), "specA", "id", "base-prod1"))
                                 .setConfigParam("p1", "spec")
-                                .setConfigParam("p2", "prod2")
+                                .setConfigParam("p2", "base")
+                                .setConfigParam("p3", "spec")
                                 .build())
                         .build())
                 .build();
@@ -140,8 +112,7 @@ public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFro
     @Override
     protected DirState provisionedHomeDir() {
         return newDirBuilder()
-                .addFile("prod1.txt", "prod1")
-                .addFile("prod2.txt", "prod2")
+                .addFile("base.txt", "base")
                 .build();
     }
 }

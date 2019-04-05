@@ -20,6 +20,7 @@ package org.jboss.galleon.provision.config.layers.test;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
+import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
@@ -41,7 +42,7 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFromUniverseTestBase {
+public class ExcludeFeatureFromInheritedConfigLayerIncludedFromAGroupTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation prod1;
     private FeaturePackLocation prod2;
@@ -65,11 +66,14 @@ public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFro
                     .addParam(FeatureParameterSpec.create("p1", "spec"))
                     .addParam(FeatureParameterSpec.create("p2", "spec"))
                     .build())
-            .addConfigLayer(ConfigLayerSpec.builder()
-                    .setModel("model1").setName("base")
+            .addFeatureGroup(FeatureGroup.builder("group1")
                     .addFeature(new FeatureConfig("specA")
                             .setParam("id", "1")
                             .setParam("p1", "prod1"))
+                    .build())
+            .addConfigLayer(ConfigLayerSpec.builder()
+                    .setModel("model1").setName("base")
+                    .addFeatureGroup(FeatureGroup.forGroup("group1"))
                     .addFeature(new FeatureConfig("specA")
                             .setParam("id", "2")
                             .setParam("p1", "prod1"))
