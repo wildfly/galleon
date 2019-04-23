@@ -66,9 +66,9 @@ public class MavenConfig {
     private static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
     static {
         DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("jboss-public-repository-group",
-                DEFAULT_REPOSITORY_TYPE, "http://repository.jboss.org/nexus/content/groups/public/"));
+                DEFAULT_REPOSITORY_TYPE, "https://repository.jboss.org/nexus/content/groups/public/"));
         DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("maven-central", DEFAULT_REPOSITORY_TYPE,
-                "http://repo1.maven.org/maven2/"));
+                "https://repo1.maven.org/maven2/"));
     }
     public interface MavenChangeListener {
         void configurationChanged(MavenConfig config) throws XMLStreamException, IOException;
