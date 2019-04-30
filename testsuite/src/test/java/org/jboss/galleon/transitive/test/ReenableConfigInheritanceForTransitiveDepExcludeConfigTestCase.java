@@ -77,7 +77,9 @@ public class ReenableConfigInheritanceForTransitiveDepExcludeConfigTestCase exte
 
         creator.newFeaturePack()
         .setFPID(fp2.getFPID())
-        .addDependency(fp3)
+        .addDependency(FeaturePackConfig.builder(fp3)
+                .excludeDefaultConfig("model1", "name6")
+                .build())
         .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
@@ -103,6 +105,9 @@ public class ReenableConfigInheritanceForTransitiveDepExcludeConfigTestCase exte
                 .build(), false)
         .addConfig(ConfigModel.builder("model1", "name5")
                 .addFeature(new FeatureConfig("specC").setParam("p1", "5"))
+                .build())
+        .addConfig(ConfigModel.builder("model1", "name6")
+                .addFeature(new FeatureConfig("specC").setParam("p1", "6"))
                 .build());
 
         creator.install();
@@ -139,6 +144,11 @@ public class ReenableConfigInheritanceForTransitiveDepExcludeConfigTestCase exte
                         .setModel("model1")
                         .setName("name3")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "3")))
+                        .build())
+                .addConfig(ProvisionedConfigBuilder.builder()
+                        .setModel("model1")
+                        .setName("name5")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
                         .build())
                 .build();
     }

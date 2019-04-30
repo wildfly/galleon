@@ -145,6 +145,11 @@ public class ReenableDisabledConfigInheritanceForTransitiveDepTestCase extends P
                         .setName("name3")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "3")))
                         .build())
+                .addConfig(ProvisionedConfigBuilder.builder()
+                        .setModel("model1")
+                        .setName("name5")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
+                        .build())
                 .build();
     }
 

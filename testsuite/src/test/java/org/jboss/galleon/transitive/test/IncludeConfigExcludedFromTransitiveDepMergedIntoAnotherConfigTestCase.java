@@ -98,7 +98,6 @@ public class IncludeConfigExcludedFromTransitiveDepMergedIntoAnotherConfigTestCa
                         .includeDefaultConfig("model1", "name1")
                         .build())
                 .addFeaturePackDep(fp1)
-                .includeDefaultConfig("model1", "name1")
                 .build();
     }
 
