@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jboss.galleon.transitive.test;
 
 import org.jboss.galleon.ProvisioningException;
@@ -98,7 +97,6 @@ public class IncludeConfigExcludedFromTransitiveDepMergedIntoAnotherConfigTestCa
                         .includeDefaultConfig("model1", "name1")
                         .build())
                 .addFeaturePackDep(fp1)
-                .includeDefaultConfig("model1", "name1")
                 .build();
     }
 

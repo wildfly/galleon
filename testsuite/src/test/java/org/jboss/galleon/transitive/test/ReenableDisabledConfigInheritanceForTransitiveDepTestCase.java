@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jboss.galleon.transitive.test;
 
 import org.jboss.galleon.ProvisioningException;
@@ -144,6 +143,11 @@ public class ReenableDisabledConfigInheritanceForTransitiveDepTestCase extends P
                         .setModel("model1")
                         .setName("name3")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "3")))
+                        .build())
+                .addConfig(ProvisionedConfigBuilder.builder()
+                        .setModel("model1")
+                        .setName("name5")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
                         .build())
                 .build();
     }

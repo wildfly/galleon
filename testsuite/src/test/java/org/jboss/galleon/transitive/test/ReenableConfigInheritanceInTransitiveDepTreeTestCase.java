@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jboss.galleon.transitive.test;
 
 import org.jboss.galleon.ProvisioningException;
@@ -34,13 +33,11 @@ import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
-import org.junit.Ignore;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-@Ignore
 public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1;
@@ -136,7 +133,6 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                         .setInheritConfigs(true)
                         .build())
                 .addFeaturePackDep(fp1)
-                .includeDefaultConfig("model1", "name1")
                 .build();
     }
 
@@ -170,8 +166,8 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name5")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp4.getFPID().getProducer(), "specD", "p1", "5")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
                         .build())
                 .build();
     }
