@@ -40,8 +40,7 @@ public class IncludeDefaultTestCase {
         ProvisioningConfig found = validator
                 .validateAndParse("xml/provisioning/packages-inherit.xml", null, null);
         ProvisioningConfig expected = ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig
-                        .forLocation(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1")))
+                .addFeaturePackDep(FeaturePackConfig.builder(FeaturePackLocation.fromString("fp1@maven(universe):0#0.0.1")).setInheritPackages(true).build())
                 .addFeaturePackDep(FeaturePackConfig
                         .forLocation(FeaturePackLocation.fromString("fp2@maven(universe):0#0.0.2")))
                 .addFeaturePackDep(FeaturePackConfig

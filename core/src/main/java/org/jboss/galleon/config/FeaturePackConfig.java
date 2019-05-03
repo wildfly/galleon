@@ -40,21 +40,21 @@ public class FeaturePackConfig extends ConfigCustomizations {
     public static class Builder extends ConfigCustomizationsBuilder<Builder> {
 
         protected final FeaturePackLocation fpl;
-        protected boolean inheritPackages;
+        protected Boolean inheritPackages;
         protected boolean transitive;
         protected Set<String> excludedPackages = Collections.emptySet();
         protected Set<String> includedPackages = Collections.emptySet();
         protected Set<FPID> patches = Collections.emptySet();
 
         protected Builder(FeaturePackLocation fpl) {
-            this(fpl, true);
+            this(fpl, null);
         }
 
-        protected Builder(FeaturePackLocation fpl, boolean inheritPackages) {
+        protected Builder(FeaturePackLocation fpl, Boolean inheritPackages) {
             this(fpl, inheritPackages, false);
         }
 
-        protected Builder(FeaturePackLocation fpl, boolean inheritPackages, boolean transitive) {
+        protected Builder(FeaturePackLocation fpl, Boolean inheritPackages, boolean transitive) {
             this.fpl = fpl;
             this.inheritPackages = inheritPackages;
             this.transitive = transitive;
@@ -218,7 +218,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
      * @return  feature-pack transitive dependency configuration
      */
     public static Builder transitiveBuilder(FeaturePackLocation fpl) {
-        return new Builder(fpl, true, true);
+        return new Builder(fpl, null, true);
     }
 
     public static Builder builder(FeaturePackConfig config) {
@@ -232,7 +232,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
      * @return  feature-pack transitive dependency configuration
      */
     public static FeaturePackConfig forTransitiveDep(FeaturePackLocation fpl) {
-        return new Builder(fpl, true, true).build();
+        return new Builder(fpl, null, true).build();
     }
 
     public static String getDefaultOriginName(FeaturePackLocation fpl) {
@@ -240,7 +240,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     }
 
     private final FeaturePackLocation fpl;
-    protected final boolean inheritPackages;
+    protected final Boolean inheritPackages;
     protected final Set<String> excludedPackages;
     protected final Set<String> includedPackages;
     protected final boolean transitive;
@@ -286,8 +286,12 @@ public class FeaturePackConfig extends ConfigCustomizations {
         return patches;
     }
 
-    public boolean isInheritPackages() {
+    public Boolean getInheritPackages() {
         return inheritPackages;
+    }
+
+    public boolean isInheritPackages(boolean defaultValue) {
+        return inheritPackages == null ? defaultValue : inheritPackages;
     }
 
     public boolean hasIncludedPackages() {
@@ -321,7 +325,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         result = prime * result + ((excludedPackages == null) ? 0 : excludedPackages.hashCode());
         result = prime * result + ((fpl == null) ? 0 : fpl.hashCode());
         result = prime * result + ((includedPackages == null) ? 0 : includedPackages.hashCode());
-        result = prime * result + (inheritPackages ? 1231 : 1237);
+        result = prime * result + ((inheritPackages == null) ? 0 : inheritPackages.hashCode());
         result = prime * result + ((patches == null) ? 0 : patches.hashCode());
         result = prime * result + (transitive ? 1231 : 1237);
         return result;
@@ -351,7 +355,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
                 return false;
         } else if (!includedPackages.equals(other.includedPackages))
             return false;
-        if (inheritPackages != other.inheritPackages)
+        if (inheritPackages == null) {
+            if (other.inheritPackages != null)
+                return false;
+        } else if (!inheritPackages.equals(other.inheritPackages))
             return false;
         if (patches == null) {
             if (other.patches != null)
@@ -373,6 +380,9 @@ public class FeaturePackConfig extends ConfigCustomizations {
         buf.append(fpl.toString());
         if(!patches.isEmpty()) {
             StringUtils.append(buf.append(" patches="), patches);
+        }
+        if(inheritPackages != null) {
+            buf.append(" inherit-packages=").append(inheritPackages);
         }
         if(!excludedPackages.isEmpty()) {
             StringUtils.append(buf.append(" excludedPackages="), excludedPackages);

@@ -123,7 +123,7 @@ class FeaturePackProvisioning {
             return !cfg.hasDefinedConfigs() && !cfg.hasExcludedConfigs()
                     && !cfg.hasExcludedPackages() && !cfg.hasFullModelsExcluded()
                     && !cfg.hasFullModelsIncluded() && !cfg.hasIncludedConfigs()
-                    && !cfg.hasIncludedPackages() && !cfg.hasPatches() && cfg.isInheritPackages()
+                    && !cfg.hasIncludedPackages() && !cfg.hasPatches() && cfg.getInheritPackages() == null
                     && cfg.getInheritConfigs() == null;
         }
 

@@ -31,7 +31,7 @@ import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
  *
  * @author Alexey Loubyansky
  */
-public class ReenablePackageInheritaceForTransitiveDepTestCase extends ProvisionFromUniverseTestBase {
+public class IncludeExcludedPackagesInTransitiveDepTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1;
     private FeaturePackLocation fp2;
@@ -63,8 +63,7 @@ public class ReenablePackageInheritaceForTransitiveDepTestCase extends Provision
         .setFPID(fp2.getFPID())
         .addDependency(FeaturePackConfig.builder(fp3)
                 .setInheritPackages(false)
-                .includePackage("p2")
-                .excludePackage("p3")
+                .includePackage("p4")
                 .build())
         .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2")
@@ -90,8 +89,7 @@ public class ReenablePackageInheritaceForTransitiveDepTestCase extends Provision
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(fp2)
-                        .setInheritPackages(true)
-                        .excludePackage("p2")
+                        .includePackage("p2")
                         .build())
                 .addFeaturePackDep(fp1)
                 .build();
@@ -101,11 +99,9 @@ public class ReenablePackageInheritaceForTransitiveDepTestCase extends Provision
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp3.getFPID())
-                        .addPackage("p2")
-                        .addPackage("p4")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp2.getFPID())
-                        .addPackage("p1")
+                        .addPackage("p2")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(fp1.getFPID())
                         .addPackage("p1")
@@ -117,7 +113,6 @@ public class ReenablePackageInheritaceForTransitiveDepTestCase extends Provision
     protected DirState provisionedHomeDir() {
         return newDirBuilder()
                 .addFile("fp1/p1.txt", "fp1")
-                .addFile("fp2/p1.txt", "fp2")
                 .build();
     }
 }

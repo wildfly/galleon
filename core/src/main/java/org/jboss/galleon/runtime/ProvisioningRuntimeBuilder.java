@@ -360,20 +360,14 @@ public class ProvisioningRuntimeBuilder {
                 }
             }
 
-            if(fpConfig.isTransitive()) {
-                if (processFpDepConfigs(currentOrigin.getSpec())) {
-                    fpConfigStack.popLevel();
-                }
-            }
-
             configStack = null;
 
             boolean extendedStackLevel = false;
             if (!fpConfig.isTransitive()) {
                 extendedStackLevel = processFpDepConfigs(currentOrigin.getSpec());
-                if (fpConfig.isInheritPackages() && currentOrigin.getSpec().hasDefaultPackages()) {
+                if (currentOrigin.getSpec().hasDefaultPackages()) {
                     for (String packageName : currentOrigin.getSpec().getDefaultPackageNames()) {
-                        if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName, false)) {
+                        if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName)) {
                             continue;
                         }
                         resolvePackage(packageName, null, PackageDependencySpec.REQUIRED);
@@ -390,7 +384,7 @@ public class ProvisioningRuntimeBuilder {
 
             if (fpConfig.hasIncludedPackages()) {
                 for (String pkgName : fpConfig.getIncludedPackages()) {
-                    if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgName, true)) {
+                    if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgName)) {
                         continue;
                     }
                     resolvePackage(pkgName, null, PackageDependencySpec.REQUIRED);
