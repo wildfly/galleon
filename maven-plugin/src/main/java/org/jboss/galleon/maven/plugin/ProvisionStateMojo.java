@@ -205,8 +205,12 @@ public class ProvisionStateMojo extends AbstractMojo {
 
                 final FeaturePackConfig.Builder fpConfig = fp.isTransitive() ? FeaturePackConfig.transitiveBuilder(fpl)
                         : FeaturePackConfig.builder(fpl);
-                fpConfig.setInheritConfigs(fp.isInheritConfigs());
-                fpConfig.setInheritPackages(fp.isInheritPackages());
+                if(fp.isInheritConfigs() != null) {
+                    fpConfig.setInheritConfigs(fp.isInheritConfigs());
+                }
+                if(fp.isInheritPackages() != null) {
+                    fpConfig.setInheritPackages(fp.isInheritPackages());
+                }
 
                 if (!fp.getExcludedConfigs().isEmpty()) {
                     for (ConfigurationId configId : fp.getExcludedConfigs()) {

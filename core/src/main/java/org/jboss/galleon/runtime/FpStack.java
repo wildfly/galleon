@@ -106,8 +106,8 @@ class FpStack {
             return fpConfigs.get(currentFp).isInheritModelOnlyConfigs();
         }
 
-        boolean isInheritPackages() {
-            return fpConfigs.get(currentFp).isInheritPackages();
+        private Boolean getInheritPackages() {
+            return fpConfigs.get(currentFp).getInheritPackages();
         }
 
         int isInheritPackages(ProducerSpec producer) {
@@ -115,7 +115,7 @@ class FpStack {
             if(fpConfig == null) {
                 return INHERIT_PKGS_NOT_FOUND;
             }
-            if(!fpConfig.isInheritPackages()) {
+            if(!fpConfig.isInheritPackages(true)) {
                 return INHERIT_PKGS_FALSE;
             }
             return fpConfig.isTransitive() ? INHERIT_PKGS_TRANSITIVE : INHERIT_PKGS_TRUE;
@@ -132,14 +132,18 @@ class FpStack {
         }
 
         Boolean isPackageFilteredOut(ProducerSpec producer, String packageName) {
-            final FeaturePackConfig fpConfig = getFpConfig(producer);
-            if(fpConfig == null) {
+            FeaturePackConfig fpConfig = getFpConfig(producer);
+            if (fpConfig == null) {
                 return null;
             }
-            if(fpConfig.isInheritPackages()) {
-                return fpConfig.isPackageExcluded(packageName);
+            if(fpConfig.isPackageExcluded(packageName)) {
+                return true;
             }
-            return !fpConfig.isPackageIncluded(packageName);
+            if(fpConfig.isPackageIncluded(packageName)) {
+                return false;
+            }
+            final Boolean inheritPackages = fpConfig.getInheritPackages();
+            return inheritPackages == null ? null : !inheritPackages;
         }
 
         private FeaturePackConfig getFpConfig(ProducerSpec producer) {
@@ -394,28 +398,49 @@ class FpStack {
         return false;
     }
 
-    boolean isPackageFilteredOut(ProducerSpec producer, String packageName, boolean fromPrevLevel) {
-        int i = levels.size() - (fromPrevLevel ? 2 : 1);
-        if(i < 0) {
+    boolean isPackageFilteredOut(ProducerSpec producer, String packageName) {
+        final int levelsTotal = levels.size();
+        if(levelsTotal == 0) {
             return false;
         }
-        Level level = levels.get(i--);
+        Level level = levels.get(0);
         Boolean filteredOut = level.isPackageFilteredOut(producer, packageName);
-        if(filteredOut != null && filteredOut) {
-            return true;
+        if(filteredOut != null) {
+            return filteredOut;
         }
-        while (i >= 0) {
-            level = levels.get(i--);
-            if(filteredOut == null && !level.isInheritPackages()) {
+        if(levelsTotal == 1) {
+            return false;
+        }
+        Boolean inheritPackages = level.getInheritPackages();
+        for(int i = 1; i < levelsTotal; ++i) {
+            level = levels.get(i);
+            final ProducerSpec currentFpProducer = level.getCurrentFpProducer();
+
+            FeaturePackConfig transitiveFpConfig = null;
+            for(int j = 0; j < i; ++j) {
+                transitiveFpConfig = levels.get(j).transitive.get(currentFpProducer);
+                if(transitiveFpConfig != null) {
+                    break;
+                }
+            }
+            if(transitiveFpConfig != null) {
+                final Boolean transitiveInheritPackages = transitiveFpConfig.getInheritPackages();
+                if (transitiveInheritPackages != null) {
+                    if (!transitiveInheritPackages) {
+                        return true;
+                    }
+                    continue;
+                }
+            }
+
+            if(inheritPackages != null && !inheritPackages) {
                 return true;
             }
             filteredOut = level.isPackageFilteredOut(producer, packageName);
-            if(filteredOut != null && filteredOut) {
-                return true;
+            if(filteredOut != null) {
+                return filteredOut;
             }
-        }
-        if(filteredOut == null && !level.isInheritPackages()) {
-            return true;
+            inheritPackages = level.getInheritPackages();
         }
         return false;
     }

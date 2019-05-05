@@ -345,7 +345,7 @@
       <xs:element name="exclude" type="packageType" />
       <xs:element name="include" type="packageType" />
     </xs:choice>
-    <xs:attribute name="inherit" type="xs:boolean" use="optional" default="true">
+    <xs:attribute name="inherit" type="xs:boolean" use="optional">
       <xs:annotation>
         <xs:documentation>
           Whether to inherit the package set from the dependency as the default
