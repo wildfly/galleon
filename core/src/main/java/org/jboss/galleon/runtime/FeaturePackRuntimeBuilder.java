@@ -59,6 +59,10 @@ import org.jboss.galleon.xml.XmlParsers;
  */
 public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
 
+    static final int VISIT                     = 0b001;
+    static final int RESOLVE_LAYER             = 0b010;
+    static final int RESOLVE_MODEL_ONLY_CONFIG = 0b100;
+
     final ProducerSpec producer;
     Map<String, ResolvedFeatureSpec> featureSpecs = null;
     private Map<String, FeatureGroup> fgSpecs = null;
@@ -70,7 +74,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
 
     private ParameterTypeProvider featureParamTypeProvider = BuiltInParameterTypeProvider.getInstance();
 
-    private boolean visited;
+    private int flags;
 
     public FeaturePackRuntimeBuilder(FPID fpid, FeaturePackSpec spec, Path dir, int type) {
         super(fpid, dir, type);
@@ -79,16 +83,27 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
         this.spec = spec;
     }
 
-    boolean setVisited(boolean visited) {
-        if(this.visited == visited) {
+    boolean isFlagOn(int flag) {
+        return (flags & flag) > 0;
+    }
+
+    boolean setFlag(int flag) {
+        if((flags & flag) > 0) {
             return false;
         }
-        this.visited = visited;
+        flags ^= flag;
         return true;
     }
 
-    boolean isVisited() {
-        return visited;
+    int clearFlag(int flag) {
+        if((flags & flag) > 0) {
+            flags ^= flag;
+        }
+        return flags;
+    }
+
+    int getFlags() {
+        return flags;
     }
 
     boolean resolvePackage(String pkgName, ProvisioningRuntimeBuilder rt, PackageRuntime.Builder parent, int type) throws ProvisioningException {
