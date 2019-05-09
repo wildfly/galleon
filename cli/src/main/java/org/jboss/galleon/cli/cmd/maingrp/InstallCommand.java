@@ -204,8 +204,8 @@ public class InstallCommand extends AbstractPluginsCommand {
                         config, loc).build(), options);
             }
             session.println("Feature pack installed.");
-            if(manager.isRecordState()) {
-                if (!loc.hasBuild()) {
+            if(manager.isRecordState() && !loc.isMavenCoordinates()) {
+                if (!loc.hasBuild() || loc.getChannelName() == null) {
                     loc = manager.getProvisioningConfig().getFeaturePackDep(loc.getProducer()).getLocation();
                 }
                 StateInfoUtil.printFeaturePack(session,
