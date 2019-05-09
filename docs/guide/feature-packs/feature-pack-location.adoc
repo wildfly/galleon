@@ -10,40 +10,46 @@ The general and complete feature-pack location format is *_producer_*@*_universe
 * *_frequency_* - denotes the lowest accepted build quality (e.g. alpha, beta, final, etc) for the feature-pack builds pulled from the channel;
 * *_build_* - feature-pack build number or version.
 
-Some of the parts above are or could be optional. For example, a user could add a specific universe as the default one for the distribution (in its provisioning configuration) and then not include it explicitly in feature-pack locations for the feature-packs coming from that universe.
+Some of the parts above are or could be optional. For example, a user could add a specific universe as the default one for the distribution (in its provisioning configuration) and then not include it explicitly into feature-pack locations for the feature-packs coming from that universe.
 
 Frequency is, generally, also optional and could be omitted.
+
+Feature-pack producer may configure a default channel, which makes the channel part optional for the feature-packs of that producer.
 
 With the universe and frequency omitted the location becomes *_producer_*:**_channel_**#*_build_*
 
 Here is an example of a full feature-pack location:
 
-`wildfly@maven(org.jboss.universe:community-universe):current/beta#14.0.0.Beta2`
+`wildfly@maven(org.jboss.universe:community-universe):current/beta#17.0.0.Beta1`
 
 And a shortened version:
 
-`wildfly:current#14.0.0.Beta2`
+`wildfly:current#17.0.0.Beta1`
+
+And assuming `current` is the default channel it becomes
+
+`wildfly#17.0.0.Beta1`
 
 NOTE: Galleon CLI tool comes pre-configured with `maven(org.jboss.universe:community-universe)` as the default universe, which means Galleon CLI users can omit the universe part for wildfly and other feature-pack producers from that universe and also, in general, rely on TAB-completion for feature-pack locations.
 
 Using Galleon CLI
 [source,java]
 ----
-install wildfly@maven(org.jboss.universe:community-universe):current/beta#14.0.0.Beta2
+install wildfly@maven(org.jboss.universe:community-universe):current/beta#17.0.0.Beta1
 ----
 
 and
 
 [source,java]
 ----
-install wildfly:current#14.0.0.Beta2
+install wildfly#17.0.0.Beta1
 ----
 
 will result in the exact same distribution. And to install the latest (final) version of `wildfly` a user can simply type
 
 [source,java]
 ----
-install wildfly:current
+install wildfly
 ----
 
 #### Channel
@@ -67,4 +73,19 @@ But if the user requests an update to the latest version, the tool will check th
 However, if the user installed the same feature-pack as `productA:1/beta#1.0.0.Beta2` and requested an update to the latest version, the tool would also look for the available beta releases and propose `1.0.0.Beta3` if it's available.
 
 NOTE: frequency specifies the lowest quality, which mean installing `productA:1/beta` may actually install `1.0.0.Final` if the final release is available.
+
+#### Feature-pack Maven Artifact Location
+
+It is also possible to use the feature-pack's Maven artifact coordinates in place of the feature-pack location expression described above. In that case, after the feature-pack artifact has been resolved, its actual Galleon feature-pack location will be used during provisioning and state persistence. E.g.
+
+[source,java]
+----
+install org.wildfly:wildfly-galleon-pack:17.0.0.Final
+----
+
+will be equivalent to 
+[source,java]
+----
+install wildfly#17.0.0.Final
+----
 
