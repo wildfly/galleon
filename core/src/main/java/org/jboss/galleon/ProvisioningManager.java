@@ -65,8 +65,6 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 public class ProvisioningManager implements AutoCloseable {
 
     public static class Builder extends UniverseResolverBuilder<Builder> {
-        public static final String ENCODING = "UTF-8";
-        private String encoding = ENCODING;
         private Path installationHome;
         private ProvisioningLayoutFactory layoutFactory;
         private MessageWriter messageWriter;
@@ -75,11 +73,6 @@ public class ProvisioningManager implements AutoCloseable {
         private boolean recordState = true;
 
         private Builder() {
-        }
-
-        public Builder setEncoding(String encoding) {
-            this.encoding = encoding;
-            return this;
         }
 
         public Builder setInstallationHome(Path installationHome) {
@@ -148,7 +141,6 @@ public class ProvisioningManager implements AutoCloseable {
         return new Builder();
     }
 
-    private final String encoding;
     private final Path home;
     private final MessageWriter log;
     private boolean logTime;
@@ -162,7 +154,6 @@ public class ProvisioningManager implements AutoCloseable {
     private ProvisioningManager(Builder builder) throws ProvisioningException {
         PathsUtils.assertInstallationDir(builder.installationHome);
         this.home = builder.installationHome;
-        this.encoding = builder.encoding;
         this.log = builder.messageWriter == null ? DefaultMessageWriter.getDefaultInstance() : builder.messageWriter;
         if(builder.layoutFactory != null) {
             layoutFactory = builder.layoutFactory;
@@ -638,7 +629,6 @@ public class ProvisioningManager implements AutoCloseable {
             throws ProvisioningException {
         final ProvisioningRuntimeBuilder rtBuilder = ProvisioningRuntimeBuilder.newInstance(log)
                 .initRtLayout(layout)
-                .setEncoding(encoding)
                 .setLogTime(logTime)
                 .setFsDiff(fsDiff)
                 .setRecordState(recordState);
