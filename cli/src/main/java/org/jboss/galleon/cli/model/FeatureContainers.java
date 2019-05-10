@@ -27,7 +27,6 @@ import java.util.Set;
 import org.jboss.galleon.Constants;
 
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.cli.PmSession;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -333,7 +332,6 @@ public abstract class FeatureContainers {
         ProvisioningConfig provisioning = ProvisioningConfig.builder().addFeaturePackDep(config).build();
         ProvisioningRuntime runtime = ProvisioningRuntimeBuilder.newInstance(pmSession.getMessageWriter(false))
                 .initLayout(pmSession.getLayoutFactory(), provisioning)
-                .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build();
         return runtime;
     }

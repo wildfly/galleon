@@ -25,7 +25,6 @@ import java.util.Map;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.cli.AbstractCompleter;
 import org.jboss.galleon.cli.CommandExecutionException;
 import org.jboss.galleon.cli.HelpDescriptions;
@@ -215,7 +214,6 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         try (ProvisioningRuntime rt = ProvisioningRuntimeBuilder.
                 newInstance(commandInvocation.getPmSession().getMessageWriter(false))
                 .initRtLayout(pLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY))
-                .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build()) {
             for (ProvisionedConfig m : rt.getConfigs()) {
                 String model = m.getModel();
@@ -259,7 +257,6 @@ public class GetInfoCommand extends AbstractFeaturePackCommand {
         try (ProvisioningRuntime rt = ProvisioningRuntimeBuilder.
                 newInstance(commandInvocation.getPmSession().getMessageWriter(false))
                 .initRtLayout(pLayout.transform(ProvisioningRuntimeBuilder.FP_RT_FACTORY))
-                .setEncoding(ProvisioningManager.Builder.ENCODING)
                 .build()) {
             FeatureContainer container = FeatureContainers.
                     fromProvisioningRuntime(commandInvocation.getPmSession(), rt);

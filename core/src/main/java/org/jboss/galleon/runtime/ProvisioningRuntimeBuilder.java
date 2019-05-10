@@ -84,7 +84,6 @@ public class ProvisioningRuntimeBuilder {
 
     long startTime;
     boolean logTime;
-    String encoding;
     ProvisioningConfig config;
     ProvisioningLayout<FeaturePackRuntimeBuilder> layout;
     Path stagedDir;
@@ -116,11 +115,6 @@ public class ProvisioningRuntimeBuilder {
 
     private ProvisioningRuntimeBuilder(final MessageWriter messageWriter) {
         this.messageWriter = messageWriter;
-    }
-
-    public ProvisioningRuntimeBuilder setEncoding(String encoding) {
-        this.encoding = encoding;
-        return this;
     }
 
     public ProvisioningRuntimeBuilder setLogTime(boolean logTime) {
