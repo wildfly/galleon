@@ -48,7 +48,7 @@ public final class FormattingXmlStreamWriter implements XMLStreamWriter, XMLStre
     }
 
     private void nl() throws XMLStreamException {
-        delegate.writeCharacters("\n");
+        delegate.writeCharacters(System.lineSeparator());
     }
 
     private void indent() throws XMLStreamException {
