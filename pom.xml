@@ -29,7 +29,7 @@
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>4.0.0.Final</version>
+  <version>4.0.1.Alpha1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
