@@ -1,5 +1,5 @@
 @REM
-@REM Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+@REM Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
 @REM and other contributors as indicated by the @author tags.
 @REM
 @REM Licensed under the Apache License, Version 2.0 (the "License");
