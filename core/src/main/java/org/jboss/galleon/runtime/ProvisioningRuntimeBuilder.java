@@ -553,7 +553,7 @@ public class ProvisioningRuntimeBuilder {
     private boolean resolveConfigLayer(ProducerSpec producer, ConfigModelStack layerStack, ConfigId layerId) throws ProvisioningException {
         final FeaturePackRuntimeBuilder fp = layout.getFeaturePack(producer);
         if(!setFlag(fp, FeaturePackRuntimeBuilder.RESOLVE_LAYER)) {
-            return true;
+            return fp.getConfigLayer(layerId) != null;
         }
         final FeaturePackRuntimeBuilder prevOrigin = currentOrigin;
         try {
