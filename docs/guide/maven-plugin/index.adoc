@@ -23,3 +23,4 @@ The coordinates of the Maven plugin are
 include::../../../maven-plugin/target/generated-sources/plugin/install-feature-pack-mojo.adoc[]
 
 include::provision.adoc[]
+include::../../../maven-plugin/target/generated-sources/plugin/provision-file-mojo.adoc[]
