@@ -70,12 +70,17 @@ public class MvnUniverse {
     }
 
     public MvnUniverse createProducer(String producerName, String fpArtifactId, String defaultFrequency) throws ProvisioningException {
+        return createProducer(producerName, fpArtifactId, defaultFrequency, null, null);
+    }
+
+    public MvnUniverse createProducer(String producerName, String fpArtifactId, String defaultFrequency,
+                                      String includeVersionRegex, String excludeVersionRegex) throws ProvisioningException {
         final MavenProducerInstaller producer = new MavenProducerInstaller(producerName, repoManager,
                 new MavenArtifact().setGroupId(TestConstants.GROUP_ID + '.' + name).setArtifactId(producerName)
                         .setVersion("1.0.0.Final"),
                 TestConstants.GROUP_ID + '.' + name + '.' + producerName, fpArtifactId)
                         .addFrequencies(frequencies)
-                        .addChannel("1", "[1.0.0-alpha,2.0.0-alpha)");
+                        .addChannel("1", "[1.0.0-alpha,2.0.0-alpha)", false, includeVersionRegex, excludeVersionRegex);
         if(defaultFrequency != null) {
             producer.addFrequency(defaultFrequency, true);
         }

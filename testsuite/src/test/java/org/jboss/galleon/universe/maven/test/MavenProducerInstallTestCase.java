@@ -54,7 +54,7 @@ public class MavenProducerInstallTestCase extends UniverseRepoTestBase {
         final MavenProducerInstaller producerInstaller = new MavenProducerInstaller("producer1", repo, producerArtifact, fpGroupId, fpArtifactId);
         producerInstaller.addFrequencies("alpha", "beta");
         producerInstaller.addChannel("1.0", "[1.0.0,2.0.0)");
-        producerInstaller.addChannel("2.0", "[2.0.0,3.0.0)");
+        producerInstaller.addChannel("2.0", "[2.0.0,3.0.0)", false, ".*-ext-[0-9][0-9]", ".*-ext-11");
         producerInstaller.install();
 
         producerArtifact.setPath(null);
@@ -82,6 +82,8 @@ public class MavenProducerInstallTestCase extends UniverseRepoTestBase {
         Assert.assertEquals(fpGroupId, channel.getFeaturePackGroupId());
         Assert.assertEquals(fpArtifactId, channel.getFeaturePackArtifactId());
         Assert.assertEquals("[2.0.0,3.0.0)", channel.getVersionRange());
+        Assert.assertEquals(".*-ext-[0-9][0-9]", channel.getVersionIncludeRegex());
+        Assert.assertEquals(".*-ext-11", channel.getVersionExcludeRegex());
         frequencies = channel.getFrequencies();
         Assert.assertEquals(3, frequencies.size());
         Assert.assertTrue(frequencies.contains("alpha"));

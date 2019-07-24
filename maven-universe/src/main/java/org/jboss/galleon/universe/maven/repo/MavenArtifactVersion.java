@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 
@@ -42,6 +43,11 @@ public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
     }
 
     public static MavenArtifactVersion getLatest(Iterable<?> versions, String lowestQualifier) throws MavenUniverseException {
+        return getLatest(versions, lowestQualifier, null, null);
+    }
+
+    public static MavenArtifactVersion getLatest(Iterable<?> versions, String lowestQualifier,
+                                                 Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         final boolean snapshotsAllowed;
         if (lowestQualifier == null) {
             lowestQualifier = "";
@@ -53,6 +59,12 @@ public class MavenArtifactVersion implements Comparable<MavenArtifactVersion> {
         String latestSnapshot = null;
         for (Object version : versions) {
             final String v = version.toString();
+            if (includeVersion != null && !includeVersion.matcher(v).matches()) {
+                continue;
+            }
+            if (excludeVersion != null && excludeVersion.matcher(v).matches()) {
+                continue;
+            }
             final boolean snapshot = isSnapshot(v);
             final MavenArtifactVersion next;
             if(snapshot) {

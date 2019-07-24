@@ -25,4 +25,8 @@ public interface MavenChannelDescription {
     String getName();
 
     String getVersionRange();
+
+    String getVersionIncludeRegex();
+
+    String getVersionExcludeRegex();
 }
