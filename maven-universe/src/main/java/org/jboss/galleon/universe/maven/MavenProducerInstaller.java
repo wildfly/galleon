@@ -147,6 +147,11 @@ public class MavenProducerInstaller extends MavenProducerBase {
         return addChannel(new MavenChannel(this, channelName, versionRange), isDefault);
     }
 
+    public MavenProducerInstaller addChannel(String channelName, String versionRange, boolean isDefault,
+                                             String includeVersionRegex, String excludeVersionRegex) throws MavenUniverseException {
+        return addChannel(new MavenChannel(this, channelName, versionRange, includeVersionRegex, excludeVersionRegex), isDefault);
+    }
+
     public MavenProducerInstaller addChannel(MavenChannel channel) throws MavenUniverseException {
         channels.put(channel.getName(), channel);
         return this;

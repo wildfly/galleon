@@ -47,6 +47,8 @@ public class MavenChannelSpecXmlParser10 implements PlugableXmlParser<ParsedCall
 
         CHANNEL("channel"),
         VERSION_RANGE("version-range"),
+        VERSION_INCLUDE_REGEX("version-include-regex"),
+        VERSION_EXCLUDE_REGEX("version-exclude-regex"),
 
         // default unknown element
         UNKNOWN(null);
@@ -57,6 +59,8 @@ public class MavenChannelSpecXmlParser10 implements PlugableXmlParser<ParsedCall
             elements = new HashMap<>(3);
             elements.put(new QName(NAMESPACE_1_0, CHANNEL.name), CHANNEL);
             elements.put(new QName(NAMESPACE_1_0, VERSION_RANGE.name), VERSION_RANGE);
+            elements.put(new QName(NAMESPACE_1_0, VERSION_INCLUDE_REGEX.name), VERSION_INCLUDE_REGEX);
+            elements.put(new QName(NAMESPACE_1_0, VERSION_EXCLUDE_REGEX.name), VERSION_EXCLUDE_REGEX);
             elements.put(null, UNKNOWN);
         }
 
@@ -164,11 +168,13 @@ public class MavenChannelSpecXmlParser10 implements PlugableXmlParser<ParsedCall
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.NAME));
         }
         String versionRange = null;
+        String versionIncludeRegex = null;
+        String versionExcludeRegex = null;
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
                     try {
-                        builder.parsed(new MavenChannel(builder.getParent(), name, versionRange));
+                        builder.parsed(new MavenChannel(builder.getParent(), name, versionRange, versionIncludeRegex, versionExcludeRegex));
                     } catch (MavenUniverseException e) {
                         throw new XMLStreamException(getParserMessage("Failed to parse producer", reader.getLocation()), e);
                     }
@@ -179,6 +185,12 @@ public class MavenChannelSpecXmlParser10 implements PlugableXmlParser<ParsedCall
                     switch (element) {
                         case VERSION_RANGE:
                             versionRange = reader.getElementText();
+                            break;
+                        case VERSION_INCLUDE_REGEX:
+                            versionIncludeRegex = reader.getElementText();
+                            break;
+                        case VERSION_EXCLUDE_REGEX:
+                            versionExcludeRegex = reader.getElementText();
                             break;
                         default:
                             throw ParsingUtils.unexpectedContent(reader);

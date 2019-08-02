@@ -21,6 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.MavenArtifact;
@@ -111,7 +113,7 @@ public class SimplisticMavenRepoManager extends LocalArtifactVersionRangeResolve
                     throw e;
                 }
             }
-            fallback.resolveLatestVersion(artifact, lowestQualifier);
+            fallback.resolveLatestVersion(artifact, lowestQualifier, locally);
             return;
         }
         if(locally) {
@@ -121,20 +123,26 @@ public class SimplisticMavenRepoManager extends LocalArtifactVersionRangeResolve
         if(fallback == null) {
             throw new MavenUniverseException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()));
         }
+
         fallback.resolveLatestVersion(artifact, lowestQualifier);
     }
 
     @Override
     public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        resolveLatestVersion(artifact, lowestQualifier, null, null);
+    }
+
+    @Override
+    public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         try {
-            super.resolveLatestVersion(artifact, lowestQualifier);
+            super.resolveLatestVersion(artifact, lowestQualifier, includeVersion, excludeVersion);
             return;
         } catch(MavenUniverseException e) {
             if(fallback == null) {
                 throw e;
             }
         }
-        fallback.resolveLatestVersion(artifact, lowestQualifier);
+        fallback.resolveLatestVersion(artifact, lowestQualifier, includeVersion, excludeVersion);
     }
 
     @Override
@@ -193,6 +201,11 @@ public class SimplisticMavenRepoManager extends LocalArtifactVersionRangeResolve
 
     @Override
     public List<String> getAllVersions(MavenArtifact artifact) throws MavenUniverseException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<String> getAllVersions(MavenArtifact artifact, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

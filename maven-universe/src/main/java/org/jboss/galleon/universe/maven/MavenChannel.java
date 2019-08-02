@@ -19,6 +19,7 @@ package org.jboss.galleon.universe.maven;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
@@ -38,14 +39,26 @@ public class MavenChannel implements Channel, MavenChannelDescription {
     private final String name;
     private final String versionRange;
     private final MavenProducerBase producer;
+    private final String versionIncludeRegex;
+    private final String versionExcludeRegex;
+    private final Pattern versionIncludePattern;
+    private final Pattern versionExcludePattern;
 
     public MavenChannel(MavenProducerBase producer, String name, String versionRange) throws MavenUniverseException {
+        this(producer, name, versionRange, null, null);
+    }
+
+    public MavenChannel(MavenProducerBase producer, String name, String versionRange, String versionIncludeRegex, String versionExcludeRegex) throws MavenUniverseException {
         assert name != null : "Producer name is missing";
         assert versionRange != null : "Producer version-range is missing";
 
         this.name = name;
         this.versionRange = versionRange;
         this.producer = producer;
+        this.versionIncludeRegex = versionIncludeRegex;
+        this.versionExcludeRegex = versionExcludeRegex;
+        this.versionIncludePattern = versionIncludeRegex == null ? null : Pattern.compile(versionIncludeRegex);
+        this.versionExcludePattern = versionExcludeRegex == null ? null : Pattern.compile(versionExcludeRegex);
     }
 
     @Override
@@ -61,7 +74,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         artifact.setExtension(MavenArtifact.EXT_ZIP);
         artifact.setVersionRange(versionRange);
         try {
-            return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl));
+            return producer.getRepo().getLatestVersion(artifact, getFrequency(fpl), versionIncludePattern, versionExcludePattern);
         } catch(MavenLatestVersionNotAvailableException e) {
             if(fpl.getFrequency() == null && producer.hasDefaultFrequency()) {
                 fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), producer.getDefaultFrequency(), null);
@@ -80,7 +93,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         artifact.setExtension(MavenArtifact.EXT_ZIP);
         artifact.setVersionRange(versionRange);
         try {
-            return producer.getRepo().getAllVersions(artifact);
+            return producer.getRepo().getAllVersions(artifact, versionIncludePattern, versionExcludePattern);
         } catch (MavenLatestVersionNotAvailableException e) {
             if (fpl.getFrequency() == null && producer.hasDefaultFrequency()) {
                 fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), producer.getDefaultFrequency(), null);
@@ -100,7 +113,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
 
         if(fpl.getBuild() == null) {
             artifact.setVersionRange(versionRange);
-            producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl));
+            producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl), versionIncludePattern, versionExcludePattern);
         } else {
             artifact.setVersion(fpl.getBuild());
             producer.getRepo().resolve(artifact);
@@ -126,6 +139,16 @@ public class MavenChannel implements Channel, MavenChannelDescription {
     }
 
     @Override
+    public String getVersionIncludeRegex() {
+        return versionIncludeRegex;
+    }
+
+    @Override
+    public String getVersionExcludeRegex() {
+        return versionExcludeRegex;
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -134,6 +157,8 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         result = prime * result + getFrequencies().hashCode();
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + ((versionRange == null) ? 0 : versionRange.hashCode());
+        result = prime * result + ((versionIncludeRegex == null) ? 0 : versionIncludeRegex.hashCode());
+        result = prime * result + ((versionExcludeRegex == null) ? 0 : versionExcludeRegex.hashCode());
         return result;
     }
 
@@ -156,6 +181,16 @@ public class MavenChannel implements Channel, MavenChannelDescription {
                 return false;
         } else if (!versionRange.equals(other.versionRange))
             return false;
+        if (versionIncludeRegex == null) {
+            if (other.versionIncludeRegex != null)
+                return false;
+        } else if (!versionIncludeRegex.equals(other.versionIncludeRegex))
+            return false;
+        if (versionExcludeRegex == null) {
+            if (other.versionExcludeRegex != null)
+                return false;
+        } else if (!versionExcludeRegex.equals(other.versionExcludeRegex))
+            return false;
         if (!getFeaturePackArtifactId().equals(other.getFeaturePackArtifactId()))
             return false;
         if (!getFeaturePackGroupId().equals(other.getFeaturePackGroupId()))
@@ -172,6 +207,8 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         buf.append(" groupId=").append(getFeaturePackGroupId());
         buf.append(" artifactId=").append(getFeaturePackArtifactId());
         buf.append(" version-range=").append(versionRange);
+        buf.append(" versionIncludeRegex=").append(versionIncludeRegex);
+        buf.append(" versionExcludeRegex").append(versionExcludeRegex);
         buf.append(" frequencies=");
         StringUtils.append(buf, getFrequencies());
         return buf.toString();
@@ -212,7 +249,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
         artifact.setExtension(MavenArtifact.EXT_ZIP);
         artifact.setVersionRange(versionRange);
         try {
-            return producer.getRepo().getLatestVersion(artifact);
+            return producer.getRepo().getLatestVersion(artifact, null, versionIncludePattern, versionExcludePattern);
         } catch (MavenLatestVersionNotAvailableException e) {
             throw new LatestVersionNotAvailableException(fpid.getLocation());
         } catch (MavenUniverseException e) {

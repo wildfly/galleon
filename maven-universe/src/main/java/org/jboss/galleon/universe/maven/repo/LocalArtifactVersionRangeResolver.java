@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenErrors;
@@ -42,10 +43,14 @@ public class LocalArtifactVersionRangeResolver {
     }
 
     public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+        resolveLatestVersion(artifact, lowestQualifier, null, null);
+    }
+
+    public void resolveLatestVersion(MavenArtifact artifact, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         if(artifact.isResolved()) {
             throw new MavenUniverseException("Artifact is already resolved");
         }
-        Path path = resolveLatestVersionDir(artifact, lowestQualifier);
+        Path path = resolveLatestVersionDir(artifact, lowestQualifier, includeVersion, excludeVersion);
         artifact.setVersion(path.getFileName().toString());
         path = path.resolve(artifact.getArtifactFileName());
         if (!Files.exists(path)) {
@@ -55,14 +60,18 @@ public class LocalArtifactVersionRangeResolver {
     }
 
     public String getLatestVersion(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
-        return resolveLatestVersionDir(artifact, lowestQualifier).getFileName().toString();
+        return resolveLatestVersionDir(artifact, lowestQualifier, null, null).getFileName().toString();
+    }
+
+    public String getLatestVersion(MavenArtifact artifact, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
+        return resolveLatestVersionDir(artifact, lowestQualifier, includeVersion, excludeVersion).getFileName().toString();
     }
 
     protected String pathDoesNotExist(MavenArtifact artifact, Path path) throws MavenUniverseException {
         return "Failed to resolve " + artifact.getCoordsAsString() + ": " + path + " does not exist";
     }
 
-    private Path resolveLatestVersionDir(MavenArtifact artifact, String lowestQualifier) throws MavenUniverseException {
+    private Path resolveLatestVersionDir(MavenArtifact artifact, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         if(artifact.getGroupId() == null) {
             MavenErrors.missingGroupId();
         }
@@ -123,7 +132,7 @@ public class LocalArtifactVersionRangeResolver {
                 }
             };
 
-            final MavenArtifactVersion latest = MavenArtifactVersion.getLatest(versions, lowestQualifier);
+            final MavenArtifactVersion latest = MavenArtifactVersion.getLatest(versions, lowestQualifier, includeVersion, excludeVersion);
             if(latest == null) {
                 throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(artifact.getCoordsAsString()));
             }

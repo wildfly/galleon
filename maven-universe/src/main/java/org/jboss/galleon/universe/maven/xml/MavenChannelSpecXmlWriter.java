@@ -46,6 +46,14 @@ public class MavenChannelSpecXmlWriter extends BaseXmlWriter<MavenChannelDescrip
             throw new XMLStreamException("Channel " + channel.getName() + " is missing version-range");
         }
         addElement(producerEl, Element.VERSION_RANGE).addChild(new TextNode(value));
+        String includeRegex = channel.getVersionIncludeRegex();
+        if (includeRegex != null) {
+            addElement(producerEl, Element.VERSION_INCLUDE_REGEX).addChild(new TextNode(includeRegex));
+        }
+        String excludeRegex = channel.getVersionExcludeRegex();
+        if (excludeRegex != null) {
+            addElement(producerEl, Element.VERSION_EXCLUDE_REGEX).addChild(new TextNode(excludeRegex));
+        }
         return producerEl;
     }
 

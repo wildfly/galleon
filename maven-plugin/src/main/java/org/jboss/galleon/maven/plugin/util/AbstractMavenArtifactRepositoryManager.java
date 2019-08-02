@@ -23,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -99,8 +101,14 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
     }
 
     @Override
+    public void resolveLatestVersion(MavenArtifact mavenArtifact, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
+        mavenArtifact.setVersion(doGetHighestVersion(mavenArtifact, lowestQualifier, false, null, null));
+        resolve(mavenArtifact);
+    }
+
+    @Override
     public void resolveLatestVersion(MavenArtifact mavenArtifact, String lowestQualifier, boolean locallyAvailable) throws MavenUniverseException {
-        mavenArtifact.setVersion(doGetHighestVersion(mavenArtifact, lowestQualifier, locallyAvailable));
+        mavenArtifact.setVersion(doGetHighestVersion(mavenArtifact, lowestQualifier, locallyAvailable, null, null));
         resolve(mavenArtifact);
     }
 
@@ -118,29 +126,34 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         return rangeResult;
     }
 
-    private String doGetHighestVersion(MavenArtifact mavenArtifact, String lowestQualifier, boolean locallyAvailable) throws MavenUniverseException {
+    private String doGetHighestVersion(MavenArtifact mavenArtifact, String lowestQualifier, boolean locallyAvailable, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         if(locallyAvailable) {
             if(localRangeResolver == null) {
                 localRangeResolver = new LocalArtifactVersionRangeResolver(getSession().getLocalRepository().getBasedir().toPath());
             }
-            return localRangeResolver.getLatestVersion(mavenArtifact, lowestQualifier);
+            return localRangeResolver.getLatestVersion(mavenArtifact, lowestQualifier, includeVersion, excludeVersion);
         }
         final VersionRangeResult rangeResult = getVersionRange(new DefaultArtifact(mavenArtifact.getGroupId(),
                 mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange()));
-        final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult, lowestQualifier);
+        final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult, lowestQualifier, includeVersion, excludeVersion);
         if (latest == null) {
             throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(mavenArtifact.getCoordsAsString()));
         }
         return latest.toString();
     }
 
-    private static MavenArtifactVersion resolveLatest(VersionRangeResult rangeResult, String lowestQualifier) throws MavenUniverseException {
-        return MavenArtifactVersion.getLatest(rangeResult.getVersions(), lowestQualifier);
+    private static MavenArtifactVersion resolveLatest(VersionRangeResult rangeResult, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
+        return MavenArtifactVersion.getLatest(rangeResult.getVersions(), lowestQualifier, includeVersion, excludeVersion);
+    }
+
+    @Override
+    public String getLatestVersion(MavenArtifact mavenArtifact, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
+        return doGetHighestVersion(mavenArtifact, lowestQualifier, false, includeVersion, excludeVersion);
     }
 
     @Override
     public String getLatestVersion(MavenArtifact mavenArtifact, String lowestQualifier) throws MavenUniverseException {
-        return doGetHighestVersion(mavenArtifact, lowestQualifier, false);
+        return doGetHighestVersion(mavenArtifact, lowestQualifier, false, null, null);
     }
 
     @Override
@@ -150,12 +163,21 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
 
     @Override
     public List<String> getAllVersions(MavenArtifact mavenArtifact) throws MavenUniverseException {
+        return getAllVersions(mavenArtifact, null, null);
+    }
+
+    @Override
+    public List<String> getAllVersions(MavenArtifact mavenArtifact, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
         Artifact artifact = new DefaultArtifact(mavenArtifact.getGroupId(),
                 mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange());
         VersionRangeResult rangeResult = getVersionRange(artifact);
         List<String> versions = new ArrayList<>();
         for (Version v : rangeResult.getVersions()) {
-            versions.add(v.toString());
+            String vString = v.toString();
+            if ((includeVersion == null || includeVersion.matcher(vString).matches())
+                && (excludeVersion == null || !excludeVersion.matcher(vString).matches())) {
+                versions.add(vString);
+            }
         }
         return versions;
     }
