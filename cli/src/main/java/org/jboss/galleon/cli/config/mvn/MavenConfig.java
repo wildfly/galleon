@@ -18,6 +18,8 @@ package org.jboss.galleon.cli.config.mvn;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,6 +32,9 @@ import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.repository.Proxy;
+import org.eclipse.aether.repository.RemoteRepository;
+import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_WARN;
 import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_ALWAYS;
 import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_DAILY;
 import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_INTERVAL;
@@ -63,12 +68,16 @@ public class MavenConfig {
         VALID_UPDATE_POLICIES = Collections.unmodifiableList(policies);
     }
 
-    private static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
+    public static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
+    public static final String JBOSS_REPO_URL = "https://repository.jboss.org/nexus/content/groups/public/";
+    public static final String CENTRAL_REPO_URL = "https://repo1.maven.org/maven2/";
+    private static final MavenRemoteRepository JBOSS_REPO = new MavenRemoteRepository("jboss-public-repository-group",
+            DEFAULT_REPOSITORY_TYPE, JBOSS_REPO_URL);
+    private static final MavenRemoteRepository CENTRAL_REPO = new MavenRemoteRepository("maven-central", DEFAULT_REPOSITORY_TYPE,
+            CENTRAL_REPO_URL);
     static {
-        DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("jboss-public-repository-group",
-                DEFAULT_REPOSITORY_TYPE, "https://repository.jboss.org/nexus/content/groups/public/"));
-        DEFAULT_REPOSITORIES.add(new MavenRemoteRepository("maven-central", DEFAULT_REPOSITORY_TYPE,
-                "https://repo1.maven.org/maven2/"));
+        DEFAULT_REPOSITORIES.add(CENTRAL_REPO);
+        DEFAULT_REPOSITORIES.add(JBOSS_REPO);
     }
     public interface MavenChangeListener {
         void configurationChanged(MavenConfig config) throws XMLStreamException, IOException;
@@ -352,5 +361,35 @@ public class MavenConfig {
 
     public static List<String> getUpdatePolicies() {
         return VALID_UPDATE_POLICIES;
+    }
+
+    public List<RemoteRepository> getMissingDefaultRepositories(Set<String> configuredRepos, MavenProxySelector selector, Proxy proxy) throws ArtifactException {
+        List<RemoteRepository> lst = new ArrayList<>();
+        if (!configuredRepos.contains(CENTRAL_REPO_URL)) {
+            lst.add(buildRemoteRepository(CENTRAL_REPO, selector, proxy));
+        }
+        if (!configuredRepos.contains(JBOSS_REPO_URL)) {
+            lst.add(buildRemoteRepository(JBOSS_REPO, selector, proxy));
+        }
+        return lst;
+    }
+
+    public RemoteRepository buildRemoteRepository(MavenRemoteRepository repo, MavenProxySelector selector, Proxy proxy) throws ArtifactException {
+        RemoteRepository.Builder builder = new RemoteRepository.Builder(repo.getName(),
+                repo.getType(), repo.getUrl());
+        builder.setSnapshotPolicy(new org.eclipse.aether.repository.RepositoryPolicy(repo.getEnableSnapshot() == null ? isSnapshotEnabled() : repo.getEnableSnapshot(),
+                repo.getSnapshotUpdatePolicy() == null ? getDefaultSnapshotPolicy() : repo.getSnapshotUpdatePolicy(),
+                CHECKSUM_POLICY_WARN));
+        builder.setReleasePolicy(new org.eclipse.aether.repository.RepositoryPolicy(repo.getEnableRelease() == null ? isReleaseEnabled() : repo.getEnableRelease(),
+                repo.getReleaseUpdatePolicy() == null ? getDefaultReleasePolicy() : repo.getReleaseUpdatePolicy(),
+                CHECKSUM_POLICY_WARN));
+        try {
+            if (selector != null && selector.proxyFor(new URL(repo.getUrl()).getHost())) {
+                builder.setProxy(proxy);
+            }
+        } catch (MalformedURLException ex) {
+            throw new ArtifactException(ex.getMessage(), ex);
+        }
+        return builder.build();
     }
 }

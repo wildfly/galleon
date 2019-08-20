@@ -28,7 +28,7 @@ import org.eclipse.aether.util.repository.AuthenticationBuilder;
  *
  * @author jdenise@redhat.com
  */
-class MavenProxySelector implements ProxySelector {
+public class MavenProxySelector implements ProxySelector {
 
     static class Builder {
 
@@ -85,19 +85,17 @@ class MavenProxySelector implements ProxySelector {
 
     @Override
     public Proxy getProxy(RemoteRepository repo) {
-        Proxy ret = null;
-        if (proxy.getType().equals(repo.getProtocol())) {
-            boolean match = false;
-            for (Pattern p : nonProxyHosts) {
-                if (p.matcher(repo.getHost()).matches()) {
-                    match = true;
-                    break;
-                }
-            }
-            if (!match) {
-                ret = proxy;
+        return proxyFor(repo.getHost()) ? proxy : null;
+    }
+
+    public boolean proxyFor(String host) {
+        boolean match = false;
+        for (Pattern p : nonProxyHosts) {
+            if (p.matcher(host).matches()) {
+                match = true;
+                break;
             }
         }
-        return ret;
+        return !match;
     }
 }

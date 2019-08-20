@@ -16,15 +16,19 @@
  */
 package org.jboss.galleon.cli.config.mvn;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Proxy;
@@ -41,6 +45,7 @@ import org.apache.maven.settings.building.SettingsBuildingResult;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.Authentication;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.jboss.galleon.cli.CliLogging;
@@ -58,12 +63,13 @@ class MavenMvnSettings implements MavenSettings {
     private static final String NOT = "!";
     private final List<RemoteRepository> repositories;
     private final RepositorySystemSession session;
-
+    private final MavenConfig config;
+    private final org.eclipse.aether.repository.Proxy proxy;
+    private final MavenProxySelector proxySelector;
     MavenMvnSettings(MavenConfig config, RepositorySystem repoSystem, RepositoryListener listener) throws ArtifactException {
+        this.config = config;
         Settings settings = buildMavenSettings(config.getSettings());
-        repositories = Collections.unmodifiableList(buildRemoteRepositories(settings));
         Proxy proxy = settings.getActiveProxy();
-        MavenProxySelector proxySelector = null;
         if (proxy != null) {
             MavenProxySelector.Builder builder = new MavenProxySelector.Builder(proxy.getHost(), proxy.getPort(), proxy.getProtocol());
             builder.setPassword(proxy.getPassword());
@@ -73,6 +79,19 @@ class MavenMvnSettings implements MavenSettings {
                 builder.addNonProxyHosts(Arrays.asList(hosts));
             }
             proxySelector = builder.build();
+            Authentication auth = null;
+            if (proxy.getPassword() != null && proxy.getUsername() != null) {
+                auth = new AuthenticationBuilder().addUsername(proxy.getUsername()).addPassword(proxy.getPassword()).build();
+            }
+            this.proxy = new org.eclipse.aether.repository.Proxy(proxy.getProtocol(), proxy.getHost(), proxy.getPort(), auth);
+        } else {
+            this.proxy = null;
+            proxySelector = null;
+        }
+        try {
+            repositories = Collections.unmodifiableList(buildRemoteRepositories(settings));
+        } catch (MalformedURLException ex) {
+            throw new ArtifactException(ex.getMessage(), ex);
         }
         session = Util.newRepositorySession(repoSystem,
                 settings.getLocalRepository() == null ? config.getLocalRepository() : Paths.get(settings.getLocalRepository()),
@@ -105,10 +124,11 @@ class MavenMvnSettings implements MavenSettings {
         return settingsBuildingResult.getEffectiveSettings();
     }
 
-    private static List<RemoteRepository> buildRemoteRepositories(Settings settings) throws ArtifactException {
+    private List<RemoteRepository> buildRemoteRepositories(Settings settings) throws ArtifactException, MalformedURLException {
         Map<String, Profile> profiles = settings.getProfilesAsMap();
         Map<String, RemoteRepository> repos = new LinkedHashMap<>();
         List<RemoteRepository> repositories = new ArrayList<>();
+        Set<String> urls = new HashSet<>();
         for (String profileName : settings.getActiveProfiles()) {
             Profile profile = profiles.get(profileName);
             if (profile == null) {
@@ -118,6 +138,7 @@ class MavenMvnSettings implements MavenSettings {
             for (Repository repo : mavenRepositories) {
                 repos.put(repo.getId(), buildRepository(repo.getId(), repo.getLayout(),
                         repo.getUrl(), settings, repo.getReleases(), repo.getSnapshots(), null));
+                urls.add(repo.getUrl());
             }
             // Mirrors are hidding actual repo.
             for (Mirror mirror : settings.getMirrors()) {
@@ -166,11 +187,12 @@ class MavenMvnSettings implements MavenSettings {
                 repositories.add(entry.getValue());
             }
         }
+        repositories.addAll(config.getMissingDefaultRepositories(urls, proxySelector, proxy));
         return repositories;
     }
 
-    private static RemoteRepository buildRepository(String id, String type, String url,
-            Settings settings, RepositoryPolicy rp, RepositoryPolicy sp, List<RemoteRepository> mirrored) {
+    private RemoteRepository buildRepository(String id, String type, String url,
+            Settings settings, RepositoryPolicy rp, RepositoryPolicy sp, List<RemoteRepository> mirrored) throws MalformedURLException {
         RemoteRepository.Builder builder = new RemoteRepository.Builder(id,
                 type == null ? DEFAULT_REPOSITORY_TYPE : type,
                 url);
@@ -202,6 +224,9 @@ class MavenMvnSettings implements MavenSettings {
         }
         if (mirrored != null) {
             builder.setMirroredRepositories(mirrored);
+        }
+        if (proxySelector != null && proxySelector.proxyFor(new URL(url).getHost())) {
+            builder.setProxy(proxy);
         }
         return builder.build();
     }
