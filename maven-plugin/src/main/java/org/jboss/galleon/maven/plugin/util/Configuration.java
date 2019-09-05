@@ -27,6 +27,7 @@ public class Configuration {
     private String model;
     private String name;
     private List<String> layers;
+    private List<String> excludedLayers;
 
     public String getModel() {
         return model;
@@ -38,5 +39,9 @@ public class Configuration {
 
     public List<String> getLayers() {
         return layers;
+    }
+
+    public List<String> getExcludedLayers() {
+        return excludedLayers;
     }
 }
