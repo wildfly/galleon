@@ -249,6 +249,11 @@ public class ProvisionStateMojo extends AbstractMojo {
                     hasLayers = true;
                     configBuilder.includeLayer(layer);
                 }
+                if (config.getExcludedLayers() != null) {
+                    for (String layer : config.getExcludedLayers()) {
+                        configBuilder.excludeLayer(layer);
+                    }
+                }
                 state.addConfig(configBuilder.build());
             }
 
