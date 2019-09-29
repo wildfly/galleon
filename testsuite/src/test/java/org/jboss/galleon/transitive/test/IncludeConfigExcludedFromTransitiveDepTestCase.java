@@ -80,6 +80,9 @@ public class IncludeConfigExcludedFromTransitiveDepTestCase extends ProvisionFro
         .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
+        .addConfig(ConfigModel.builder("model1", "name1")
+                .addFeature(new FeatureConfig("specB").setParam("p1", "1"))
+                .build())
         .addConfig(ConfigModel.builder("model1", "name2")
                 .addFeature(new FeatureConfig("specB").setParam("p1", "1"))
                 .build())
@@ -90,6 +93,9 @@ public class IncludeConfigExcludedFromTransitiveDepTestCase extends ProvisionFro
         .setFPID(fp3.getFPID())
         .addFeatureSpec(FeatureSpec.builder("specC")
                 .addParam(FeatureParameterSpec.createId("p1"))
+                .build())
+        .addConfig(ConfigModel.builder("model1", "name1")
+                .addFeature(new FeatureConfig("specC").setParam("p1", "1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name2")
                 .addFeature(new FeatureConfig("specC").setParam("p1", "1"))
@@ -129,6 +135,7 @@ public class IncludeConfigExcludedFromTransitiveDepTestCase extends ProvisionFro
                         .setName("name2")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "1")))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "2")))
                         .build())
                 .build();
     }

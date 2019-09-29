@@ -120,7 +120,6 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         try {
             rangeResult = repoSystem.resolveVersionRange(getSession(), rangeRequest);
         } catch (VersionRangeResolutionException ex) {
-            ex.printStackTrace();
             throw new MavenUniverseException(ex.getLocalizedMessage(), ex);
         }
         return rangeResult;
@@ -135,15 +134,11 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         }
         final VersionRangeResult rangeResult = getVersionRange(new DefaultArtifact(mavenArtifact.getGroupId(),
                 mavenArtifact.getArtifactId(), mavenArtifact.getExtension(), mavenArtifact.getVersionRange()));
-        final MavenArtifactVersion latest = rangeResult == null ? null : resolveLatest(rangeResult, lowestQualifier, includeVersion, excludeVersion);
+        final MavenArtifactVersion latest = rangeResult == null ? null : MavenArtifactVersion.getLatest(rangeResult.getVersions(), lowestQualifier, includeVersion, excludeVersion);
         if (latest == null) {
             throw new MavenLatestVersionNotAvailableException(MavenErrors.failedToResolveLatestVersion(mavenArtifact.getCoordsAsString()));
         }
         return latest.toString();
-    }
-
-    private static MavenArtifactVersion resolveLatest(VersionRangeResult rangeResult, String lowestQualifier, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
-        return MavenArtifactVersion.getLatest(rangeResult.getVersions(), lowestQualifier, includeVersion, excludeVersion);
     }
 
     @Override
@@ -258,6 +253,9 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(artifactDir)) {
             MavenArtifactVersion latest = null;
             for (Path versionDir : stream) {
+                if(!Files.isDirectory(versionDir)) {
+                    continue;
+                }
                 final MavenArtifactVersion next = new MavenArtifactVersion(versionDir.getFileName().toString());
                 if (!range.includesVersion(next) || !next.isQualifierHigher(lowestQualifier, true)) {
                     continue;

@@ -33,13 +33,11 @@ import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
-import org.junit.Ignore;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-@Ignore
 public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fp1;
@@ -76,6 +74,8 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                 .addFeature(new FeatureConfig("specA").setParam("p1", "1")).build())
         .addConfig(ConfigModel.builder("model1", "name2")
                 .addFeature(new FeatureConfig("specA").setParam("p1", "2")).build(), false)
+        .addConfig(ConfigModel.builder("model1", "name5")
+                .addFeature(new FeatureConfig("specA").setParam("p1", "5")).build(), false)
         .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1");
 
@@ -88,8 +88,11 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
         .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
-        .addConfig(ConfigModel.builder("model1", "name2")
+        .addConfig(ConfigModel.builder("model1", "name1")
                 .addFeature(new FeatureConfig("specB").setParam("p1", "1"))
+                .build(), false)
+        .addConfig(ConfigModel.builder("model1", "name2")
+                .addFeature(new FeatureConfig("specB").setParam("p1", "2"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name3")
                 .addFeature(new FeatureConfig("specB").setParam("p1", "3"))
@@ -135,7 +138,6 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                         .setInheritConfigs(true)
                         .build())
                 .addFeaturePackDep(fp1)
-                .includeDefaultConfig("model1", "name1")
                 .build();
     }
 
@@ -154,12 +156,14 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "1")))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "1")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name2")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "2")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "2")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
@@ -169,8 +173,9 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name5")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp4.getFPID().getProducer(), "specD", "p1", "5")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp3.getFPID().getProducer(), "specC", "p1", "5")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "5")))
                         .build())
                 .build();
     }

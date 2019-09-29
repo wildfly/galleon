@@ -121,6 +121,9 @@ public class LocalArtifactVersionRangeResolver {
                         private Path toNext(final MavenArtifactVersionRange range) {
                             while(i.hasNext()) {
                                 final Path path = i.next();
+                                if(!Files.isDirectory(path)) {
+                                    continue;
+                                }
                                 final MavenArtifactVersion next = new MavenArtifactVersion(path.getFileName().toString());
                                 if(range.includesVersion(next)) {
                                     return path;

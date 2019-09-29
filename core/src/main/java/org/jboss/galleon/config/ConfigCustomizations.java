@@ -199,19 +199,23 @@ public class ConfigCustomizations {
             builder.append(" inheritModelOnlyConfigs=false");
         }
         if(!this.excludedModels.isEmpty()) {
-            builder.append(" excluded models ");
+            builder.append(" excludedModels ");
             StringUtils.append(builder, excludedModels.entrySet());
         }
+        if(!this.includedModels.isEmpty()) {
+            builder.append(" includedModels ");
+            StringUtils.append(builder, includedModels);
+        }
         if(!excludedConfigs.isEmpty()) {
-            builder.append(" excluded configs ");
+            builder.append(" excludedConfigs ");
             StringUtils.append(builder, excludedConfigs);
         }
         if(!includedConfigs.isEmpty()) {
-            builder.append(" included configs ");
+            builder.append(" includedConfigs ");
             StringUtils.append(builder, includedConfigs);
         }
         if(!definedConfigs.isEmpty()) {
-            builder.append(" defined configs ");
+            builder.append(" definedConfigs ");
             StringUtils.append(builder, definedConfigs.values());
         }
     }

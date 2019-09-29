@@ -41,11 +41,11 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
     private boolean transitiveDep;
     private String location;
 
-    private boolean inheritConfigs = true;
+    private Boolean inheritConfigs;
     private List<ConfigurationId> includedConfigs = Collections.emptyList();
     private List<ConfigurationId> excludedConfigs = Collections.emptyList();
 
-    private boolean inheritPackages = true;
+    private Boolean inheritPackages;
     private List<String> excludedPackages = Collections.emptyList();
     private List<String> includedPackages = Collections.emptyList();
 
@@ -128,7 +128,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.location = location;
     }
 
-    public boolean isInheritPackages() {
+    public Boolean isInheritPackages() {
         return inheritPackages;
     }
 
@@ -136,7 +136,7 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.inheritPackages = inheritPackages;
     }
 
-    public boolean isInheritConfigs() {
+    public Boolean isInheritConfigs() {
         return inheritConfigs;
     }
 

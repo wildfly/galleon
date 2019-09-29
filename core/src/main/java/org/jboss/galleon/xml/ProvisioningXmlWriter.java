@@ -140,9 +140,10 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
         writeConfigCustomizations(fp, ns, featurePack);
 
         ElementNode packages = null;
-        if (!featurePack.isInheritPackages()) {
+        final Boolean inheritPackages = featurePack.getInheritPackages();
+        if (inheritPackages != null) {
             packages = addElement(fp, Element.PACKAGES.getLocalName(), ns);
-            addAttribute(packages, Attribute.INHERIT, FALSE);
+            addAttribute(packages, Attribute.INHERIT, String.valueOf(inheritPackages));
         }
         if (featurePack.hasExcludedPackages()) {
             if (packages == null) {

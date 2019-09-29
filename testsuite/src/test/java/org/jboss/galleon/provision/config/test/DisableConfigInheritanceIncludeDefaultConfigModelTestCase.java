@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.transitive.test;
+package org.jboss.galleon.provision.config.test;
 
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
@@ -27,7 +27,6 @@ import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
-import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
@@ -38,54 +37,49 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author Alexey Loubyansky
  */
-public class IncludeConfigExcludedFromTransitiveDepMergedIntoAnotherConfigTestCase extends ProvisionFromUniverseTestBase {
+public class DisableConfigInheritanceIncludeDefaultConfigModelTestCase extends ProvisionFromUniverseTestBase {
 
-    private FeaturePackLocation fp1;
-    private FeaturePackLocation fp2;
+    private FeaturePackLocation baseFp;
+    private FeaturePackLocation topFp;
 
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-        universe.createProducer("prod1");
-        universe.createProducer("prod2");
+        universe.createProducer("base-prod");
+        universe.createProducer("top-prod");
     }
 
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
 
-        fp1 = newFpl("prod1", "1", "1.0.0.Final");
-        fp2 = newFpl("prod2", "1", "1.0.0.Final");
+        baseFp = newFpl("base-prod", "1", "1.0");
+        topFp = newFpl("top-prod", "1", "1.0");
 
         creator.newFeaturePack()
-        .setFPID(fp1.getFPID())
-        .addDependency(FeaturePackConfig.builder(fp2)
-                .excludeDefaultConfig("model1", "name1")
-                .excludeDefaultConfig("model1", "name2")
-                .setInheritPackages(false)
-                .build())
+        .setFPID(baseFp.getFPID())
         .addFeatureSpec(FeatureSpec.builder("specA")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")
-                .addFeature(new FeatureConfig("specA").setParam("p1", "1")).build())
-        .newPackage("p1", true)
-                .writeContent("fp1/p1.txt", "fp1");
+                .addFeature(new FeatureConfig("specA").setParam("p1", "base")).build())
+        .addConfig(ConfigModel.builder("model1", "name2")
+                .addFeature(new FeatureConfig("specA").setParam("p1", "base2")).build())
+        .addConfig(ConfigModel.builder("model2", "name1")
+                        .addFeature(new FeatureConfig("specA").setParam("p1", "base")).build());
 
         creator.newFeaturePack()
-        .setFPID(fp2.getFPID())
+        .setFPID(topFp.getFPID())
+        .addDependency(FeaturePackConfig.builder(baseFp)
+                .setInheritConfigs(true)
+                .build())
         .addFeatureSpec(FeatureSpec.builder("specB")
                 .addParam(FeatureParameterSpec.createId("p1"))
                 .build())
         .addConfig(ConfigModel.builder("model1", "name1")
-                .addFeature(new FeatureConfig("specB").setParam("p1", "1"))
+                .addFeature(new FeatureConfig("specB").setParam("p1", "top"))
                 .build())
-        .addConfig(ConfigModel.builder("model1", "name2")
-                .addFeature(new FeatureConfig("specB").setParam("p1", "2"))
-                .build())
-        .addConfig(ConfigModel.builder("model1", "name3")
-                .addFeature(new FeatureConfig("specB").setParam("p1", "3"))
-                .build())
-        .newPackage("p1", true)
-                .writeContent("fp2/p1.txt", "fp2");
+        .addConfig(ConfigModel.builder("model2", "name1")
+                .addFeature(new FeatureConfig("specB").setParam("p1", "top"))
+                .build());
 
         creator.install();
     }
@@ -93,39 +87,31 @@ public class IncludeConfigExcludedFromTransitiveDepMergedIntoAnotherConfigTestCa
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(fp2)
-                        .includeDefaultConfig("model1", "name1")
+                .addFeaturePackDep(FeaturePackConfig.builder(topFp)
+                        .setInheritConfigs(false)
+                        .includeConfigModel("model1")
                         .build())
-                .addFeaturePackDep(fp1)
                 .build();
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp2.getFPID())
+                .addFeaturePack(ProvisionedFeaturePack.builder(baseFp.getFPID())
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fp1.getFPID())
-                        .addPackage("p1")
+                .addFeaturePack(ProvisionedFeaturePack.builder(topFp.getFPID())
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp1.getFPID().getProducer(), "specA", "p1", "1")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(baseFp.getFPID().getProducer(), "specA", "p1", "base")))
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(topFp.getFPID().getProducer(), "specB", "p1", "top")))
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
-                        .setName("name3")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(fp2.getFPID().getProducer(), "specB", "p1", "3")))
+                        .setName("name2")
+                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(baseFp.getFPID().getProducer(), "specA", "p1", "base2")))
                         .build())
-                .build();
-    }
-
-    @Override
-    protected DirState provisionedHomeDir() {
-        return newDirBuilder()
-                .addFile("fp1/p1.txt", "fp1")
                 .build();
     }
 }
