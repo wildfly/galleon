@@ -16,23 +16,25 @@
  */
 package org.jboss.galleon.plan.install.test;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import org.jboss.galleon.Constants;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.layout.ProvisioningPlan;
-import org.jboss.galleon.runtime.ResolvedFeatureId;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureSpec;
-import org.jboss.galleon.state.ProvisionedFeaturePack;
-import org.jboss.galleon.state.ProvisionedState;
-import org.jboss.galleon.test.util.fs.state.DirState;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.xml.ProvisionedConfigBuilder;
-import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.ProvisioningPlanTestBase;
 
@@ -40,7 +42,7 @@ import org.jboss.galleon.universe.ProvisioningPlanTestBase;
  *
  * @author Alexey Loubyansky
  */
-public class InstallVersionConflictPlanTestCase extends ProvisioningPlanTestBase {
+public class InstallVersionConflictPlanFailOnConvergenceTestCase extends ProvisioningPlanTestBase {
 
     private FeaturePackLocation a100;
     private FeaturePackLocation b100;
@@ -110,6 +112,7 @@ public class InstallVersionConflictPlanTestCase extends ProvisioningPlanTestBase
     protected ProvisioningConfig initialState() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(a100)
+                .addOption(ProvisioningOption.VERSION_CONVERGENCE.getName(), Constants.FAIL)
                 .build();
     }
 
@@ -123,39 +126,17 @@ public class InstallVersionConflictPlanTestCase extends ProvisioningPlanTestBase
     protected ProvisioningConfig provisionedConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig.builder(a100)
+                        .setInheritConfigs(false)
                         .build())
                 .addFeaturePackDep(c100)
                 .build();
     }
 
     @Override
-    protected ProvisionedState provisionedState() throws ProvisioningException {
-        return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(b100.getFPID())
-                        .addPackage("p1")
-                        .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(a100.getFPID())
-                        .addPackage("p1")
-                        .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(c100.getFPID())
-                        .addPackage("p1")
-                        .build())
-                .addConfig(ProvisionedConfigBuilder.builder()
-                        .setModel("model1")
-                        .setName("name1")
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(b100.getFPID().getProducer(), "specB", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(a100.getFPID().getProducer(), "specA", "p1", "1")))
-                        .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(c100.getFPID().getProducer(), "specC", "p1", "1")))
-                        .build())
-                .build();
-    }
-
-    @Override
-    protected DirState provisionedHomeDir() {
-        return newDirBuilder()
-                .addFile("a/p1.txt", "a100")
-                .addFile("b/p1.txt", "b100")
-                .addFile("c/p1.txt", "c100")
-                .build();
+    protected String[] pmErrors() throws ProvisioningException {
+        final Set<FPID> set = new LinkedHashSet<>(2);
+        set.add(b100.getFPID());
+        set.add(b101.getFPID());
+        return new String[] {Errors.fpVersionCheckFailed(Collections.singletonList(set))};
     }
 }

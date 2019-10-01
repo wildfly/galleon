@@ -16,21 +16,19 @@
  */
 package org.jboss.galleon.installation.fpversions;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.spec.PackageDependencySpec;
+import org.jboss.galleon.state.ProvisionedFeaturePack;
+import org.jboss.galleon.state.ProvisionedPackage;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.PmProvisionConfigTestBase;
+import org.jboss.galleon.test.util.fs.state.DirState;
 
 /**
  *
@@ -87,7 +85,7 @@ public class FpDepVersionConflictInFpSpecTestCase extends PmProvisionConfigTestB
                 .addDependency(FeaturePackConfig.forLocation(FP2_200_GAV.getLocation()))
                 .addDependency(FeaturePackConfig.forLocation(FP3_100_GAV.getLocation()))
                 .newPackage("p1", true)
-                    .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
+                    .writeContent("fp9/p1.txt", "fp9 p1")
                     .getFeaturePack()
                 .getCreator()
             .install();
@@ -102,17 +100,32 @@ public class FpDepVersionConflictInFpSpecTestCase extends PmProvisionConfigTestB
     }
 
     @Override
-    protected String[] pmErrors() throws ProvisioningException {
-        final Set<FPID> set = new LinkedHashSet<>(2);
-        set.add(FP1_100_GAV);
-        set.add(FP1_101_GAV);
-        return new String[] {
-                Errors.fpVersionCheckFailed(Collections.singleton(set))
-        };
+    protected ProvisionedState provisionedState() throws ProvisioningDescriptionException {
+        return ProvisionedState.builder()
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_100_GAV)
+                        .addPackage(ProvisionedPackage.newInstance("p1"))
+                        .addPackage(ProvisionedPackage.newInstance("p2"))
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP2_200_GAV)
+                        .addPackage(ProvisionedPackage.newInstance("p1"))
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP3_100_GAV)
+                        .addPackage(ProvisionedPackage.newInstance("p1"))
+                        .build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP9_100_GAV)
+                        .addPackage(ProvisionedPackage.newInstance("p1"))
+                        .build())
+                .build();
     }
 
     @Override
-    protected ProvisionedState provisionedState() throws ProvisioningDescriptionException {
-        return null;
+    protected DirState provisionedHomeDir() {
+        return newDirBuilder()
+                .addFile("fp1/p1.txt", "fp1 1.0.0.Final p1")
+                .addFile("fp1/p2.txt", "fp1 1.0.0.Final p2")
+                .addFile("fp2/p1.txt", "fp2 p1")
+                .addFile("fp3/p1.txt", "fp3 p1")
+                .addFile("fp9/p1.txt", "fp9 p1")
+                .build();
     }
 }
