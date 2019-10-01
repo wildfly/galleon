@@ -110,9 +110,7 @@ public class FeatureGroupMergingBranchedPerSpecTestCase extends PmInstallFeature
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
                     .build())
             .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

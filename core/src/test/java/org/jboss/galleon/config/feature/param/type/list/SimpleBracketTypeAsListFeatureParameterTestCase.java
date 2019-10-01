@@ -62,9 +62,7 @@ public class SimpleBracketTypeAsListFeatureParameterTestCase extends PmInstallFe
                             new FeatureConfig("specA")
                             .setParam("name", "a1")
                             .setParam("my-list", "[a , {b=c}, [d,e], {f={g=h}}]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

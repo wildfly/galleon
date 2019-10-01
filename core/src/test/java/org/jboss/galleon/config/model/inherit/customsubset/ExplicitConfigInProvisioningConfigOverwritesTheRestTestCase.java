@@ -71,9 +71,7 @@ public class ExplicitConfigInProvisioningConfigOverwritesTheRestTestCase extends
                     .includeSpec("specA")
                     .addFeature(new FeatureConfig("specA")
                             .setParam("name", "a5"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

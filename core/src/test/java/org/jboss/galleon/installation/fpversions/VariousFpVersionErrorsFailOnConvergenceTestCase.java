@@ -101,10 +101,7 @@ public class VariousFpVersionErrorsFailOnConvergenceTestCase extends PmProvision
             .newFeaturePack(FP6_100_GAV)
                 .addDependency(FP4_101_GAV.getLocation())
                 .newPackage("p1", true)
-                    .writeContent("fp6/p1.txt", "fp6 p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .writeContent("fp6/p1.txt", "fp6 p1");
     }
 
     @Override

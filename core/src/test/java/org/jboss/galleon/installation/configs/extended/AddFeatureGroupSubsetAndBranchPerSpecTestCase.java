@@ -81,9 +81,7 @@ public class AddFeatureGroupSubsetAndBranchPerSpecTestCase extends PmProvisionCo
                         .build())
                 .addConfig(ConfigModel.builder("model2", "config1")
                         .addFeature(new FeatureConfig("specB").setParam("id", "1"))
-                        .build())
-                .getCreator()
-            .install();
+                        .build());
     }
 
     @Override

@@ -114,7 +114,6 @@ public class TransitiveDepInheritConfigsFalseTestCase extends ProvisionFromUnive
                 .addFeature(new FeatureConfig("specC").setParam("p1", "2"))
             .build());
 
-        creator.install();
     }
 
     @Override

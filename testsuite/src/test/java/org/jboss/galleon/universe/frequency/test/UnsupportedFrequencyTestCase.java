@@ -54,9 +54,7 @@ public class UnsupportedFrequencyTestCase extends ProvisionConfigMvnTestBase {
             .setFPID(alpha1Fpid)
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "p1 alpha1")
-                .getFeaturePack()
-        .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

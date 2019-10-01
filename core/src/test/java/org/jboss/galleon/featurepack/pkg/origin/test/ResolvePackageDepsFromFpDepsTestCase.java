@@ -75,9 +75,7 @@ public class ResolvePackageDepsFromFpDepsTestCase extends PmProvisionConfigTestB
                  .getFeaturePack()
              .newPackage("p5")
                  .writeContent("fp3/p5.txt", "p5")
-                 .getFeaturePack()
-            .getCreator()
-        .install();
+                 .getFeaturePack();
     }
 
     @Override

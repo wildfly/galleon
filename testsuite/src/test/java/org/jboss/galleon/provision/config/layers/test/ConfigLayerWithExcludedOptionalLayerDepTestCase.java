@@ -82,7 +82,6 @@ public class ConfigLayerWithExcludedOptionalLayerDepTestCase extends ProvisionFr
             .newPackage("main")
                 .writeContent("main.txt", "main");
 
-        creator.install();
     }
 
     @Override

@@ -87,9 +87,7 @@ public class CustomizeConfigTestCase extends PmProvisionConfigTestBase {
                                 setParam("id", "2").
                                 setParam("p2", "fp spec").
                                 setParam("p3", "fp spec"))
-                        .build())
-                .getCreator()
-            .install();
+                        .build());
     }
 
     @Override

@@ -55,9 +55,7 @@ public class ExcludeAffectsFirstFoundPackageTestCase extends PmProvisionConfigTe
         .newFeaturePack(FP3_GAV)
              .newPackage("p1", true)
                  .writeContent("fp3/p1.txt", "p1")
-                 .getFeaturePack()
-            .getCreator()
-        .install();
+                 .getFeaturePack();
     }
 
     @Override

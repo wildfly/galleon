@@ -61,9 +61,7 @@ public class OriginInTransitivePackageDepsTestCase extends PmProvisionConfigTest
         .newFeaturePack(FP3_GAV)
              .newPackage("p1")
                  .writeContent("fp3/p1.txt", "p1")
-                 .getFeaturePack()
-            .getCreator()
-        .install();
+                 .getFeaturePack();
     }
 
     @Override

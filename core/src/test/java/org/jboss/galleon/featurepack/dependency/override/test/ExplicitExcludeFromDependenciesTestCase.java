@@ -95,9 +95,7 @@ public class ExplicitExcludeFromDependenciesTestCase extends PmProvisionConfigTe
                     .getFeaturePack()
                 .newPackage("c1")
                     .writeContent("fp3/c1.txt", "c1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

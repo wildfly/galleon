@@ -53,9 +53,7 @@ public class ConfigDependsOnExcludedRequiredPackageTestCase extends PmInstallFea
                     .addPackageDep("config1.pkg1")
                     .build())
             .newPackage("config1.pkg1")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -73,9 +73,7 @@ public class SimpleMappedRefToManyBranchedPerSpecTestCase extends PmInstallFeatu
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a3"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

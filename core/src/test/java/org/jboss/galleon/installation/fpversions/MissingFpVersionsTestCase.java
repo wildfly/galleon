@@ -56,9 +56,7 @@ public class MissingFpVersionsTestCase extends PmProvisionConfigTestBase {
             .newFeaturePack(FP2_200_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp2/p1.txt", "fp2 p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

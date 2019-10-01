@@ -64,9 +64,7 @@ public class DefaultValueShouldNotOverwriteNonDefaultOneTestCase extends PmInsta
                     .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

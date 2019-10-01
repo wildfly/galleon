@@ -67,9 +67,7 @@ public class SimplestExternalFeatureDependencyTestCase extends PmInstallFeatureP
                     .addFeature(new FeatureConfig("specA")
                             .setOrigin("fp1")
                             .setParam("id", "a"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

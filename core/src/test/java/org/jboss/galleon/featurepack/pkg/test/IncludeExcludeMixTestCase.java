@@ -52,9 +52,7 @@ public class IncludeExcludeMixTestCase extends PmInstallFeaturePackTestBase {
                 .getFeaturePack()
             .newPackage("p31")
                 .writeContent("p31.txt", "p31")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -61,9 +61,7 @@ public class ConfigOptionalPackageDependenciesTestCase extends PmInstallFeatureP
             .newPackage("config1.pkg2")
                 .getFeaturePack()
             .newPackage("config1.pkg3")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

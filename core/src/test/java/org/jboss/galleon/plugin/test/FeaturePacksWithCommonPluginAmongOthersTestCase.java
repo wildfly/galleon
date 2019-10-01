@@ -88,9 +88,7 @@ public class FeaturePacksWithCommonPluginAmongOthersTestCase extends PmProvision
                     .setPluginFileName("plugin2.jar")
                     .addClassToPlugin(BasicFileWritingPlugin.class)
                     .addPlugin(PluginB.class)
-                    .addPlugin(PluginC.class)
-                    .getCreator()
-                .install();
+                    .addPlugin(PluginC.class);
     }
 
     @Override

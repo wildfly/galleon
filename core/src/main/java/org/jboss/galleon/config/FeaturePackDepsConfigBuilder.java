@@ -156,6 +156,10 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         return transitiveDeps.containsKey(producer);
     }
 
+    public FeaturePackConfig getTransitiveFeaturePackDep(ProducerSpec producer) {
+        return transitiveDeps.get(producer);
+    }
+
     public boolean hasFeaturePackDeps() {
         return !fpDeps.isEmpty();
     }

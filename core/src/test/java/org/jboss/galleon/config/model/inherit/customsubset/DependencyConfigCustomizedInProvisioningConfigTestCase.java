@@ -67,9 +67,7 @@ public class DependencyConfigCustomizedInProvisioningConfigTestCase extends PmPr
                     .addFeature(new FeatureConfig("specA")
                             .setOrigin("fp1")
                             .setParam("name", "a4"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

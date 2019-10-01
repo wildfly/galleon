@@ -124,7 +124,6 @@ public class ConfigLayersSameFeaturePackTestCase extends ProvisionConfigMvnTestB
             .newPackage("another")
                 .writeContent("another.txt", "another");
 
-        creator.install();
     }
 
     @Override

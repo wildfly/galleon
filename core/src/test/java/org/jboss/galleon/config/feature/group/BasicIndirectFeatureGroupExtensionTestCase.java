@@ -72,9 +72,7 @@ public class BasicIndirectFeatureGroupExtensionTestCase extends PmInstallFeature
                                             .setParam("a", "config")
                                             .setParam("b", "config")))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

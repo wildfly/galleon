@@ -80,7 +80,6 @@ public class TransitiveDepWithDefaultChannelTestCase extends ProvisionFromUniver
         creator.newFeaturePack()
             .setFPID(prod2_3.getFPID());
 
-        creator.install();
     }
 
     @Override

@@ -82,7 +82,6 @@ public class IncludeExcludedPackagesInTransitiveDepTestCase extends ProvisionFro
                 .getFeaturePack()
             .newPackage("p4");
 
-        creator.install();
     }
 
     @Override

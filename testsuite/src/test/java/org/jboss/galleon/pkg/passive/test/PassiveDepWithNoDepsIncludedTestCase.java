@@ -63,7 +63,6 @@ public class PassiveDepWithNoDepsIncludedTestCase extends ProvisionFromUniverseT
                 .getFeaturePack()
             .newPackage("p5");
 
-        creator.install();
     }
 
     @Override

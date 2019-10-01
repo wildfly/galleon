@@ -73,6 +73,14 @@ public abstract class SingleUniverseTestBase extends PmTestBase {
         return new FeaturePackLocation(new UniverseSpec(universe, null), producer, channel, frequency, build);
     }
 
+    protected FeaturePackLocation toMavenCoordsFpl(FeaturePackLocation fpl) {
+        return fpl.isMavenCoordinates() ? fpl : newMavenCoordsFpl(fpl.getProducerName(), fpl.getBuild());
+    }
+
+    protected FeaturePackLocation newMavenCoordsFpl(String producer, String build) {
+        return FeaturePackLocation.fromString(universeArtifact.getGroupId() + '.' + universeName + '.' + producer + ":" + producer + "-feature-pack" + ":" + build);
+    }
+
     protected abstract void createProducers(MvnUniverse universe) throws ProvisioningException;
 
     @Override

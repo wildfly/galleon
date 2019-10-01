@@ -91,9 +91,7 @@ public class ThisAsFeatureSpecOriginTestCase extends PmProvisionConfigTestBase {
                     .setProperty("prop2", "value2")
                     .addFeatureGroup(FeatureGroup.forGroup("fp1", "fg1"))
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

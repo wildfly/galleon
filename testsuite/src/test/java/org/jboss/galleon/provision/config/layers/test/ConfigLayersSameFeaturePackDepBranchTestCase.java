@@ -176,7 +176,6 @@ public class ConfigLayersSameFeaturePackDepBranchTestCase extends ProvisionFromU
                     .addPackageDep("base")
                     .build());
 
-        creator.install();
     }
 
     @Override

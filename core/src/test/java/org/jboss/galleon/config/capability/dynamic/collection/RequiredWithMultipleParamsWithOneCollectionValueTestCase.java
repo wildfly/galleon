@@ -69,9 +69,7 @@ public class RequiredWithMultipleParamsWithOneCollectionValueTestCase extends Pm
                             new FeatureConfig("specA")
                             .setParam("a", "a1")
                             .setParam("col", "[x,y]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

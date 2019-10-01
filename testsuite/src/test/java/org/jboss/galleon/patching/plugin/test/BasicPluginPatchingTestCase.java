@@ -88,7 +88,6 @@ public class BasicPluginPatchingTestCase extends ProvisionFromUniverseTestBase {
             .setPatchFor(fp1.getFPID())
             .addPlugin(Plugin2.class);
 
-        creator.install();
     }
 
     @Override

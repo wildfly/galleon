@@ -102,9 +102,7 @@ public class BasicBranchesWithAssignedIdTestCase extends PmInstallFeaturePackTes
                     .addFeature(new FeatureConfig("specA").setParam("a", "1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

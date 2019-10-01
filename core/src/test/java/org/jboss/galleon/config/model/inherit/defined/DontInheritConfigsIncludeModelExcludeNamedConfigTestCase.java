@@ -69,9 +69,7 @@ public class DontInheritConfigsIncludeModelExcludeNamedConfigTestCase extends Pm
                     .setInheritConfigs(false)
                     .includeConfigModel("model1")
                     .excludeDefaultConfig("model1", "config2")
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

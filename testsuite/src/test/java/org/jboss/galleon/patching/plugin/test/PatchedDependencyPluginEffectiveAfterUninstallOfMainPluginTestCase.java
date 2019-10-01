@@ -96,7 +96,6 @@ public class PatchedDependencyPluginEffectiveAfterUninstallOfMainPluginTestCase 
             .addDependency(fp1)
             .addPlugin(Plugin1.class);
 
-        creator.install();
     }
 
     @Override

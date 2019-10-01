@@ -80,9 +80,7 @@ public class FeatureSimplePackageDependenciesTestCase extends PmInstallFeaturePa
                 .addDependency("p2")
                 .getFeaturePack()
             .newPackage("p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

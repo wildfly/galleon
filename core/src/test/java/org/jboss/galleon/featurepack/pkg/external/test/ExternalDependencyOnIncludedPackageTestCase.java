@@ -46,9 +46,7 @@ public class ExternalDependencyOnIncludedPackageTestCase extends PmProvisionConf
         .newFeaturePack(LegacyGalleon1Universe.newFPID("org.pm.test:fp2", "1", "1.0.0.Final"))
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "p1")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

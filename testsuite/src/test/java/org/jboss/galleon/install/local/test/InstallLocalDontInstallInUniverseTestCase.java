@@ -61,7 +61,6 @@ public class InstallLocalDontInstallInUniverseTestCase extends InstallLocalTestB
         .newPackage("p1", true)
         .writeContent("fp1/p1.txt", "fp1");
 
-        creator.install();
     }
 
     @Override

@@ -56,9 +56,7 @@ public class SimplestUnsatisfiedStaticCapabilityRequirementTestCase extends PmIn
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -74,9 +74,7 @@ public class ResetParameterTestCase extends PmInstallFeaturePackTestBase {
                             new FeatureConfig("specA")
                             .setParam("name", "a1")
                             .resetParam("p1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

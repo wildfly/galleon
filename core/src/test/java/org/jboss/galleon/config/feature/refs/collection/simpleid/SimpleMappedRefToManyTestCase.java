@@ -72,9 +72,7 @@ public class SimpleMappedRefToManyTestCase extends PmInstallFeaturePackTestBase 
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a3"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

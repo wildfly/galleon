@@ -62,9 +62,7 @@ public class NonNillableReferenceToAMissingFeatureTestCase extends PmInstallFeat
                             new FeatureConfig("specB")
                             .setParam("name", "b")
                             .setParam("a", "a"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

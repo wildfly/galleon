@@ -83,9 +83,7 @@ public class ExtendFeatureGroupTestCase extends PmInstallFeaturePackTestBase {
                                     .setParam("name", "bThree")
                                     .setParam("b", "config"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

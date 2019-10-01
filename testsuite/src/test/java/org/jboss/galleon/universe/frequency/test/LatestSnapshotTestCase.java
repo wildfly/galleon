@@ -116,9 +116,7 @@ public class LatestSnapshotTestCase extends ProvisionConfigMvnTestBase {
                 .setFPID(final2Fpid)
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "p1 final2")
-                    .getFeaturePack()
-        .getCreator()
-        .install();
+                    .getFeaturePack();
     }
 
     @Override

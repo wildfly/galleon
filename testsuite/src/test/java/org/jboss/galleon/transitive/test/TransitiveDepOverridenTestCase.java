@@ -133,7 +133,6 @@ public class TransitiveDepOverridenTestCase extends ProvisionFromUniverseTestBas
             .newPackage("p1", true)
                 .writeContent("fp4/p1.txt", "fp4");
 
-        creator.install();
     }
 
     @Override

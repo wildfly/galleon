@@ -75,9 +75,7 @@ public class ExtendConfigModelWithDefinedConfigTestCase extends PmProvisionConfi
                             .setOrigin("fp1")
                             .setParam("name", "a3")
                             .setParam("p1", "fp2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

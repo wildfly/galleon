@@ -90,7 +90,6 @@ public class ConfigLayerWithInvalidLayerTestCase extends ProvisionFromUniverseTe
                                 .setParam("id", "ejb-plus-prod2"))
                         .build());
 
-        creator.install();
     }
 
     @Override

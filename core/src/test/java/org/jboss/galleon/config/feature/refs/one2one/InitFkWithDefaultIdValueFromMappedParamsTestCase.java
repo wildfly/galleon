@@ -62,9 +62,7 @@ public class InitFkWithDefaultIdValueFromMappedParamsTestCase extends PmInstallF
                             new FeatureConfig("specA")
                                 .addFeature(
                                         new FeatureConfig("specB")))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -64,9 +64,7 @@ public class AnonymousFeaturesWithBranchPerSpecFalseTestCase extends PmInstallFe
                     .addFeature(new FeatureConfig("specA").setParam("a", "3"))
                     .addFeature(new FeatureConfig("specB").setParam("b", "3"))
 
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

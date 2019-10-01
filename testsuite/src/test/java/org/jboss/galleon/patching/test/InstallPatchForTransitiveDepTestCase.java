@@ -83,7 +83,6 @@ public class InstallPatchForTransitiveDepTestCase extends InstallFromUniverseTes
         creator.newFeaturePack(fp2.getFPID())
             .addDependency(fp1);
 
-        creator.install();
     }
 
     @Override

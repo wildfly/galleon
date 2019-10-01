@@ -52,9 +52,7 @@ public class IncompleteListFeatureParameterTestCase extends PmInstallFeaturePack
                             new FeatureConfig("specA")
                             .setParam("name", "a1")
                             .setParam("my-list", "[c,d"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -107,9 +107,7 @@ public class ConfigModelMergedFromIndependentFeaturePacksTestCase extends PmProv
                             .setParam("name", "b1")
                             .setParam("p1", "config2")
                             .setParam("p2", "config2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

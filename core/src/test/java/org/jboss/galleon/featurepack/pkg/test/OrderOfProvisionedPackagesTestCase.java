@@ -57,9 +57,7 @@ public class OrderOfProvisionedPackagesTestCase extends PmInstallFeaturePackTest
                 .getFeaturePack()
             .newPackage("e")
                 .writeContent("e.txt", "e")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

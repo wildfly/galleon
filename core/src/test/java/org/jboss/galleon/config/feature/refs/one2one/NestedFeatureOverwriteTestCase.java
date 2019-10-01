@@ -126,9 +126,7 @@ public class NestedFeatureOverwriteTestCase extends PmInstallFeaturePackTestBase
                             .setParam("p5", "config1"))
                     .build())
             .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -87,7 +87,6 @@ public class IncludeConfigExcludedFromTransitiveDepMergedIntoAnotherConfigTestCa
         .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2");
 
-        creator.install();
     }
 
     @Override

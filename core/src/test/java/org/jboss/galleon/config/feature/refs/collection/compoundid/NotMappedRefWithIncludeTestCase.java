@@ -62,9 +62,7 @@ public class NotMappedRefWithIncludeTestCase extends PmInstallFeaturePackTestBas
                             .setParam("id", "1")
                             .setParam("b", "b1")
                             .setParam("a", "[a1,a2, a3 ,  a4 ]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

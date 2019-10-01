@@ -73,9 +73,7 @@ public class DependencyOnModelTestCase extends ConfigOrderTestBase {
                         .setConfigDep("dep2", new ConfigId("model2", null))
                         .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build())
-                .addPlugin(ConfigListPlugin.class)
-                .getCreator()
-            .install();
+                .addPlugin(ConfigListPlugin.class);
     }
 
     @Override

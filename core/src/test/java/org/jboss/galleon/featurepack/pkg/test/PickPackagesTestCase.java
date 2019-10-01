@@ -54,9 +54,7 @@ public class PickPackagesTestCase extends PmInstallFeaturePackTestBase {
                 .getFeaturePack()
             .newPackage("e")
                 .writeContent("c/e.txt", "e")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -74,7 +74,6 @@ public class InstallLocalAndInstallInUniverseWithDepTestCase extends InstallLoca
         .newPackage("p1", true)
         .writeContent("fp2/p1.txt", "fp1");
 
-        creator.install();
     }
 
     @Override

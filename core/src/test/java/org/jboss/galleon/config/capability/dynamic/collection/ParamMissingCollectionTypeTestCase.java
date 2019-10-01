@@ -64,9 +64,7 @@ public class ParamMissingCollectionTypeTestCase extends PmInstallFeaturePackTest
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

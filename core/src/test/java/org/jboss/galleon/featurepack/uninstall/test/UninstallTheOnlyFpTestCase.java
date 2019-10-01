@@ -49,9 +49,7 @@ public class UninstallTheOnlyFpTestCase extends PmUninstallFeaturePackTestBase {
                     .getFeaturePack()
                 .newPackage("p3")
                     .writeContent("fp1/p3.txt", "fp1 1.0.0.Final p3")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

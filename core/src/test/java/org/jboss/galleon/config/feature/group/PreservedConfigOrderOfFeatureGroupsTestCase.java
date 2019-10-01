@@ -102,9 +102,7 @@ public class PreservedConfigOrderOfFeatureGroupsTestCase extends PmInstallFeatur
                     .addFeature(new FeatureConfig("specC").setParam("name", "config1"))
                     .addFeature(new FeatureConfig("specB").setParam("name", "config1"))
                     .addFeature(new FeatureConfig("specD").setParam("name", "config1"))
-            .build())
-            .getCreator()
-        .install();
+            .build());
     }
 
     @Override

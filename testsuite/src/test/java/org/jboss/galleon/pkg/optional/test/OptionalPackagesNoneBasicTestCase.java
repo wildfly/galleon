@@ -91,7 +91,6 @@ public class OptionalPackagesNoneBasicTestCase extends ProvisionFromUniverseTest
                 .getFeaturePack()
             .newPackage("p11");
 
-        creator.install();
     }
 
     @Override

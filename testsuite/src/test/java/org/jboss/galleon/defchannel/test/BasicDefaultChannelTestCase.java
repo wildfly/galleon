@@ -85,7 +85,6 @@ public class BasicDefaultChannelTestCase extends ProvisionFromUniverseTestBase {
                 .getFeaturePack()
             .newPackage("p2");
 
-        creator.install();
     }
 
     @Override

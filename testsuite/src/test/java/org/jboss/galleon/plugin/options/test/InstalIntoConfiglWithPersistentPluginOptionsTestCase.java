@@ -91,7 +91,6 @@ public class InstalIntoConfiglWithPersistentPluginOptionsTestCase extends Plugin
         prod3 = newFpl("prod3", "1", "1.0.0.Final");
         creator.newFeaturePack(prod3.getFPID());
 
-        creator.install();
     }
 
     @Override

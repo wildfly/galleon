@@ -47,9 +47,7 @@ public class UninstallRequiredFpDepInstalledImplicitlyTestCase extends PmUninsta
             .newFeaturePack(FP2_100_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp2/p1.txt", "fp2 1.0.0.Final p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

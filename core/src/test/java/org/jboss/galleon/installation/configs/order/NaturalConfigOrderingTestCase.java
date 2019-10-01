@@ -67,9 +67,7 @@ public class NaturalConfigOrderingTestCase extends ConfigOrderTestBase {
                 .addConfig(ConfigModel.builder(null, "configB")
                         .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build())
-                .addPlugin(ConfigListPlugin.class)
-                .getCreator()
-            .install();
+                .addPlugin(ConfigListPlugin.class);
     }
 
     @Override

@@ -73,9 +73,7 @@ public class OriginalPkgSetOfFpDepExtendedWithTransitivePkgDepTestCase extends P
                 .getFeaturePack()
             .newPackage("p4")
                 .writeContent("fp3/p4.txt", "p4")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

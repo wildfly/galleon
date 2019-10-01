@@ -53,9 +53,7 @@ public class ConfigDependsOnNonExistingPackageTestCase extends PmInstallFeatureP
                     .addPackageDep("config1.pkg2")
                     .build())
             .newPackage("fg1.pkg1")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -128,7 +128,6 @@ public class ReenableConfigInheritanceInTransitiveDepTreeTestCase extends Provis
                 .addFeature(new FeatureConfig("specD").setParam("p1", "5"))
                 .build());
 
-        creator.install();
     }
 
     @Override

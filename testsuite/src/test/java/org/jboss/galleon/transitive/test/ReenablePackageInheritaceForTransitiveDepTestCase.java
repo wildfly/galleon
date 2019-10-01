@@ -83,7 +83,6 @@ public class ReenablePackageInheritaceForTransitiveDepTestCase extends Provision
                 .getFeaturePack()
             .newPackage("p4");
 
-        creator.install();
     }
 
     @Override

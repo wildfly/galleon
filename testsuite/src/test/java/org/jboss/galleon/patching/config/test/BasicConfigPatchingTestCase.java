@@ -71,7 +71,6 @@ public class BasicConfigPatchingTestCase extends ProvisionFromUniverseTestBase {
                             .setParam("p1", "patched"))
                     .build());
 
-        creator.install();
     }
 
     @Override

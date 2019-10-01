@@ -117,9 +117,7 @@ public class MultipleInclusionOfFeatureGroupConfigBranchedPerSpecTestCase extend
                     .setName("main")
                     .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                     .addFeatureGroup(FeatureGroup.forGroup("fgA"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

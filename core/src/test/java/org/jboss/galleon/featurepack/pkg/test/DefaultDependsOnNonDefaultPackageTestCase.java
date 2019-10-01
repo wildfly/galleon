@@ -42,9 +42,7 @@ public class DefaultDependsOnNonDefaultPackageTestCase extends PmInstallFeatureP
                 .getFeaturePack()
             .newPackage("c")
                 .writeContent("c.txt", "c")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

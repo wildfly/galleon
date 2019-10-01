@@ -70,7 +70,6 @@ public class BasicPluginLocationTestCase extends PluginLocationsTestBase {
                 .writeContent("fp1/p1.txt", "fp1 p1")
                 .getFeaturePack()
             .addPlugin("test-plugin", pluginArtifact.getCoordsAsString());
-        creator.install();
     }
 
     @Override

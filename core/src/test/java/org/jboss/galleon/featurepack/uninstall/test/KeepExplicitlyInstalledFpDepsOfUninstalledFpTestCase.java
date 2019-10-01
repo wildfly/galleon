@@ -88,9 +88,7 @@ public class KeepExplicitlyInstalledFpDepsOfUninstalledFpTestCase extends PmUnin
                     .getFeaturePack()
                 .newPackage("p3")
                     .writeContent("fp4/p3.txt", "fp4 1.0.0.Final p3")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

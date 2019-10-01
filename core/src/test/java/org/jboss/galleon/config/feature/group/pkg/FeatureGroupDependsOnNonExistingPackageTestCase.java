@@ -62,10 +62,7 @@ public class FeatureGroupDependsOnNonExistingPackageTestCase extends PmInstallFe
                     .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
                     .build())
-            .newPackage("fg1.pkg1")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("fg1.pkg1");
     }
 
     @Override

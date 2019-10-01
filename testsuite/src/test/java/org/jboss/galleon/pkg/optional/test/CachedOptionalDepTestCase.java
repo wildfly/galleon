@@ -62,7 +62,6 @@ public class CachedOptionalDepTestCase extends ProvisionFromUniverseTestBase {
                 .getFeaturePack()
             .newPackage("p5");
 
-        creator.install();
     }
 
     @Override

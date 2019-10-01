@@ -74,9 +74,7 @@ public class NotMappedRefToManyTestCase extends PmInstallFeaturePackTestBase {
                             new FeatureConfig("specA")
                             .setParam("id", "1")
                             .setParam("a", "a3"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

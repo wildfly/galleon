@@ -69,10 +69,7 @@ public class InheritSimpleFeatureGroupTestCase extends PmInstallFeaturePackTestB
                     .setProperty("prop2", "value2")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .build())
-            .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p1", true);
     }
 
     @Override

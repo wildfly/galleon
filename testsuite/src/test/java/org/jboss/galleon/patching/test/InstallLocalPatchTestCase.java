@@ -78,7 +78,6 @@ public class InstallLocalPatchTestCase extends InstallLocalTestBase {
             .newPackage("p3")
                 .writeContent("fp1/p3.txt", "fp1 p3 patch1");
 
-        creator.install();
     }
 
     @Override

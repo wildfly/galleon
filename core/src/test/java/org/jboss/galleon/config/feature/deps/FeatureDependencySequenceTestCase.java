@@ -72,9 +72,7 @@ public class FeatureDependencySequenceTestCase extends PmInstallFeaturePackTestB
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("id", "a"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

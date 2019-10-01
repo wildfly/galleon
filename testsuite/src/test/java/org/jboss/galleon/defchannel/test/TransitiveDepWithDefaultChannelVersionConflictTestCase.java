@@ -81,7 +81,6 @@ public class TransitiveDepWithDefaultChannelVersionConflictTestCase extends Prov
         creator.newFeaturePack()
             .setFPID(prod2_3.getFPID());
 
-        creator.install();
     }
 
     @Override

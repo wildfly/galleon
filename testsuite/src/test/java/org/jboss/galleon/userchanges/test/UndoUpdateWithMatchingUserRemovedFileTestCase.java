@@ -55,7 +55,6 @@ public class UndoUpdateWithMatchingUserRemovedFileTestCase extends UserChangesTe
             .newPackage("p1", true)
                 .writeContent("prod1/p1.txt", "prod1 p1");
 
-        creator.install();
     }
 
     @Override

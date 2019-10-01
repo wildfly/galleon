@@ -84,9 +84,7 @@ public class ExtendFeatureGroupBranchedPerSpecTestCase extends PmInstallFeatureP
                                     .setParam("name", "bThree")
                                     .setParam("b", "config"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

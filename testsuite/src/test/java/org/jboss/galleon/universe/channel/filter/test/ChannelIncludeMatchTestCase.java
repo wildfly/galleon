@@ -62,7 +62,6 @@ public class ChannelIncludeMatchTestCase extends ProvisionConfigMvnTestBase {
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "p1 ext");
 
-        creator.install();
     }
 
     @Override

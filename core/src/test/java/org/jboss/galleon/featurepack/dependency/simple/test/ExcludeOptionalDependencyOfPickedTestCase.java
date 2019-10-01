@@ -70,9 +70,7 @@ public class ExcludeOptionalDependencyOfPickedTestCase extends PmProvisionConfig
                     .getFeaturePack()
                 .newPackage("d")
                     .writeContent("f/p2/d.txt", "d")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

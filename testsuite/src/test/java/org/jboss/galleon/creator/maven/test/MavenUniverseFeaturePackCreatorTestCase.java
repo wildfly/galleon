@@ -58,7 +58,7 @@ public class MavenUniverseFeaturePackCreatorTestCase extends UniverseRepoTestBas
             .newPackage("p1", true)
                 .writeContent("p1.txt", "p1 text")
                 .getFeaturePack()
-        .getCreator()
+            .getCreator()
         .install();
     }
 

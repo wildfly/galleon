@@ -108,10 +108,7 @@ public class FeatureGroupMergingTestCase extends PmInstallFeaturePackTestBase {
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .addFeatureGroup(FeatureGroup.forGroup("fg2"))
                     .build())
-            .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p1", true);
     }
 
     @Override

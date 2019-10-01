@@ -45,9 +45,7 @@ public class BasicMavenCoordinatesAsFplTestCase extends InstallFromUniverseTestB
             .newPackage("ab", true)
                 .writeContent("a.txt", "a")
                 .writeContent("b/b.txt", "b")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

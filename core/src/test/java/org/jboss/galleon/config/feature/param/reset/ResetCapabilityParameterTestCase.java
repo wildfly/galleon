@@ -68,9 +68,7 @@ public class ResetCapabilityParameterTestCase extends PmInstallFeaturePackTestBa
                             .build())
                     .addFeature(
                             new FeatureConfig("specB").setParam("name", "b1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

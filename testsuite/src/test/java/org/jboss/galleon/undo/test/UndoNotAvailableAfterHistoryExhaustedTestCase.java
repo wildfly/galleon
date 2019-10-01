@@ -65,7 +65,6 @@ public class UndoNotAvailableAfterHistoryExhaustedTestCase extends SingleUnivers
             .newPackage("p1", true)
                 .writeContent("fp3/p1.txt", "fp3 p1");
 
-        creator.install();
     }
 
     @Override

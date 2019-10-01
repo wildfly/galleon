@@ -75,10 +75,7 @@ public class ResolveFirstPackageOnFpDepBranchTestCase extends PmProvisionConfigT
                .writeContent("fp5/p1.txt", "p1")
                .getFeaturePack()
            .newPackage("p2")
-               .writeContent("fp5/p2.txt", "p2")
-               .getFeaturePack()
-          .getCreator()
-        .install();
+               .writeContent("fp5/p2.txt", "p2");
     }
 
     @Override

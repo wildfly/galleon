@@ -77,9 +77,7 @@ public class MergedSimplePicksTestCase extends PmProvisionConfigTestBase {
                     .getFeaturePack()
                 .newPackage("p4")
                     .writeContent("fp4/p4.txt", "p4")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

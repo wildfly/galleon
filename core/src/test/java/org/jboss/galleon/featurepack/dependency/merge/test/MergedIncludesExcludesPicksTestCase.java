@@ -94,10 +94,7 @@ public class MergedIncludesExcludesPicksTestCase extends PmProvisionConfigTestBa
                     .writeContent("fp5/p4.txt", "p4")
                     .getFeaturePack()
                 .newPackage("p5")
-                    .writeContent("fp5/p5.txt", "p5")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .writeContent("fp5/p5.txt", "p5");
     }
 
     @Override

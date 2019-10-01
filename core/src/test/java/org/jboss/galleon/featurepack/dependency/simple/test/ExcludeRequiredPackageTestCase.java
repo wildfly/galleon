@@ -56,9 +56,7 @@ public class ExcludeRequiredPackageTestCase extends PmInstallFeaturePackTestBase
                     .getFeaturePack()
                 .newPackage("b")
                     .writeContent("f/p2/b.txt", "b")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

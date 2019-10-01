@@ -84,7 +84,6 @@ public class UninstallPatchForTransitiveDepTestCase extends UninstallFeaturePack
         creator.newFeaturePack(fp2.getFPID())
             .addDependency(fp1);
 
-        creator.install();
     }
 
     @Override

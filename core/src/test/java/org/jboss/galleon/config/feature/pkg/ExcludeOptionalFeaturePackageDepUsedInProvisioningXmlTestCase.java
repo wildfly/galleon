@@ -76,9 +76,7 @@ public class ExcludeOptionalFeaturePackageDepUsedInProvisioningXmlTestCase exten
                 .newPackage("model1.required.pkg")
                 .getFeaturePack()
             .newPackage("model1.optional.pkg")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

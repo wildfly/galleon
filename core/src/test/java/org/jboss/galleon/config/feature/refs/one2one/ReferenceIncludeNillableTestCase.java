@@ -64,9 +64,7 @@ public class ReferenceIncludeNillableTestCase extends PmInstallFeaturePackTestBa
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("name", "b"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

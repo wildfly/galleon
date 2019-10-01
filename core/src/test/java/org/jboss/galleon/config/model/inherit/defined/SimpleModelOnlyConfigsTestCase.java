@@ -74,9 +74,7 @@ public class SimpleModelOnlyConfigsTestCase extends PmInstallFeaturePackTestBase
             .getCreator()
         .newFeaturePack(FP2_GAV)
             .addDependency(FP1_GAV.getLocation())
-            .addConfig(ConfigModel.builder().setName("config-b").setModel("config1").build())
-            .getCreator()
-        .install();
+            .addConfig(ConfigModel.builder().setName("config-b").setModel("config1").build());
     }
 
     @Override

@@ -77,7 +77,6 @@ public class ExplicitlyIncludedPassiveDepTestCase extends ProvisionFromUniverseT
             .newPackage("p9")
                 .addDependency("p5");
 
-        creator.install();
     }
 
     @Override

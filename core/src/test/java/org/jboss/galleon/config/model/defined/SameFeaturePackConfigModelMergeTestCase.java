@@ -74,9 +74,7 @@ public class SameFeaturePackConfigModelMergeTestCase extends PmInstallFeaturePac
                             .setParam("name", "a1")
                             .setParam("p2", "config2")
                             .setParam("p3", "config2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

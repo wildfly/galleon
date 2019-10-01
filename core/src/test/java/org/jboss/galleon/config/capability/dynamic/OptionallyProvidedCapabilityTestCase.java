@@ -68,9 +68,7 @@ public class OptionallyProvidedCapabilityTestCase extends PmInstallFeaturePackTe
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -114,7 +114,6 @@ public class TransitiveDepWithOriginInProvisioningConfigTestCase extends Provisi
                 .addFeature(new FeatureConfig("specA").setParam("p1", "1"))
             .build());
 
-        creator.install();
     }
 
     @Override

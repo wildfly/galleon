@@ -115,7 +115,6 @@ public class TransitiveInheritExclusionModelOnlyPackageDepFromTestCase extends P
                 .newPackage("p5")
                     .writeContent("fp3/p5.txt", "fp3 100 p5");
 
-        creator.install();
     }
 
     @Override

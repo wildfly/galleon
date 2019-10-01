@@ -62,9 +62,7 @@ public class UninstallFpWithDepsTestCase extends PmUninstallFeaturePackTestBase 
             .newFeaturePack(FP4_100_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp4/p1.txt", "fp4 1.0.0.Final p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

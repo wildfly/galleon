@@ -69,9 +69,7 @@ public class OptionalCapabilityRequirementBranchedPerSpecTestCase extends PmInst
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

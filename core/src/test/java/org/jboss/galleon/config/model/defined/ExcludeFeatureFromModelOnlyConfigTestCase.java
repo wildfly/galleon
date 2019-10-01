@@ -59,9 +59,7 @@ public class ExcludeFeatureFromModelOnlyConfigTestCase extends PmInstallFeatureP
                             .setParam("name", "a2")
                             .setParam("p1", "config1"))
                     .excludeFeature(FeatureId.create("specA", "name", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

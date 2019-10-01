@@ -67,7 +67,6 @@ public class OptionalPackagesAllIncludesPassiveDepsTestCase extends ProvisionFro
                 .getFeaturePack()
             .newPackage("p7");
 
-        creator.install();
     }
 
     @Override

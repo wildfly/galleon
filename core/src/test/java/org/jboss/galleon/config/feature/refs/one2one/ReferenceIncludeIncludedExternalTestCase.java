@@ -76,9 +76,7 @@ public class ReferenceIncludeIncludedExternalTestCase extends PmInstallFeaturePa
                              new FeatureConfig("specB")
                              .setParam("name", "b")
                              .setParam("a", "a"))
-                       .build())
-            .getCreator()
-        .install();
+                       .build());
     }
 
     @Override

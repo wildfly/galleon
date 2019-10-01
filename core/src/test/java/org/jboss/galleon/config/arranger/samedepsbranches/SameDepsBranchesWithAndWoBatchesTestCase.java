@@ -143,9 +143,7 @@ public class SameDepsBranchesWithAndWoBatchesTestCase extends PmInstallFeaturePa
                     .addFeature(new FeatureConfig("specE").setParam("e", "1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

@@ -79,7 +79,6 @@ public class DisableConfigInheritanceIncludeDefaultConfigTestCase extends Provis
                 .addFeature(new FeatureConfig("specB").setParam("p1", "top"))
                 .build());
 
-        creator.install();
     }
 
     @Override

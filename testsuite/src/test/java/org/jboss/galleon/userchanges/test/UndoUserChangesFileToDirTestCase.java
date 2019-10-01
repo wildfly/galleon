@@ -48,7 +48,6 @@ public class UndoUserChangesFileToDirTestCase extends UserChangesTestBase {
             .newPackage("p1", true)
                 .writeContent("a", "prod1");
 
-        creator.install();
     }
 
     @Override

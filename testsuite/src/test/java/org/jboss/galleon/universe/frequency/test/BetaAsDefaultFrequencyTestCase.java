@@ -77,7 +77,6 @@ public class BetaAsDefaultFrequencyTestCase extends ProvisionConfigMvnTestBase {
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "p1 final2");
 
-        creator.install();
     }
 
     @Override

@@ -76,9 +76,7 @@ public class ResolveFgFromFirstDepOnBranchTestCase extends PmInstallFeaturePackT
             .addConfig(ConfigModel.builder()
                     .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -63,9 +63,7 @@ public class FeatureGroupOrigInProvisioningConfigTestCase extends PmProvisionCon
                     .build())
             .addFeatureGroup(FeatureGroup.builder("fg2")
                     .addFeature(new FeatureConfig("specB").setParam("id", "fg2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

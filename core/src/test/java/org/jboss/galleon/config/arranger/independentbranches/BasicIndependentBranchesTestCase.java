@@ -143,9 +143,7 @@ public class BasicIndependentBranchesTestCase extends PmInstallFeaturePackTestBa
 
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

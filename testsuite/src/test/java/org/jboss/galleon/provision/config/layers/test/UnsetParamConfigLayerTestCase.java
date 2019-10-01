@@ -75,7 +75,6 @@ public class UnsetParamConfigLayerTestCase extends ProvisionFromUniverseTestBase
                     .includeFeature(FeatureId.create("specA", "id", "2"), new FeatureConfig().setParam("p3", "config"))
                     .build());
 
-        creator.install();
     }
 
     @Override

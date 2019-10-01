@@ -73,8 +73,6 @@ public class UninstallFpWithCustomizedDepsTestCase extends PmUninstallFeaturePac
                     .getFeaturePack()
                 .newPackage("p2", true)
                     .writeContent("fp4/p2.txt", "fp4 1.0.0.Final p2");
-
-        creator.install();
     }
 
     @Override

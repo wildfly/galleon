@@ -85,10 +85,7 @@ public class FpDepVersionConflictInFpSpecTestCase extends PmProvisionConfigTestB
                 .addDependency(FeaturePackConfig.forLocation(FP2_200_GAV.getLocation()))
                 .addDependency(FeaturePackConfig.forLocation(FP3_100_GAV.getLocation()))
                 .newPackage("p1", true)
-                    .writeContent("fp9/p1.txt", "fp9 p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .writeContent("fp9/p1.txt", "fp9 p1");
     }
 
     @Override

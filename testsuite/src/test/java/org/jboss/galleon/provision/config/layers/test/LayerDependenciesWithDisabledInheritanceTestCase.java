@@ -86,7 +86,6 @@ public class LayerDependenciesWithDisabledInheritanceTestCase extends ProvisionF
             .newPackage("base")
                 .writeContent("base.txt", "base");
 
-        creator.install();
     }
 
     @Override

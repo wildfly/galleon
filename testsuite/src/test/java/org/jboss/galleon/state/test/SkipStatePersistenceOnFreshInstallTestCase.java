@@ -54,7 +54,6 @@ public class SkipStatePersistenceOnFreshInstallTestCase extends ProvisionFromUni
             .newPackage("p1", true)
             .writeContent("p1.txt", "p1 package");
 
-        creator.install();
     }
 
     @Override

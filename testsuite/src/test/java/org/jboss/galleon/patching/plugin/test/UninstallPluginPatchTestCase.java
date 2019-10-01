@@ -90,7 +90,6 @@ public class UninstallPluginPatchTestCase extends UninstallFeaturePackTestBase {
             .setPatchFor(fp1.getFPID())
             .addPlugin(Plugin2.class);
 
-        creator.install();
     }
 
     @Override

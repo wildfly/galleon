@@ -70,9 +70,7 @@ public class ExcludedReferenceIncludedFeatureTestCase extends PmInstallFeaturePa
                     .addFeatureGroup(FeatureGroup.builder("fg1")
                             .excludeFeature(FeatureId.create("specA", "name", "a"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

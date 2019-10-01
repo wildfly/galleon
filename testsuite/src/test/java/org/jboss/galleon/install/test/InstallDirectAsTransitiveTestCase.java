@@ -84,7 +84,6 @@ public class InstallDirectAsTransitiveTestCase extends InstallFromUniverseTestBa
             .writeContent("common.txt", "fp5")
             .writeContent("fp5/p1.txt", "fp5 p1");
 
-        creator.install();
     }
 
     @Override

@@ -72,9 +72,7 @@ public class OverwriteUnsetParameterValueInMergeTestCase extends PmInstallFeatur
                     .addFeatureGroup(FeatureGroup.forGroup("group1"))
                     .addFeatureGroup(FeatureGroup.forGroup("group2"))
                     .addFeatureGroup(FeatureGroup.forGroup("group3"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

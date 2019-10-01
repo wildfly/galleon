@@ -67,7 +67,6 @@ public class OptionalPackagesAllExcludedRequiredDepOfPassiveDepTestCase extends 
                 .getFeaturePack()
             .newPackage("p7");
 
-        creator.install();
     }
 
     @Override

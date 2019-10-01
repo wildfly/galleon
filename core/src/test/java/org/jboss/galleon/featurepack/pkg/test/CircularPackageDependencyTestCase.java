@@ -46,9 +46,7 @@ public class CircularPackageDependencyTestCase extends PmInstallFeaturePackTestB
             .newPackage("c")
                 .addDependency("a")
                 .writeContent("c/c/c.txt", "c")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

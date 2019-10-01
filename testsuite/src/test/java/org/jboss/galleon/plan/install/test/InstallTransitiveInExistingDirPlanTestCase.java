@@ -91,7 +91,6 @@ public class InstallTransitiveInExistingDirPlanTestCase extends ProvisioningPlan
         .newPackage("p1", true)
         .writeContent("c/p1.txt", "c100");
 
-        creator.install();
     }
 
     @Override

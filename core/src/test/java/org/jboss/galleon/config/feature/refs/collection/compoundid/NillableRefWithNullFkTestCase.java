@@ -61,9 +61,7 @@ public class NillableRefWithNullFkTestCase extends PmInstallFeaturePackTestBase 
                             new FeatureConfig("specB")
                             .setParam("id", "1")
                             .setParam("b", "b1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

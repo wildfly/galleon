@@ -73,9 +73,7 @@ public class OverrideDependencyCustomSetWithOriginalTestCase extends PmProvision
                     .getFeaturePack()
                 .newPackage("d")
                     .writeContent("fp3/d.txt", "d")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

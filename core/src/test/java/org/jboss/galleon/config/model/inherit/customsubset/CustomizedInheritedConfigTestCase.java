@@ -78,9 +78,7 @@ public class CustomizedInheritedConfigTestCase extends PmProvisionConfigTestBase
                             .excludeFeature(FeatureId.fromString("specA:name=a3"))
                             .includeFeature(FeatureId.fromString("specA:name=a2"), new FeatureConfig().setParam("p1", "custom1"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

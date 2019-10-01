@@ -79,9 +79,7 @@ public class ProvidedAndRequiredWithMultipleCollectionParamValuesTestCase extend
                             new FeatureConfig("specA")
                             .setParam("a", "2")
                             .setParam("p", "b"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

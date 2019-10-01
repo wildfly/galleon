@@ -63,9 +63,7 @@ public class ResolveFirstFeatureSpecFromSiblingDepsTestCase extends PmInstallFea
             .addConfig(ConfigModel.builder()
                     .setName("main")
                     .addFeature(new FeatureConfig("specA").setParam("id", "1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

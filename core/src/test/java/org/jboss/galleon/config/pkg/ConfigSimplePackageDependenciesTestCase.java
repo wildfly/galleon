@@ -61,9 +61,7 @@ public class ConfigSimplePackageDependenciesTestCase extends PmInstallFeaturePac
                 .addDependency("p2")
                 .getFeaturePack()
             .newPackage("p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

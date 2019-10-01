@@ -81,9 +81,7 @@ public class NonIdForeignKeyInitTestCase extends PmInstallFeaturePackTestBase {
                             new FeatureConfig("specB")
                             .setParam("id", "b1")
                             .addFeatureGroup(FeatureGroup.forGroup("groupC")))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

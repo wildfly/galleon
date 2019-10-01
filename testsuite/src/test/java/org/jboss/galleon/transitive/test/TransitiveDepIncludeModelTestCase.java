@@ -123,7 +123,6 @@ public class TransitiveDepIncludeModelTestCase extends ProvisionFromUniverseTest
                     .addFeature(new FeatureConfig("specC").setParam("p1", "1"))
                     .build());
 
-        creator.install();
     }
 
     @Override

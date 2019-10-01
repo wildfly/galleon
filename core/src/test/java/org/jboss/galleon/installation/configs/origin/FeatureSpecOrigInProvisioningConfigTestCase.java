@@ -56,9 +56,7 @@ public class FeatureSpecOrigInProvisioningConfigTestCase extends PmProvisionConf
         .newFeaturePack(FP3_GAV)
             .addFeatureSpec(FeatureSpec.builder("specB")
                     .addParam(FeatureParameterSpec.createId("id"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

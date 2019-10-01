@@ -55,7 +55,6 @@ public class ExcludeRequiredPackageFromConfigLayerTestCase extends ProvisionFrom
                 .build())
             .newPackage("prod2.layer.base");
 
-        creator.install();
     }
 
     @Override

@@ -54,9 +54,7 @@ public class OptionalExternalDependencyOnExcludedPackageTestCase extends PmProvi
                 .getFeaturePack()
             .newPackage("p3")
                 .writeContent("fp2/p3.txt", "p3")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -53,10 +53,7 @@ public class UnknownFeatureParameterTestCase extends PmInstallFeaturePackTestBas
                             .setParam("name", "a1")
                             .setParam("p5", "config1"))
                     .build())
-            .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p1", true);
     }
 
     @Override

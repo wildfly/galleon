@@ -79,9 +79,7 @@ public class ExcludeOptionalFeaturePackageDependencyTestCase extends PmInstallFe
                 .addDependency("p2")
                 .getFeaturePack()
             .newPackage("p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

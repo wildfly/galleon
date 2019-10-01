@@ -64,9 +64,7 @@ public class SimpleMappedRefWithIncludeTestCase extends PmInstallFeaturePackTest
                             new FeatureConfig("specB")
                             .setParam("b", "b1")
                             .setParam("afk", "[a1 , a2,a3,a4 ]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

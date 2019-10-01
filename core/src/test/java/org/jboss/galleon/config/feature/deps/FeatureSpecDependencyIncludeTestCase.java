@@ -65,9 +65,7 @@ public class FeatureSpecDependencyIncludeTestCase extends PmInstallFeaturePackTe
                     .addFeature(
                             new FeatureConfig("specC")
                             .setParam("id", "c"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

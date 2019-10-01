@@ -239,9 +239,7 @@ public class ProfileFeatureIncludesLoggingGroupTestCase extends PmInstallFeature
             .newPackage("p1", true)
         .getFeaturePack()
         .addPlugin(TestConfigPlugin.class)
-        .addClassToPlugin(TestConfigHandler.class)
-        .getCreator()
-        .install();
+        .addClassToPlugin(TestConfigHandler.class);
     }
 
     @Override

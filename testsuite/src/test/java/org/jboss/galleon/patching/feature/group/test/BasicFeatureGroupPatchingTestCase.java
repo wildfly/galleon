@@ -75,7 +75,6 @@ public class BasicFeatureGroupPatchingTestCase extends ProvisionFromUniverseTest
                             .setParam("p1", "patched"))
                     .build());
 
-        creator.install();
     }
 
     @Override

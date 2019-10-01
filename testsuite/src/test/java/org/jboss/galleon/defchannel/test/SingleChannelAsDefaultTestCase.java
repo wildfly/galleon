@@ -62,7 +62,6 @@ public class SingleChannelAsDefaultTestCase extends ProvisionFromUniverseTestBas
                 .getFeaturePack()
             .newPackage("p2");
 
-        creator.install();
     }
 
     @Override

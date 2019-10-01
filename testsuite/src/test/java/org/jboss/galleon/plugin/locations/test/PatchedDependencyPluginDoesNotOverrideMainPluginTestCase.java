@@ -120,7 +120,6 @@ public class PatchedDependencyPluginDoesNotOverrideMainPluginTestCase extends Pl
             .addDependency(fp1)
             .addPlugin("test-plugin", plugin1.getCoordsAsString());
 
-        creator.install();
     }
 
     @Override

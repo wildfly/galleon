@@ -140,7 +140,6 @@ public class BasicPlanTestCase extends ProvisioningPlanTestBase {
         .newPackage("p1", true)
         .writeContent("d/p1.txt", "d101");
 
-        creator.install();
     }
 
     @Override

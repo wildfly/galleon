@@ -101,9 +101,7 @@ public class ExcludeFeaturesFromParentFeaturePacksFeatureGroupTestCase extends P
                                 .excludeFeature("fp1", FeatureId.create("specA", "name", "aOne"))
                                 .excludeFeature("fp1", FeatureId.create("specB", "name", "bOne"))
                                 .build())
-                        .build())
-            .getCreator()
-        .install();
+                        .build());
     }
 
     @Override

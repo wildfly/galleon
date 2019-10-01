@@ -63,9 +63,7 @@ public class SimplestFeatureSpecDependencyTestCase extends PmInstallFeaturePackT
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("id", "a"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

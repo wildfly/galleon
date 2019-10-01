@@ -50,9 +50,7 @@ public class ExcludeRequiredExternalDependencyOfOptionalPackageTestCase extends 
                     .getFeaturePack()
                 .newPackage("c")
                     .writeContent("c.txt", "c")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

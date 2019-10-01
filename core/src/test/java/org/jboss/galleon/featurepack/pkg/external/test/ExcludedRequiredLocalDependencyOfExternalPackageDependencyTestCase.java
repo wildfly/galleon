@@ -50,9 +50,7 @@ public class ExcludedRequiredLocalDependencyOfExternalPackageDependencyTestCase 
                 .getFeaturePack()
             .newPackage("p2")
                 .writeContent("fp2/p2.txt", "p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

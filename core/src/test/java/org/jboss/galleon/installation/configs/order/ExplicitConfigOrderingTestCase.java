@@ -73,9 +73,7 @@ public class ExplicitConfigOrderingTestCase extends ConfigOrderTestBase {
                         .setConfigDep("dep1", new ConfigId("model1", "config1"))
                         .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build())
-                .addPlugin(ConfigListPlugin.class)
-                .getCreator()
-            .install();
+                .addPlugin(ConfigListPlugin.class);
     }
 
     @Override

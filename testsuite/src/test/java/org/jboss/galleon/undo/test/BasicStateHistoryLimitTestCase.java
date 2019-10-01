@@ -83,7 +83,6 @@ public class BasicStateHistoryLimitTestCase extends SingleUniverseTestBase {
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp202 p1");
 
-        creator.install();
     }
 
     @Override

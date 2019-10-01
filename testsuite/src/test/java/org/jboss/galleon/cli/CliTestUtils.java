@@ -134,7 +134,6 @@ public abstract class CliTestUtils {
                         .getFeaturePack()
                 .addService(StateDiffPlugin.class, BasicStateDiffPlugin.class)
                 .addPlugin(TestConfigsPersistingPlugin.class);
-
         creator.install();
     }
 

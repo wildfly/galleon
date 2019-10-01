@@ -86,7 +86,6 @@ public class ExtraOptionsOverrideConfigOptionsTestCase extends PluginOptionsTest
             .setPluginFileName("plugin2.jar")
             .addPlugin(Plugin2.class);
 
-        creator.install();
     }
 
     @Override

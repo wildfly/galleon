@@ -107,9 +107,7 @@ public class OriginInFeatureConfigTestCase extends PmInstallFeaturePackTestBase 
                                             .setParam("id", "3")))
                             .addFeature(new FeatureConfig("specD")
                                     .setParam("id", "4")))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

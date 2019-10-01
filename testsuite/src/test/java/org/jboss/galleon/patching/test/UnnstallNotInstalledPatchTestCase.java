@@ -77,7 +77,6 @@ public class UnnstallNotInstalledPatchTestCase extends UninstallFeaturePackTestB
 
         fp1Patch2 = newFpl("prod1", "1", "1.0.0.Patch2.Final");
 
-        creator.install();
     }
 
     @Override

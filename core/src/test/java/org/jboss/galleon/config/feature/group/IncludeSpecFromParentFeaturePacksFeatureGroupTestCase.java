@@ -101,9 +101,7 @@ public class IncludeSpecFromParentFeaturePacksFeatureGroupTestCase extends PmIns
                                 .includeSpec("specC")
                                 .includeSpec("specD")
                                 .build())
-                        .build())
-            .getCreator()
-        .install();
+                        .build());
     }
 
     @Override

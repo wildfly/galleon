@@ -75,9 +75,7 @@ public class DisableConfigInheritanceTestCase extends PmProvisionConfigTestBase 
                         .build())
                 .addConfig(ConfigModel.builder("model2", "config2")
                         .addFeature(new FeatureConfig("specB").setParam("id", "22"))
-                        .build())
-                .getCreator()
-            .install();
+                        .build());
     }
 
     @Override

@@ -121,7 +121,6 @@ public class LayeredConfigModelTestCase extends ProvisionFromUniverseTestBase {
             .newPackage("b")
                 .writeContent("prod3/b.txt", "prod3 b");
 
-        creator.install();
     }
 
     @Override
