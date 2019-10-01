@@ -332,6 +332,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
     private Map<String, FeaturePackPlugin> pluginLocations = Collections.emptyMap();
+    private boolean failOnConvergence;
 
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
@@ -343,6 +344,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.config = config;
         this.handle = layoutFactory.createHandle();
         if(config.hasFeaturePackDeps()) {
+            initBuiltInOptions(config, Collections.emptyMap());
             try {
                 build(false, true);
                 if (initPluginOptions) {
@@ -362,6 +364,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.config = config;
         this.handle = layoutFactory.createHandle();
         if(config.hasFeaturePackDeps()) {
+            initBuiltInOptions(config, extraOptions);
             try {
                 build(false, true);
                 initPluginOptions(extraOptions, false);
@@ -519,7 +522,9 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             }
         }
 
-        rebuild(configBuilder.build(), true);
+        final ProvisioningConfig config = configBuilder.build();
+        initBuiltInOptions(config, pluginOptions);
+        rebuild(config, true);
         initPluginOptions(pluginOptions, plan.hasUninstall());
     }
 
@@ -544,6 +549,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     public void install(FeaturePackConfig fpConfig, Map<String, String> pluginOptions) throws ProvisioningException {
+        initBuiltInOptions(config, pluginOptions);
         rebuild(install(fpConfig, ProvisioningConfig.builder(config)).build(), false);
         initPluginOptions(pluginOptions, false);
     }
@@ -643,6 +649,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     public void uninstall(FPID fpid, Map<String, String> pluginOptions) throws ProvisioningException {
+        initBuiltInOptions(config, pluginOptions);
         rebuild(uninstall(fpid, ProvisioningConfig.builder(config)).build(), true);
         initPluginOptions(pluginOptions, true);
     }
@@ -835,6 +842,27 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         return !allPatches.isEmpty();
     }
 
+    private void initBuiltInOptions(ProvisioningConfig config, Map<String, String> extraOptions) throws ProvisioningException {
+        String setValue = extraOptions.get(ProvisioningOption.VERSION_CONVERGENCE.getName());
+        if(setValue == null && options.containsKey(ProvisioningOption.VERSION_CONVERGENCE.getName())) {
+            setValue = ProvisioningOption.VERSION_CONVERGENCE.getDefaultValue();
+        }
+        if(setValue == null) {
+            setValue = config.getOption(ProvisioningOption.VERSION_CONVERGENCE.getName());
+            if(setValue == null && config.hasOption(ProvisioningOption.VERSION_CONVERGENCE.getName())) {
+                setValue = ProvisioningOption.VERSION_CONVERGENCE.getDefaultValue();
+            }
+        }
+        failOnConvergence = false;
+        if(setValue != null) {
+            if(Constants.FAIL.equals(setValue)) {
+                failOnConvergence = true;
+            } else if(!Constants.FIRST_PROCESSED.equals(setValue)) {
+                throw new ProvisioningException(Errors.pluginOptionIllegalValue(ProvisioningOption.VERSION_CONVERGENCE.getName(), setValue, ProvisioningOption.VERSION_CONVERGENCE.getValueSet()));
+            }
+        }
+    }
+
     private void rebuild(ProvisioningConfig config, boolean cleanupTransitive) throws ProvisioningException {
         final boolean trackProgress = featurePacks.isEmpty();
         featurePacks.clear();
@@ -1012,10 +1040,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 if(transitiveConfig.hasPatches()) {
                     addPatches(transitiveConfig);
                 }
-                final FPID effectiveFpid = branch.get(fpid.getProducer());
-                if (effectiveFpid != null) {
-                    if (!effectiveFpid.getChannel().getName().equals(fpid.getChannel().getName())) {
-                        addConflict(fpid, effectiveFpid);
+                final FPID branchId = branch.get(fpid.getProducer());
+                if (branchId != null) {
+                    if (!branchId.getChannel().getName().equals(fpid.getChannel().getName())) {
+                        addConflict(fpid, branchId);
                     }
                     continue;
                 }
@@ -1036,7 +1064,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             fpl = resolveVersion(fpl, branchId);
             F fp = featurePacks.get(fpl.getProducer());
             if(fp != null) {
-                conflictCheck(branchId, fpl.getFPID(), fp.getFPID());
+                converge(branchId, fpl.getFPID(), fp.getFPID());
                 continue;
             }
 
@@ -1047,7 +1075,8 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 if (!fpl.equals(resolvedFpl)) {
                     final F existingFp = featurePacks.get(resolvedFpl.getProducer());
                     if (existingFp != null) {
-                        conflictCheck(branchId, resolvedFpl.getFPID(), existingFp.getFPID());
+                        converge(branchId, resolvedFpl.getFPID(), existingFp.getFPID());
+                        featurePacks.put(fpl.getProducer(), fp);
                         continue;
                     }
                     registerResolvedVersion(fpl.getProducer(), resolvedFpl);
@@ -1139,11 +1168,17 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         resolvedVersions.put(producer, fpl);
     }
 
-    private void conflictCheck(FPID branchId, FPID currentFpid, FPID effectiveFpid) {
+    private void converge(FPID branchId, FPID currentFpid, FPID effectiveFpid) throws ProvisioningException {
         if (branchId != null && branchId.getBuild() != null || currentFpid.equals(effectiveFpid)) {
             return;
         }
-        addConflict(currentFpid, effectiveFpid);
+        if(!currentFpid.getChannel().equals(effectiveFpid.getChannel())) {
+            addConflict(currentFpid, effectiveFpid);
+            return;
+        }
+        if(failOnConvergence && !currentFpid.getBuild().equals(effectiveFpid.getBuild())) {
+            addConflict(currentFpid, effectiveFpid);
+        }
     }
 
     private void addConflict(FPID currentFpid, FPID effectiveFp) {

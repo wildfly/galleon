@@ -73,4 +73,9 @@ public interface Constants {
     String NONE = "none";
     String PASSIVE = "passive";
     String PASSIVE_PLUS = "passive+";
+
+    String VERSION_CONVERGENCE = "version-convergence";
+    String FIRST_PROCESSED = "first-processed";
+    String FAIL = "fail";
+
 }

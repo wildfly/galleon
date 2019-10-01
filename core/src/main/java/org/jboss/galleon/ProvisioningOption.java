@@ -38,7 +38,13 @@ public class ProvisioningOption {
             .addToValueSet(Constants.PASSIVE_PLUS)
             .build();
 
-    private static final List<ProvisioningOption> stdOptions = Collections.singletonList(OPTIONAL_PACKAGES);
+    public static final ProvisioningOption VERSION_CONVERGENCE = ProvisioningOption.builder(Constants.VERSION_CONVERGENCE)
+            .setDefaultValue(Constants.FIRST_PROCESSED)
+            .addToValueSet(Constants.FIRST_PROCESSED)
+            .addToValueSet(Constants.FAIL)
+            .build();
+
+    private static final List<ProvisioningOption> stdOptions = Arrays.asList(new ProvisioningOption[] {OPTIONAL_PACKAGES, VERSION_CONVERGENCE});
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

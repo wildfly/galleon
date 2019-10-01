@@ -121,12 +121,7 @@ public class VariousFpVersionErrorsTestCase extends PmProvisionConfigTestBase {
         List<Set<FPID>> conflicts = new ArrayList<>();
         Set<FPID> set = new LinkedHashSet<>(3);
         set.add(FP1_100_GAV);
-        set.add(FP1_101_GAV);
         set.add(FP1_200_GAV);
-        conflicts.add(set);
-        set = new LinkedHashSet<>(2);
-        set.add(FP4_100_GAV);
-        set.add(FP4_101_GAV);
         conflicts.add(set);
         return new String[] {
                 Errors.fpVersionCheckFailed(conflicts)
