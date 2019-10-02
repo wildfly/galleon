@@ -39,12 +39,11 @@ Provisioning options can be provided by the core provisioning mechanism itself a
 
 #### Built-in provisioning options
 
-There is only one built-in provisioning option (provided by the core mechanism) at the moment.
-
-.Provisioning option: optional-packages
+.Built-in provisioning options
 |===
-|Purpose |<<_feature_pack_original_effective_package_set,Optional package dependencies inclusion policy>>
-|Value set |`all`, `none`, `passive`, `passive+`
+|Name |Purpose |Value set
+|optional-packages |<<_feature_pack_original_effective_package_set,Optional package dependencies inclusion policy>> |`all`, `none`, `passive`, `passive+`
+|version-convergence |<<_dependency_version_convergence,Disables or enables the dependency version convergence>> | `first-processed` _(the default one)_, `fail`
 |===
 
 #### Product provisioning options
