@@ -60,9 +60,7 @@ public class InstallFpWhichIsExistingTransitiveDependencyTestCase extends PmInst
                 .addDependency(FP1_100_GAV.getLocation())
                 .newPackage("p1", true)
                     .writeContent("fp2/p1.txt", "fp2 1.0.0.Final p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

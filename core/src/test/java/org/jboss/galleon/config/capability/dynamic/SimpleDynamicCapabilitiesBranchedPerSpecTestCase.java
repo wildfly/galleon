@@ -71,9 +71,7 @@ public class SimpleDynamicCapabilitiesBranchedPerSpecTestCase extends PmInstallF
                     .addFeature(
                             new FeatureConfig("specC")
                             .setParam("c", "c1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

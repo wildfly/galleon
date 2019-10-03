@@ -53,7 +53,6 @@ public class SkipStatePersistenceOnReinstallTestCase extends ProvisionFromUniver
             .newPackage("p2")
                 .writeContent("p2.txt", "p2 package");
 
-        creator.install();
     }
 
     @Override

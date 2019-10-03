@@ -89,9 +89,7 @@ public class DontInheritModelOnlyConfigsFromDependencyTestCase extends PmInstall
                             .setOrigin("fp1")
                             .setParam("name", "a1")
                             .setParam("p3", "fp2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

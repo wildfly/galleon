@@ -72,7 +72,6 @@ public class BasicConfigLayerIncludeTestCase extends ProvisionFromUniverseTestBa
             .newPackage("base")
                 .writeContent("base.txt", "base");
 
-        creator.install();
     }
 
     @Override

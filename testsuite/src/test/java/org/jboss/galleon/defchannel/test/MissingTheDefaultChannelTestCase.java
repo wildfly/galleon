@@ -58,7 +58,6 @@ public class MissingTheDefaultChannelTestCase extends ProvisionFromUniverseTestB
                 .getFeaturePack()
             .newPackage("p2");
 
-        creator.install();
     }
 
     @Override

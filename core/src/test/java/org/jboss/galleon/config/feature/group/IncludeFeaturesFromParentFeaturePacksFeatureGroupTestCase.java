@@ -103,9 +103,7 @@ public class IncludeFeaturesFromParentFeaturePacksFeatureGroupTestCase extends P
                                 .includeFeature(FeatureId.create("specC", "name", "cOne"))
                                 .includeFeature(FeatureId.create("specD", "name", "dOne"))
                                 .build())
-                        .build())
-            .getCreator()
-        .install();
+                        .build());
     }
 
     @Override

@@ -61,9 +61,7 @@ public class UnsetNillableParamWithDefaultValueTestCase extends PmInstallFeature
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig().unsetParam("p1"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

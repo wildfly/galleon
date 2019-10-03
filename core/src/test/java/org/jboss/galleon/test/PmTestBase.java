@@ -69,7 +69,9 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
     @Override
     protected void doBefore() throws Exception {
         super.doBefore();
-        createFeaturePacks(initCreator());
+        final FeaturePackCreator fpCreator = initCreator();
+        createFeaturePacks(fpCreator);
+        fpCreator.install();
         initialProvisioningConfig = initialState();
         if(initialProvisioningConfig != null) {
             try (ProvisioningManager pm = getPm()) {

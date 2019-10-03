@@ -63,9 +63,7 @@ public class SimpleMappedNonNillableRefToNoneTestCase extends PmInstallFeaturePa
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

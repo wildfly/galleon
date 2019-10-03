@@ -63,9 +63,7 @@ public class PickedPackagesTestCase extends PmProvisionConfigTestBase {
                     .getFeaturePack()
                 .newPackage("c")
                     .writeContent("f/p2/c.txt", "c")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

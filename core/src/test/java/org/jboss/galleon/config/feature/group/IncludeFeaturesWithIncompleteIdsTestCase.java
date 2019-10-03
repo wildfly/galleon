@@ -83,9 +83,7 @@ public class IncludeFeaturesWithIncompleteIdsTestCase extends PmInstallFeaturePa
                                     .includeFeature(FeatureId.create("specB", "id", "b1"))
                                     .includeFeature(FeatureId.create("specC", "id", "c1"))
                                     .build()))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

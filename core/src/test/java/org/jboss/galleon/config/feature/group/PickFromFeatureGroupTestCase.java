@@ -83,10 +83,7 @@ public class PickFromFeatureGroupTestCase extends PmInstallFeaturePackTestBase {
                             .excludeFeature(FeatureId.create("specB", "name", "bOne"))
                             .build())
                     .build())
-            .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p1", true);
     }
 
     @Override

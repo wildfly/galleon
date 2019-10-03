@@ -72,7 +72,6 @@ public class BasicFeatureSpecPatchingTestCase extends ProvisionFromUniverseTestB
                     .addParam(FeatureParameterSpec.create("p3", "patched"))
                     .build());
 
-        creator.install();
     }
 
     @Override

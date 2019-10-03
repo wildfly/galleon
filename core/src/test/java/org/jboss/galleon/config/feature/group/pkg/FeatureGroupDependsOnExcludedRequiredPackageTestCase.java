@@ -64,10 +64,7 @@ public class FeatureGroupDependsOnExcludedRequiredPackageTestCase extends PmInst
                     .build())
             .newPackage("fg1.pkg1")
                 .getFeaturePack()
-            .newPackage("fg2.pkg1")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("fg2.pkg1");
     }
 
     @Override

@@ -96,7 +96,6 @@ public class TransitiveDepWithOriginInFeaturePackSpecTestCase extends ProvisionF
                 .addFeature(new FeatureConfig("specA").setParam("p1", "1"))
                 .build());
 
-        creator.install();
     }
 
     @Override

@@ -54,7 +54,6 @@ public class ProvisionUsingMavenCoordinatesInPlaceOfFplTestCase extends Provisio
             .setFPID(prod2.getFPID())
             .newPackage("p1", true);
 
-        creator.install();
     }
 
     @Override

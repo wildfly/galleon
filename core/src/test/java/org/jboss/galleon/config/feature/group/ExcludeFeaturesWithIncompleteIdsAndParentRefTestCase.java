@@ -82,9 +82,7 @@ public class ExcludeFeaturesWithIncompleteIdsAndParentRefTestCase extends PmInst
                                     .setInheritFeatures(true)
                                     .excludeFeature(FeatureId.builder("specB").setParam("id", "b1").setParam("right-a", "a1").build(), "left")
                                     .build()))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -112,7 +112,6 @@ public class VersionUpdateRemovesPatchesTestCase extends ProvisionFromUniverseTe
                     .addPatch(fp1Patch1.getFPID())
                     .addPatch(fp1Patch2.getFPID())
                     .build());
-        creator.install();
     }
 
     @Override

@@ -228,9 +228,7 @@ public class DomainFeatureGroupFlatTestCase extends PmInstallFeaturePackTestBase
                     .addFeatureGroup(FeatureGroup.forGroup("domain"))
                     .build())
             .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

@@ -72,9 +72,7 @@ public class SimpleResourcesOverwriteTestCase extends PmInstallFeaturePackTestBa
                     .getFeaturePack()
                 .writeResources("res1.txt", "fp3")
                 .writeResources("res2.txt", "fp3")
-                .writeResources("res3.txt", "fp3")
-                .getCreator()
-            .install();
+                .writeResources("res3.txt", "fp3");
     }
 
     @Override

@@ -116,9 +116,7 @@ public class MultipleInclusionOfFeatureGroupConfigTestCase extends PmInstallFeat
             .addConfig(ConfigModel.builder()
                     .setName("main")
                     .addFeatureGroup(FeatureGroup.forGroup("fgA"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

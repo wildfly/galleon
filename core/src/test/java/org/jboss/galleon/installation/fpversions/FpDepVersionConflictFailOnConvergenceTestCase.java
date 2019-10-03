@@ -81,10 +81,7 @@ public class FpDepVersionConflictFailOnConvergenceTestCase extends PmProvisionCo
             .newFeaturePack(FP3_100_GAV)
                 .addDependency(FP1_101_GAV.getLocation())
                 .newPackage("p1", true)
-                    .writeContent("fp3/p1.txt", "fp3 p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .writeContent("fp3/p1.txt", "fp3 p1");
     }
 
     @Override

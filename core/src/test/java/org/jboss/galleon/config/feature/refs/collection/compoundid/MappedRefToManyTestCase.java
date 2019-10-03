@@ -69,9 +69,7 @@ public class MappedRefToManyTestCase extends PmInstallFeaturePackTestBase {
                             new FeatureConfig("specA")
                             .setParam("id", "1")
                             .setParam("a", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

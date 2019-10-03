@@ -57,7 +57,6 @@ public class PassiveDepWIthRequiredDepOnPassiveDepTestCase extends ProvisionFrom
                 .addDependency("p3")
                 .getFeaturePack()
             .newPackage("p3");
-        creator.install();
     }
 
     @Override

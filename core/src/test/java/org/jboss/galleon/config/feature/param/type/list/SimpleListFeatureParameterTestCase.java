@@ -65,9 +65,7 @@ public class SimpleListFeatureParameterTestCase extends PmInstallFeaturePackTest
                             new FeatureConfig("specA")
                             .setParam("name", "a1")
                             .setParam("my-list", "[c,d]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

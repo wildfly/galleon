@@ -78,9 +78,7 @@ public class ThisAsFeatureSpecOriginInSpecIncludeTestCase extends PmProvisionCon
                     .addFeature(new FeatureConfig("specD").setParam("d", "dOne")
                     .addFeature(new FeatureConfig("specA").setOrigin("fp1").setParam("a", "aOne"))
                     .addFeature(new FeatureConfig("specB").setOrigin("fp1").setParam("b", "bOne")))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

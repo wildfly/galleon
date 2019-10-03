@@ -74,10 +74,7 @@ public class InheritNoFeaturesFromFeatureGroupTestCase extends PmInstallFeatureP
                             .setInheritFeatures(false)
                             .build())
                     .build())
-            .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p1", true);
     }
 
     @Override

@@ -40,9 +40,7 @@ public class InstallFpUsingDefaultUniverseTestCase extends PmInstallFeaturePackT
         creator.newFeaturePack(FeaturePackLocation.fromString("galleon.test:fp1@galleon1:1#1.0.0.Final").getFPID())
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1")
-            .getFeaturePack()
-        .getCreator()
-        .install();
+            .getFeaturePack();
     }
 
     @Override

@@ -61,9 +61,7 @@ public class ResetFeatureIdParameterTestCase extends PmInstallFeaturePackTestBas
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig().resetParam("name"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

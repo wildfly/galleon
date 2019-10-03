@@ -75,10 +75,7 @@ public class ParameterOverwriteTestCase extends PmInstallFeaturePackTestBase {
                             .setParam("name", "a1")
                             .setParam("p1", "config1"))
                     .build())
-            .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p1", true);
     }
 
     @Override

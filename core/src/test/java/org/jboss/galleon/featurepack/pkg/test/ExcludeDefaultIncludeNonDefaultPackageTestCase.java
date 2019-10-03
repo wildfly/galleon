@@ -50,9 +50,7 @@ public class ExcludeDefaultIncludeNonDefaultPackageTestCase extends PmInstallFea
                 .getFeaturePack()
             .newPackage("d")
                 .writeContent("c/d.txt", "d")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

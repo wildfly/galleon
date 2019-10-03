@@ -97,7 +97,6 @@ public class TransitiveDepVersionOverrideWithDisabledConfigsTestCase extends Pro
             .newPackage("p2", false)
                 .writeContent("fp2/p2.txt", "fp21");
 
-        creator.install();
     }
 
     @Override

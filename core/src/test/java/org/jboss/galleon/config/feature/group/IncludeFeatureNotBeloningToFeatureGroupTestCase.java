@@ -58,9 +58,7 @@ public class IncludeFeatureNotBeloningToFeatureGroupTestCase extends PmInstallFe
                     .addFeatureGroup(FeatureGroup.builder("group1")
                             .includeFeature(FeatureId.create("specP", "parent", "p2"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

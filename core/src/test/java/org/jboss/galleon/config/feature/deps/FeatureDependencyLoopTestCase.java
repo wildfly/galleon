@@ -74,9 +74,7 @@ public class FeatureDependencyLoopTestCase extends PmInstallFeaturePackTestBase 
                             .setParam("id", "a")
                             .addFeatureDep(FeatureId.create("specC", "id", "c"))
                             )
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -79,9 +79,7 @@ public class CustomizeInheritedFeatureGroupTestCase extends PmInstallFeaturePack
                             .excludeSpec("specB")
                             .includeFeature(FeatureId.create("specB", "name", "bTwo"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

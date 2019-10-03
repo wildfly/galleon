@@ -65,9 +65,7 @@ public class PackageDepsResolvedFromFeatureSpecOriginTestCase extends PmInstallF
                     .setName("main")
                     .addFeature(new FeatureConfig("specA")
                             .setParam("id", "1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

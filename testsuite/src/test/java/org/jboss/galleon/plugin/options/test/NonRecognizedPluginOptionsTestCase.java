@@ -79,7 +79,6 @@ public class NonRecognizedPluginOptionsTestCase extends PluginOptionsTestBase {
             .setPluginFileName("plugin2.jar")
             .addPlugin(Plugin2.class);
 
-        creator.install();
     }
 
     @Override

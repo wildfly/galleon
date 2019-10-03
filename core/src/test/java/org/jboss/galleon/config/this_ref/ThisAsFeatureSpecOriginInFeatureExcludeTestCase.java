@@ -79,9 +79,7 @@ public class ThisAsFeatureSpecOriginInFeatureExcludeTestCase extends PmProvision
                     .addFeature(new FeatureConfig("specA").setOrigin("fp1").setParam("a", "aOne"))
                     .addFeature(new FeatureConfig("specB").setOrigin("fp1").setParam("b", "bOne"))
                     .addFeature(new FeatureConfig("specB").setOrigin("fp1").setParam("b", "bTwo")))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

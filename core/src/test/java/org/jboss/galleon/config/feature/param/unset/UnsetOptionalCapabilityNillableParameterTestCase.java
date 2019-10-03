@@ -65,9 +65,7 @@ public class UnsetOptionalCapabilityNillableParameterTestCase extends PmInstallF
                             .build())
                     .addFeature(
                             new FeatureConfig("specB").setParam("name", "b1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

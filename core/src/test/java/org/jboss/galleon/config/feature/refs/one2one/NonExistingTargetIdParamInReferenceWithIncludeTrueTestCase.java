@@ -64,9 +64,7 @@ public class NonExistingTargetIdParamInReferenceWithIncludeTrueTestCase extends 
                             new FeatureConfig("specB")
                             .setParam("id", "b")
                             .setParam("a", "a"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

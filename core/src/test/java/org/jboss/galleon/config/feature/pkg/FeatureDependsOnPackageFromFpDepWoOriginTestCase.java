@@ -65,9 +65,7 @@ public class FeatureDependsOnPackageFromFpDepWoOriginTestCase extends PmInstallF
             .newPackage("p1")
                 .getFeaturePack()
             .newPackage("p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

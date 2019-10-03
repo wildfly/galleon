@@ -77,9 +77,7 @@ public class IncludeNamedConfigsByModelTestCase extends PmProvisionConfigTestBas
                     .build())
             .newPackage("model2.p1")
                     .writeContent("model2/p1.txt", "model2 p1")
-                    .getFeaturePack()
-            .getCreator()
-        .install();
+                    .getFeaturePack();
     }
 
     @Override

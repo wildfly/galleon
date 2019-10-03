@@ -75,7 +75,6 @@ public class BasicPassivePlusDepIncludedTestCase extends ProvisionFromUniverseTe
                 .getFeaturePack()
             .newPackage("p9");
 
-        creator.install();
     }
 
     @Override

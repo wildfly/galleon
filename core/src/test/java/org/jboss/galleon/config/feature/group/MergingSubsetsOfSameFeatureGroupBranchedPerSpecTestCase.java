@@ -171,11 +171,7 @@ public class MergingSubsetsOfSameFeatureGroupBranchedPerSpecTestCase extends PmI
                     .setProperty(ConfigModel.BRANCH_PER_SPEC, "true")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
                     .addFeature(new FeatureConfig("specC").setParam("name", "fg3c1").setParam("p1", "config"))
-                    .build())
-//            .newPackage("p1", true)
-//                .getFeaturePack()
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override
@@ -187,7 +183,6 @@ public class MergingSubsetsOfSameFeatureGroupBranchedPerSpecTestCase extends PmI
     protected ProvisionedState provisionedState() throws ProvisioningException {
         return ProvisionedState.builder()
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP_GAV)
-//                        .addPackage("p1")
                         .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("main")

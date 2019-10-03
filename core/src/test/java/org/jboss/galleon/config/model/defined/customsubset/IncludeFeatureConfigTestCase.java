@@ -58,9 +58,7 @@ public class IncludeFeatureConfigTestCase extends PmProvisionConfigTestBase {
                     .addFeature(new FeatureConfig().setSpecName("specA")
                             .setParam("name", "a2")
                             .setParam("p1", "config1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -51,9 +51,7 @@ public class ExcludeOptionalPackageTestCase extends PmInstallFeaturePackTestBase
                 .getFeaturePack()
             .newPackage("d")
                 .writeContent("c/d.txt", "d")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

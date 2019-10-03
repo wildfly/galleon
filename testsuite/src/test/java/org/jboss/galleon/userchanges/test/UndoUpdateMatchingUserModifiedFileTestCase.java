@@ -55,7 +55,6 @@ public class UndoUpdateMatchingUserModifiedFileTestCase extends UserChangesTestB
             .newPackage("p1", true)
                 .writeContent("common.txt", "prod2 p1");
 
-        creator.install();
     }
 
     @Override

@@ -102,8 +102,6 @@ public class InstallVersionConflictPlanTestCase extends ProvisioningPlanTestBase
                 .addFeature(new FeatureConfig("specC").setParam("p1", "1")).build())
         .newPackage("p1", true)
         .writeContent("c/p1.txt", "c100");
-
-        creator.install();
     }
 
     @Override

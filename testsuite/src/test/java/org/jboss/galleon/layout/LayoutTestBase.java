@@ -25,18 +25,10 @@ import java.util.List;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.repo.RepositoryArtifactResolver;
-import org.jboss.galleon.test.FeaturePackRepoTestBase;
-import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.MvnUniverse;
-import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.SingleUniverseTestBase;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.universe.maven.MavenArtifact;
-import org.jboss.galleon.universe.maven.MavenUniverseFactory;
-import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
-import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 import org.jboss.galleon.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,55 +37,11 @@ import org.junit.Test;
  *
  * @author Alexey Loubyansky
  */
-public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
-
-    protected String universeName = "test-universe";
-    protected MavenArtifact universeArtifact;
-    private UniverseSpec universeSpec;
+public abstract class LayoutTestBase extends SingleUniverseTestBase {
 
     @Override
-    protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
-        return SimplisticMavenRepoManager.getInstance(repoHome);
-    }
-
-    protected UniverseSpec getUniverseSpec() {
-        if(universeSpec == null) {
-            universeSpec = new UniverseSpec(MavenUniverseFactory.ID, universeArtifact.getGroupId() + ':' + universeArtifact.getArtifactId());
-        }
-        return universeSpec;
-    }
-
-    protected FeaturePackLocation newFpl(String producer, String channel) {
-        return new FeaturePackLocation(getUniverseSpec(), producer, channel, null, null);
-    }
-
-    protected FeaturePackLocation newFpl(String producer, String channel, String build) {
-        return new FeaturePackLocation(getUniverseSpec(), producer, channel, null, build);
-    }
-
-    protected FeaturePackLocation newFpl(String producer, String channel, String frequency, String build) {
-        return new FeaturePackLocation(getUniverseSpec(), producer, channel, frequency, build);
-    }
-
-    protected FeaturePackLocation newFpl(String producer, String universe, String channel, String frequency, String build) {
-        return new FeaturePackLocation(new UniverseSpec(universe, null), producer, channel, frequency, build);
-    }
-
-    protected abstract void createProducers(MvnUniverse universe) throws ProvisioningException;
-
-    protected abstract void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException;
-
-    @Override
-    protected void doBefore() throws Exception {
-        super.doBefore();
-
-        final MvnUniverse universe = MvnUniverse.getInstance(universeName, (MavenRepoManager) repo);
-        createProducers(universe);
-        universeArtifact = universe.install();
-
-        final FeaturePackCreator creator = initCreator();
-        createFeaturePacks(creator);
-        creator.install();
+    protected void testPm(ProvisioningManager pm) throws ProvisioningException {
+        throw new UnsupportedOperationException();
     }
 
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
@@ -120,10 +68,6 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
         return getLayoutFactory().newConfigLayout(config);
     }
 
-    protected String[] errors() {
-        return null;
-    }
-
     protected ProvisioningConfig expectedLayoutConfig() throws ProvisioningDescriptionException {
         return null;
     }
@@ -134,10 +78,10 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
     protected abstract void assertLayout(ProvisioningLayout<FeaturePackLayout> layout) throws Exception;
 
     @Test
-    public void test() throws Exception {
+    public void main() throws Exception {
 
         try(ProvisioningLayout<FeaturePackLayout> layout = buildLayout()) {
-            if(errors() != null) {
+            if(pmErrors() != null) {
                 Assert.fail("Errors expected");
             }
             assertLayout(layout);
@@ -148,7 +92,7 @@ public abstract class LayoutTestBase extends FeaturePackRepoTestBase {
                 assertEquals(expectedConfig, layout.getConfig());
             }
         } catch(ProvisioningException e) {
-            final String[] errors = errors();
+            final String[] errors = pmErrors();
             if(errors == null) {
                 throw e;
             }

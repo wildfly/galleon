@@ -58,9 +58,7 @@ public class ExcludeAllNamedConfigsTestCase extends PmInstallFeaturePackTestBase
                     .addFeature(new FeatureConfig().setSpecName("specA")
                             .setParam("name", "a1")
                             .setParam("p1", "config2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -79,7 +79,6 @@ public class ResetParamConfigLayerTestCase extends ProvisionFromUniverseTestBase
                     .includeLayer("layer1")
                     .build());
 
-        creator.install();
     }
 
     @Override

@@ -72,7 +72,6 @@ public class BasicPersistFeatureIncludeExcludeAddTestCase extends PersistChanges
             .addService(StateDiffPlugin.class, BasicStateDiffPlugin.class)
             .addPlugin(TestConfigsPersistingPlugin.class);
 
-        creator.install();
     }
 
     @Override

@@ -95,7 +95,6 @@ public class PatchedDependencyPluginDoesNotOverrideMainPluginTestCase extends Pr
             .addDependency(fp1)
             .addPlugin(Plugin1.class);
 
-        creator.install();
     }
 
     @Override

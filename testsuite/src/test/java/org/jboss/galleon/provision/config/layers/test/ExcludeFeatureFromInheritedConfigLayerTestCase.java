@@ -96,7 +96,6 @@ public class ExcludeFeatureFromInheritedConfigLayerTestCase extends ProvisionFro
         .newPackage("prod2")
             .writeContent("prod2.txt", "prod2");
 
-        creator.install();
     }
 
     @Override

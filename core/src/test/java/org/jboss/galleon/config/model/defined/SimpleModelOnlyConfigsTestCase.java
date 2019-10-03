@@ -71,9 +71,7 @@ public class SimpleModelOnlyConfigsTestCase extends PmInstallFeaturePackTestBase
                             .setParam("p1", "config2"))
                     .build())
             .addConfig(ConfigModel.builder().setName("config-a").setModel("config1").build())
-            .addConfig(ConfigModel.builder().setName("config-b").setModel("config1").build())
-            .getCreator()
-        .install();
+            .addConfig(ConfigModel.builder().setName("config-b").setModel("config1").build());
     }
 
     @Override

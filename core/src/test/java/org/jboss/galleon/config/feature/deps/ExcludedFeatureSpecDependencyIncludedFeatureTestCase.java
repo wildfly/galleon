@@ -62,9 +62,7 @@ public class ExcludedFeatureSpecDependencyIncludedFeatureTestCase extends PmInst
                     .addFeatureGroup(FeatureGroup.builder("fg1")
                             .excludeFeature(FeatureId.create("specA", "id", "a"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -49,7 +49,6 @@ public class InstallUsingMavenCoordinatesInPlaceOfFplTestCase extends InstallFro
             .setFPID(prod1.getFPID())
             .newPackage("p1", true);
 
-        creator.install();
     }
 
     @Override

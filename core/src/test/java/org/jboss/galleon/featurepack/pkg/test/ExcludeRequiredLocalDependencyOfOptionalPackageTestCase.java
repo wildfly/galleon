@@ -46,9 +46,7 @@ public class ExcludeRequiredLocalDependencyOfOptionalPackageTestCase extends PmI
                     .getFeaturePack()
                 .newPackage("c")
                     .writeContent("c.txt", "c")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

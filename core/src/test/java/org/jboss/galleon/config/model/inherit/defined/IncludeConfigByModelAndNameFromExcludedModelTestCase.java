@@ -69,9 +69,7 @@ public class IncludeConfigByModelAndNameFromExcludedModelTestCase extends PmProv
                     .setInheritConfigs(true)
                     .excludeConfigModel("model1")
                     .includeDefaultConfig("model1", "config1")
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

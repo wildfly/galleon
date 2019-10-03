@@ -28,6 +28,8 @@ import org.jboss.galleon.creator.FeaturePackCreator;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.test.util.TestUtils;
+import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1RepositoryManager;
 import org.jboss.galleon.util.IoUtils;
 import org.junit.After;
@@ -112,5 +114,9 @@ public class FeaturePackRepoTestBase {
         } catch (IOException e) {
             throw new ProvisioningException(Errors.mkdirs(workDir.resolve("tmp")), e);
         }
+    }
+
+    protected FeaturePackLocation newFpl(String producer, String universe, String channel, String frequency, String build) {
+        return new FeaturePackLocation(new UniverseSpec(universe, null), producer, channel, frequency, build);
     }
 }

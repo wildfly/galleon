@@ -85,9 +85,7 @@ public class ExternalDependencyChainTestCase extends PmProvisionConfigTestBase {
              .newPackage("p2")
                  .addDependency("fp1-dep", "p1")
                  .writeContent("fp3/p2.txt", "p2")
-                 .getFeaturePack()
-            .getCreator()
-        .install();
+                 .getFeaturePack();
     }
 
     @Override

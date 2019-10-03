@@ -76,9 +76,7 @@ public class ThisAsFeatureGroupOriginTestCase extends PmProvisionConfigTestBase 
             .addFeatureSpec(FeatureSpec.builder("specD")
                     .addParam(FeatureParameterSpec.createId("d"))
                     .addParam(FeatureParameterSpec.create("p1", true))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

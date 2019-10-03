@@ -145,9 +145,7 @@ public class CircularRefsLoopOfThreeTestCase extends PmInstallFeaturePackTestBas
 
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

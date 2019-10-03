@@ -81,7 +81,6 @@ public class PassivePlusOptionalDepWIthExtrnalDepsTestCase extends ProvisionFrom
               .getFeaturePack()
           .newPackage("p4");
 
-        creator.install();
     }
 
     @Override

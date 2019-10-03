@@ -87,9 +87,7 @@ public class ExcludeNamedConfigsByModelTestCase extends PmProvisionConfigTestBas
                     .build())
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2 p1")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

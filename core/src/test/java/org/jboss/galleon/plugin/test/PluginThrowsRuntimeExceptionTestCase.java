@@ -46,9 +46,7 @@ public class PluginThrowsRuntimeExceptionTestCase extends PmProvisionConfigTestB
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "p1")
                     .getFeaturePack()
-                .addPlugin(Plugin1.class)
-                .getCreator()
-            .install();
+                .addPlugin(Plugin1.class);
     }
 
     @Override

@@ -75,7 +75,6 @@ public class UserChangesAfterInstallTestCase extends UserChangesTestBase {
             .newPackage("common", true)
                 .writeContent("common.txt", "prod2");
 
-        creator.install();
     }
 
     @Override

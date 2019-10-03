@@ -100,7 +100,6 @@ public class ExcludeFeatureFromInheritedConfigLayerIncludedFromAGroupTestCase ex
         .newPackage("prod2")
             .writeContent("prod2.txt", "prod2");
 
-        creator.install();
     }
 
     @Override

@@ -113,7 +113,6 @@ public class SimplePluginPatchTestCase extends PluginLocationsTestBase {
             .setPatchFor(fp1.getFPID())
             .addPlugin("test-plugin", plugin2.getCoordsAsString());
 
-        creator.install();
     }
 
     @Override

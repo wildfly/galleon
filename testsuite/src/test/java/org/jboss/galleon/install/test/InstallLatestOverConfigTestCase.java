@@ -55,7 +55,6 @@ public class InstallLatestOverConfigTestCase extends InstallFromUniverseTestBase
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2 p1");
 
-        creator.install();
     }
 
     @Override

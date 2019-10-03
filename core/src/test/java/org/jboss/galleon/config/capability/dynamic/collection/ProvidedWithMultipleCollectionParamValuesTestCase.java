@@ -69,9 +69,7 @@ public class ProvidedWithMultipleCollectionParamValuesTestCase extends PmInstall
                             .setParam("a", "a1")
                             .setParam("p1", "[ b , a ]")
                             .setParam("p2", "[2,1]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

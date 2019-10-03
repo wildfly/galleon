@@ -54,9 +54,7 @@ public class FeatureDependsOnNonExistingPackageTestCase extends PmInstallFeature
                             .setParam("name", "a"))
                     .build())
             .newPackage("p1", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

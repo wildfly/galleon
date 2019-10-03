@@ -70,13 +70,14 @@ public class VersionConvergenceOfMavenCoordsAndFplTestCase extends ProvisionFrom
         creator.newFeaturePack()
             .setFPID(prod201.getFPID())
             .newPackage("p1", true);
-
-        creator.install();
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
-        return ProvisioningConfig.builder().addFeaturePackDep(prod100).addFeaturePackDep(prod300).build();
+        return ProvisioningConfig.builder()
+                .addFeaturePackDep(prod100)
+                .addFeaturePackDep(prod300)
+                .build();
     }
 
     @Override

@@ -79,9 +79,7 @@ public class ExtendConfigModelWithDefinedConfigInFpDepDeclarationTestCase extend
                                     .setParam("p1", "fp2"))
                             .addPackageDep("p1")
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

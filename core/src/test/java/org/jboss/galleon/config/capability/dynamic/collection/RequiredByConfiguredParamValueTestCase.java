@@ -68,9 +68,7 @@ public class RequiredByConfiguredParamValueTestCase extends PmInstallFeaturePack
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

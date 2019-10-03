@@ -66,7 +66,6 @@ public class PreInstallFailureTestCase extends UserChangesTestBase {
             .addService(StateDiffPlugin.class, BasicStateDiffPlugin.class)
             .addPlugin(TestConfigsPersistingPlugin.class);
 
-        creator.install();
     }
 
     @Override

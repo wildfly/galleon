@@ -55,9 +55,7 @@ public class NotIncludedNonDefaultPackageTestCase extends PmInstallFeaturePackTe
                     .getFeaturePack()
                 .newPackage("c")
                     .writeContent("f/p2/c.txt", "c")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

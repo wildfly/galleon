@@ -86,7 +86,6 @@ public class ProvisionOverConfigWithPersistentPluginOptionsTestCase extends Plug
             .setPluginFileName("plugin2.jar")
             .addPlugin(Plugin2.class);
 
-        creator.install();
     }
 
     @Override

@@ -65,9 +65,7 @@ public class IncludePackagesFromExternalPackageDependenciesTestCase extends PmPr
                 .newPackage("p1", true)
                     .addDependency("fp1", "p2")
                     .writeContent("fp3/p1.txt", "p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

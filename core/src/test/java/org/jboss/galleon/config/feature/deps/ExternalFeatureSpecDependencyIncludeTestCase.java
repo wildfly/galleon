@@ -64,9 +64,7 @@ public class ExternalFeatureSpecDependencyIncludeTestCase extends PmInstallFeatu
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("id", "b"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

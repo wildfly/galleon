@@ -99,9 +99,7 @@ public class ExcludeSpecFromParentFeaturePacksFeatureGroupTestCase extends PmIns
                         .addFeatureGroup(FeatureGroup.builder("fg2")
                                 .excludeSpec("fp1", "specA")
                                 .build())
-                        .build())
-            .getCreator()
-        .install();
+                        .build());
     }
 
     @Override

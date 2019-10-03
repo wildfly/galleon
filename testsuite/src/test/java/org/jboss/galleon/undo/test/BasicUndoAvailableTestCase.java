@@ -57,7 +57,6 @@ public class BasicUndoAvailableTestCase extends SingleUniverseTestBase {
             .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2 p1");
 
-        creator.install();
     }
 
     @Override

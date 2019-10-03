@@ -88,8 +88,6 @@ public class UninstallFpWithSharedCustomizedDepsTestCase extends PmUninstallFeat
         creator.newFeaturePack(FP6_100_GAV)
             .newPackage("p1", true)
                 .writeContent("fp6/p1.txt", "fp6 1.0.0.Final p1");
-
-        creator.install();
     }
 
     @Override

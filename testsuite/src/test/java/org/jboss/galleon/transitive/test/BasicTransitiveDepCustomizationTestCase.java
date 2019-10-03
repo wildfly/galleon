@@ -109,7 +109,6 @@ public class BasicTransitiveDepCustomizationTestCase extends ProvisionFromUniver
             .newPackage("p4")
                 .writeContent("fp3/p4.txt", "fp3 100 p4");
 
-        creator.install();
     }
 
     @Override

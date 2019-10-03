@@ -83,9 +83,7 @@ public class IncludeFeaturesWithIncompleteIdsAndParentRefTestCase extends PmInst
                                     .includeFeature(FeatureId.create("specA", "id", "a1"), new FeatureConfig().setParentRef("parent"))
                                     .includeFeature(FeatureId.builder("specB").setParam("id", "b1").setParam("right-a", "a1").build(), new FeatureConfig().setParentRef("left"))
                                     .build()))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

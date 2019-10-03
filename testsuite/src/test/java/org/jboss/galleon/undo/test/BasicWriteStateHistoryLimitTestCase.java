@@ -51,7 +51,6 @@ public class BasicWriteStateHistoryLimitTestCase extends SingleUniverseTestBase 
         creator.newFeaturePack(fp100.getFPID())
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp100 p1");
-        creator.install();
     }
 
     @Override

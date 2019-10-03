@@ -72,9 +72,7 @@ public class MissingCapProviderFromMultipleCollectionParamValuesTestCase extends
                             new FeatureConfig("specA")
                             .setParam("a", "2")
                             .setParam("p", "a"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

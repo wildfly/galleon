@@ -55,9 +55,7 @@ public class UnsatisfiedFeatureSpecDependencyTestCase extends PmInstallFeaturePa
                     .addFeature(
                             new FeatureConfig("specB")
                             .setParam("id", "b"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

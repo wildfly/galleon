@@ -111,9 +111,7 @@ public class DefaultBranchPerSpecFalseTestCase extends PmInstallFeaturePackTestB
 
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

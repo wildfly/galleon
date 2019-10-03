@@ -61,9 +61,7 @@ public class UnsetFeatureIdParameterTestCase extends PmInstallFeaturePackTestBas
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig().unsetParam("name"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

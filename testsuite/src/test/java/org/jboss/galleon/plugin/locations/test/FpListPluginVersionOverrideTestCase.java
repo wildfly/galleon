@@ -112,7 +112,6 @@ public class FpListPluginVersionOverrideTestCase extends PluginLocationsTestBase
         creator.newFeaturePack(fp2.getFPID())
             .addPlugin("test-plugin", plugin2.getCoordsAsString());
 
-        creator.install();
     }
 
     @Override

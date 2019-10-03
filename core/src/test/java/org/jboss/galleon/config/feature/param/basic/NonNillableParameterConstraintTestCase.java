@@ -51,9 +51,7 @@ public class NonNillableParameterConstraintTestCase extends PmInstallFeaturePack
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("name", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

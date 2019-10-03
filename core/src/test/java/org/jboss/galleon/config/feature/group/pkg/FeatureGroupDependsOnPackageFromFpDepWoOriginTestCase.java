@@ -67,10 +67,7 @@ public class FeatureGroupDependsOnPackageFromFpDepWoOriginTestCase extends PmIns
         .newFeaturePack(FP2_GAV)
              .newPackage("p1")
                  .getFeaturePack()
-             .newPackage("p2")
-                 .getFeaturePack()
-            .getCreator()
-        .install();
+             .newPackage("p2");
     }
 
     @Override

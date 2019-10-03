@@ -114,9 +114,7 @@ public class CircularDepsBetweenBranchesWithAssignedIdsTestCase extends PmInstal
                     .addFeature(new FeatureConfig("specA").setParam("a", "1").setParam("providedCap", "cap1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

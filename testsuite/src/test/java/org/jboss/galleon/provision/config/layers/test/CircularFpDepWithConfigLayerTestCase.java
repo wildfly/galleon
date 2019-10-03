@@ -71,7 +71,6 @@ public class CircularFpDepWithConfigLayerTestCase extends ProvisionFromUniverseT
         .newPackage("base")
             .writeContent("prod2.txt", "prod2");
 
-        creator.install();
     }
 
     @Override

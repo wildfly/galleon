@@ -155,7 +155,6 @@ public class TransitiveDepInheritFalseTestCase extends ProvisionFromUniverseTest
             .newPackage("p4")
                 .writeContent("fp3/p4.txt", "fp3 p4 102");
 
-        creator.install();
     }
 
     @Override

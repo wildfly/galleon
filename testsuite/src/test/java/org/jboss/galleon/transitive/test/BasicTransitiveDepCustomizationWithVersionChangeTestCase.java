@@ -134,7 +134,6 @@ public class BasicTransitiveDepCustomizationWithVersionChangeTestCase extends Pr
             .newPackage("p4")
                 .writeContent("fp3/p4.txt", "fp3 101 p4");
 
-        creator.install();
     }
 
     @Override

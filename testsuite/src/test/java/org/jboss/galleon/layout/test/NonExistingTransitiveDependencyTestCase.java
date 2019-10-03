@@ -59,7 +59,7 @@ public class NonExistingTransitiveDependencyTestCase extends LayoutOrderingTestB
     }
 
     @Override
-    protected String[] errors() {
+    protected String[] pmErrors() {
         return new String[] {Errors.transitiveDependencyNotFound(fpl1_100.getProducer())};
     }
 

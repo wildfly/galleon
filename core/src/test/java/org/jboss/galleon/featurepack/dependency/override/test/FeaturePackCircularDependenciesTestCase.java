@@ -73,9 +73,7 @@ public class FeaturePackCircularDependenciesTestCase extends PmProvisionConfigTe
                     .getFeaturePack()
                 .newPackage("p2")
                     .writeContent("fp3/p2.txt", "p2")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

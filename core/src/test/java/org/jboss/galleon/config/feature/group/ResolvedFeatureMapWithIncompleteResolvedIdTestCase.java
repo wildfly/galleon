@@ -101,9 +101,7 @@ public class ResolvedFeatureMapWithIncompleteResolvedIdTestCase extends PmInstal
                             .excludeSpec("specC")
                             .includeFeature(FeatureId.builder("specC").setParam("id", "c1").setParam("a", "a2").build())
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

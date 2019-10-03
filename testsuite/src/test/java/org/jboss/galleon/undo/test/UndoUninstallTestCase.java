@@ -63,7 +63,6 @@ public class UndoUninstallTestCase extends SingleUniverseTestBase {
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp102 p1");
 
-        creator.install();
     }
 
     @Override

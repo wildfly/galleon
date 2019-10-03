@@ -52,9 +52,7 @@ public class UserChosenPackagesOverrideDependencyOnOriginalSetTestCase extends P
                     .getFeaturePack()
                 .newPackage("p3", true)
                     .writeContent("fp2/p3.txt", "p3")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

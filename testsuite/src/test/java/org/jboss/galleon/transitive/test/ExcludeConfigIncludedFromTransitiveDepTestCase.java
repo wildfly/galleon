@@ -88,7 +88,6 @@ public class ExcludeConfigIncludedFromTransitiveDepTestCase extends ProvisionFro
         .newPackage("p1", true)
                 .writeContent("fp2/p1.txt", "fp2");
 
-        creator.install();
     }
 
     @Override

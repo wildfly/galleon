@@ -105,9 +105,7 @@ public class PreservedConfigOrderOfFeaturesBranchedPerSpecTestCase extends PmIns
                             .setInheritFeatures(false)
                             .includeFeature(FeatureId.create("specA", "name", "fg1"))
                             .build())
-            .build())
-            .getCreator()
-        .install();
+            .build());
     }
 
     @Override

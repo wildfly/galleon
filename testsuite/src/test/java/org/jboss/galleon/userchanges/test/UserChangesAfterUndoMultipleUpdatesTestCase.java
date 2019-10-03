@@ -89,7 +89,6 @@ public class UserChangesAfterUndoMultipleUpdatesTestCase extends UserChangesTest
             .newPackage("p1", true)
                 .writeContent("prod2/p1.txt", "prod200 p1");
 
-        creator.install();
     }
 
     @Override

@@ -62,9 +62,7 @@ public class SimpleNotMappedRefInvalidTargetTestCase extends PmInstallFeaturePac
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

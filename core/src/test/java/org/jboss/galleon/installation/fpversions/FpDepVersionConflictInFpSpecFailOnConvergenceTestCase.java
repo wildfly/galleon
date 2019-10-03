@@ -89,10 +89,7 @@ public class FpDepVersionConflictInFpSpecFailOnConvergenceTestCase extends PmPro
                 .addDependency(FeaturePackConfig.forLocation(FP2_200_GAV.getLocation()))
                 .addDependency(FeaturePackConfig.forLocation(FP3_100_GAV.getLocation()))
                 .newPackage("p1", true)
-                    .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1");
     }
 
     @Override

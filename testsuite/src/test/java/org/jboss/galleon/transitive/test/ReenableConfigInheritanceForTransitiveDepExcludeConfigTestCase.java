@@ -109,7 +109,6 @@ public class ReenableConfigInheritanceForTransitiveDepExcludeConfigTestCase exte
                 .addFeature(new FeatureConfig("specC").setParam("p1", "6"))
                 .build());
 
-        creator.install();
     }
 
     @Override

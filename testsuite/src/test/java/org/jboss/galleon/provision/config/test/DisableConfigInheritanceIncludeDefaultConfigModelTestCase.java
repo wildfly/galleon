@@ -81,7 +81,6 @@ public class DisableConfigInheritanceIncludeDefaultConfigModelTestCase extends P
                 .addFeature(new FeatureConfig("specB").setParam("p1", "top"))
                 .build());
 
-        creator.install();
     }
 
     @Override

@@ -61,9 +61,7 @@ public class ResetNillableParamWithDefaultValueTestCase extends PmInstallFeature
                             .includeFeature(FeatureId.create("specA", "name", "a1"),
                                     new FeatureConfig().resetParam("p1"))
                             .build())
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

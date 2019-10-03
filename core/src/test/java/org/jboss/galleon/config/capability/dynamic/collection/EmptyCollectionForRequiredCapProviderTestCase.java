@@ -53,9 +53,7 @@ public class EmptyCollectionForRequiredCapProviderTestCase extends PmInstallFeat
                             new FeatureConfig("specA")
                             .setParam("a", "1")
                             .setParam("p1", "[]"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

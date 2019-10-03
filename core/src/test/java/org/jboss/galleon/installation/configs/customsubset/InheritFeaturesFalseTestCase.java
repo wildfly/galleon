@@ -71,9 +71,7 @@ public class InheritFeaturesFalseTestCase extends PmProvisionConfigTestBase {
                 .addConfig(ConfigModel.builder("model2", "config1")
                         .addFeature(new FeatureConfig("specB").setParam("id", "1"))
                         .addFeature(new FeatureConfig("specB").setParam("id", "2"))
-                        .build())
-                .getCreator()
-            .install();
+                        .build());
     }
 
     @Override

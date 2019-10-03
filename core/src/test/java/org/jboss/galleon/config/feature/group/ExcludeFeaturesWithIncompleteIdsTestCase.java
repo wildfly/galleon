@@ -84,9 +84,7 @@ public class ExcludeFeaturesWithIncompleteIdsTestCase extends PmInstallFeaturePa
                                     .excludeFeature(FeatureId.create("specB", "id", "b1"))
                                     .excludeFeature(FeatureId.create("specC", "id", "c1"))
                                     .build()))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

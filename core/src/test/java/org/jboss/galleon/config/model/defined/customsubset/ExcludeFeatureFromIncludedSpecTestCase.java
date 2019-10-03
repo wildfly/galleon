@@ -62,9 +62,7 @@ public class ExcludeFeatureFromIncludedSpecTestCase extends PmProvisionConfigTes
                         .setParam("name", "b1"))
                 .addFeature(new FeatureConfig().setSpecName("specB")
                         .setParam("name", "b2"))
-                .build())
-            .getCreator()
-        .install();
+                .build());
     }
 
     @Override

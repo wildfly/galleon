@@ -53,9 +53,7 @@ public class ExcludeOptionalDependencyOfPickedTestCase extends PmInstallFeatureP
                 .getFeaturePack()
             .newPackage("e")
                 .writeContent("c/e.txt", "e")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

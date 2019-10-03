@@ -96,7 +96,6 @@ public class BasicConfigLayerInheritanceDisabledTestCase extends ProvisionFromUn
         .newPackage("other")
             .writeContent("other.txt", "other");
 
-        creator.install();
     }
 
     @Override

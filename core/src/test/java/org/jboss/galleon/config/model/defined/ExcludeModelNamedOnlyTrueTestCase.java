@@ -80,9 +80,7 @@ public class ExcludeModelNamedOnlyTrueTestCase extends PmInstallFeaturePackTestB
                     .build())
             .newPackage("model1.p1")
                     .writeContent("model1/p1.txt", "model1 p1")
-                    .getFeaturePack()
-            .getCreator()
-        .install();
+                    .getFeaturePack();
     }
 
     @Override

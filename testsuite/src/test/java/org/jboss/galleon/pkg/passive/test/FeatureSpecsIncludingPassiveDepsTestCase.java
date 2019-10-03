@@ -95,7 +95,6 @@ public class FeatureSpecsIncludingPassiveDepsTestCase extends ProvisionFromUnive
                 .addPackageDep("p6")
                 .build());
 
-        creator.install();
     }
 
     @Override

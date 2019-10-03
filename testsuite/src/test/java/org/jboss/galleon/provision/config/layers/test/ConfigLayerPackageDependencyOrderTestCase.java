@@ -78,7 +78,6 @@ public class ConfigLayerPackageDependencyOrderTestCase extends ProvisionFromUniv
                 .writeContent("2.txt", "main")
                 .writeContent("main.txt", "main");
 
-        creator.install();
     }
 
     @Override

@@ -70,9 +70,7 @@ public class SimpleDynamicCapabilitiesTestCase extends PmInstallFeaturePackTestB
                     .addFeature(
                             new FeatureConfig("specC")
                             .setParam("c", "c1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

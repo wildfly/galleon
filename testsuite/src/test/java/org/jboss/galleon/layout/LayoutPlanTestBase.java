@@ -19,6 +19,7 @@ package org.jboss.galleon.layout;
 import static org.junit.Assert.assertEquals;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
@@ -31,7 +32,11 @@ public abstract class LayoutPlanTestBase extends LayoutTestBase {
     protected abstract ProvisioningPlan getPlan() throws ProvisioningDescriptionException;
 
     protected void assertInitialLayoutConfig(ProvisioningConfig config) throws Exception {
-        assertEquals(provisioningConfig(), config);
+        assertEquals(initialLayoutConfig(), config);
+    }
+
+    protected ProvisioningConfig initialLayoutConfig() throws ProvisioningException {
+        return provisioningConfig();
     }
 
     protected abstract FPID[] expectedInitialOrder();

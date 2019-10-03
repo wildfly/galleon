@@ -65,9 +65,7 @@ public class SimpleNotMappedRefToOneTestCase extends PmInstallFeaturePackTestBas
                     .addFeature(
                             new FeatureConfig("specA")
                             .setParam("a", "a1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

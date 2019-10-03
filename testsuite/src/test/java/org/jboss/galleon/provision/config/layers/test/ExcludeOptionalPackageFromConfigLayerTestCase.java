@@ -109,7 +109,6 @@ public class ExcludeOptionalPackageFromConfigLayerTestCase extends ProvisionFrom
                 .getFeaturePack()
             .newPackage("prod2.specB.optional", true);
 
-        creator.install();
     }
 
     @Override

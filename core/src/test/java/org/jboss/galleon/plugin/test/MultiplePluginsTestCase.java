@@ -79,9 +79,7 @@ public class MultiplePluginsTestCase extends PmProvisionConfigTestBase {
                     .getFeaturePack()
                 .addPlugin(Plugin1.class)
                 .addPlugin(Plugin2.class)
-                .addPlugin(Plugin3.class)
-                .getCreator()
-            .install();
+                .addPlugin(Plugin3.class);
     }
 
     @Override

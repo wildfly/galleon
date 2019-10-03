@@ -83,9 +83,7 @@ public class ReplaceImplicitlyInstalledFpDependencyTestCase extends PmInstallFea
                     .getFeaturePack()
                 .newPackage("p3")
                     .writeContent("fp2/p3.txt", "fp2 1.0.0.Final p3")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

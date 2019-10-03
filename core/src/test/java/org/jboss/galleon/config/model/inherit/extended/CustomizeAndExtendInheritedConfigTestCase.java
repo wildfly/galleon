@@ -84,9 +84,7 @@ public class CustomizeAndExtendInheritedConfigTestCase extends PmProvisionConfig
                             .setOrigin("fp1")
                             .setParam("name", "a5")
                             .setParam("p1", "fp2"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -108,7 +108,6 @@ public class BasicResourcesPatchingTestCase extends ProvisionFromUniverseTestBas
         creator.newFeaturePack(fp2.getFPID())
             .writeResources("common/resources/file1.txt", "fp2");
 
-        creator.install();
     }
 
     @Override

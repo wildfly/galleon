@@ -102,9 +102,7 @@ public class PreservedConfigOrderOfFeaturesTestCase extends PmInstallFeaturePack
                             .setInheritFeatures(false)
                             .includeFeature(FeatureId.create("specA", "name", "fg1"))
                             .build())
-            .build())
-            .getCreator()
-        .install();
+            .build());
     }
 
     @Override

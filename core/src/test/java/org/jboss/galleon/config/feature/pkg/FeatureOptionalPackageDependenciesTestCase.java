@@ -81,9 +81,7 @@ public class FeatureOptionalPackageDependenciesTestCase extends PmInstallFeature
             .newPackage("p3")
                 .getFeaturePack()
             .newPackage("p4", true)
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

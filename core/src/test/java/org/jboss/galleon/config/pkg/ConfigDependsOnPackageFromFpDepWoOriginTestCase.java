@@ -73,9 +73,7 @@ public class ConfigDependsOnPackageFromFpDepWoOriginTestCase extends PmInstallFe
             .newPackage("p1")
                 .getFeaturePack()
             .newPackage("p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

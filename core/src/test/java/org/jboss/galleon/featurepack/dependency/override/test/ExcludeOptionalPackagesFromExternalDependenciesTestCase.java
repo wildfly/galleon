@@ -91,9 +91,7 @@ public class ExcludeOptionalPackagesFromExternalDependenciesTestCase extends PmP
                 .newPackage("p3")
                     .addDependency("fp1", "p2", true)
                     .writeContent("fp3/p3.txt", "p3")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

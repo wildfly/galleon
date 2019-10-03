@@ -67,7 +67,6 @@ public class ProvisioningMissingLayerTestCase extends ProvisionFromUniverseTestB
             .newPackage("base")
                 .writeContent("base.txt", "base");
 
-        creator.install();
     }
 
     @Override

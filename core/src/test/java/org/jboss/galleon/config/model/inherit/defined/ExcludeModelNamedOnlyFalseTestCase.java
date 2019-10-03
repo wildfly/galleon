@@ -94,9 +94,7 @@ public class ExcludeModelNamedOnlyFalseTestCase extends PmInstallFeaturePackTest
                             .setParam("name", "a1")
                             .setParam("p3", "custom1"))
                     .build())
-            .addConfig(ConfigModel.builder().setName("custom2").setModel("model2").build())
-            .getCreator()
-        .install();
+            .addConfig(ConfigModel.builder().setName("custom2").setModel("model2").build());
     }
 
     @Override

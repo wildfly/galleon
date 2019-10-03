@@ -102,7 +102,6 @@ public class PatchTransitiveDepTestCase {
                 PRODUCER2, "1", null, "1.0.0.Final");
         creator.newFeaturePack(fp2.getFPID())
                 .addDependency(fp1);
-
         creator.install();
     }
 }

@@ -227,9 +227,7 @@ public class MultipleCircularRefsInMultipleBatchesTestCase extends PmInstallFeat
                             .setParam("h", "h1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-        .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

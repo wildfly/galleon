@@ -65,10 +65,7 @@ public class FeatureGroupSimplePackageDependenciesTestCase extends PmInstallFeat
             .newPackage("fg1.pkg")
                 .addDependency("p2")
                 .getFeaturePack()
-            .newPackage("p2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+            .newPackage("p2");
     }
 
     @Override

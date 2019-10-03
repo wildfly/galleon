@@ -69,9 +69,7 @@ public class ReferenceIncludeIncludedTestCase extends PmInstallFeaturePackTestBa
                             new FeatureConfig("specA")
                             .setParam("name", "a")
                             .setParam("a", "aConfig"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

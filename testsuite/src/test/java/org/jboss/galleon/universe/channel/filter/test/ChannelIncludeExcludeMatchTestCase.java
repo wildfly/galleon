@@ -71,7 +71,6 @@ public class ChannelIncludeExcludeMatchTestCase extends ProvisionConfigMvnTestBa
                 .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "p1 ext2");
 
-        creator.install();
     }
 
     @Override

@@ -123,9 +123,7 @@ public class BranchPerSpecTrueTestCase extends PmInstallFeaturePackTestBase {
 
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

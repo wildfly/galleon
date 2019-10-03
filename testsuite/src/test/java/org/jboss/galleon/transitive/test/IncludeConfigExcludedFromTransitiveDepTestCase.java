@@ -101,7 +101,6 @@ public class IncludeConfigExcludedFromTransitiveDepTestCase extends ProvisionFro
                 .addFeature(new FeatureConfig("specC").setParam("p1", "1"))
                 .build());
 
-        creator.install();
     }
 
     @Override

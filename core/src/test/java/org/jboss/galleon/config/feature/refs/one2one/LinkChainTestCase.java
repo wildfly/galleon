@@ -74,9 +74,7 @@ public class LinkChainTestCase extends PmInstallFeaturePackTestBase {
                             new FeatureConfig("Link")
                             .setParam("name", "c")
                             .setParam("prev", "b"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

@@ -75,9 +75,7 @@ public class DefaultUniverseForFeaturePackDepsTestCase extends ProvisionConfigMv
             .setFPID(fp3Fpid)
             .newPackage("p1", true)
                 .writeContent("fp3/p1.txt", "fp3 p1")
-                .getFeaturePack()
-        .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

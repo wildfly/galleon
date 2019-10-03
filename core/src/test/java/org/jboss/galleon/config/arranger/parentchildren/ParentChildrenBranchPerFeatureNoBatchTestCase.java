@@ -178,9 +178,7 @@ public class ParentChildrenBranchPerFeatureNoBatchTestCase extends PmInstallFeat
                     .addFeature(new FeatureConfig("specF").setParam("f", "1").setParam("e", "1").setParam("a", "1").setParam("b", "1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

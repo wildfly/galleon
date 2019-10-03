@@ -77,7 +77,6 @@ public class UserChangesAfterProvisioningConfigTestCase extends UserChangesTestB
             .newPackage("p1", true)
                 .writeContent("prod2/p1.txt", "prod2 p1");
 
-        creator.install();
     }
 
     @Override

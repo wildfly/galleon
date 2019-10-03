@@ -83,9 +83,7 @@ public class BasicCircularFeatureGroupDependencyTestCase extends PmInstallFeatur
                     .setProperty("prop1", "value1")
                     .setProperty("prop2", "value2")
                     .addFeatureGroup(FeatureGroup.forGroup("fg1"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

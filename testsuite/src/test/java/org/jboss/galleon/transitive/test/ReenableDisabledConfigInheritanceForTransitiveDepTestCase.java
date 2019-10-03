@@ -107,7 +107,6 @@ public class ReenableDisabledConfigInheritanceForTransitiveDepTestCase extends P
                 .addFeature(new FeatureConfig("specC").setParam("p1", "5"))
                 .build());
 
-        creator.install();
     }
 
     @Override

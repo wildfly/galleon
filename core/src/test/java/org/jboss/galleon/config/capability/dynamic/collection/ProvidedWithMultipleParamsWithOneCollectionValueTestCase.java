@@ -75,9 +75,7 @@ public class ProvidedWithMultipleParamsWithOneCollectionValueTestCase extends Pm
                             .setParam("p1", "a1")
                             .setParam("p2", "y")
                             .setParam("p3", "pi"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

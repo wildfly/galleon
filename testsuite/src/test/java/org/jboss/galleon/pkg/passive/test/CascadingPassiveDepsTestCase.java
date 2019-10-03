@@ -77,7 +77,6 @@ public class CascadingPassiveDepsTestCase extends ProvisionFromUniverseTestBase 
             .newPackage("p9")
                 .addDependency("p5");
 
-        creator.install();
     }
 
     @Override

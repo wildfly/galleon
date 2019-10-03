@@ -113,7 +113,6 @@ public class FpDepPluginVersionOverrideTestCase extends PluginLocationsTestBase 
             .addDependency(fp1)
             .addPlugin("test-plugin", plugin2.getCoordsAsString());
 
-        creator.install();
     }
 
     @Override

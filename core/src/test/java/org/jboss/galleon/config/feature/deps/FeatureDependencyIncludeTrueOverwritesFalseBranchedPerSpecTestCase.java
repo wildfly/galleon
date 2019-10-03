@@ -73,9 +73,7 @@ public class FeatureDependencyIncludeTrueOverwritesFalseBranchedPerSpecTestCase 
                             .setParam("id", "c")
                             .addFeatureDep(FeatureDependencySpec.create(FeatureId.create("specA", "id", "a2"), true))
                             )
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

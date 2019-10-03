@@ -117,9 +117,7 @@ public class ParentChildrenBranchesWithAssignedIdTestCase extends PmInstallFeatu
                     .addFeature(new FeatureConfig("specB").setParam("a", "2").setParam("b", "1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

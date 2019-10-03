@@ -48,7 +48,6 @@ public class UndoNotAvailableForEmptyDirTestCase extends SingleUniverseTestBase 
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "fp1 p1");
 
-        creator.install();
     }
 
     @Override

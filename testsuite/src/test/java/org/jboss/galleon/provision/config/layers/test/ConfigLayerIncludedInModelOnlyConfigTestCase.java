@@ -75,7 +75,6 @@ public class ConfigLayerIncludedInModelOnlyConfigTestCase extends ProvisionFromU
             .newPackage("base")
                 .writeContent("base.txt", "base");
 
-        creator.install();
     }
 
     @Override

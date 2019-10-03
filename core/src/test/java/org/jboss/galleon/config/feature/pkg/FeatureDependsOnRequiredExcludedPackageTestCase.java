@@ -56,9 +56,7 @@ public class FeatureDependsOnRequiredExcludedPackageTestCase extends PmInstallFe
             .newPackage("p1", true)
                 .getFeaturePack()
             .newPackage("specA.pkg")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

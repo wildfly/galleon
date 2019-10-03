@@ -105,9 +105,7 @@ public class PreservedConfigOrderOfFeatureGroupsBranchedPerSpecTestCase extends 
                     .addFeature(new FeatureConfig("specC").setParam("name", "config1"))
                     .addFeature(new FeatureConfig("specB").setOrigin("fp1").setParam("name", "config1"))
                     .addFeature(new FeatureConfig("specD").setParam("name", "config1"))
-            .build())
-            .getCreator()
-        .install();
+            .build());
     }
 
     @Override

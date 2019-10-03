@@ -87,9 +87,7 @@ public class ResourcesOverwritesTestCase extends PmInstallFeaturePackTestBase {
                 .writeResources("res3.txt", "fp4")
                 .writeResources("res4.txt", "fp4")
                 .writeResources("res5.txt", "fp4")
-                .writeResources("res6.txt", "fp4")
-                .getCreator()
-            .install();
+                .writeResources("res6.txt", "fp4");
     }
 
     @Override

@@ -75,9 +75,7 @@ public class OverwriteInitializedChildIdParamWhileNestingTestCase extends PmInst
                             new FeatureConfig("specA")
                             .setParam("id", "a1")
                             .addFeatureGroup(FeatureGroup.forGroup("groupC")))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

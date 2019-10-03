@@ -68,7 +68,6 @@ public class IncludePackageExcludedFromTransitiveDepTestCase extends ProvisionFr
         creator.newFeaturePack()
         .setFPID(fp3.getFPID());
 
-        creator.install();
     }
 
     @Override

@@ -75,9 +75,7 @@ public class PreservedConfigOrderOfFeaturesTestCase extends PmInstallFeaturePack
                     .addFeature(
                             new FeatureConfig("specY")
                             .setParam("y", "y3"))
-                    .build())
-            .getCreator()
-        .install();
+                    .build());
     }
 
     @Override

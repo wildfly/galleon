@@ -54,9 +54,7 @@ public class ExplicitFeaturePackOrderOverwritesPackageDependencyTestCase extends
                 .getFeaturePack()
             .newPackage("b", true)
                 .writeContent("fp2.txt", "fp2")
-                .getFeaturePack()
-            .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

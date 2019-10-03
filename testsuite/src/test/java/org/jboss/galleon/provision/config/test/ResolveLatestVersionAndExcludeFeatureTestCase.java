@@ -68,9 +68,7 @@ public class ResolveLatestVersionAndExcludeFeatureTestCase extends ProvisionConf
                     .build())
             .newPackage("p1", true)
                 .writeContent("fp1/p1.txt", "p1 final 1.0.1")
-                .getFeaturePack()
-        .getCreator()
-        .install();
+                .getFeaturePack();
     }
 
     @Override

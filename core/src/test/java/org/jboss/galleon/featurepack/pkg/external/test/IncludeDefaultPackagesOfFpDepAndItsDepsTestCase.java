@@ -66,9 +66,7 @@ public class IncludeDefaultPackagesOfFpDepAndItsDepsTestCase extends PmProvision
                  .getFeaturePack()
              .newPackage("p2")
                  .writeContent("fp3/p2.txt", "p2")
-                 .getFeaturePack()
-            .getCreator()
-        .install();
+                 .getFeaturePack();
     }
 
     @Override

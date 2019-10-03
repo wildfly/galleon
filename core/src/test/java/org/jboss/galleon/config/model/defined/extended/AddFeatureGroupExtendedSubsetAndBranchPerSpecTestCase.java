@@ -91,9 +91,7 @@ public class AddFeatureGroupExtendedSubsetAndBranchPerSpecTestCase extends PmPro
                 .addFeature(new FeatureConfig().setSpecName("specC")
                         .setParam("name", "c1")
                         .setParam("p1", "config1"))
-                .build())
-        .getCreator()
-        .install();
+                .build());
     }
 
     @Override

@@ -112,9 +112,7 @@ public class MutualDirectReferencesTestCase extends PmInstallFeaturePackTestBase
                             .setParam("a", "a1"))
                     .build())
             .addPlugin(TestConfigHandlersProvisioningPlugin.class)
-            .addService(ProvisionedConfigHandler.class, ConfigHandler.class)
-            .getCreator()
-        .install();
+            .addService(ProvisionedConfigHandler.class, ConfigHandler.class);
     }
 
     @Override

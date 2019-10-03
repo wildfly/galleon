@@ -47,9 +47,7 @@ public class NotUsableHomeDirContainingEmptyDirTestCase extends PmProvisionConfi
             .newFeaturePack(FP1_100_GAV)
                 .newPackage("p1", true)
                     .writeContent("fp1/p1.txt", "fp1 1.0.0.Final p1")
-                    .getFeaturePack()
-                .getCreator()
-            .install();
+                    .getFeaturePack();
     }
 
     @Override

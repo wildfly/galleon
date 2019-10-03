@@ -81,7 +81,6 @@ public class DisableConfigInheritanceIncludeNonDefaultConfigTestCase extends Pro
                 .addFeature(new FeatureConfig("specB").setParam("p1", "top"))
                 .build(), false);
 
-        creator.install();
     }
 
     @Override
