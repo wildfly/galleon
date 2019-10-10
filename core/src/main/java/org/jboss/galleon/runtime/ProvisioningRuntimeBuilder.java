@@ -286,18 +286,15 @@ public class ProvisioningRuntimeBuilder {
             }
 
             if(!fpConfig.isTransitive()) {
+                if(fpConfig.hasIncludedConfigs()) {
+                    for(ConfigId id : fpConfig.getIncludedConfigs()) {
+                        collectConfigIfNotFiltered(producer, id);
+                    }
+                }
                 final FeaturePackSpec currentSpec = currentOrigin.getSpec();
                 if (currentSpec.hasDefinedConfigs()) {
                     for (ConfigModel config : currentSpec.getDefinedConfigs()) {
-                        final ConfigId id = config.getId();
-                        if (id.isModelOnly() || fpConfigStack.isFilteredOut(producer, id, false)) {
-                            continue;
-                        }
-                        ConfigModelStack configStack = configsToBuild.get(id);
-                        if (configStack == null) {
-                            configStack = getConfigStack(id);
-                            configsToBuild = CollectionUtils.putLinked(configsToBuild, id, configStack);
-                        }
+                        collectConfigIfNotFiltered(producer, config.getId());
                     }
                 }
                 if (currentSpec.hasFeaturePackDeps()) {
@@ -323,6 +320,17 @@ public class ProvisioningRuntimeBuilder {
         } finally {
             this.thisOrigin = parentFp;
             setOrigin(parentFp);
+        }
+    }
+
+    private void collectConfigIfNotFiltered(final ProducerSpec producer, ConfigId id) throws ProvisioningException {
+        if (id.isModelOnly() || fpConfigStack.isFilteredOut(producer, id, false)) {
+            return;
+        }
+        ConfigModelStack configStack = configsToBuild.get(id);
+        if (configStack == null) {
+            configStack = getConfigStack(id);
+            configsToBuild = CollectionUtils.putLinked(configsToBuild, id, configStack);
         }
     }
 
