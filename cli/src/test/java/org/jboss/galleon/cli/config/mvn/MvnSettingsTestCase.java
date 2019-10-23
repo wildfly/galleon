@@ -48,12 +48,13 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(5, settings.getRepositories().size());
+        assertEquals(6, settings.getRepositories().size());
         boolean seen1 = false;
         boolean seen2 = false;
         boolean seen3 = false;
         boolean seenJBoss = false;
         boolean seenCentral = false;
+        boolean seenGa = false;
         for (RemoteRepository remote : settings.getRepositories()) {
             if (remote.getUrl().equals(MavenConfig.CENTRAL_REPO_URL)) {
                 seenCentral = true;
@@ -61,6 +62,10 @@ public class MvnSettingsTestCase {
             }
             if (remote.getUrl().equals(MavenConfig.JBOSS_REPO_URL)) {
                 seenJBoss = true;
+                continue;
+            }
+            if (remote.getUrl().equals(MavenConfig.GA_REPO_URL)) {
+                seenGa = true;
                 continue;
             }
             if (remote.getId().equals("repo1")) {
@@ -82,7 +87,7 @@ public class MvnSettingsTestCase {
                 continue;
             }
         }
-        assertTrue(seen1 && seen2 && seen3 && seenJBoss && seenCentral);
+        assertTrue(seen1 && seen2 && seen3 && seenJBoss && seenCentral && seenGa);
     }
 
     @Test
@@ -96,9 +101,10 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(2, settings.getRepositories().size());
+        assertEquals(3, settings.getRepositories().size());
         boolean seenJBoss = false;
         boolean seenCentral = false;
+        boolean seenGa = false;
         for (RemoteRepository remote : settings.getRepositories()) {
             if (remote.getUrl().equals(MavenConfig.CENTRAL_REPO_URL)) {
                 seenCentral = true;
@@ -108,8 +114,12 @@ public class MvnSettingsTestCase {
                 seenJBoss = true;
                 continue;
             }
+            if (remote.getUrl().equals(MavenConfig.GA_REPO_URL)) {
+                seenGa = true;
+                continue;
+            }
         }
-        assertTrue(seenJBoss && seenCentral);
+        assertTrue(seenJBoss && seenCentral && seenGa);
     }
 
     @Test
@@ -123,7 +133,7 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(4, settings.getRepositories().size());
+        assertEquals(5, settings.getRepositories().size());
         boolean seen3 = false;
         boolean seenMirror = false;
         for (RemoteRepository remote : settings.getRepositories()) {
@@ -163,7 +173,7 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(3, settings.getRepositories().size());
+        assertEquals(4, settings.getRepositories().size());
 
         boolean seenMirror = false;
         for (RemoteRepository remote : settings.getRepositories()) {
@@ -206,7 +216,7 @@ public class MvnSettingsTestCase {
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
         ProxySelector proxy = settings.getSession().getProxySelector();
-        assertEquals(5, settings.getRepositories().size());
+        assertEquals(6, settings.getRepositories().size());
         for (RemoteRepository remote : settings.getRepositories()) {
             if (remote.getId().equals("repo1")) {
                 assertNull(proxy.getProxy(remote));
@@ -235,7 +245,7 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(2, settings.getRepositories().size());
+        assertEquals(3, settings.getRepositories().size());
         for (RemoteRepository remote : settings.getRepositories()) {
             assertNotNull(remote.getProxy());
         }

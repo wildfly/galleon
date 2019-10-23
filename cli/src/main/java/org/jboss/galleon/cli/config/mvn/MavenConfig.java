@@ -71,13 +71,17 @@ public class MavenConfig {
     public static final List<MavenRemoteRepository> DEFAULT_REPOSITORIES = new ArrayList<>();
     public static final String JBOSS_REPO_URL = "https://repository.jboss.org/nexus/content/groups/public/";
     public static final String CENTRAL_REPO_URL = "https://repo1.maven.org/maven2/";
+    public static final String GA_REPO_URL = "https://maven.repository.redhat.com/ga/";
     private static final MavenRemoteRepository JBOSS_REPO = new MavenRemoteRepository("jboss-public-repository-group",
             DEFAULT_REPOSITORY_TYPE, JBOSS_REPO_URL);
     private static final MavenRemoteRepository CENTRAL_REPO = new MavenRemoteRepository("maven-central", DEFAULT_REPOSITORY_TYPE,
             CENTRAL_REPO_URL);
+    private static final MavenRemoteRepository GA_REPO = new MavenRemoteRepository("jboss-ga",
+            DEFAULT_REPOSITORY_TYPE, GA_REPO_URL);
     static {
         DEFAULT_REPOSITORIES.add(CENTRAL_REPO);
         DEFAULT_REPOSITORIES.add(JBOSS_REPO);
+        DEFAULT_REPOSITORIES.add(GA_REPO);
     }
     public interface MavenChangeListener {
         void configurationChanged(MavenConfig config) throws XMLStreamException, IOException;
@@ -370,6 +374,9 @@ public class MavenConfig {
         }
         if (!configuredRepos.contains(JBOSS_REPO_URL)) {
             lst.add(buildRemoteRepository(JBOSS_REPO, selector, proxy));
+        }
+        if (!configuredRepos.contains(GA_REPO_URL)) {
+            lst.add(buildRemoteRepository(GA_REPO, selector, proxy));
         }
         return lst;
     }
