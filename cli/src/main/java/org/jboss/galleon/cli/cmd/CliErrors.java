@@ -39,6 +39,10 @@ public interface CliErrors {
         return failed("Add universe");
     }
 
+    static String cantExcludeLayer(String layer) {
+        return "Layer " + layer + " has been included, can't be excluded.";
+    }
+
     static String checkForUpdatesFailed() {
         return failed("Check for updates");
     }
@@ -288,6 +292,18 @@ public interface CliErrors {
 
     static String unknownDirectory(String dir) {
         return "Directory " + dir + " doesn't exist";
+    }
+
+    static String noExcludedLayers() {
+        return "No layer have been excluded in the current installation, can't remove layer exclusion.";
+    }
+
+    static String notDependencyLayer(String layer) {
+        return "Layer " + layer + " is not a dependency of the provisioned layers.";
+    }
+
+    static String notExcludedLayer(String layer) {
+        return "Layer " + layer + " has not been excluded.";
     }
 
     static String unknownFile(String absolutePath) {

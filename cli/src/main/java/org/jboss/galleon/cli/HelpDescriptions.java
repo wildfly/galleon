@@ -16,6 +16,8 @@
  */
 package org.jboss.galleon.cli;
 
+import org.jboss.galleon.cli.cmd.maingrp.LayersConfigBuilder;
+
 /**
  *
  * @author jdenise@redhat.com
@@ -105,7 +107,11 @@ public interface HelpDescriptions {
             + "The configuration model is optional, it is retrieved from the feature-pack content";
     String INSTALL_DEFAULT_CONFIGS = "A comma separated list of <configuration model>/<configuration name>";
     String INSTALL_IN_UNIVERSE = "Install feature pack to universe. Optional, it is installed by default";
-    String INSTALL_LAYERS = "Comma seperated list of layers";
+    String INSTALL_LAYERS = "Comma separated list of layers to provision. "
+            + "In order to exclude an optional layer on which a layer from the list depends on, "
+            + "prefix the excluded layer with '" + LayersConfigBuilder.EXCLUDE_PREFIX + "'. "
+            + "In order to un-exclude a layer already excluded in the current installation, prefix the layer with '"
+            + LayersConfigBuilder.REMOVE_EXCLUDE_PREFIX + "'.";
     String INSTALL_MODEL = "The layers model";
     String LEAVE_EXPLORATION = "Leave exploration";
     String LEAVE_STATE = "Leave provisioning state";

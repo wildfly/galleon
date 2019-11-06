@@ -18,13 +18,17 @@ package org.jboss.galleon.cli;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
+import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER3;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER4;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
@@ -37,6 +41,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
@@ -56,7 +61,7 @@ public class AdvancedLayersTestCase {
     public static void setup() throws Exception {
         cli = new CliWrapper();
         universe = MvnUniverse.getInstance(UNIVERSE_NAME, cli.getSession().getMavenRepoManager());
-        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3));
+        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3, PRODUCER4));
     }
 
     @AfterClass
@@ -193,6 +198,141 @@ public class AdvancedLayersTestCase {
 
     }
 
+    @Test
+    public void testWithExcludeLayers() throws Exception {
+        FeaturePackLocation prod = newFpl(PRODUCER4, "1", "1.0.0.Final");
+        buildFPWithOptionalLayers(cli, universeSpec, PRODUCER4, "1.0.0.Final");
+
+        {
+            Path path = cli.newDir("prod-exclude1", false);
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=layerC-" + PRODUCER4);
+
+            ProvisionedState state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            assertEquals(1, state.getConfigs().size());
+            Collection<ConfigId> layers = state.getConfigs().get(0).getLayers();
+            // contains base, A, B and C.
+            assertEquals(layers.toString(), 4, layers.size());
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "base-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerA-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerB-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerC-" + PRODUCER4)));
+        }
+
+        {
+            Path path = cli.newDir("prod-exclude2", false);
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=layerC-" + PRODUCER4 + ",-layerA-" + PRODUCER4 + ",-layerB-" + PRODUCER4);
+
+            ProvisionedState state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            assertEquals(1, state.getConfigs().size());
+            Collection<ConfigId> layers = state.getConfigs().get(0).getLayers();
+            // contains C, A and B are excluded, base, a dependency of A, is transitively excluded.
+            assertEquals(layers.toString(), 1, layers.size());
+            assertFalse(layers.toString(), layers.contains(new ConfigId("testmodel", "base-" + PRODUCER4)));
+            assertFalse(layers.toString(), layers.contains(new ConfigId("testmodel", "layerA-" + PRODUCER4)));
+            assertFalse(layers.toString(), layers.contains(new ConfigId("testmodel", "layerB-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerC-" + PRODUCER4)));
+
+            // Include layerA
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=layerA-" + PRODUCER4);
+
+            state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            assertEquals(1, state.getConfigs().size());
+            layers = state.getConfigs().get(0).getLayers();
+            // contains C, A and base, a dependency of A.
+            assertEquals(layers.toString(), 3, layers.size());
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "base-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerA-" + PRODUCER4)));
+            assertFalse(layers.toString(), layers.contains(new ConfigId("testmodel", "layerB-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerC-" + PRODUCER4)));
+
+            //Un-exclude layerB.
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=+layerB-" + PRODUCER4);
+
+            state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            assertEquals(1, state.getConfigs().size());
+            layers = state.getConfigs().get(0).getLayers();
+            assertEquals(layers.toString(), 4, layers.size());
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "base-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerA-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerB-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerC-" + PRODUCER4)));
+
+            //Attempt to un-exclude a layer that is not excluded
+            try {
+                cli.execute("install " + prod + " --dir=" + path
+                        + " --layers=+layerA-" + PRODUCER4);
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // XXX OK
+            }
+
+            //Attempt to exclude layerC that is not a dependency
+            try {
+                cli.execute("install " + prod + " --dir=" + path
+                        + " --layers=-layerC-" + PRODUCER4);
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // XXX OK
+            }
+
+            // Exclude layerB
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=-layerB-" + PRODUCER4);
+
+            state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            assertEquals(1, state.getConfigs().size());
+            layers = state.getConfigs().get(0).getLayers();
+            assertEquals(layers.toString(), 3, layers.size());
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "base-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerA-" + PRODUCER4)));
+            assertFalse(layers.toString(), layers.contains(new ConfigId("testmodel", "layerB-" + PRODUCER4)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerC-" + PRODUCER4)));
+        }
+
+        {
+            // Attempt to exclude a required layer.
+            Path path = cli.newDir("prod-exclude3", false);
+            try {
+                cli.execute("install " + prod + " --dir=" + path
+                        + " --layers=layerC-" + PRODUCER4 + ",-base-" + PRODUCER4);
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // XXX OK
+            }
+        }
+
+        {
+            // Attempt to exclude a layer that is not a dependency.
+            Path path = cli.newDir("prod-exclude4", false);
+            try {
+                cli.execute("install " + prod + " --dir=" + path
+                        + " --layers=layerB-" + PRODUCER4 + ",-layerC-" + PRODUCER4);
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // XXX OK
+            }
+        }
+
+        {
+            // Install layerA and layerB, layerA is dependency of layerB
+            Path path = cli.newDir("prod-exclude5", false);
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=layerA-" + PRODUCER4 + ",layerB-" + PRODUCER4);
+            try {
+                // Attempt to exclude layerA, it is not allowed, the layer has been explictly included.
+                cli.execute("install " + prod + " --dir=" + path
+                        + " --layers=-layerA-" + PRODUCER4);
+                throw new Exception("Should have failed");
+            } catch (CommandException ex) {
+                // XXX OK
+            }
+        }
+    }
+
     private static void buildFP(CliWrapper cli, UniverseSpec universeSpec,
             String producer, String version) throws ProvisioningException {
         FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
@@ -294,6 +434,34 @@ public class AdvancedLayersTestCase {
                 .writeContent("fp1/p1-optional.txt", "fp1 p1").getFeaturePack().
                 newPackage("p1-ref-from-optional", false)
                 .writeContent("fp1/p1-ref-from-optional.txt", "fp1 p1").getFeaturePack();
+        creator.install();
+    }
+
+    public static void buildFPWithOptionalLayers(CliWrapper cli, UniverseSpec universeSpec,
+            String producer, String version) throws ProvisioningException {
+        FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
+        FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
+                producer, "1", null, version);
+        creator.newFeaturePack(fp1.getFPID())
+                .addFeatureSpec(FeatureSpec.builder(producer + "-FeatureA")
+                        .addParam(FeatureParameterSpec.createId("id"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("base-" + producer)
+                        .addFeature(new FeatureConfig(producer + "-FeatureA").setParam("id", "base"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerA-" + producer)
+                        .addLayerDep("base-" + producer)
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerB-" + producer)
+                        .addLayerDep("layerA-" + producer, true)
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerC-" + producer)
+                        .addLayerDep("layerB-" + producer, true)
+                        .build());
         creator.install();
     }
 

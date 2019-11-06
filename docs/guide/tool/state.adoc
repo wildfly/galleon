@@ -123,6 +123,20 @@ When installing layers, a custom configuration is generated.
 _install <[FPL|FPID] | [--file=<path to fp zip file>]> [--dir=<installation dir>] [--layers=<comma separated list of layers>] 
 [--config=<layers_model/configuration_name>]_
 
+In order to exclude an optional layer on which a layer from the list depends on, 
+prefix the excluded layer with '-'. In order to un-exclude a layer already excluded 
+in the current installation, prefix the layer with '+'.
+
+NB: When installing layers, the existing provisioned installation (if any) is updated with the set of layers.
+
+* If some layers to install are already installed, they are ignored.
+* If some layers to exclude are already excluded, they are ignored.
+* If some layers to install are excluded from the existing installation, they are first un-excluded and installed.
+* If some layers to exclude are included in the existing installation, the command will fail. You can only exclude not directly included layers.
+* If some layers to un-exclude are not excluded, the command will fail.
+* If some layers to exclude are not optional dependencies of the layers to install (or from already installed layers), the command will fail.
+You can only exclude layers that are optional dependencies.
+
 If no model name is provided, the CLI tries to identify the default model contained in the feature-pack.
 If no configuration name is provided, the <layers_model>.xml is used as the generated configuration file name.
 
