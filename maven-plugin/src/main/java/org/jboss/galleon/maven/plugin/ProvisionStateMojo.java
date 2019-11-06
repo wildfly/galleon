@@ -264,9 +264,9 @@ public class ProvisionStateMojo extends AbstractMojo {
             if (hasLayers) {
                 if (pluginOptions.isEmpty()) {
                     pluginOptions = Collections.
-                            singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE);
+                            singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
                 } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
-                    pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE);
+                    pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
                 }
             }
 
