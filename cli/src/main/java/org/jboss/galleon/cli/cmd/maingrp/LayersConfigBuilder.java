@@ -44,35 +44,64 @@ import org.jboss.galleon.universe.FeaturePackLocation;
  */
 public class LayersConfigBuilder {
 
+    public static final String EXCLUDE_PREFIX = "-";
+    public static final String REMOVE_EXCLUDE_PREFIX = "+";
+
     private final String[] layers;
     private final String config;
     private final String model;
     private final FeaturePackLocation loc;
     private final ProvisioningManager mgr;
+    private final Set<String> excludedLayers = new HashSet<>();
+    private final Set<String> removeExcludedLayers = new HashSet<>();
+    private final Set<String> includedLayers = new HashSet<>();
+    private final Map<String, Set<String>> layersDeps;
+
     LayersConfigBuilder(ProvisioningManager mgr, PmSession session, String[] layers, String model,
             String config, FeaturePackLocation loc) throws ProvisioningException, IOException {
         this.mgr = mgr;
         this.layers = layers;
         this.loc = loc;
 
-        Map<String, Map<String, Set<String>>> layersMap = getAllLayers(session, loc, false);
+        Map<String, Map<String, Set<String>>> layersMap = getAllLayers(session, loc, true);
 
         this.model = getModel(model, layersMap);
         if (this.model == null) {
             throw new ProvisioningException(CliErrors.noLayersForModel(model));
         }
 
-        Map<String, Set<String>> map = layersMap.get(this.model);
-        if (map == null) {
+        layersDeps = layersMap.get(this.model);
+        if (layersDeps == null) {
             throw new ProvisioningException(CliErrors.noLayersForModel(this.model));
         }
-        Set<String> actualLayers = map.keySet();
+        Set<String> actualLayers = layersDeps.keySet();
         for (String l : layers) {
-            if (!actualLayers.contains(l)) {
-                throw new ProvisioningException(CliErrors.unknownLayer(l));
+            String name = getLayerName(l);
+            if (!actualLayers.contains(name)) {
+                throw new ProvisioningException(CliErrors.unknownLayer(name));
+            }
+            if (l.startsWith(EXCLUDE_PREFIX)) {
+                excludedLayers.add(name);
+            } else {
+                if (l.startsWith(REMOVE_EXCLUDE_PREFIX)) {
+                    removeExcludedLayers.add(name);
+                } else {
+                    includedLayers.add(name);
+                }
             }
         }
         this.config = config == null ? this.model + ".xml" : config;
+    }
+
+    private static String getLayerName(String name) {
+        if (name.startsWith(EXCLUDE_PREFIX)) {
+            name = name.substring(EXCLUDE_PREFIX.length());
+        } else {
+            if (name.startsWith(REMOVE_EXCLUDE_PREFIX)) {
+                name = name.substring(REMOVE_EXCLUDE_PREFIX.length());
+            }
+        }
+        return name;
     }
 
     private static String getModel(String model, Map<String, Map<String, Set<String>>> layersMap) throws ProvisioningException {
@@ -180,11 +209,7 @@ public class LayersConfigBuilder {
             if (existing.hasDefinedConfig(id)) {
                 ConfigModel cmodel = existing.getDefinedConfig(id);
                 configBuilder = ConfigModel.builder(cmodel);
-                for (String layer : layers) {
-                    if (!cmodel.getIncludedLayers().contains(layer)) {
-                        configBuilder.includeLayer(layer);
-                    }
-                }
+                handleLayers(configBuilder, cmodel);
                 builder.removeConfig(id);
             }
             if (builder.hasFeaturePackDep(loc.getProducer())) {
@@ -198,9 +223,7 @@ public class LayersConfigBuilder {
         }
         if (configBuilder == null) {
             configBuilder = ConfigModel.builder(model, config);
-            for (String layer : layers) {
-                configBuilder.includeLayer(layer);
-            }
+            handleLayers(configBuilder, null);
         }
         if (fpBuilder == null) {
             fpBuilder = FeaturePackConfig.builder(loc).setInheritConfigs(false).
@@ -209,5 +232,67 @@ public class LayersConfigBuilder {
         builder.addConfig(configBuilder.build());
         builder.addFeaturePackDep(fpBuilder.build());
         return builder.build();
+    }
+
+    /**
+     * Layers are included if not already included, excluded if not already
+     * excluded. An already included layer can't be excluded. If an already
+     * excluded layer is included, it is removed from excluded layers and
+     * included.
+     */
+    private void handleLayers(ConfigModel.Builder configBuilder, ConfigModel cmodel) throws ProvisioningException {
+        if (!removeExcludedLayers.isEmpty()) {
+            if (cmodel == null) {
+                throw new ProvisioningException(CliErrors.noExcludedLayers());
+            }
+            for (String l : removeExcludedLayers) {
+                if (!cmodel.getExcludedLayers().contains(l)) {
+                    throw new ProvisioningException(CliErrors.notExcludedLayer(l));
+                } else {
+                    configBuilder.removeExcludedLayer(l);
+                }
+            }
+        }
+        if (!excludedLayers.isEmpty()) {
+            // Check that the dependencies exist in the set of provisioned layers.
+            // Optional/vs non optional will be handled at provisioning time.
+            Set<String> allDependencies = new HashSet<>();
+            for (String l : includedLayers) {
+                getDependencies(l, allDependencies, layersDeps);
+            }
+            // We could have already installed layers, so retrieve their dependencies
+            if (cmodel != null) {
+                for (String l : cmodel.getIncludedLayers()) {
+                    getDependencies(l, allDependencies, layersDeps);
+                }
+            }
+            for (String excludedLayer : excludedLayers) {
+                if (!allDependencies.contains(excludedLayer)) {
+                    throw new ProvisioningException(CliErrors.notDependencyLayer(excludedLayer));
+                }
+                if (cmodel == null) {
+                    configBuilder.excludeLayer(excludedLayer);
+                } else {
+                    if (cmodel.getIncludedLayers().contains(excludedLayer)) {
+                        throw new ProvisioningException(CliErrors.cantExcludeLayer(excludedLayer));
+                    }
+                    if (!cmodel.getExcludedLayers().contains(excludedLayer)) {
+                        configBuilder.excludeLayer(excludedLayer);
+                    }
+                }
+            }
+        }
+        for (String layer : includedLayers) {
+            if (cmodel == null) {
+                configBuilder.includeLayer(layer);
+            } else {
+                if (cmodel.getExcludedLayers().contains(layer)) {
+                    configBuilder.removeExcludedLayer(layer);
+                }
+                if (!cmodel.getIncludedLayers().contains(layer)) {
+                    configBuilder.includeLayer(layer);
+                }
+            }
+        }
     }
 }
