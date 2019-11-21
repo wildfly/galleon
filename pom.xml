@@ -24,12 +24,12 @@
   <parent>
     <groupId>org.jboss</groupId>
     <artifactId>jboss-parent</artifactId>
-    <version>30</version>
+    <version>36</version>
   </parent>
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>4.2.0.Final-SNAPSHOT</version>
+  <version>4.2.0.Final</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
@@ -87,7 +87,7 @@
 
     <!-- Checkstyle configuration -->
     <linkXRef>false</linkXRef>
-    <version.org.wildfly.checkstyle-config>1.0.4.Final</version.org.wildfly.checkstyle-config>
+    <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
 
     <!-- license-maven-plugin configuration -->
     <license.failIfMissing>true</license.failIfMissing>
