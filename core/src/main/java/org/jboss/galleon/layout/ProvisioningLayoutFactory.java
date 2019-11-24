@@ -186,7 +186,11 @@ public class ProvisioningLayoutFactory implements Closeable {
             final FeaturePackSpec fpSpec = FeaturePackXmlParser.getInstance().parse(reader);
             if(location.isMavenCoordinates()) {
                 final FPID specId = fpSpec.getFPID();
-                location = new FeaturePackLocation(specId.getUniverse(), specId.getProducer().getName(), specId.getChannel().getName(), location.getFrequency(), specId.getBuild());
+                final FeaturePackLocation fpl = new FeaturePackLocation(specId.getUniverse(), specId.getProducer().getName(), specId.getChannel().getName(), location.getFrequency(), specId.getBuild());
+                synchronized (this) {
+                    cachedPacks.put(fpl.getFPID(), cachedPacks.get(location.getFPID()));
+                }
+                location = fpl;
             }
             return factory.newFeaturePack(location, fpSpec, fpDir, type);
         } catch (IOException | XMLStreamException e) {
@@ -200,14 +204,7 @@ public class ProvisioningLayoutFactory implements Closeable {
         if(packFs != null) {
             return getFpDir(packFs);
         }
-        final Path resolvedPath = universeResolver.resolve(fpl);
-        try {
-            packFs = ZipUtils.newFileSystem(resolvedPath);
-        } catch (IOException e) {
-            throw new ProvisioningException(Errors.openFile(resolvedPath), e);
-        }
-        cachedPacks.put(fpid, packFs);
-        return getFpDir(packFs);
+        return put(universeResolver.resolve(fpl), fpid);
     }
 
     private Path put(Path featurePack, FeaturePackLocation.FPID fpid) throws ProvisioningException {
