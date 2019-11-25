@@ -144,9 +144,9 @@ public class UpdateDiscoveryForFpInstalledWithMavenCoordsTestCase extends Featur
     protected FeaturePackUpdatePlan[] expectedUpdatePlans() {
         return new FeaturePackUpdatePlan[] {
                 FeaturePackUpdatePlan.request(prodC101).setNewLocation(prodC102).buildPlan(),
-                FeaturePackUpdatePlan.request(prodB101, true).setNewLocation(prodB102).buildPlan(),
                 FeaturePackUpdatePlan.request(prodD100).setNewLocation(prodD102).buildPlan(),
-                FeaturePackUpdatePlan.request(prodA101, true).setNewLocation(prodA102).buildPlan()
+                FeaturePackUpdatePlan.request(prodA101, true).setNewLocation(prodA102).buildPlan(),
+                FeaturePackUpdatePlan.request(prodB101, true).setNewLocation(prodB102).buildPlan()
                 };
     }
 }

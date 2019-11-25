@@ -328,6 +328,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private Set<ProducerSpec> transitiveDeps;
     private Map<ProducerSpec, Set<FPID>> conflicts = Collections.emptyMap();
     private Map<ProducerSpec, F> featurePacks = new HashMap<>();
+    private Map<ProducerSpec, F> mavenProducers = null;
     private ArrayList<F> ordered = new ArrayList<>();
     private Map<FPID, F> allPatches = Collections.emptyMap();
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
@@ -407,7 +408,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         while(--i >= 0) {
             final O otherFp = other.ordered.get(i);
             final F fp = transformer.transform(otherFp);
-            featurePacks.put(fp.getFPID().getProducer(), fp);
+            registerFeaturePack(fp.getFPID().getProducer(), fp);
             ordered.add(fp);
         }
         Collections.reverse(ordered);
@@ -773,9 +774,12 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     public F getFeaturePack(ProducerSpec producer) throws ProvisioningException {
-        final F p = featurePacks.get(producer);
+        F p = featurePacks.get(producer);
         if(p == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(producer.getLocation().getFPID()));
+            p = mavenProducers == null ? null : mavenProducers.get(producer);
+            if (p == null) {
+                throw new ProvisioningException(Errors.unknownFeaturePack(producer.getLocation().getFPID()));
+            }
         }
         return p;
     }
@@ -1040,26 +1044,24 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 transitiveDeps = new HashSet<>();
             }
             for(FeaturePackConfig transitiveConfig : config.getTransitiveDeps()) {
-                FPID fpid = transitiveConfig.getLocation().getFPID();
+                FeaturePackLocation fpl = transitiveConfig.getLocation();
                 if(transitiveConfig.hasPatches()) {
                     addPatches(transitiveConfig);
                 }
-                final FPID branchId = branch.get(fpid.getProducer());
+                final FPID branchId = branch.get(fpl.getProducer());
                 if (branchId != null) {
-                    if (!branchId.getChannel().getName().equals(fpid.getChannel().getName())) {
-                        addConflict(fpid, branchId);
+                    if (!branchId.getChannel().getName().equals(fpl.getChannel().getName())) {
+                        addConflict(fpl.getFPID(), branchId);
                     }
                     continue;
                 }
-                if(transitiveConfig.getLocation().isMavenCoordinates()) {
-                    buildTracker.processing(transitiveConfig.getLocation().getFPID());
-                    fpid = layoutFactory.resolveFeaturePack(transitiveConfig.getLocation(), FeaturePackLayout.TRANSITIVE_DEP, fpFactory).getSpec().getFPID();
-                    buildTracker.processed(transitiveConfig.getLocation().getFPID());
-                    registerResolvedVersion(transitiveConfig.getLocation().getProducer(), fpid.getLocation());
+                if(fpl.isMavenCoordinates()) {
+                    fpl = resolveFeaturePack(fpl, FeaturePackLayout.TRANSITIVE_DEP).getSpec().getFPID().getLocation();
+                    registerResolvedVersion(transitiveConfig.getLocation().getProducer(), fpl);
                 }
-                transitiveDeps.add(fpid.getProducer());
-                branch.put(fpid.getProducer(), fpid);
-                added = CollectionUtils.add(added, fpid.getProducer());
+                transitiveDeps.add(fpl.getProducer());
+                branch.put(fpl.getProducer(), fpl.getFPID());
+                added = CollectionUtils.add(added, fpl.getProducer());
             }
         }
 
@@ -1081,9 +1083,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     continue;
                 }
             }
-            buildTracker.processing(fpl.getFPID());
-            fp = layoutFactory.resolveFeaturePack(fpl, type, fpFactory);
-            buildTracker.processed(fpl.getFPID());
+            fp = resolveFeaturePack(fpl, type);
             if(fpl.isMavenCoordinates()) {
                 if(branchId == null) {
                     branchId = branch.get(fp.getFPID().getProducer());
@@ -1092,19 +1092,22 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 F resolvedFp = featurePacks.get(resolvedFpl.getProducer());
                 if(resolvedFp != null) {
                     converge(branchId, resolvedFpl.getFPID(), resolvedFp.getFPID());
-                    featurePacks.put(fpl.getProducer(), resolvedFp);
+                    if(!fpl.equals(resolvedFpl)) {
+                        registerMavenProducer(fpl.getProducer(), resolvedFp);
+                    }
                     continue;
-                } else if(branchId != null) {
-                    buildTracker.processing(resolvedFpl.getFPID());
-                    fp = layoutFactory.resolveFeaturePack(resolvedFpl, type, fpFactory);
-                    buildTracker.processed(resolvedFpl.getFPID());
-                } else if (!fpl.equals(resolvedFpl)) {
-                    registerResolvedVersion(fpl.getProducer(), resolvedFpl);
                 }
-                featurePacks.put(fpl.getProducer(), fp);
-                fpl = resolvedFpl;
+                if (!fpl.equals(resolvedFpl)) {
+                    if (branchId != null) {
+                        fp = resolveFeaturePack(resolvedFpl, type);
+                    } else {
+                        registerResolvedVersion(fpl.getProducer(), resolvedFpl);
+                    }
+                    registerMavenProducer(fpl.getProducer(), fp);
+                    fpl = resolvedFpl;
+                }
             }
-            featurePacks.put(fpl.getProducer(), fp);
+            registerFeaturePack(fpl.getProducer(), fp);
 
             queue.add(fp);
 
@@ -1129,6 +1132,24 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 branch.remove(producer);
             }
         }
+    }
+
+    private void registerFeaturePack(ProducerSpec producer, F f) {
+        featurePacks.put(producer, f);
+    }
+
+    private void registerMavenProducer(ProducerSpec producer, F f) {
+        if(mavenProducers == null) {
+            mavenProducers = new HashMap<>();
+        }
+        mavenProducers.put(producer, f);
+    }
+
+    private F resolveFeaturePack(FeaturePackLocation fpl, int type) throws ProvisioningException {
+        buildTracker.processing(fpl.getFPID());
+        final F fp = layoutFactory.resolveFeaturePack(fpl, type, fpFactory);
+        buildTracker.processed(fpl.getFPID());
+        return fp;
     }
 
     protected FeaturePackLocation resolveVersion(FeaturePackLocation fpl, final FPID branchId) throws ProvisioningException {
