@@ -453,7 +453,7 @@ public class FeaturePackLocation {
     }
 
     public boolean isMavenCoordinates() {
-        return universeSpec != null && universeSpec.getLocation() == null && universeSpec.getFactory().equals(Constants.MAVEN);
+        return universeSpec != null && universeSpec.getLocation() == null && Constants.MAVEN.equals(universeSpec.getFactory());
     }
 
     @Override
