@@ -166,5 +166,5 @@ The executable JAR will be built in `cli/target/galleon-cli.jar`
 There is also a convenience `do.sh` script in the root directory
 of the project. If executed w/o arguments, it'll build and launch the tool.
 
-`./do.sh package` will only build the tool.
+`./do.sh build` will only build the tool.
 `./do.sh run` will only launch the already built tool.
