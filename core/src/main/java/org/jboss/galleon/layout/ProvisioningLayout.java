@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1056,8 +1056,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                     continue;
                 }
                 if(fpl.isMavenCoordinates()) {
-                    fpl = resolveFeaturePack(fpl, FeaturePackLayout.TRANSITIVE_DEP).getSpec().getFPID().getLocation();
+                    final F f = resolveFeaturePack(fpl, FeaturePackLayout.TRANSITIVE_DEP);
+                    fpl = f.getSpec().getFPID().getLocation();
                     registerResolvedVersion(transitiveConfig.getLocation().getProducer(), fpl);
+                    registerMavenProducer(transitiveConfig.getLocation().getProducer(), f);
                 }
                 transitiveDeps.add(fpl.getProducer());
                 branch.put(fpl.getProducer(), fpl.getFPID());
