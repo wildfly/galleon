@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -267,14 +267,13 @@ public class ProvisioningRuntimeBuilder {
     }
 
     private void collectDefaultConfigs(FeaturePackConfig fpConfig) throws ProvisioningException {
-        final ProducerSpec producer = fpConfig.getLocation().getProducer();
-        thisOrigin = layout.getFeaturePack(producer);
+        thisOrigin = layout.getFeaturePack(fpConfig.getLocation().getProducer());
         final FeaturePackRuntimeBuilder parentFp = setOrigin(thisOrigin);
         try {
             if (fpConfig.hasDefinedConfigs()) {
                 for(ConfigModel config : fpConfig.getDefinedConfigs()) {
                     final ConfigId id = config.getId();
-                    if(id.isModelOnly() || fpConfigStack.isFilteredOut(producer, id, true)) {
+                    if(id.isModelOnly() || fpConfigStack.isFilteredOut(thisOrigin.producer, id, true)) {
                         continue;
                     }
                     ConfigModelStack configStack = configsToBuild.get(id);
@@ -288,13 +287,13 @@ public class ProvisioningRuntimeBuilder {
             if(!fpConfig.isTransitive()) {
                 if(fpConfig.hasIncludedConfigs()) {
                     for(ConfigId id : fpConfig.getIncludedConfigs()) {
-                        collectConfigIfNotFiltered(producer, id);
+                        collectConfigIfNotFiltered(thisOrigin.producer, id);
                     }
                 }
                 final FeaturePackSpec currentSpec = currentOrigin.getSpec();
                 if (currentSpec.hasDefinedConfigs()) {
                     for (ConfigModel config : currentSpec.getDefinedConfigs()) {
-                        collectConfigIfNotFiltered(producer, config.getId());
+                        collectConfigIfNotFiltered(thisOrigin.producer, config.getId());
                     }
                 }
                 if (currentSpec.hasFeaturePackDeps()) {
@@ -335,8 +334,7 @@ public class ProvisioningRuntimeBuilder {
     }
 
     private void processFpConfig(FeaturePackConfig fpConfig) throws ProvisioningException {
-        final ProducerSpec producer = fpConfig.getLocation().getProducer();
-        thisOrigin = layout.getFeaturePack(producer);
+        thisOrigin = layout.getFeaturePack(fpConfig.getLocation().getProducer());
         final FeaturePackRuntimeBuilder parentFp = setOrigin(thisOrigin);
 
         try {
@@ -347,7 +345,7 @@ public class ProvisioningRuntimeBuilder {
                 configStack = entry.getValue();
 
                 final ConfigModel config = fpConfig.getDefinedConfig(configId);
-                if (config != null && !fpConfigStack.isFilteredOut(producer, configId, true)) {
+                if (config != null && !fpConfigStack.isFilteredOut(thisOrigin.producer, configId, true)) {
                     fpConfigStacks = pushConfig(fpConfigStacks, config);
                 }
 
@@ -355,8 +353,8 @@ public class ProvisioningRuntimeBuilder {
                     continue;
                 }
 
-                if(fpConfigStack.isIncludedInTransitiveDeps(producer, configId)
-                        || !fpConfigStack.isFilteredOutFromDeps(producer, configId, false)
+                if(fpConfigStack.isIncludedInTransitiveDeps(thisOrigin.producer, configId)
+                        || !fpConfigStack.isFilteredOutFromDeps(thisOrigin.producer, configId, false)
                         && (thisOrigin.getSpec().hasDefinedConfig(configId) || configStack.size() > 1 || thisOrigin.getConfig(configId) != null)) {
                     specConfigStacks = pushFpConfig(specConfigStacks, configId);
                 }

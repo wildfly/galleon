@@ -1,6 +1,6 @@
 ### Disabling package inheritance from a dependency
 
-The effective package set of a dependency is inherited by the feature-pack declaring the dependency. However, it is possible to declare the dependency without inheriting its effective package set and simply pick the packages explicity under `dependency` element (in other words, explicitly define the effective package set of the dependency).
+The effective package set of a dependency is inherited by the feature-pack declaring the dependency. However, it is possible to declare the dependency without inheriting its default effective package set and simply pick the desired packages explicitly under `dependency` element (in other words, explicitly define the desired effective package set of the dependency).
 
 Optional boolean attribute `inherit` of element `packages` controls whether package inheritance is enabled or disabled. In case the attribute is not explicitly specified, its value is assumed to be true. Here is an example of a dependency with disabled package inheritance:
 
@@ -24,6 +24,8 @@ Optional boolean attribute `inherit` of element `packages` controls whether pack
     </default-packages>
  </feature-pack>
 ----
+
+NOTE: The `exclude` elements may at first look redundant, given that package inheritance was disabled in the first place. However, it's important to keep in mind that when a package is included, by default, all its dependencies are also included. `exclude` elements can be used to exclude certain transitive dependencies of the included dependencies.
 
 Now the effective package set of the distribution provisioned from `fp1` becomes:
 

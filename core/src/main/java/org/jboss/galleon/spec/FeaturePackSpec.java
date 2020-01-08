@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,6 +55,10 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         }
 
         public Builder setPatchFor(FPID patchFor) {
+            if(patchFor == null) {
+                this.patchFor = null;
+                return this;
+            }
             if(patchFor.getBuild() == null) {
                 throw new IllegalArgumentException("FPID is missing build number");
             }
@@ -75,6 +79,14 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         public Builder addDefaultPackage(String packageName) {
             assert packageName != null : "packageName is null";
             defPackages = CollectionUtils.addLinked(defPackages, packageName);
+            return this;
+        }
+
+        public Builder addDefaultPackages(Set<String> packageNames) {
+            assert packageNames != null : "packageNames is null";
+            if(!packageNames.isEmpty()) {
+                defPackages = CollectionUtils.addAllLinked(defPackages, packageNames);
+            }
             return this;
         }
 
