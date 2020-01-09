@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,8 +128,6 @@ public class SimpleApplyUpdateForFpsInstalledUsingGavInPlaceOfFplTestCase extend
                 .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(FeaturePackLocation.fromString(d400.getProducer().toString()))
                         .addPatch(d400Patch1.getFPID())
                         .build())
-                .addFeaturePackDep(FeaturePackConfig.forTransitiveDep(c300))
-                .addFeaturePackDep(FeaturePackConfig.forTransitiveDep(b200))
                 .addFeaturePackDep(FeaturePackConfig.forLocation(e500))
                 .build();
     }
@@ -164,7 +162,6 @@ public class SimpleApplyUpdateForFpsInstalledUsingGavInPlaceOfFplTestCase extend
                 .addFeaturePackDep(FeaturePackConfig.transitiveBuilder(c301)
                         .addPatch(c301Patch2.getFPID())
                         .build())
-                .addFeaturePackDep(FeaturePackConfig.forTransitiveDep(a100))
                 .build();
     }
 

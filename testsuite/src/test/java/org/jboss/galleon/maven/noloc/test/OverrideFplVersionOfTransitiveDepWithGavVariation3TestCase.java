@@ -18,20 +18,23 @@ package org.jboss.galleon.maven.noloc.test;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.ProvisionFromUniverseTestBase;
+import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class OverrideFplVersionOfTransitiveDepWithGavVariation2TestCase extends ProvisionFromUniverseTestBase {
+public class OverrideFplVersionOfTransitiveDepWithGavVariation3TestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation template;
     private FeaturePackLocation wfly;
@@ -57,9 +60,14 @@ public class OverrideFplVersionOfTransitiveDepWithGavVariation2TestCase extends 
 
         creator.newFeaturePack()
             .setFPID(template.getFPID())
-            .addDependency(toMavenCoordsFpl(wfly))
-            .addTransitiveDependency(toMavenCoordsFpl(servlet))
-            .addTransitiveDependency(toMavenCoordsFpl(core))
+            .addDependency("wfly", FeaturePackConfig.builder(toMavenCoordsFpl(wfly)).setInheritPackages(false).build())
+            .addDependency("servlet", FeaturePackConfig.transitiveBuilder(toMavenCoordsFpl(servlet)).setInheritPackages(false).build())
+            .addDependency("core", FeaturePackConfig.transitiveBuilder(toMavenCoordsFpl(core)).setInheritPackages(false).build())
+            .addConfigLayer(ConfigLayerSpec.builder("layerA")
+                    .addPackageDep("wfly", "p1")
+                    .addPackageDep("servlet", "p1")
+                    .addPackageDep("core", "p1")
+                    .build())
             .newPackage("p1", true);
 
         creator.newFeaturePack()
@@ -81,14 +89,16 @@ public class OverrideFplVersionOfTransitiveDepWithGavVariation2TestCase extends 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forLocation(toMavenCoordsFpl(template)))
+                .addFeaturePackDep(FeaturePackConfig.builder(toMavenCoordsFpl(template)).setInheritPackages(false).build())
+                .addConfig(ConfigModel.builder(null, "layerA").includeLayer("layerA").build())
                 .build();
     }
 
     @Override
     protected ProvisioningConfig provisionedConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder()
-                .addFeaturePackDep(FeaturePackConfig.forLocation(template))
+                .addFeaturePackDep(FeaturePackConfig.builder(template).setInheritPackages(false).build())
+                .addConfig(ConfigModel.builder(null, "layerA").includeLayer("layerA").build())
                 .build();
     }
 
@@ -105,7 +115,10 @@ public class OverrideFplVersionOfTransitiveDepWithGavVariation2TestCase extends 
                         .addPackage("p1")
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(template.getFPID())
-                        .addPackage("p1")
+                        .build())
+                .addConfig(ProvisionedConfigBuilder.builder()
+                        .setName("layerA")
+                        .addLayer(null, "layerA")
                         .build())
                 .build();
     }
