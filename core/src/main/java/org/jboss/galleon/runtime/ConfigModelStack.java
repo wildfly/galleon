@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,8 +28,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jboss.galleon.Constants;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureGroupSupport;
@@ -174,12 +177,17 @@ class ConfigModelStack {
     private List<ConfigId> includedLayers;
     private Map<String, ConfigLayerDependency> layerDeps;
 
+    // layers that were actually excluded from the top config model
+    private final Set<String> topConfigExcludedLayers = new HashSet<>(0);
+    private final boolean checkNotExcludedLayers;
+
     ConfigModelStack(ConfigId configId, ProvisioningRuntimeBuilder rt) throws ProvisioningException {
         this.id = configId;
         this.rt = rt;
         lastConfig = new ConfigScope(null);
         configs.add(lastConfig);
         newFgScope();
+        this.checkNotExcludedLayers = rt.layout.getOptionValue(ProvisioningOption.IGNORE_NOT_EXCLUDED_LAYERS).equals(Constants.FALSE);
     }
 
     int size() {
@@ -264,6 +272,18 @@ class ConfigModelStack {
     ConfigModel popConfig() throws ProvisioningException {
         lastProcessedScope = lastConfig;
         final int poppedIndex = configs.size() - 1;
+        if(checkNotExcludedLayers && poppedIndex == 1 && lastConfig.config.hasExcludedLayers()) {
+            if(lastConfig.config.getExcludedLayers().size() != topConfigExcludedLayers.size()) {
+                List<String> notExcluded = new ArrayList<>();
+                for(String layer : lastConfig.config.getExcludedLayers()) {
+                    if(!topConfigExcludedLayers.contains(layer)) {
+                        notExcluded.add(layer);
+                    }
+                }
+                throw new ProvisioningException(Errors.excludedLayersWouldNotOtherwiseBeInstalled(lastConfig.config.getId(), notExcluded));
+            }
+            topConfigExcludedLayers.clear();
+        }
         configs.remove(poppedIndex);
         lastConfig = configs.get(poppedIndex - 1);
         lastProcessedScope.complete();
@@ -377,28 +397,55 @@ class ConfigModelStack {
     }
 
     boolean isLayerFilteredOut(String layerName) {
+        final int configsTotal = configs.size();
+        if(configsTotal == 1) {
+            return false;
+        }
+        if(configsTotal == 2) {
+            return isFilteredOutFromTopConfig(layerName, lastConfig.config);
+        }
         if(lastConfig.isLayerFilteredOut(layerName)) {
             return true;
         }
-        if(configs.size() > 1) {
-            for (int i = configs.size() - 2; i >= 0; --i) {
-                if (configs.get(i).isLayerFilteredOut(layerName)) {
-                    return true;
-                }
+        for (int i = configsTotal - 2; i > 1; --i) {
+            if (configs.get(i).isLayerFilteredOut(layerName)) {
+                return true;
             }
+        }
+        return isFilteredOutFromTopConfig(layerName, configs.get(1).config);
+    }
+
+    private boolean isFilteredOutFromTopConfig(String layerName, final ConfigModel config) {
+        if(config.isInheritLayers()) {
+            if(config.isLayerExcluded(layerName)) {
+                if(checkNotExcludedLayers) {
+                    topConfigExcludedLayers.add(layerName);
+                }
+                return true;
+            }
+        } else if(!config.isLayerIncluded(layerName)) {
+            return true;
         }
         return false;
     }
 
     boolean isLayerExcluded(String layerName) {
+        final int configsTotal = configs.size();
+        if(configsTotal == 1) {
+            return false;
+        }
         if(lastConfig.isLayerExcluded(layerName)) {
+            if(checkNotExcludedLayers && configsTotal == 2) {
+                topConfigExcludedLayers.add(layerName);
+            }
             return true;
         }
-        if(configs.size() > 1) {
-            for (int i = configs.size() - 2; i >= 0; --i) {
-                if (configs.get(i).isLayerExcluded(layerName)) {
-                    return true;
+        for (int i = configsTotal - 2; i > 0; --i) {
+            if (configs.get(i).isLayerExcluded(layerName)) {
+                if (checkNotExcludedLayers && i == 1) {
+                    topConfigExcludedLayers.add(layerName);
                 }
+                return true;
             }
         }
         return false;

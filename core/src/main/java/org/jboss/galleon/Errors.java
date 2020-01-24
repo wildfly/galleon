@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -503,6 +503,18 @@ public interface Errors {
 
     static String layerNotFound(ConfigId layerId) {
         return "Failed to locate layer " + layerId + " in the the installation feature-pack layout";
+    }
+
+    static String excludedLayersWouldNotOtherwiseBeInstalled(ConfigId configId, List<String> notExcludedLayers) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("The following layers configured to be excluded from configuration ")
+        .append(configId)
+        .append(" would not have otherwise been installed: ");
+        StringUtils.append(buf, notExcludedLayers);
+        buf.append(". Either remove the corresponding exclusions or add ")
+                .append(ProvisioningOption.IGNORE_NOT_EXCLUDED_LAYERS.getName())
+                .append(" option");
+        return buf.toString();
     }
 
     static String tookTime(String action, long startTimeNanos) {

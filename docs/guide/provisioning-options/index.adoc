@@ -42,8 +42,9 @@ Provisioning options can be provided by the core provisioning mechanism itself a
 .Built-in provisioning options
 |===
 |Name |Purpose |Value set
-|optional-packages |<<_feature_pack_original_effective_package_set,Optional package dependencies inclusion policy>> |`all`, `none`, `passive`, `passive+`
-|version-convergence |<<_dependency_version_convergence,Disables or enables the dependency version convergence>> | `first-processed` _(the default one)_, `fail`
+|ignore-not-excluded-layers |<<_excluding_layers_from_configuration_models,Suppresses the error when layers configured to be excluded would not have otherwise been installed>> |`false` _(default)_, `true`
+|optional-packages |<<_feature_pack_original_effective_package_set,Optional package dependencies inclusion policy>> |`all` _(default)_, `none`, `passive`, `passive+`
+|version-convergence |<<_dependency_version_convergence,Disables or enables the dependency version convergence>> | `first-processed` _(default)_, `fail`
 |===
 
 #### Product provisioning options
