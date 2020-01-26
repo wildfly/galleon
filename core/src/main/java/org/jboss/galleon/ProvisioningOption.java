@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,13 @@ public class ProvisioningOption {
             .addToValueSet(Constants.FAIL)
             .build();
 
-    private static final List<ProvisioningOption> stdOptions = Arrays.asList(new ProvisioningOption[] {OPTIONAL_PACKAGES, VERSION_CONVERGENCE});
+    public static final ProvisioningOption IGNORE_NOT_EXCLUDED_LAYERS = ProvisioningOption.builder(Constants.IGNORE_NOT_EXCLUDED_LAYERS)
+            .setDefaultValue(Constants.FALSE)
+            .setBooleanValueSet()
+            .build();
+
+    private static final List<ProvisioningOption> stdOptions = Arrays
+            .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE });
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

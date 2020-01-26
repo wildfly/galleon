@@ -18,3 +18,4 @@ Layers that have been included into the configuration can later be excluded from
 
 Assuming feature-pack `prod1` included `layer1` and `layer2` into its `model1:name1` configuration (as in the previous example), the resulting `model1:name1` configuration will include only `layer1` and `layer3` (and their dependencies if any).
 
+NOTE: An attempt to exclude a layer that would not have otherwise been installed will result in a provisioning error. The error, however, can be suppressed by adding <<_provisioning_options, provisioning option>> `ignore-not-excluded-layers`.

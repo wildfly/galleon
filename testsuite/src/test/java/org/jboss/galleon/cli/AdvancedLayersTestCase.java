@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -222,7 +222,7 @@ public class AdvancedLayersTestCase {
         {
             Path path = cli.newDir("prod-exclude2", false);
             cli.execute("install " + prod + " --dir=" + path
-                    + " --layers=layerC-" + PRODUCER4 + ",-layerA-" + PRODUCER4 + ",-layerB-" + PRODUCER4);
+                    + " --layers=layerC-" + PRODUCER4 + ",-layerB-" + PRODUCER4);
 
             ProvisionedState state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
             assertEquals(1, state.getConfigs().size());
