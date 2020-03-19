@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,6 +53,7 @@ public abstract class CliTestUtils {
     public static final String PRODUCER2 = "producer2";
     public static final String PRODUCER3 = "producer3";
     public static final String PRODUCER4 = "producer4";
+    public static final String PRODUCER5 = "producer5";
     public static final String UNIVERSE_NAME = "cli-test-universe";
 
     public static ProvisioningConfig getConfig(Path dir) throws ProvisioningException {
