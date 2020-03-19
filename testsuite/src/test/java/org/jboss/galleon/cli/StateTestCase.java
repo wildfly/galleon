@@ -25,6 +25,7 @@ import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER3;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER4;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER5;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.cli.path.PathParser;
 import org.jboss.galleon.config.ConfigModel;
@@ -56,19 +57,21 @@ public class StateTestCase {
     private static FeaturePackLocation locLayers;
     private static FeaturePackLocation locWithTransitive;
     private static FeaturePackLocation transitive;
-
+    private static FeaturePackLocation noFeatures;
     @BeforeClass
     public static void setup() throws Exception {
         cli = new CliWrapper();
         universe = MvnUniverse.getInstance(UNIVERSE_NAME, cli.getSession().getMavenRepoManager());
-        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3, PRODUCER4));
+        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3, PRODUCER4, PRODUCER5));
         install("1.0.0.Final");
         installLayers("1.0.0.Final");
         installWithDependency("1.0.0.Final");
+        installNoFeatures("1.0.0.Final");
         loc = CliTestUtils.buildFPL(universeSpec, PRODUCER1, "1", null, null);
         locLayers = CliTestUtils.buildFPL(universeSpec, PRODUCER2, "1", null, null);
         locWithTransitive = CliTestUtils.buildFPL(universeSpec, PRODUCER4, "1", null, null);
         transitive = CliTestUtils.buildFPL(universeSpec, PRODUCER3, "1", null, "1.0.0.Final");
+        noFeatures = CliTestUtils.buildFPL(universeSpec, PRODUCER5, "1", null, null);
     }
 
     @AfterClass
@@ -499,6 +502,17 @@ public class StateTestCase {
         }
     }
 
+    @Test
+    public void testEditNoFeatures() throws Exception {
+        Path dir = cli.newDir("installEditNoFeatures", false);
+        cli.execute("install " + noFeatures + " --dir=" + dir.toString());
+
+        cli.execute("cd " + dir.toFile().getAbsolutePath());
+
+        cli.execute("state edit");
+        cli.execute("leave-state");
+    }
+
     private void doNavigationTest() throws Exception {
         cli.execute("ls /configs/final");
         Assert.assertTrue(cli.getOutput(), cli.getOutput().contains("model1"));
@@ -571,6 +585,23 @@ public class StateTestCase {
                         .build()).
                 addConfig(ConfigModel.builder().setModel("model1").
                         setName("name1").addFeature(new FeatureConfig("specA").setParam("p1", "1")).build());
+        creator.install();
+    }
+
+    public static void installNoFeatures(String version) throws ProvisioningException {
+        FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
+        FeaturePackLocation fp1 = new FeaturePackLocation(universeSpec,
+                PRODUCER5, "1", null, version);
+        creator.newFeaturePack(fp1.getFPID())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("base-" + PRODUCER5)
+                        .addPackageDep("p1")
+                        .build())
+                .newPackage("p1", true)
+                .writeContent("fp1/p1.txt", "fp1 p1").
+                getFeaturePack().
+                addConfig(ConfigModel.builder().setModel("testmodel").
+                        setName("name1").includeLayer("base-" + PRODUCER5).build());
         creator.install();
     }
 
