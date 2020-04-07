@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -301,8 +301,7 @@ public class InstallCommand extends AbstractPluginsCommand {
                 hasValue(true).
                 type(String.class).
                 optionType(OptionType.NORMAL).
-                // Disable completion. Re-activate when layers show-up in WF.
-                //completer(LayersCompleter.class).
+                completer(LayersCompleter.class).
                 activator(new LayersOptionActivator()).
                 description(HelpDescriptions.INSTALL_LAYERS).
                 build();
