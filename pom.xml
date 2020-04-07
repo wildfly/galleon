@@ -94,6 +94,8 @@
     <license.failIfUnknown>true</license.failIfUnknown>
 
     <output.dir.prefix>galleon</output.dir.prefix>
+    <galleon.repo.scm.connection>git@github.com:wildfly/galleon.git</galleon.repo.scm.connection>
+    <galleon.repo.scm.url>https://github.com/wildfly/galleon</galleon.repo.scm.url>   
   </properties>
 
   <repositories>
@@ -428,6 +430,8 @@ limitations under the License.</inlineHeader>
             <exclude>mvnw</exclude>
             <exclude>mvnw.cmd</exclude>
             <exclude>**/help/*.txt</exclude>
+            <exclude>**/pom.xml.releaseBackup</exclude>
+            <exclude>**/pom.xml.tag</exclude>
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>
@@ -489,5 +493,10 @@ limitations under the License.</inlineHeader>
       </plugin>
     </plugins>
   </build>
-
+  <scm>
+    <connection>scm:git:${galleon.repo.scm.connection}</connection>
+    <developerConnection>scm:git:${galleon.repo.scm.connection}</developerConnection>
+    <url>${galleon.repo.scm.url}</url>
+    <tag>HEAD</tag>
+  </scm>
 </project>
