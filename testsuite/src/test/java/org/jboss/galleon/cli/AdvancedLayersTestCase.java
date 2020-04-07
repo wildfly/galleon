@@ -27,6 +27,7 @@ import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER3;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER4;
+import static org.jboss.galleon.cli.CliTestUtils.PRODUCER5;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
@@ -61,7 +62,7 @@ public class AdvancedLayersTestCase {
     public static void setup() throws Exception {
         cli = new CliWrapper();
         universe = MvnUniverse.getInstance(UNIVERSE_NAME, cli.getSession().getMavenRepoManager());
-        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3, PRODUCER4));
+        universeSpec = CliTestUtils.setupUniverse(universe, cli, UNIVERSE_NAME, Arrays.asList(PRODUCER1, PRODUCER2, PRODUCER3, PRODUCER4, PRODUCER5));
     }
 
     @AfterClass
@@ -333,6 +334,35 @@ public class AdvancedLayersTestCase {
         }
     }
 
+    @Test
+    public void testCircularDepExcludeLayers() throws Exception {
+        FeaturePackLocation prod = newFpl(PRODUCER5, "1", "1.0.0.Final");
+        buildFP(cli, universeSpec, PRODUCER5, "1.0.0.Final");
+
+        {
+            // Install layerD circular dependency with layerE
+            Path path = cli.newDir("prod6", false);
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=layerD-" + PRODUCER5);
+            ProvisionedState state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            Collection<ConfigId> layers = state.getConfigs().get(0).getLayers();
+            assertEquals(layers.toString(), 2, layers.size());
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerE-" + PRODUCER5)));
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerD-" + PRODUCER5)));
+        }
+
+        {
+            // Install layerE, exclude layerD
+            Path path = cli.newDir("prod-exclude6", false);
+            cli.execute("install " + prod + " --dir=" + path
+                    + " --layers=layerE-" + PRODUCER5 + ",-layerD-" + PRODUCER5);
+            ProvisionedState state = ProvisioningManager.builder().setInstallationHome(path).build().getProvisionedState();
+            Collection<ConfigId> layers = state.getConfigs().get(0).getLayers();
+            assertEquals(layers.toString(), 1, layers.size());
+            assertTrue(layers.toString(), layers.contains(new ConfigId("testmodel", "layerE-" + PRODUCER5)));
+        }
+    }
+
     private static void buildFP(CliWrapper cli, UniverseSpec universeSpec,
             String producer, String version) throws ProvisioningException {
         FeaturePackCreator creator = FeaturePackCreator.getInstance().addArtifactResolver(cli.getSession().getMavenRepoManager());
@@ -357,6 +387,14 @@ public class AdvancedLayersTestCase {
                 .addConfigLayer(ConfigLayerSpec.builder()
                         .setModel("testmodel").setName("layerB-" + producer)
                         .addLayerDep("base-" + producer).addFeature(FeatureConfig.newConfig("feat2").setParam("p2", "1"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerD-" + producer)
+                        .addLayerDep("layerE-" + producer).addFeature(FeatureConfig.newConfig("feat1").setParam("p1", "1"))
+                        .build())
+                .addConfigLayer(ConfigLayerSpec.builder()
+                        .setModel("testmodel").setName("layerE-" + producer)
+                        .addLayerDep("layerD-" + producer, true).addFeature(FeatureConfig.newConfig("feat1").setParam("p1", "1"))
                         .build())
                 .addConfig(ConfigModel.builder("testmodel", "foo.xml").
                         includeLayer("layerA-" + producer).

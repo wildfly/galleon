@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,7 +128,8 @@ public class LayersConfigBuilder {
             // Compute all dependencies (transitive included).
             Set<String> allDependencies = new HashSet<>();
             for (String s : noDependencies) {
-                getDependencies(s, allDependencies, layers);
+                Set<String> seen = new HashSet<>();
+                getDependencies(s, allDependencies, layers, seen);
             }
             for (Entry<String, Set<String>> entry : layers.entrySet()) {
                 if (!allDependencies.contains(entry.getKey()) || noDependencies.contains(entry.getKey())) {
@@ -141,12 +142,16 @@ public class LayersConfigBuilder {
         return names;
     }
 
-    private static void getDependencies(String name, Set<String> set, Map<String, Set<String>> all) {
+    private static void getDependencies(String name, Set<String> set, Map<String, Set<String>> all, Set<String> seen) {
+        if (seen.contains(name)) {
+            return;
+        }
+        seen.add(name);
         Set<String> deps = all.get(name);
         if (deps != null) {
             set.addAll(deps);
             for (String n : deps) {
-                getDependencies(n, set, all);
+                getDependencies(n, set, all, seen);
             }
         }
     }
@@ -254,22 +259,7 @@ public class LayersConfigBuilder {
             }
         }
         if (!excludedLayers.isEmpty()) {
-            // Check that the dependencies exist in the set of provisioned layers.
-            // Optional/vs non optional will be handled at provisioning time.
-            Set<String> allDependencies = new HashSet<>();
-            for (String l : includedLayers) {
-                getDependencies(l, allDependencies, layersDeps);
-            }
-            // We could have already installed layers, so retrieve their dependencies
-            if (cmodel != null) {
-                for (String l : cmodel.getIncludedLayers()) {
-                    getDependencies(l, allDependencies, layersDeps);
-                }
-            }
             for (String excludedLayer : excludedLayers) {
-                if (!allDependencies.contains(excludedLayer)) {
-                    throw new ProvisioningException(CliErrors.notDependencyLayer(excludedLayer));
-                }
                 if (cmodel == null) {
                     configBuilder.excludeLayer(excludedLayer);
                 } else {
