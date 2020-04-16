@@ -10,6 +10,40 @@ endif::[]
 
 toc::[]
 
+= Overview
+
+Galleon is a provisioning tool designed to create and maintain software distributions that consist of one or more products (or components). The tool supports:
+
+* adding products to a distribution;
+
+** their default and customized configurations;
+
+* removing products from a distribution;
+
+* integration of the products in the distribution;
+
+* resolution and validation of the resulting configuration and runtime dependencies;
+
+* patching and version updates;
+
+* product-specific provisioning plugins;
+
+* detection of the changes in the provisioned distribution (its filesystem content and/or its configuration) applied by the user manually or by means of other management tools
+
+** to be able to preserve them after a version upgrade (having made sure the changes are compatible in the new version)
+
+** or create a provisioning configuration that could be used to reproduce the state of the distribution including the user changes;
+
+* exporting the provisioning configuration of the current state of the distribution with the goal to reproduce it later at another location.
+
+The tool includes a command-line interface and a public API. There is also a Maven plugin that allows provisioning a distribution according to the provided configuration.
+
+= Download and Installation of the Command Line Tool
+
+Releases of the command line tool are available on the link:https://github.com/wildfly/galleon/releases[releases page].
+
+Download and unzip the release zip and add the `bin` dir to your system path. Use `galleon.sh` or `galleon.bat` to launch the tool.
+
 = Project Modules
 
 == Module `galleon-parent`
