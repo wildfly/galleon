@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,9 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -300,14 +302,55 @@ public class ProvisionStateMojo extends AbstractMojo {
         }
     }
 
-    private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MavenUniverseException {
-        final MavenArtifact artifact = new MavenArtifact()
-                .setGroupId(coordinate.getGroupId())
-                .setArtifactId(coordinate.getArtifactId())
-                .setVersion(coordinate.getVersion())
-                .setExtension(coordinate.getExtension())
-                .setClassifier(coordinate.getClassifier());
+    private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MavenUniverseException, MojoExecutionException {
+        final MavenArtifact artifact = new MavenArtifact();
+        artifact.setGroupId(coordinate.getGroupId());
+        artifact.setArtifactId(coordinate.getArtifactId());
+        String version = coordinate.getVersion();
+        if(isEmptyOrNull(version)) {
+            // first, we are looking for the artifact among the project deps
+            // direct dependencies may override the managed versions
+            for(Artifact a : project.getArtifacts()) {
+                if(coordinate.getArtifactId().equals(a.getArtifactId())
+                        && coordinate.getGroupId().equals(a.getGroupId())
+                        && coordinate.getExtension().equals(a.getType())
+                        && (coordinate.getClassifier() == null ? "" : coordinate.getClassifier())
+                                .equals(a.getClassifier() == null ? "" : a.getClassifier())) {
+                    version = a.getVersion();
+                    break;
+                }
+            }
+            if(isEmptyOrNull(version)) {
+                // Now we are going to look for for among the managed dependencies
+                for (Dependency d : project.getDependencyManagement().getDependencies()) {
+                    if (coordinate.getArtifactId().equals(d.getArtifactId())
+                            && coordinate.getGroupId().equals(d.getGroupId())
+                            && coordinate.getExtension().equals(d.getType())
+                            && (coordinate.getClassifier() == null ? "" : coordinate.getClassifier())
+                                    .equals(d.getClassifier() == null ? "" : d.getClassifier())) {
+                        version = d.getVersion();
+                        break;
+                    }
+                }
+                if (isEmptyOrNull(version)) {
+                    throw new MojoExecutionException(coordinate.getGroupId() + ":" + coordinate.getArtifactId() + ":"
+                            + (coordinate.getClassifier() == null ? "" : coordinate.getClassifier()) + ":"
+                            + coordinate.getExtension()
+                            + " was found among neither the project's dependencies nor the managed dependencies."
+                            + " To proceed, please, add the desired version of the feature-pack to the provisioning configuration"
+                            + " or the project dependencies, or the dependency management section of the Maven project");
+                }
+            }
+        }
+        artifact.setVersion(version);
+        artifact.setExtension(coordinate.getExtension());
+        artifact.setClassifier(coordinate.getClassifier());
+
         resolver.resolve(artifact);
         return artifact.getPath();
+    }
+
+    private boolean isEmptyOrNull(String version) {
+        return version == null || version.isEmpty();
     }
 }
