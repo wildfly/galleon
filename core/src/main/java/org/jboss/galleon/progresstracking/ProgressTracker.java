@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,16 +25,19 @@ public interface ProgressTracker<T> {
 
     /**
      * The method is called when the processing is about to begin
+     * @param totalVolume anticipated total volume
      */
     void starting(long totalVolume);
 
     /**
      * This method indicates that an item is being processed
+     * @param item item being processed
      */
     void processing(T item);
 
     /**
      * This method indicates that an item has been processed
+     * @param item processed item
      */
     void processed(T item);
 

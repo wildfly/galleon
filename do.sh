@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
+# Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
 # and other contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,5 +58,5 @@ if [[ -n $BUILD ]]; then
 fi
 
 if [[ -n $RUN ]]; then
-java $JAVA_OPTS -jar ./cli/target/galleon-cli-2.0.2.Alpha1-SNAPSHOT.jar
+java $JAVA_OPTS -jar ./cli/target/galleon-cli-2.0.2.Final.jar
 fi
