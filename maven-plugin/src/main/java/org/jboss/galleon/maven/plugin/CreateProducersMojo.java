@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,8 +86,20 @@ public class CreateProducersMojo extends AbstractMojo {
     @Parameter(required = true)
     private List<ProducerDescription> producers;
 
+    /**
+     * Specifies whether the creating the producers should be skipped.
+     *
+     * @since 4.2.6
+     */
+    @Parameter(defaultValue = "false", property = PropertyNames.SKIP)
+    private boolean skip;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping the create-producers goal.");
+            return;
+        }
         final MavenArtifact artifact = new MavenArtifact().setGroupId(groupId).setArtifactId(artifactId).setVersion(version);
         final MavenProducers installer = MavenProducers.getInstance(
                 SimplisticMavenRepoManager.getInstance(Paths.get(project.getBuild().getDirectory()).resolve("local-repo"),

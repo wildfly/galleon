@@ -150,8 +150,20 @@ public class ProvisionStateMojo extends AbstractMojo {
     @Parameter(alias = "resolve-locals")
     private List<ResolveLocalItem> resolveLocals = Collections.emptyList();
 
+    /**
+     * Specifies whether the provisioning should be skipped.
+     *
+     * @since 4.2.6
+     */
+    @Parameter(defaultValue = "false", property = PropertyNames.SKIP)
+    private boolean skip;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping the provision goal.");
+            return;
+        }
         if(featurePacks.isEmpty()) {
             throw new MojoExecutionException("No feature-packs to install.");
         }

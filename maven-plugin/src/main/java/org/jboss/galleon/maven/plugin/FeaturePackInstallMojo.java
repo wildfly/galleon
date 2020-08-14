@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,8 +142,20 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Parameter(alias = "record-state", defaultValue = "true")
     private boolean recordState = true;
 
+    /**
+     * Specifies whether installing the feature pack should be skipped.
+     *
+     * @since 4.2.6
+     */
+    @Parameter(defaultValue = "false", property = PropertyNames.SKIP)
+    private boolean skip;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping the install-feature-pack goal.");
+            return;
+        }
 
         FeaturePackLocation fpl = null;
         Path localPath = null;

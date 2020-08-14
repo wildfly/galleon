@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,8 +114,20 @@ public class CreateProducerMojo extends AbstractMojo {
     @Parameter(required = true)
     private List<ChannelDescription> channels = Collections.emptyList();
 
+    /**
+     * Specifies whether creating the producer should be skipped.
+     *
+     * @since 4.2.6
+     */
+    @Parameter(defaultValue = "false", property = PropertyNames.SKIP)
+    private boolean skip;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping the create-producer goal.");
+            return;
+        }
         try {
             createProducer();
         } catch (MavenUniverseException e) {
