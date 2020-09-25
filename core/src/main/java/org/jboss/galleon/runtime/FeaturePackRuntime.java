@@ -19,6 +19,7 @@ package org.jboss.galleon.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,25 +56,34 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
                 break;
             case ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE_PLUS:
             case ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE:
-                int i = builder.pkgOrder.size();
-                final List<PackageRuntime> included = new ArrayList<>(i);
-                while (--i >= 0) {
-                    final String pkgName = builder.pkgOrder.get(i);
-                    final PackageRuntime.Builder pkgBuilder = builder.pkgBuilders.get(pkgName);
-                    if(pkgBuilder.isFlagOn(PackageRuntime.INCLUDED)) {
-                        included.add(pkgBuilder.build(this));
-                    } else if ((pkgBuilder.isFlagOn(PackageRuntime.PARENT_INCLUDED) || pkgBuilder.isFlagOn(PackageRuntime.ROOT))
-                            && (rt.includedPkgDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE
-                                    && pkgBuilder.isPassiveWithSatisfiedDeps()
-                                    || rt.includedPkgDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE_PLUS
-                                            && ((pkgBuilder.type & PackageDependencySpec.OPTIONAL) > 0
-                                                    && pkgBuilder.type != PackageDependencySpec.PASSIVE
-                                                    || pkgBuilder.isPassiveWithSatisfiedDeps()))) {
-                        pkgBuilder.include();
-                        included.add(pkgBuilder.build(this));
+                final List<PackageRuntime> included = new ArrayList<>(builder.pkgOrder.size());
+                int i;
+                do {
+                    i = included.size();
+                    if(builder.pkgOrder.isEmpty()) {
+                        break;
                     }
-                }
-                i = included.size();
+                    final Iterator<String> pkgNames = builder.pkgOrder.descendingIterator();
+                    while(pkgNames.hasNext()) {
+                        final String pkgName = pkgNames.next();
+                        final PackageRuntime.Builder pkgBuilder = builder.pkgBuilders.get(pkgName);
+                        if(pkgBuilder.isFlagOn(PackageRuntime.INCLUDED)) {
+                            included.add(pkgBuilder.build(this));
+                            pkgNames.remove();
+                        } else if ((pkgBuilder.isFlagOn(PackageRuntime.PARENT_INCLUDED) || pkgBuilder.isFlagOn(PackageRuntime.ROOT))
+                                && (rt.includedPkgDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE
+                                        && pkgBuilder.isPassiveWithSatisfiedDeps()
+                                        || rt.includedPkgDeps == ProvisioningRuntimeBuilder.PKG_DEP_PASSIVE_PLUS
+                                                && ((pkgBuilder.type & PackageDependencySpec.OPTIONAL) > 0
+                                                        && pkgBuilder.type != PackageDependencySpec.PASSIVE
+                                                        || pkgBuilder.isPassiveWithSatisfiedDeps()))) {
+                            pkgBuilder.include();
+                            included.add(pkgBuilder.build(this));
+                            pkgNames.remove();
+                        }
+                    }
+                } while(included.size() != i);
+
                 while (--i >= 0) {
                     final PackageRuntime pkg = included.get(i);
                     tmpPackages.put(pkg.getName(), pkg);

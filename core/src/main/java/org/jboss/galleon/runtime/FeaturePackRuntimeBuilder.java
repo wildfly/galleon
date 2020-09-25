@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,10 +20,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
@@ -70,7 +69,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
     private Map<ConfigId, ConfigLayerSpec> layers = null;
 
     Map<String, PackageRuntime.Builder> pkgBuilders = Collections.emptyMap();
-    List<String> pkgOrder = new ArrayList<>();
+    LinkedList<String> pkgOrder = new LinkedList<>();
 
     private ParameterTypeProvider featureParamTypeProvider = BuiltInParameterTypeProvider.getInstance();
 
