@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -629,7 +629,7 @@ public class StateInfoUtil {
     public static String formatChannel(FeaturePackLocation loc) {
         String channel = loc.getFrequency() == null ? loc.getChannel().getName() : loc.getChannel().getName()
                 + "/" + loc.getFrequency();
-        return (loc.getUniverse() == null ? "" : loc.getUniverse() + "@") + channel;
+        return (loc.getUniverse() == null ? "" : loc.getUniverse() + "@") + (channel == null ? "" : channel);
     }
 
     private static String buildOptionsTable(Set<ProvisioningOption> options) {
