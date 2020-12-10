@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ public interface Channel {
         } catch(LatestVersionNotAvailableException e) {
             // that also means no update
         }
-        if (latestBuild != null && !(latestBuild.equals(fpl.getBuild()))) {
+        if (latestBuild != null && !latestBuild.isEmpty() && !(latestBuild.equals(fpl.getBuild()))) {
             updateRequest.setNewLocation(fpl.replaceBuild(latestBuild));
         }
         return updateRequest.buildPlan();
