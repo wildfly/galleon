@@ -65,7 +65,7 @@
 
     <version.com.io7m.xom>1.2.10</version.com.io7m.xom>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
-    <version.junit>4.12</version.junit>
+    <version.junit>4.13.1</version.junit>
     <version.maven-aether-provider>3.3.9</version.maven-aether-provider>
     <version.maven-settings-builder>3.3.9</version.maven-settings-builder>
     <version.org.aesh>2.0</version.org.aesh>
