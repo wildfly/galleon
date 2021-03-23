@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,6 +106,9 @@ public class UniverseResolver {
     }
 
     public Channel getChannel(FeaturePackLocation fpl) throws ProvisioningException {
+        if (fpl.getUniverse() == null) {
+            throw new ProvisioningException("Invalid feature-pack location: " + fpl);
+        }
         return getUniverse(fpl.getUniverse()).getProducer(fpl.getProducerName()).getChannel(fpl.getChannelName());
     }
 
