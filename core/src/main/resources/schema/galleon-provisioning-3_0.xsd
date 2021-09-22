@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
 
-    Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,6 +99,8 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence maxOccurs="1" minOccurs="0">
+      <xs:element name="origin" type="xs:string" minOccurs="0"/>
+      <xs:element name="patches" type="patchesType" minOccurs="0"/>
       <xs:element name="default-configs" type="defaultConfigsType" minOccurs="0"/>
       <xs:element name="config" type="configType" minOccurs="0"/>
       <xs:element name="packages" type="packagesType" minOccurs="0"/>
@@ -162,6 +164,8 @@
     </xs:annotation>
     <xs:sequence>
       <xs:element name="props" type="propsType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="config-deps" type="configDepsType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="layers" type="layersType" minOccurs="0" maxOccurs="1"/>
       <xs:choice maxOccurs="unbounded" minOccurs="0">
         <xs:element name="origin" type="originType" minOccurs="1" maxOccurs="1"/>
         <xs:element name="feature-group" type="featureGroupType" minOccurs="1" maxOccurs="1"/>
@@ -403,4 +407,103 @@
     </xs:attribute>
   </xs:complexType>
 
+  <xs:complexType name="layersType">
+    <xs:annotation>
+      <xs:documentation>
+        Describes the selection of layers to include or exclude.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="exclude" type="layerType" />
+      <xs:element name="include" type="layerType" />
+    </xs:choice>
+    <xs:attribute name="inherit" type="xs:boolean" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>
+          Whether to inherit the layers for the configuration from any of the included feature-packs.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="layerType">
+    <xs:annotation>
+      <xs:documentation>
+        A layer
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Layer name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="configDepsType">
+    <xs:annotation>
+      <xs:documentation>
+        Describes configuration dependencies
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="config-dep" type="configDepType" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="configDepType">
+    <xs:annotation>
+      <xs:documentation>
+        Describes a dependency on a configuration
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Dependency id
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="model" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Configuration model
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="name" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Configuration name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  
+  <xs:complexType name="patchesType">
+    <xs:annotation>
+      <xs:documentation>
+        Describes the patches.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="patch" type="patchType" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="patchType">
+    <xs:annotation>
+      <xs:documentation>
+        A patch
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Path id
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
 </xs:schema>
