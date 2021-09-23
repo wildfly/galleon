@@ -3,11 +3,6 @@
 
 = Galleon Provisioning
 
-ifdef::env-github[]
-[link=https://travis-ci.org/wildfly/galleon]
-image:https://travis-ci.org/wildfly/galleon.svg?branch=master["Build Status", link="https://travis-ci.org/wildfly/galleon"]
-endif::[]
-
 toc::[]
 
 = Overview
