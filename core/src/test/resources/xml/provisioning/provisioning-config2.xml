@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<installation xmlns="urn:jboss:galleon:provisioning:3.0">
+  <feature-pack location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0.Final">
+    <origin>foo</origin>
+    <patches>
+      <patch id="fp1@maven(org.jboss.universe:community-universe):1#1.0.0-patch.Final"/>
+      <patch id="fp1@maven(org.jboss.universe:community-universe):1#1.0.1-patch.Final"/>
+    </patches>
+    <default-configs inherit="false">
+      <include model="model1"/>
+      <exclude name="name1" model="model1"/>
+      <include name="name2" model="model2"/>
+      <exclude model="model2"/>
+    </default-configs>
+    <config name="main">
+      <props>
+        <prop name="prop1" value="value1"/>
+        <prop name="prop2" value="value2"/>     
+      </props>
+      <config-deps>
+        <config-dep id="id1" name="name1" model="model1"/>
+        <config-dep id="id2" model="model2"/>
+        <config-dep id="id3" name="name3"/>
+      </config-deps>
+      <layers inherit="false" >
+        <include name="layer1"/>
+        <exclude name="layer2"/>
+        <include name="layer3"/>
+        <exclude name="layer4"/>
+      </layers>
+      <feature-group name="dep1"/>
+      <feature-group name="dep2" inherit-features="false"/>
+      <feature-group name="dep3" inherit-features="false">
+        <include spec="spec1"/>
+        <include feature-id="spec2:p1=v1,p2=v2"/>
+        <include feature-id="spec3:p1=v1">
+          <depends feature-id="spec4:p1=v1,p2=v2"/>
+          <depends feature-id="spec5:p1=v1,p2=v2"/>
+          <param name="p1" value="v1"/>
+          <param name="p2" value="v2"/>
+        </include>
+        <exclude spec="spec6"/>
+        <exclude spec="spec7"/>
+        <exclude feature-id="spec8:p1=v1"/>
+        <exclude feature-id="spec8:p1=v2"/>
+      </feature-group>
+      <origin name="source4">
+        <feature-group name="dep4"/>
+      </origin>
+      <feature spec="spec1">
+        <param name="p1" value="v1"/>
+        <param name="p2" value="v2"/>
+      </feature>
+      <feature spec="spec1">
+        <depends feature-id="spec2:p1=v1,p2=v2"/>
+        <depends feature-id="spec3:p3=v3"/>
+        <param name="p1" value="v3"/>
+        <param name="p2" value="v4"/>
+      </feature>
+    </config>
+  </feature-pack>
+</installation>
