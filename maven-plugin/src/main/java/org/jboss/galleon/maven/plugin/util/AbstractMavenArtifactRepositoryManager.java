@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -79,9 +80,7 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
         if (artifact.isResolved()) {
             throw new MavenUniverseException("Artifact is already resolved");
         }
-        final ArtifactRequest request = new ArtifactRequest();
-        request.setArtifact(new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
-                artifact.getExtension(), artifact.getVersion()));
+        final ArtifactRequest request = toArtifactRequest(artifact);
 
         request.setRepositories(getRepositories());
 
@@ -98,6 +97,46 @@ public abstract class AbstractMavenArtifactRepositoryManager implements MavenRep
             throw new MavenUniverseException(FpMavenErrors.artifactMissing(request.getArtifact().toString()));
         }
         artifact.setPath(Paths.get(result.getArtifact().getFile().toURI()));
+    }
+
+    @Override
+    public void resolveAll(Collection<MavenArtifact> artifacts) throws MavenUniverseException {
+        if (artifacts.stream().anyMatch(MavenArtifact::isResolved)) {
+            throw new MavenUniverseException("One of artifact is already resolved");
+        }
+
+        // preserve order or artifacts,requests and responses
+        List<ArtifactRequest> requests = new ArrayList<>();
+        List<MavenArtifact> orderedArtifacts = new ArrayList<>();
+        for (MavenArtifact artifact : artifacts) {
+            requests.add(toArtifactRequest(artifact));
+            orderedArtifacts.add(artifact);
+        }
+
+        try {
+            final List<ArtifactResult> artifactResults = repoSystem.resolveArtifacts(getSession(), requests);
+            for (int i = 0; i < artifactResults.size(); i++) {
+                ArtifactResult result = artifactResults.get(i);
+                if (!result.isResolved()) {
+                    throw new MavenUniverseException(FpMavenErrors.artifactResolution(result.getArtifact().toString()));
+                }
+                if (result.isMissing()) {
+                    throw new MavenUniverseException(FpMavenErrors.artifactMissing(result.getArtifact().toString()));
+                }
+                orderedArtifacts.get(i).setPath(Paths.get(result.getArtifact().getFile().toURI()));
+            }
+        } catch (Exception e) {
+            throw new MavenUniverseException(FpMavenErrors.artifactResolution(), e);
+        }
+    }
+
+    private ArtifactRequest toArtifactRequest(MavenArtifact artifact) throws MavenUniverseException {
+        final ArtifactRequest request = new ArtifactRequest();
+        request.setArtifact(new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
+                                                artifact.getExtension(), artifact.getVersion()));
+
+        request.setRepositories(getRepositories());
+        return request;
     }
 
     @Override

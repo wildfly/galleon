@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,10 @@ public interface FpMavenErrors {
 
     static String artifactResolution(String gav) {
         return "Failed to resolve " + gav;
+    }
+
+    static String artifactResolution() {
+        return "Failed to resolve one of the artifacts";
     }
 
     static String artifactMissing(String gav) {

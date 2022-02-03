@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import org.jboss.galleon.universe.maven.MavenUniverseConstants;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -48,6 +49,12 @@ public interface MavenRepoManager extends RepositoryArtifactResolver {
     }
 
     void resolve(MavenArtifact artifact) throws MavenUniverseException;
+
+    default void resolveAll(Collection<MavenArtifact> artifacts) throws MavenUniverseException {
+        for (MavenArtifact artifact : artifacts) {
+            resolve(artifact);
+        }
+    }
 
     boolean isResolved(MavenArtifact artifact) throws MavenUniverseException;
 
