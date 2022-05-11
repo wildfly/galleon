@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-parent</artifactId>
-    <version>4.2.9.Final-SNAPSHOT</version>
+    <version>5.0.0.Final-SNAPSHOT</version>
   </parent>
 
   <artifactId>galleon-cli</artifactId>
