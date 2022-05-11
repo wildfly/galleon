@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>4.2.9.Final-SNAPSHOT</version>
+  <version>5.0.0.Final-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
@@ -62,8 +62,6 @@
         versions, add the artifactId or other qualifier to the property name.
         For example: <version.org.jboss.as.console>
     -->
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
     <version.com.io7m.xom>1.2.10</version.com.io7m.xom>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.junit>4.13.1</version.junit>
@@ -470,7 +468,7 @@ limitations under the License.</inlineHeader>
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>1.8</version>
+                  <version>11</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
