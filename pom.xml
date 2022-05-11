@@ -62,8 +62,6 @@
         versions, add the artifactId or other qualifier to the property name.
         For example: <version.org.jboss.as.console>
     -->
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
     <version.com.io7m.xom>1.2.10</version.com.io7m.xom>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.junit>4.13.1</version.junit>
@@ -470,7 +468,7 @@ limitations under the License.</inlineHeader>
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>1.8</version>
+                  <version>11</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
