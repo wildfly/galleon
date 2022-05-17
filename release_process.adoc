@@ -7,6 +7,12 @@ First, make sure you don't have pending changes in your master branch.
 * `cd galleon`
 * `git checkout main`
 * `pull --rebase upstream main`
+* `mvn clean install`
+* Check that the cli starts, and can provision Wildfly: 
+** `./do.sh run`
+** `install wildfly --dir=foo`
+** `exit`
+** `rm -rf foo`
 * Update docs/* content to reference the new released version.
 * Update do.sh script to reference the new released version.
 * Commit the changes with message: `Update doc and script to X.X.X.Final`
