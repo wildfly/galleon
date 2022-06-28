@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -147,6 +148,10 @@ public class IoUtils {
     }
 
     public static void copy(Path source, Path target) throws IOException {
+        copy(source, target, false);
+    }
+
+    public static void copy(Path source, Path target, boolean skipExistingFiles) throws IOException {
         if(Files.isDirectory(source)) {
             Files.createDirectories(target);
         } else {
@@ -164,13 +169,24 @@ public class IoUtils {
                              if (!Files.isDirectory(targetDir)) {
                                  throw e;
                              }
+                        } catch (AccessDeniedException e) {
+                            if (!skipExistingFiles || !Files.exists(targetDir)) {
+                                throw e;
+                            }
                         }
                         return FileVisitResult.CONTINUE;
                     }
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                         throws IOException {
-                        Files.copy(file, target.resolve(source.relativize(file).toString()), StandardCopyOption.REPLACE_EXISTING);
+                        final Path targetFile = target.resolve(source.relativize(file).toString());
+                        try {
+                            Files.copy(file, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                        } catch (AccessDeniedException e) {
+                            if (!skipExistingFiles || !Files.exists(targetFile)) {
+                                throw e;
+                            }
+                        }
                         return FileVisitResult.CONTINUE;
                     }
                 });
