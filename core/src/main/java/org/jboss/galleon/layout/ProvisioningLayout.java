@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -450,6 +450,9 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
     public void apply(ProvisioningPlan plan, Map<String, String> pluginOptions) throws ProvisioningException {
         if(plan.isEmpty()) {
+            initBuiltInOptions(config, pluginOptions);
+            rebuild(config, true);
+            initPluginOptions(pluginOptions, plan.hasUninstall());
             return;
         }
 
