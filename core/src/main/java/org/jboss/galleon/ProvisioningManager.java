@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -704,7 +704,7 @@ public class ProvisioningManager implements AutoCloseable {
                 }
             }
             try {
-                IoUtils.copy(stagedDir, home);
+                IoUtils.copy(stagedDir, home, true);
             } catch (IOException e) {
                 throw new ProvisioningException(Errors.copyFile(stagedDir, home));
             }
