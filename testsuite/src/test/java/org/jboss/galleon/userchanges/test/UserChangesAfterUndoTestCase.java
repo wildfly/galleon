@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,12 +56,19 @@ public class UserChangesAfterUndoTestCase extends UserChangesTestBase {
                 .writeContent("prod1/p2.txt", "prod1 p2")
                 .getFeaturePack()
             .newPackage("p3")
-                .writeContent("prod1/p3.txt", "prod1 p3");
+                .writeContent("prod1/p3.txt", "prod1 p3")
+                .getFeaturePack()
+            .newPackage("common", true)
+               .writeContent("common.txt", "prod1");
 
         prod2 = newFpl("prod2", "1", "1.0.0.Final");
         creator.newFeaturePack(prod2.getFPID())
             .newPackage("p1", true)
-                .writeContent("prod2/p1.txt", "prod2 p1");
+                .writeContent("prod2/p1.txt", "prod2 p1")
+                .writeContent("prod2/p2.txt", "prod2 p2")
+                .getFeaturePack()
+           .newPackage("common", true)
+                .writeContent("common.txt", "prod2");
 
     }
 
@@ -71,6 +78,8 @@ public class UserChangesAfterUndoTestCase extends UserChangesTestBase {
         pm.install(prod2);
         writeContent("new.txt", "user");
         writeContent("prod1/p2.txt", "user");
+        writeContent("prod2/p2.txt", "user");
+        writeContent("common.txt", "user");
         recursiveDelete("prod1/p3.txt");
         mkdirs("prod1/user");
         pm.undo();
@@ -92,6 +101,7 @@ public class UserChangesAfterUndoTestCase extends UserChangesTestBase {
                         .addPackage("p1")
                         .addPackage("p2")
                         .addPackage("p3")
+                        .addPackage("common")
                         .build())
                 .build();
     }
@@ -101,8 +111,10 @@ public class UserChangesAfterUndoTestCase extends UserChangesTestBase {
         return newDirBuilder()
                 .addFile("prod1/p1.txt", "prod1 p1")
                 .addFile("prod1/p2.txt", "user")
-                .addFile("prod1/p2.txt.glnew", "prod1 p2")
                 .addFile("new.txt", "user")
+                .addFile("prod2/p2.txt", "user")
+                .addFile("common.txt", "user")
+                .addFile("common.txt.glnew", "prod1")
                 .addDir("prod1/user")
                 .build();
     }

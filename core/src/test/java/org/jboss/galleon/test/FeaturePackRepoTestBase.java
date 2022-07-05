@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.jboss.galleon.DefaultMessageWriter;
 import org.jboss.galleon.Errors;
+import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -87,11 +89,16 @@ public class FeaturePackRepoTestBase {
         return FeaturePackCreator.getInstance().addArtifactResolver(repo);
     }
 
+    protected MessageWriter getMessageWriter() {
+        return new DefaultMessageWriter();
+    }
+
     protected ProvisioningManager getPm() throws ProvisioningException {
         return ProvisioningManager.builder()
                 .addArtifactResolver(repo)
                 .setInstallationHome(installHome)
                 .setRecordState(recordState)
+                .setMessageWriter(getMessageWriter())
                 .build();
     }
 

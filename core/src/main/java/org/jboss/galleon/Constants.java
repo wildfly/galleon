@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,4 +80,5 @@ public interface Constants {
     String FIRST_PROCESSED = "first-processed";
     String FAIL = "fail";
 
+    String PRINT_ONLY_CONFLICTS = "print-only-conflicts";
 }

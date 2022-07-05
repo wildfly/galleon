@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,21 +65,22 @@ public class FsDiff {
     }
 
     private static final char REPLAY_SKIP = 'S';
-    private static final char ADDED = '+';
-    private static final char MODIFIED = 'C'; // for conflict
-    private static final char REMOVED = '-';
+    public static final char ADDED = '+';
+    public static final char MODIFIED = 'C'; // for conflict
+    public static final char REMOVED = '-';
 
     public static final String CONFLICTS_WITH_THE_UPDATED_VERSION = "conflicts with the updated version";
     public static final String HAS_CHANGED_IN_THE_UPDATED_VERSION = "has changed in the updated version";
     public static final String HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION = "has been removed from the updated version";
     public static final String MATCHES_THE_UPDATED_VERSION = "matches the updated version";
+    public static final String REPLAYING_CHANGES = "Replaying your changes on top";
 
     public static FsDiff diff(FsEntry original, FsEntry other) throws ProvisioningException {
         return new FsDiff(original, other);
     }
 
-    public static Map<String, Boolean> replay(FsDiff diff, Path home, MessageWriter log) throws ProvisioningException {
-        log.print("Replaying your changes on top");
+    public static Map<String, Boolean> replay(FsDiff diff, Path home, MessageWriter log, boolean printOnlyConflicts) throws ProvisioningException {
+        log.print(REPLAYING_CHANGES);
         Map<String, Boolean> undoTasks = Collections.emptyMap();
         if(diff.hasRemovedEntries()) {
             for(FsEntry removed : diff.getRemovedEntries()) {
@@ -88,7 +89,9 @@ public class FsDiff {
                 }
                 final Path target = home.resolve(removed.getRelativePath());
                 if(Files.exists(target)) {
-                    log.print(formatMessage(REMOVED, removed.getRelativePath(), null));
+                    if (!printOnlyConflicts) {
+                        log.print(formatMessage(REMOVED, removed.getRelativePath(), null));
+                    }
                     IoUtils.recursiveDelete(target);
                 } else {
                     log.verbose(formatMessage(REMOVED, removed.getRelativePath(), HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION));
@@ -101,7 +104,7 @@ public class FsDiff {
                 if(added.isDiffStatusSuppressed()) {
                     continue;
                 }
-                undoTasks = addFsEntry(home, added, undoTasks, log);
+                undoTasks = addFsEntry(home, added, undoTasks, log, printOnlyConflicts);
             }
         }
         if(diff.hasModifiedEntries()) {
@@ -134,8 +137,6 @@ public class FsDiff {
                         }
                     } else if (modifiedPathConflict(update)) {
                         glnew(target);
-                    } else {
-                        action = REPLAY_SKIP;
                     }
                 } else if(modifiedPathNotPresent(update)) {
                     warning = HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION;
@@ -144,7 +145,9 @@ public class FsDiff {
                     action = REPLAY_SKIP;
                 }
                 if (action != REPLAY_SKIP) {
-                    log.print(formatMessage(action, update.getRelativePath(), warning));
+                    if (!printOnlyConflicts || warning != null) {
+                        log.print(formatMessage(action, update.getRelativePath(), warning));
+                    }
                     try {
                         IoUtils.copy(update.getPath(), target);
                     } catch (IOException e) {
@@ -156,7 +159,7 @@ public class FsDiff {
         return undoTasks;
     }
 
-    private static Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks, MessageWriter log) throws ProvisioningException {
+    private static Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks, MessageWriter log, boolean printOnlyConflicts) throws ProvisioningException {
         final Path target = home.resolve(added.getRelativePath());
         char action = ADDED;
         String warning = null;
@@ -166,7 +169,7 @@ public class FsDiff {
                     if(child.isDiffStatusSuppressed()) {
                         continue;
                     }
-                    undoTasks = addFsEntry(home, child, undoTasks, log);
+                    undoTasks = addFsEntry(home, child, undoTasks, log, printOnlyConflicts);
                 }
                 return undoTasks;
             }
@@ -191,7 +194,9 @@ public class FsDiff {
             }
         }
         if (action != REPLAY_SKIP) {
-            log.print(formatMessage(action, added.getRelativePath(), warning));
+            if (!printOnlyConflicts || warning != null) {
+                log.print(formatMessage(action, added.getRelativePath(), warning));
+            }
             try {
                 IoUtils.copy(added.getPath(), target);
             } catch (IOException e) {
@@ -218,7 +223,7 @@ public class FsDiff {
 
     private static boolean modifiedPathConflict(FsEntry userEntry) throws ProvisioningException {
         //log.verbose("%s modified by the user conflicts with its updated version", userEntry.getRelativePath());
-        return true;
+        return false;
     }
 
     private static boolean modifiedPathUpdated(FsEntry userEntry) throws ProvisioningException {
@@ -231,7 +236,7 @@ public class FsDiff {
         return true;
     }
 
-    private static String formatMessage(char action, String path, String warning) {
+    public static String formatMessage(char action, String path, String warning) {
         final StringBuilder buf = new StringBuilder();
         buf.append(' ').append(action).append(' ').append(path);
         if(warning != null) {

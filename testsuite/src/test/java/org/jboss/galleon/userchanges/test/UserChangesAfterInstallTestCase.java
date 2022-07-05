@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,7 +124,6 @@ public class UserChangesAfterInstallTestCase extends UserChangesTestBase {
         return newDirBuilder()
                 .addFile("prod1/p1.txt", "prod1 p1")
                 .addFile("prod1/p2.txt", "user")
-                .addFile("prod1/p2.txt.glnew", "prod1 p2")
                 .addDir("prod1/user")
                 .addFile("prod2/p1.txt", "prod2 p1")
                 .addFile("prod2/p2.txt", "prod2 p2")
