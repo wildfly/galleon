@@ -198,7 +198,7 @@ You can then use the listed options (if any) to customize your update command.
 
 ### Retrieving changes applied to an installation
 In order to visualize files you have added, removed or modified, use the command _get-changes [--dir=<installation>]_. +
-In the CLI output added files are prefixed by '+', removed ones by '-' and modified ones by 'C' (for conflict).
+In the CLI output added files are prefixed by '+', removed ones by '-' and modified ones by 'M'.
 
 ### Persisting changes applied to an installation
 Installed feature-packs optionally support persistence of changes into the provisioning configuration. As an example, 

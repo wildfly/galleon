@@ -66,7 +66,8 @@ public class FsDiff {
 
     private static final char REPLAY_SKIP = 'S';
     public static final char ADDED = '+';
-    public static final char MODIFIED = 'C'; // for conflict
+    public static final char CONFLICT = 'C'; // for conflict
+    public static final char MODIFIED = 'M';
     public static final char REMOVED = '-';
 
     public static final String CONFLICTS_WITH_THE_UPDATED_VERSION = "conflicts with the updated version";
@@ -114,7 +115,7 @@ public class FsDiff {
                 }
                 final FsEntry update = modified[1];
                 final Path target = home.resolve(update.getRelativePath());
-                char action = MODIFIED;
+                char action = CONFLICT;
                 String warning = null;
                 if(Files.exists(target)) {
                     final byte[] targetHash;
@@ -137,6 +138,8 @@ public class FsDiff {
                         }
                     } else if (modifiedPathConflict(update)) {
                         glnew(target);
+                    } else {
+                        action = MODIFIED;
                     }
                 } else if(modifiedPathNotPresent(update)) {
                     warning = HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION;
@@ -184,13 +187,13 @@ public class FsDiff {
                     action = REPLAY_SKIP;
                 } else {
                     warning = MATCHES_THE_UPDATED_VERSION;
-                    action = MODIFIED;
+                    action = CONFLICT;
                 }
                 undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
             } else if(addedPathConflict(added) && !added.isDir()) {
                 warning = CONFLICTS_WITH_THE_UPDATED_VERSION;
                 glnew(target);
-                action = MODIFIED;
+                action = CONFLICT;
             }
         }
         if (action != REPLAY_SKIP) {

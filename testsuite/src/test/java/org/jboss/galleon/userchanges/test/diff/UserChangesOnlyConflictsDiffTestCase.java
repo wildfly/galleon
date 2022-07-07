@@ -35,9 +35,9 @@ public class UserChangesOnlyConflictsDiffTestCase extends UserChangesFullDiffTes
     @Override
     protected List<String> expectedDiff() {
         return Arrays.asList(
-           FsDiff.formatMessage(FsDiff.MODIFIED, "prod1/p4.txt", FsDiff.CONFLICTS_WITH_THE_UPDATED_VERSION),
+           FsDiff.formatMessage(FsDiff.CONFLICT, "prod1/p4.txt", FsDiff.CONFLICTS_WITH_THE_UPDATED_VERSION),
            FsDiff.formatMessage(FsDiff.ADDED, "prod1/p1.txt", FsDiff.HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION),
-           FsDiff.formatMessage(FsDiff.MODIFIED, "prod1/p3.txt", FsDiff.HAS_CHANGED_IN_THE_UPDATED_VERSION)
+           FsDiff.formatMessage(FsDiff.CONFLICT, "prod1/p3.txt", FsDiff.HAS_CHANGED_IN_THE_UPDATED_VERSION)
         );
     }
 }
