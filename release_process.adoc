@@ -2,11 +2,13 @@
 
 == STEP 1: Prepare and perform the release
 
-First, make sure you don't have pending changes in your master branch.
+First, make sure you don't have pending changes in your main branch.
+
+WARNING: Make sure that you are using JDK 11 to do the release.
 
 * `cd galleon`
 * `git checkout main`
-* `pull --rebase upstream main`
+* `git pull --rebase upstream main`
 * `mvn clean install`
 * Check that the cli starts, and can provision Wildfly: 
 ** `./do.sh run`
@@ -21,7 +23,7 @@ First, make sure you don't have pending changes in your master branch.
 * Update docs/* content to reference the new SNAPSHOT version.
 * Update do.sh script to reference the new SNAPSHOT version.
 * Commit the changes with message: `Update doc and script to X.X.X.Final-SNAPSHOT`
-* `push upstream master`
+* `git push upstream main`
 
 == STEP 2: Release in Nexus
 
