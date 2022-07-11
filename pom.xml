@@ -66,6 +66,7 @@
         For example: <version.org.jboss.as.console>
     -->
     <version.adoc-maven-plugin-descriptor>1.0.0.Alpha3</version.adoc-maven-plugin-descriptor>
+    <version.assertj>3.23.1</version.assertj>
     <version.com.io7m.xom>1.2.10</version.com.io7m.xom>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.junit>4.13.1</version.junit>
@@ -314,6 +315,12 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${version.assertj}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

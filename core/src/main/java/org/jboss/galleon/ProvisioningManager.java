@@ -58,6 +58,8 @@ import org.jboss.galleon.xml.ProvisionedStateXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
+import static org.jboss.galleon.Constants.PRINT_ONLY_CONFLICTS;
+
 /**
  *
  * @author Alexey Loubyansky
@@ -670,7 +672,7 @@ public class ProvisioningManager implements AutoCloseable {
             }
             Map<String, Boolean> undoTasks = Collections.emptyMap();
             if (fsDiff != null && !fsDiff.isEmpty()) {
-                undoTasks = FsDiff.replay(fsDiff, runtime.getStagedDir(), log);
+                undoTasks = FsDiff.replay(fsDiff, runtime.getStagedDir(), log, Boolean.parseBoolean(runtime.getProvisioningConfig().getOption(PRINT_ONLY_CONFLICTS)));
             }
 
             if(freshInstall) {

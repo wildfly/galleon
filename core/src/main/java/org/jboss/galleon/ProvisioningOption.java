@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,8 +49,13 @@ public class ProvisioningOption {
             .setBooleanValueSet()
             .build();
 
+    public static final ProvisioningOption PRINT_ONLY_CONFLICTS = ProvisioningOption.builder(Constants.PRINT_ONLY_CONFLICTS)
+           .setDefaultValue(Constants.TRUE)
+           .setBooleanValueSet()
+           .build();
+
     private static final List<ProvisioningOption> stdOptions = Arrays
-            .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE });
+            .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE, PRINT_ONLY_CONFLICTS});
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

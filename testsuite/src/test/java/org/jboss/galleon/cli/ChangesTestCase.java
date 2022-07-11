@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,14 +86,14 @@ public class ChangesTestCase {
         Path nf = p.getParent().relativize(newFile);
         Path f = p.getParent().relativize(file);
         assertTrue(cli.getOutput(), cli.getOutput().contains(" + " + nf));
-        assertTrue(cli.getOutput(), cli.getOutput().contains(" C " + f));
+        assertTrue(cli.getOutput(), cli.getOutput().contains(" M " + f));
 
         cli.execute("cd " + p);
         cli.execute("get-changes");
         nf = p.relativize(newFile);
         f = p.relativize(file);
         assertTrue(cli.getOutput(), cli.getOutput().contains(" + " + nf));
-        assertTrue(cli.getOutput(), cli.getOutput().contains(" C " + f));
+        assertTrue(cli.getOutput(), cli.getOutput().contains(" M " + f));
 
         cli.execute("cd " + root);
         cli.execute("get-changes");
@@ -101,7 +101,7 @@ public class ChangesTestCase {
         nf = root.relativize(newFile);
         f = root.relativize(file);
         assertTrue(cli.getOutput(), cli.getOutput().contains(" + " + nf));
-        assertTrue(cli.getOutput(), cli.getOutput().contains(" C " + f));
+        assertTrue(cli.getOutput(), cli.getOutput().contains(" M " + f));
 
         Files.delete(file);
 
