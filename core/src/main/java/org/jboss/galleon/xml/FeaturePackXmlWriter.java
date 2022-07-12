@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ import java.util.Arrays;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.spec.FeaturePackPlugin;
 import org.jboss.galleon.spec.FeaturePackSpec;
-import org.jboss.galleon.xml.FeaturePackXmlParser20.Attribute;
-import org.jboss.galleon.xml.FeaturePackXmlParser20.Element;
+import org.jboss.galleon.xml.FeaturePackXmlParser30.Attribute;
+import org.jboss.galleon.xml.FeaturePackXmlParser30.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -86,6 +86,14 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
                 final ElementNode pluginE = addElement(plugins, Element.PLUGIN);
                 addAttribute(pluginE, Attribute.ID, plugin.getId());
                 addAttribute(pluginE, Attribute.LOCATION, plugin.getLocation());
+            }
+        }
+
+        if (fpSpec.hasSystemPaths()) {
+            final ElementNode systemPaths = addElement(fp, Element.SYSTEM_PATHS);
+            for (String systemPath : fpSpec.getSystemPaths()) {
+                final ElementNode depElement = addElement(systemPaths, Element.SYSTEM_PATH);
+                addAttribute(depElement, Attribute.PATH, systemPath);
             }
         }
         return fp;

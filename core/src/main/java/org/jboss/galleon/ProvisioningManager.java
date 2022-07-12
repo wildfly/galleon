@@ -672,7 +672,9 @@ public class ProvisioningManager implements AutoCloseable {
             }
             Map<String, Boolean> undoTasks = Collections.emptyMap();
             if (fsDiff != null && !fsDiff.isEmpty()) {
-                undoTasks = FsDiff.replay(fsDiff, runtime.getStagedDir(), log, Boolean.parseBoolean(runtime.getProvisioningConfig().getOption(PRINT_ONLY_CONFLICTS)));
+                undoTasks = FsDiff.replay(fsDiff, runtime.getStagedDir(), log,
+                                          Boolean.parseBoolean(runtime.getProvisioningConfig().getOption(PRINT_ONLY_CONFLICTS)),
+                                          runtime.getSystemPaths());
             }
 
             if(freshInstall) {

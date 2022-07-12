@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         private Set<String> defPackages = Collections.emptySet();
         private FPID patchFor;
         private Map<String, FeaturePackPlugin> plugins = Collections.emptyMap();
+        private Set<String> systemPaths = Collections.emptySet();
 
         protected Builder() {
         }
@@ -102,6 +103,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
                 throw new ProvisioningDescriptionException("Failed to build feature-pack spec for " + fpid, e);
             }
         }
+
+        public Builder addSystemPaths(String systemPath) {
+            systemPaths = CollectionUtils.add(systemPaths, systemPath);
+            return this;
+        }
     }
 
     public static Builder builder() {
@@ -116,6 +122,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final Set<String> defPackages;
     private final Map<String, FeaturePackPlugin> plugins;
     private final FPID patchFor;
+    private final Set<String> systemPaths;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -123,6 +130,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.defPackages = CollectionUtils.unmodifiable(builder.defPackages);
         this.plugins = CollectionUtils.unmodifiable(builder.plugins);
         this.patchFor = builder.patchFor;
+        this.systemPaths = CollectionUtils.unmodifiable(builder.systemPaths);
     }
 
     public FPID getFPID() {
@@ -155,6 +163,14 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
     public Map<String, FeaturePackPlugin> getPlugins() {
         return plugins;
+    }
+
+    public boolean hasSystemPaths() {
+        return !systemPaths.isEmpty();
+    }
+
+    public Set<String> getSystemPaths() {
+        return systemPaths;
     }
 
     @Override

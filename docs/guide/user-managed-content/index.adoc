@@ -84,3 +84,73 @@ None
 
 |===
 
+### Protected system files
+
+An installation may contain files and directories users should not be changing - for example system libraries.
+Such paths can be marked as *system-paths* in the `feature-pack.xml`.
+
+When a file within a *system-path* is changed as part of an update, user changes are discarded and replaced with file from updated state. User changes are persisted in *.glold* files.
+
+.User-added file within system-path
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|The user-added file is copied to the updated state
+
+|Found and matches the file added by the user
+|
+None
+
+|Found and is different from the file added by the user
+|
+* A copy of the user-added file is created with suffix *.glold*
+
+* The file from updated state replaces the existing one
+|===
+
+.User-modified file within system-path
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|The user-modified file is copied to the updated state and a warning is logged saying that the (equivalent of the) file modified in the previous state is not found in the updated state
+
+|Found and matches the resulting file modified by the user
+|
+None
+
+|Found and is different from the resulting file modified by the user
+|
+* A copy of the user-added file is created with suffix *.glold*
+
+* The file from updated state replaces the existing one
+|===
+
+.User-removed file or directory within system path
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|None
+
+|Found
+|The target is restored to the updated state.
+
+|===
+
+.User-created directory within system path
+[%header,cols="1,1a"]
+|===
+|Target in the updated state |Change applied to the updated state
+
+|Not found
+|The corresponding directory is created in the updated state
+
+|Found
+|None
+
+|===

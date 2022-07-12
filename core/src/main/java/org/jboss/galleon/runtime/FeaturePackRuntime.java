@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,6 +102,10 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
         }
 
         packages = Collections.unmodifiableMap(tmpPackages);
+    }
+
+    public Set<String> getSystemPaths() {
+        return spec.getSystemPaths();
     }
 
     @Override
