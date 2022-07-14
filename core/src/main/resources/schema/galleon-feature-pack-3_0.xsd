@@ -17,8 +17,8 @@
     limitations under the License.
 
 -->
-<xs:schema xmlns="urn:jboss:galleon:feature-pack:2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:jboss:galleon:feature-pack:2.0"
+<xs:schema xmlns="urn:jboss:galleon:feature-pack:3.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:jboss:galleon:feature-pack:3.0"
   version="2.0">
 
   <xs:element name="feature-pack" type="feature-packType" />

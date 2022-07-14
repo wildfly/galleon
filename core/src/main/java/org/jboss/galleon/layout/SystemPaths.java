@@ -28,6 +28,9 @@ public class SystemPaths {
     public SystemPaths(Set<Path> paths) {
         Set<Path> tmp = new HashSet<>();
         for (Path path : paths) {
+            if (path.isAbsolute()) {
+                throw new IllegalArgumentException("Provided system-path must be relative to the installation. " + path);
+            }
             if (tmp.isEmpty()) {
                 tmp.add(path.normalize());
                 continue;
@@ -43,6 +46,10 @@ public class SystemPaths {
     }
 
     public boolean isSystemPath(Path path) {
+        if (path.isAbsolute()) {
+            throw new IllegalArgumentException("Provided system-path must be relative to the installation." + path);
+        }
+
         for (Path p : paths) {
             if (path.normalize().startsWith(p)) {
                 return true;

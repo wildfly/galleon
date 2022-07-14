@@ -29,6 +29,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -283,6 +284,11 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
             switch (attribute) {
                 case PATH:
                     path = reader.getAttributeValue(i);
+                    if (Paths.get(path).isAbsolute()) {
+                        throw new XMLStreamException(ParsingUtils.error(
+                           "The content of 'system-path' element should be a path relative to installation base.",
+                           reader.getLocation()));
+                    }
                     break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);
