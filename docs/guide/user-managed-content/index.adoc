@@ -84,3 +84,73 @@ None
 
 |===
 
+### Protected system files
+
+An installation may contain files and directories that are meant to be managed exclusively by feature-packs and the provisioning tools and not by users. For example, core system libraries of the installation.
+Such paths can be marked as *system-paths* in the `feature-pack.xml`.
+
+If during an update a file matching a feature-pack's *system-path* was found to be modified by a user, the provisioning mechanism will create a copy of the user-modified file adding the *.glold* suffix to it and replace the original one with the file provided by the feature-pack.
+
+.User-added file matching a system-path
+[%header,cols="1,1a"]
+|===
+|Target path in the updated state |Change applied to the target path
+
+|Not found
+|The user-added file is copied to the updated state
+
+|Found and matches the file added by the user
+|
+None
+
+|Found and is different from the file added by the user
+|
+* A copy of the user-added file is created with the *.glold* suffix
+
+* The file from the updated state replaces the existing one
+|===
+
+.User-modified file matching a system-path
+[%header,cols="1,1a"]
+|===
+|Target path in the updated state |Change applied to the target path
+
+|Not found
+|The user-modified file is copied to the updated state and a warning is logged indicating that the (equivalent of the) file modified in the previous state is not found in the updated state
+
+|Found and matches the resulting file modified by the user
+|
+None
+
+|Found and is different from the resulting file modified by the user
+|
+* A copy of the user-added file is created with the *.glold* suffix
+
+* The file from the updated state replaces the existing one
+|===
+
+.User-removed file or directory matching a system-path
+[%header,cols="1,1a"]
+|===
+|Target path in the updated state |Change applied to the target path
+
+|Not found
+|None
+
+|Found
+|The target is restored to the updated state.
+
+|===
+
+.User-created directory matching a system-path
+[%header,cols="1,1a"]
+|===
+|Target path in the updated state |Change applied to the target path
+
+|Not found
+|The corresponding directory is created in the updated state
+
+|Found
+|None
+
+|===

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +44,7 @@ import org.jboss.galleon.util.FeaturePackInstallException;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.util.StringUtils;
+import org.jboss.galleon.layout.SystemPaths;
 import org.jboss.galleon.xml.ProvisionedStateXmlWriter;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
@@ -231,6 +232,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     @Override
     public List<ProvisionedConfig> getConfigs() {
         return configs;
+    }
+
+    public SystemPaths getSystemPaths() {
+        return layout.getSystemPaths();
     }
 
     public void provision() throws ProvisioningException {

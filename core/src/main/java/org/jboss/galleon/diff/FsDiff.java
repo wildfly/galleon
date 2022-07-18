@@ -19,6 +19,7 @@ package org.jboss.galleon.diff;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.HashUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.StringUtils;
+import org.jboss.galleon.layout.SystemPaths;
 
 /**
  *
@@ -69,6 +71,7 @@ public class FsDiff {
     public static final char CONFLICT = 'C'; // for conflict
     public static final char MODIFIED = 'M';
     public static final char REMOVED = '-';
+    public static final char FORCED = 'F';
 
     public static final String CONFLICTS_WITH_THE_UPDATED_VERSION = "conflicts with the updated version";
     public static final String HAS_CHANGED_IN_THE_UPDATED_VERSION = "has changed in the updated version";
@@ -80,7 +83,11 @@ public class FsDiff {
         return new FsDiff(original, other);
     }
 
-    public static Map<String, Boolean> replay(FsDiff diff, Path home, MessageWriter log, boolean printOnlyConflicts) throws ProvisioningException {
+    public static Map<String, Boolean> replay(FsDiff diff,
+                                              Path home,
+                                              MessageWriter log,
+                                              boolean printOnlyConflicts,
+                                              SystemPaths systemPaths) throws ProvisioningException {
         log.print(REPLAYING_CHANGES);
         Map<String, Boolean> undoTasks = Collections.emptyMap();
         if(diff.hasRemovedEntries()) {
@@ -90,10 +97,14 @@ public class FsDiff {
                 }
                 final Path target = home.resolve(removed.getRelativePath());
                 if(Files.exists(target)) {
-                    if (!printOnlyConflicts) {
-                        log.print(formatMessage(REMOVED, removed.getRelativePath(), null));
+                    if (systemPaths.isSystemPath(Paths.get(removed.getRelativePath()))) {
+                        log.print(formatMessage(FORCED, removed.getRelativePath(), HAS_CHANGED_IN_THE_UPDATED_VERSION));
+                    } else {
+                        if (!printOnlyConflicts) {
+                            log.print(formatMessage(REMOVED, removed.getRelativePath(), null));
+                        }
+                        IoUtils.recursiveDelete(target);
                     }
-                    IoUtils.recursiveDelete(target);
                 } else {
                     log.verbose(formatMessage(REMOVED, removed.getRelativePath(), HAS_BEEN_REMOVED_FROM_THE_UPDATED_VERSION));
                     undoTasks = CollectionUtils.putLinked(undoTasks, removed.getRelativePath(), false);
@@ -105,7 +116,7 @@ public class FsDiff {
                 if(added.isDiffStatusSuppressed()) {
                     continue;
                 }
-                undoTasks = addFsEntry(home, added, undoTasks, log, printOnlyConflicts);
+                undoTasks = addFsEntry(home, added, undoTasks, log, printOnlyConflicts, systemPaths);
             }
         }
         if(diff.hasModifiedEntries()) {
@@ -131,8 +142,14 @@ public class FsDiff {
                         undoTasks = CollectionUtils.putLinked(undoTasks, update.getRelativePath(), true);
                     } else if (!Arrays.equals(modified[0].getHash(), targetHash)) {
                         if (modifiedPathUpdated(update)) {
-                            warning = HAS_CHANGED_IN_THE_UPDATED_VERSION;
-                            glnew(target);
+                            if (systemPaths.isSystemPath(Paths.get(update.getRelativePath()))) {
+                                warning = HAS_CHANGED_IN_THE_UPDATED_VERSION;
+                                action = FORCED;
+                                glold(update.getPath(), target);
+                            } else {
+                                warning = HAS_CHANGED_IN_THE_UPDATED_VERSION;
+                                glnew(target);
+                            }
                         } else {
                             action = REPLAY_SKIP;
                         }
@@ -152,7 +169,9 @@ public class FsDiff {
                         log.print(formatMessage(action, update.getRelativePath(), warning));
                     }
                     try {
-                        IoUtils.copy(update.getPath(), target);
+                        if (action != FORCED) {
+                            IoUtils.copy(update.getPath(), target);
+                        }
                     } catch (IOException e) {
                         throw new ProvisioningException(Errors.copyFile(update.getPath(), target), e);
                     }
@@ -162,7 +181,9 @@ public class FsDiff {
         return undoTasks;
     }
 
-    private static Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks, MessageWriter log, boolean printOnlyConflicts) throws ProvisioningException {
+    private static Map<String, Boolean> addFsEntry(Path home, FsEntry added, Map<String, Boolean> undoTasks,
+                                                   MessageWriter log, boolean printOnlyConflicts, SystemPaths systemPaths)
+            throws ProvisioningException {
         final Path target = home.resolve(added.getRelativePath());
         char action = ADDED;
         String warning = null;
@@ -172,7 +193,7 @@ public class FsDiff {
                     if(child.isDiffStatusSuppressed()) {
                         continue;
                     }
-                    undoTasks = addFsEntry(home, child, undoTasks, log, printOnlyConflicts);
+                    undoTasks = addFsEntry(home, child, undoTasks, log, printOnlyConflicts, systemPaths);
                 }
                 return undoTasks;
             }
@@ -192,8 +213,13 @@ public class FsDiff {
                 undoTasks = CollectionUtils.putLinked(undoTasks, added.getRelativePath(), true);
             } else if(addedPathConflict(added) && !added.isDir()) {
                 warning = CONFLICTS_WITH_THE_UPDATED_VERSION;
-                glnew(target);
-                action = CONFLICT;
+                if (systemPaths.isSystemPath(Paths.get(added.getRelativePath()))) {
+                    glold(added.getPath(), target);
+                    action = FORCED;
+                } else {
+                    glnew(target);
+                    action = CONFLICT;
+                }
             }
         }
         if (action != REPLAY_SKIP) {
@@ -201,7 +227,9 @@ public class FsDiff {
                 log.print(formatMessage(action, added.getRelativePath(), warning));
             }
             try {
-                IoUtils.copy(added.getPath(), target);
+                if (action != FORCED) {
+                    IoUtils.copy(added.getPath(), target);
+                }
             } catch (IOException e) {
                 throw new ProvisioningException(Errors.copyFile(added.getPath(), target), e);
             }
@@ -254,6 +282,14 @@ public class FsDiff {
             IoUtils.copy(target, target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW));
         } catch (IOException e) {
             throw new ProvisioningException("Failed to persist " + target.getParent().resolve(target.getFileName() + Constants.DOT_GLNEW), e);
+        }
+    }
+
+    private static void glold(Path generatedFilePath, final Path target) throws ProvisioningException {
+        try {
+            IoUtils.copy(generatedFilePath, target.getParent().resolve(target.getFileName() + Constants.DOT_GLOLD));
+        } catch (IOException e) {
+            throw new ProvisioningException("Failed to persist " + target.getParent().resolve(target.getFileName() + Constants.DOT_GLOLD), e);
         }
     }
 

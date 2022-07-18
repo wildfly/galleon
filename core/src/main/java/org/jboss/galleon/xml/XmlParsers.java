@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,6 +94,7 @@ public class XmlParsers {
         new FeatureConfigXmlParser10().plugin(this);
         new FeatureGroupXmlParser10().plugin(this);
         new FeaturePackXmlParser20().plugin(this);
+        new FeaturePackXmlParser30().plugin(this);
         new FeatureSpecXmlParser10().plugin(this);
         new PackageXmlParser10().plugin(this);
         new PackageXmlParser20().plugin(this);

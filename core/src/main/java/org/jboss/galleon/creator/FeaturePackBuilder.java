@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,6 +218,11 @@ public class FeaturePackBuilder {
 
     public FeaturePackBuilder addPlugin(FeaturePackPlugin plugin) {
         fpBuilder.addPlugin(plugin);
+        return this;
+    }
+
+    public FeaturePackBuilder addSystemPaths(String systemPath) {
+        fpBuilder.addSystemPaths(systemPath);
         return this;
     }
 

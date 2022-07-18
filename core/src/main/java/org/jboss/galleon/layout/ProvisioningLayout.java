@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jboss.galleon.Constants;
@@ -334,6 +336,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private Map<FPID, List<F>> fpPatches = Collections.emptyMap();
     private Map<String, FeaturePackPlugin> pluginLocations = Collections.emptyMap();
     private boolean failOnConvergence;
+    private SystemPaths systemPaths = new SystemPaths(Collections.emptySet());
 
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
@@ -400,6 +403,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.fpFactory = fpFactory;
         this.config = other.config;
         this.options = CollectionUtils.clone(other.options);
+        this.systemPaths = other.systemPaths;
 
         // feature-packs are processed in the reverse order and then re-ordered again
         // this is necessary to properly analyze and include optional package and their external dependencies
@@ -788,6 +792,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         return ordered;
     }
 
+    public SystemPaths getSystemPaths() {
+        return systemPaths;
+    }
+
     public List<F> getPatches(FPID fpid) {
         final List<F> patches = fpPatches.get(fpid);
         return patches == null ? Collections.emptyList() : patches;
@@ -873,6 +881,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         ordered.clear();
         allPatches = Collections.emptyMap();
         fpPatches = Collections.emptyMap();
+        systemPaths = new SystemPaths(Collections.emptySet());
         this.config = config;
         handle.reset();
         build(cleanupTransitive, trackProgress);
@@ -945,6 +954,12 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             config = builder.build();
             resolvedVersions = null;
         }
+
+        Set<String> allSystemPaths = new HashSet<>();
+        for (F f : ordered) {
+            allSystemPaths.addAll(f.getSpec().getSystemPaths());
+        }
+        systemPaths = new SystemPaths(allSystemPaths.stream().map(Paths::get).collect(Collectors.toSet()));
 
         // apply patches
         if(!fpPatches.isEmpty()) {

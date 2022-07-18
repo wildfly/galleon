@@ -23,6 +23,7 @@ package org.jboss.galleon;
 public interface Constants {
 
     String DOT_GLNEW = ".glnew";
+    String DOT_GLOLD = ".glold";
     String DOT_XML = ".xml";
     String CONFIGS = "configs";
     String CONFIG_XML = "config.xml";
