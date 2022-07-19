@@ -1253,6 +1253,11 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 .initConfigs(fpSpec);
         rebuilder.addDefaultPackages(fpSpec.getDefaultPackageNames());
         rebuilder.setPatchFor(fpSpec.getPatchFor());
+        if (fpSpec.hasSystemPaths()) {
+            for (String systemPath : fpSpec.getSystemPaths()) {
+                rebuilder.addSystemPaths(systemPath);
+            }
+        }
         if(fpSpec.hasPlugins()) {
             for(Map.Entry<String, FeaturePackPlugin> entry : fpSpec.getPlugins().entrySet()) {
                 rebuilder.addPlugin(entry.getValue());
