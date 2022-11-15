@@ -49,13 +49,19 @@ public class ProvisioningOption {
             .setBooleanValueSet()
             .build();
 
+    public static final ProvisioningOption STORE_INPUT_PROVISIONING_CONFIG = ProvisioningOption.builder(Constants.STORE_INPUT_PROVISIONING_CONFIG)
+            .setDefaultValue(Constants.FALSE)
+            .setBooleanValueSet()
+            .build();
+
     public static final ProvisioningOption PRINT_ONLY_CONFLICTS = ProvisioningOption.builder(Constants.PRINT_ONLY_CONFLICTS)
            .setDefaultValue(Constants.TRUE)
            .setBooleanValueSet()
            .build();
 
     private static final List<ProvisioningOption> stdOptions = Arrays
-            .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE, PRINT_ONLY_CONFLICTS});
+            .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE, PRINT_ONLY_CONFLICTS,
+                STORE_INPUT_PROVISIONING_CONFIG});
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

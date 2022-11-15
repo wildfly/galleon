@@ -71,6 +71,8 @@ public interface Constants {
     // OPTIONS
     String IGNORE_NOT_EXCLUDED_LAYERS = "ignore-not-excluded-layers";
 
+    String STORE_INPUT_PROVISIONING_CONFIG = "store-input-provisioning-config";
+
     String OPTIONAL_PACKAGES = "optional-packages";
     String ALL = "all";
     String NONE = "none";

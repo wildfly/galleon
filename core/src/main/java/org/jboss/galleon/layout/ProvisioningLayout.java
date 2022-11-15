@@ -324,6 +324,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private final FeaturePackLayoutFactory<F> fpFactory;
     private final Handle handle;
     private ProvisioningConfig config;
+    private final ProvisioningConfig originalConfig;
     private Map<String, String> options = Collections.emptyMap();
 
     private Map<ProducerSpec, FeaturePackLocation> resolvedVersions;
@@ -346,6 +347,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.layoutFactory = layoutFactory;
         this.fpFactory = fpFactory;
         this.config = config;
+        this.originalConfig = config;
         this.handle = layoutFactory.createHandle();
         if(config.hasFeaturePackDeps()) {
             initBuiltInOptions(config, Collections.emptyMap());
@@ -366,6 +368,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.layoutFactory = layoutFactory;
         this.fpFactory = fpFactory;
         this.config = config;
+        this.originalConfig = config;
         this.handle = layoutFactory.createHandle();
         if(config.hasFeaturePackDeps()) {
             initBuiltInOptions(config, extraOptions);
@@ -402,6 +405,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         this.layoutFactory = other.layoutFactory;
         this.fpFactory = fpFactory;
         this.config = other.config;
+        this.originalConfig = other.originalConfig;
         this.options = CollectionUtils.clone(other.options);
         this.systemPaths = other.systemPaths;
 
@@ -786,6 +790,16 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             }
         }
         return p;
+    }
+
+    public ProvisioningConfig getOriginalConfig() throws ProvisioningDescriptionException {
+        // Use the options that have been set in the rewritten config
+       ProvisioningConfig.Builder builder = ProvisioningConfig.builder(originalConfig);
+       for (String opt : originalConfig.getOptions().keySet()) {
+           builder.removeOption(opt);
+       }
+       builder.addOptions(config.getOptions());
+       return builder.build();
     }
 
     public List<F> getOrderedFeaturePacks() {
