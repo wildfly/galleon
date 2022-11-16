@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
+import org.jboss.galleon.Constants;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
@@ -272,7 +273,9 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         if(recordState) {
             // save the config
             try {
-                ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(stagedDir));
+                ProvisioningConfig cfg = Boolean.parseBoolean(config.getOption(Constants.STORE_INPUT_PROVISIONING_CONFIG)) ?
+                        layout.getOriginalConfig() : config;
+                ProvisioningXmlWriter.getInstance().write(cfg, PathsUtils.getProvisioningXml(stagedDir));
             } catch (XMLStreamException | IOException e) {
                 throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisioningXml(stagedDir)), e);
             }
