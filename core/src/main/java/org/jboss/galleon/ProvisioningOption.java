@@ -54,6 +54,12 @@ public class ProvisioningOption {
             .setBooleanValueSet()
             .build();
 
+    public static final ProvisioningOption EXPORT_SYSTEM_PATHS = ProvisioningOption.builder(Constants.EXPORT_SYSTEM_PATHS)
+            .setDefaultValue(Constants.FALSE)
+            .setBooleanValueSet()
+            .setPersistent(false)
+            .build();
+
     public static final ProvisioningOption PRINT_ONLY_CONFLICTS = ProvisioningOption.builder(Constants.PRINT_ONLY_CONFLICTS)
            .setDefaultValue(Constants.TRUE)
            .setBooleanValueSet()
@@ -61,7 +67,7 @@ public class ProvisioningOption {
 
     private static final List<ProvisioningOption> stdOptions = Arrays
             .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE, PRINT_ONLY_CONFLICTS,
-                STORE_INPUT_PROVISIONING_CONFIG});
+                STORE_INPUT_PROVISIONING_CONFIG, EXPORT_SYSTEM_PATHS});
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

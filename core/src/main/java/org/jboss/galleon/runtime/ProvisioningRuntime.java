@@ -287,7 +287,14 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                 throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
             }
         }
-
+        boolean exportPath = Boolean.parseBoolean(layout.getOptionValue(Constants.EXPORT_SYSTEM_PATHS));
+        if (exportPath) {
+            try {
+                layout.getSystemPaths().store(stagedDir);
+            } catch (IOException ex) {
+                throw new ProvisioningException(ex);
+            }
+        }
         emptyStagedDir = null;
     }
 
