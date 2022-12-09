@@ -452,6 +452,7 @@ limitations under the License.</inlineHeader>
             <exclude>**/help/*.txt</exclude>
             <exclude>**/pom.xml.releaseBackup</exclude>
             <exclude>**/pom.xml.tag</exclude>
+            <exclude>CODEOWNERS</exclude>
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>
