@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+# Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
 # and other contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,9 +76,9 @@ JAVA_OPTS="$JAVA_OPTS $DEFAULT_MODULAR_JVM_OPTIONS"
 if [[ -n $RUN ]]; then
   LOG_CONF=`echo $JAVA_OPTS | grep "logging.configuration"`
   if [ "x$LOG_CONF" = "x" ]; then
-    java $JAVA_OPTS -Dlogging.configuration=file:"./content/bin/galleon-cli-logging.properties" -jar ./cli/target/galleon-cli-4.2.9.Final-SNAPSHOT.jar $ARGS
+    java $JAVA_OPTS -Dlogging.configuration=file:"./content/bin/galleon-cli-logging.properties" -jar ./cli/target/galleon-cli-4.2.9.Final.jar $ARGS
   else
     echo "logging.configuration already set in JAVA_OPTS"
-    java $JAVA_OPTS -jar ./cli/target/galleon-cli-4.2.9.Final-SNAPSHOT.jar $ARGS
+    java $JAVA_OPTS -jar ./cli/target/galleon-cli-4.2.9.Final.jar $ARGS
   fi
 fi
