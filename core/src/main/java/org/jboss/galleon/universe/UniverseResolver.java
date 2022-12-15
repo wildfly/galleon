@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,7 @@ public class UniverseResolver {
     private Map<UniverseSpec, Universe<?>> resolvedUniverses = Collections.emptyMap();
     private final Map<FeaturePackLocation.FPID, Path> localFeaturePacks;
 
-    UniverseResolver(UniverseResolverBuilder<?> builder) throws ProvisioningException {
+    protected UniverseResolver(UniverseResolverBuilder<?> builder) throws ProvisioningException {
         this.ufl = builder.getUfl();
         this.localFeaturePacks = builder.getLocalFeaturePacks();
     }

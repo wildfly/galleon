@@ -73,6 +73,8 @@ public interface Constants {
 
     String STORE_INPUT_PROVISIONING_CONFIG = "store-input-provisioning-config";
 
+    String EXPORT_SYSTEM_PATHS = "export-system-paths";
+
     String OPTIONAL_PACKAGES = "optional-packages";
     String ALL = "all";
     String NONE = "none";

@@ -16,12 +16,19 @@
  */
 package org.jboss.galleon.layout;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jboss.galleon.util.PathsUtils;
 
 public class SystemPaths {
+    public static final String SYSTEM_PATHS_FILE = "systempaths.txt";
 
     private final Set<Path> paths;
 
@@ -43,6 +50,31 @@ public class SystemPaths {
             }
         }
         this.paths = tmp;
+    }
+
+    public static SystemPaths load(Path installationDir) throws IOException {
+        Path p = PathsUtils.getProvisionedStateDir(installationDir).resolve(SYSTEM_PATHS_FILE);
+        Set<Path> paths = new HashSet<>();
+        if (Files.exists(p)) {
+            List<String> lst = Files.readAllLines(p);
+            for(String path : lst) {
+                paths.add(Paths.get(path));
+            }
+        }
+        return new SystemPaths(paths);
+    }
+
+    public void store(Path installDir) throws IOException {
+        Path pathsFile = PathsUtils.getProvisionedStateDir(installDir).resolve(SYSTEM_PATHS_FILE);
+        StringBuilder builder = new StringBuilder();
+        for (Path p : getPaths()) {
+            builder.append(p.toString()).append(System.lineSeparator());
+        }
+        Files.write(pathsFile, builder.toString().getBytes());
+    }
+
+    public Set<Path> getPaths() {
+        return Collections.unmodifiableSet(paths);
     }
 
     public boolean isSystemPath(Path path) {
