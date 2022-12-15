@@ -75,14 +75,17 @@
     <version.org.aesh>2.0</version.org.aesh>
     <version.org.aesh-extensions>1.7</version.org.aesh-extensions>
     <version.org.apache.maven>3.3.1</version.org.apache.maven>
+    <version.org.apache.maven.maven-artifact>3.5.2</version.org.apache.maven.maven-artifact>
     <version.org.apache.maven.plugin-tools>${version.plugin.plugin}</version.org.apache.maven.plugin-tools>
     <version.org.apache.maven.plugins.maven-shade-plugin>3.1.0</version.org.apache.maven.plugins.maven-shade-plugin>
+    <version.org.apache.maven.shared>0.9.1</version.org.apache.maven.shared>
     <version.org.codehaus.mojo.xml-maven-plugin>1.0.1</version.org.codehaus.mojo.xml-maven-plugin>
     <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
     <version.org.jboss.logging>3.3.1.Final</version.org.jboss.logging>
     <version.org.jboss.logmanager>2.0.6.Final</version.org.jboss.logmanager>
     <version.org.jboss.staxmapper>1.1.0.Final</version.org.jboss.staxmapper>
-    <version.plugin.plugin>3.6.4</version.plugin.plugin>
+    <version.org.codehaus.plexus.plexus-utils>3.0.24</version.org.codehaus.plexus.plexus-utils>
+    <version.plugin.plugin>3.7.0</version.plugin.plugin>
 
     <!-- sfl4j is brought in by eclipse aether and version needs to be overridden. Currently only used in tool module -->
     <version.org.slf4j>1.7.21</version.org.slf4j>
@@ -207,20 +210,6 @@
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-core</artifactId>
         <version>${version.org.apache.maven}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-model</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-model-builder</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-repository-metadata</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <dependency>
@@ -233,14 +222,30 @@
         <groupId>org.apache.maven.plugin-tools</groupId>
         <artifactId>maven-plugin-annotations</artifactId>
         <version>${version.org.apache.maven.plugin-tools}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-artifact</artifactId>
+        <version>${version.org.apache.maven.maven-artifact}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-artifact-transfer</artifactId>
+        <version>${version.org.apache.maven.shared}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-artifact</artifactId>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
-
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-utils</artifactId>
+        <version>${version.org.codehaus.plexus.plexus-utils}</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
