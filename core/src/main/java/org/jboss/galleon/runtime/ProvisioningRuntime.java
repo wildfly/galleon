@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -286,13 +286,14 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
             } catch (XMLStreamException | IOException e) {
                 throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
             }
-        }
-        boolean exportPath = Boolean.parseBoolean(layout.getOptionValue(Constants.EXPORT_SYSTEM_PATHS));
-        if (exportPath) {
-            try {
-                layout.getSystemPaths().store(stagedDir);
-            } catch (IOException ex) {
-                throw new ProvisioningException(ex);
+
+            boolean exportPath = Boolean.parseBoolean(layout.getOptionValue(Constants.EXPORT_SYSTEM_PATHS));
+            if (exportPath) {
+                try {
+                    layout.getSystemPaths().store(stagedDir);
+                } catch (IOException ex) {
+                    throw new ProvisioningException(ex);
+                }
             }
         }
         emptyStagedDir = null;
