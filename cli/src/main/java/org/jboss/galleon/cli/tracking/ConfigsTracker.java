@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,18 @@ import org.jboss.galleon.state.ProvisionedConfig;
  */
 public class ConfigsTracker extends CliProgressTracker<ProvisionedConfig> {
 
+    static final String DELAYED_EXECUTION_MSG = "Delayed generation, waiting...";
+
     public ConfigsTracker(PmSession session) {
         super(session, "Generating configuration", "Configurations generated.");
     }
 
     @Override
     protected String processingContent(ProgressTracker<ProvisionedConfig> tracker) {
+        if(tracker.getItem() == null) {
+            // Delayed use case
+            return DELAYED_EXECUTION_MSG;
+        }
         return tracker.getItem().getModel() + "/" + tracker.getItem().getName();
     }
 
