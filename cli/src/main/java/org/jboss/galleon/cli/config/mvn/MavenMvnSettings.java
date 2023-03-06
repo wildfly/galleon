@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,65 +129,72 @@ class MavenMvnSettings implements MavenSettings {
         Map<String, RemoteRepository> repos = new LinkedHashMap<>();
         List<RemoteRepository> repositories = new ArrayList<>();
         Set<String> urls = new HashSet<>();
-        for (String profileName : settings.getActiveProfiles()) {
-            Profile profile = profiles.get(profileName);
-            if (profile == null) {
-                throw new ArtifactException("Unknown profile " + profileName);
-            }
-            List<Repository> mavenRepositories = profile.getRepositories();
-            for (Repository repo : mavenRepositories) {
-                repos.put(repo.getId(), buildRepository(repo.getId(), repo.getLayout(),
-                        repo.getUrl(), settings, repo.getReleases(), repo.getSnapshots(), null));
-                urls.add(repo.getUrl());
-            }
-            // Mirrors are hidding actual repo.
-            for (Mirror mirror : settings.getMirrors()) {
-                String[] patterns = mirror.getMirrorOf().split(",");
-                List<RemoteRepository> mirrored = new ArrayList<>();
-                boolean all = false;
-                List<String> excluded = new ArrayList<>();
-                for (String p : patterns) {
-                    p = p.trim();
-                    if (ALL.equals(p)) {
-                        all = true;
-                    } else if (p.startsWith(NOT)) {
-                        excluded.add(p.substring(NOT.length()));
-                    }
+        for (Profile profile : settings.getProfiles()) {
+            if ((profile.getActivation() != null && profile.getActivation().isActiveByDefault()) || settings.getActiveProfiles().contains(profile.getId())) {
+                List<Repository> mavenRepositories = profile.getRepositories();
+                for (Repository repo : mavenRepositories) {
+                    repos.put(repo.getId(), buildRepository(repo.getId(), repo.getLayout(),
+                            repo.getUrl(), settings, repo.getReleases(), repo.getSnapshots(), null));
+                    urls.add(repo.getUrl());
                 }
-                if (all) {
-                    // Add all except the excluded ones.
-                    List<String> safeKeys = new ArrayList<>(repos.keySet());
-                    for (String k : safeKeys) {
-                        if (!excluded.contains(k)) {
-                            mirrored.add(repos.remove(k));
-                        }
-                    }
-                } else {
-                    for (String p : patterns) {
-                        p = p.trim();
-                        if (p.startsWith(EXTERNAL)) {
-                            CliLogging.log.warn("external:* mirroring is not supported, "
-                                    + "skipping configuration item");
-                            continue;
-                        }
-                        RemoteRepository m = repos.get(p);
-                        if (m != null) {
-                            // Remove from the initial map, it is hidden by mirror
-                            mirrored.add(repos.remove(p));
-                        }
-                    }
-                }
-                if (!mirrored.isEmpty()) { // We have an active mirror
-                    repositories.add(buildRepository(mirror.getId(),
-                            mirror.getLayout(), mirror.getUrl(), settings, null, null, mirrored));
-                }
-            }
-            // Then the remaining repositories
-            for (Entry<String, RemoteRepository> entry : repos.entrySet()) {
-                repositories.add(entry.getValue());
             }
         }
-        repositories.addAll(config.getMissingDefaultRepositories(urls, proxySelector, proxy));
+        List<RemoteRepository> defaultRepositories = config.getMissingDefaultRepositories(urls, proxySelector, proxy);
+        for (RemoteRepository r : defaultRepositories) {
+            repos.put(r.getId(), r);
+        }
+        repositories.addAll(handleMirroring(settings, repos));
+        // Then the remaining repositories
+        for (Entry<String, RemoteRepository> entry : repos.entrySet()) {
+            repositories.add(entry.getValue());
+        }
+        return repositories;
+    }
+
+    private List<RemoteRepository> handleMirroring(Settings settings, Map<String, RemoteRepository> repos) throws MalformedURLException {
+        List<RemoteRepository> repositories = new ArrayList<>();
+        // Mirrors are hidding actual repo.
+        for (Mirror mirror : settings.getMirrors()) {
+            String[] patterns = mirror.getMirrorOf().split(",");
+            List<RemoteRepository> mirrored = new ArrayList<>();
+            boolean all = false;
+            List<String> excluded = new ArrayList<>();
+            for (String p : patterns) {
+                p = p.trim();
+                if (ALL.equals(p)) {
+                    all = true;
+                } else if (p.startsWith(NOT)) {
+                    excluded.add(p.substring(NOT.length()));
+                }
+            }
+            if (all) {
+                // Add all except the excluded ones.
+                List<String> safeKeys = new ArrayList<>(repos.keySet());
+                for (String k : safeKeys) {
+                    if (!excluded.contains(k)) {
+                        mirrored.add(repos.remove(k));
+                    }
+                }
+            } else {
+                for (String p : patterns) {
+                    p = p.trim();
+                    if (p.startsWith(EXTERNAL)) {
+                        CliLogging.log.warn("external:* mirroring is not supported, "
+                                + "skipping configuration item");
+                        continue;
+                    }
+                    RemoteRepository m = repos.get(p);
+                    if (m != null) {
+                        // Remove from the initial map, it is hidden by mirror
+                        mirrored.add(repos.remove(p));
+                    }
+                }
+            }
+            if (!mirrored.isEmpty()) { // We have an active mirror
+                repositories.add(buildRepository(mirror.getId(),
+                        mirror.getLayout(), mirror.getUrl(), settings, null, null, mirrored));
+            }
+        }
         return repositories;
     }
 

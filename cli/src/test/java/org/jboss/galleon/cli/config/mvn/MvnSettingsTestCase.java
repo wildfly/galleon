@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,7 +133,7 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(5, settings.getRepositories().size());
+        assertEquals(2, settings.getRepositories().size());
         boolean seen3 = false;
         boolean seenMirror = false;
         for (RemoteRepository remote : settings.getRepositories()) {
@@ -143,7 +143,7 @@ public class MvnSettingsTestCase {
             if (remote.getId().equals("mirror1")) {
                 assertTrue(remote.getUrl().equals("http://mirror1"));
                 seenMirror = true;
-                assertEquals(remote.getMirroredRepositories().size(), 2);
+                assertEquals(5, remote.getMirroredRepositories().size());
                 boolean seen1 = false;
                 boolean seen2 = false;
                 for (RemoteRepository mirrored : remote.getMirroredRepositories()) {
@@ -173,14 +173,14 @@ public class MvnSettingsTestCase {
         Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
         config.setSettings(tmp.toPath());
         MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
-        assertEquals(4, settings.getRepositories().size());
+        assertEquals(1, settings.getRepositories().size());
 
         boolean seenMirror = false;
         for (RemoteRepository remote : settings.getRepositories()) {
             if (remote.getId().equals("mirror1")) {
                 assertTrue(remote.getUrl().equals("http://mirror1"));
                 seenMirror = true;
-                assertEquals(remote.getMirroredRepositories().size(), 3);
+                assertEquals(6, remote.getMirroredRepositories().size());
                 boolean seen1 = false;
                 boolean seen2 = false;
                 boolean seen3 = false;
@@ -199,6 +199,48 @@ public class MvnSettingsTestCase {
                     }
                 }
                 assertTrue(seen1 && seen2 && seen3);
+            }
+        }
+        assertTrue(seenMirror);
+    }
+
+    @Test
+    public void testMirrorAllDefault() throws Exception {
+        RepositorySystem system = Util.newRepositorySystem();
+        MavenConfig config = new MavenConfig();
+        InputStream stream = MvnSettingsTestCase.class.getClassLoader().
+                getResourceAsStream("settings_cli_test_mirror_all_default.xml");
+        File tmp = File.createTempFile("cli_mvn_test", null);
+        tmp.deleteOnExit();
+        Files.copy(stream, tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        config.setSettings(tmp.toPath());
+        MavenMvnSettings settings = new MavenMvnSettings(config, system, null);
+        assertEquals(1, settings.getRepositories().size());
+
+        boolean seenMirror = false;
+        for (RemoteRepository remote : settings.getRepositories()) {
+            if (remote.getId().equals("mirror1")) {
+                assertTrue(remote.getUrl().equals("http://mirror1"));
+                seenMirror = true;
+                assertEquals(3, remote.getMirroredRepositories().size());
+                boolean seenGA = false;
+                boolean seenNexus = false;
+                boolean seenCentral = false;
+                for (RemoteRepository mirrored : remote.getMirroredRepositories()) {
+                    if (mirrored.getId().equals("maven-central")) {
+                        seenCentral = true;
+                        assertTrue(mirrored.getUrl(), mirrored.getUrl().equals("https://repo1.maven.org/maven2/"));
+                    }
+                    if (mirrored.getId().equals("jboss-public-repository-group")) {
+                        seenNexus = true;
+                        assertTrue(mirrored.getUrl(), mirrored.getUrl().equals("https://repository.jboss.org/nexus/content/groups/public/"));
+                    }
+                    if (mirrored.getId().equals("jboss-ga")) {
+                        seenGA = true;
+                        assertTrue(mirrored.getUrl(), mirrored.getUrl().equals("https://maven.repository.redhat.com/ga/"));
+                    }
+                }
+                assertTrue(seenGA && seenNexus && seenCentral);
             }
         }
         assertTrue(seenMirror);
