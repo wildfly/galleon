@@ -15,6 +15,14 @@ NB: Advanced mirroring (eg: _external:*_) is not supported. +
 NB: Any other cli maven configuration items will be overridden when a settings xml file is set. +
 NB: If no local repository is set in settings file, the local repository (default or configured) is used.
 
+The following default repositories are enabled if not already present in the enabled profiles:
+
+* `maven-central`: `https://repo1.maven.org/maven2/`
+* `jboss-public-repository-group`: `https://repository.jboss.org/nexus/content/groups/public/`
+* `jboss-ga`: `https://maven.repository.redhat.com/ga/`
+
+NB: These default repositories can be mirrored by using their ids.
+
 ### Adding new remote repositories
 Use the following command to add new remote repositories: +
 _maven add-repository --name=myrepo --url=http://foorepo [--release-update-policy=<policy>] 
