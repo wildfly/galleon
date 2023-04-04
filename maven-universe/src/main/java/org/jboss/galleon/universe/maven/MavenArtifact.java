@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,9 @@
 package org.jboss.galleon.universe.maven;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
@@ -93,6 +96,7 @@ public class MavenArtifact {
     private String extension = EXT_JAR;
     private String versionRange;
     private Path path;
+    private Map<String, String> metadata = Collections.emptyMap();
 
     public MavenArtifact() {
     }
@@ -201,6 +205,18 @@ public class MavenArtifact {
             buf.append(':').append(classifier);
         }
         return buf.append(':').append(v).toString();
+    }
+
+    public void addMetadata(String key, String value) {
+        metadata = CollectionUtils.put(metadata, key, value);
+    }
+
+    public void removeMetadata(String key) {
+        metadata = CollectionUtils.remove(metadata, key);
+    }
+
+    public Map<String, String> getMetadata() {
+        return CollectionUtils.unmodifiable(metadata);
     }
 
     @Override
