@@ -646,7 +646,7 @@ public class ProvisioningManager implements AutoCloseable {
             runtime.provision();
             if(recordState) {
                 if (runtime.getProvisioningConfig().hasFeaturePackDeps()) {
-                    persistHashes(runtime);
+                    persistHashes(runtime.getStagedDir());
                 }
                 if (undo) {
                     final Map<String, Boolean> undoTasks = StateHistoryUtils.readUndoTasks(home, log);
@@ -828,11 +828,11 @@ public class ProvisioningManager implements AutoCloseable {
         return FsEntryFactory.getInstance().filterGalleonPaths();
     }
 
-    private void persistHashes(ProvisioningRuntime runtime) throws ProvisioningException {
+    public void persistHashes(Path serverDir) throws ProvisioningException {
         final long startTime = log.isVerboseEnabled() ? System.nanoTime() : -1;
-        final FsEntry root = getDefaultFsEntryFactory().forPath(runtime.getStagedDir());
+        final FsEntry root = getDefaultFsEntryFactory().forPath(serverDir);
         if (root.hasChildren()) {
-            final Path hashes = LayoutUtils.getHashesDir(runtime.getStagedDir());
+            final Path hashes = LayoutUtils.getHashesDir(serverDir);
             try {
                 Files.createDirectories(hashes);
             } catch (IOException e) {
