@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,12 +32,14 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
 import org.jboss.galleon.xml.ConfigLayerSpecXmlParser;
+import org.jboss.galleon.xml.ConfigXmlParser;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
@@ -154,6 +156,19 @@ public abstract class FeaturePackLayout {
             return ConfigLayerSpecXmlParser.getInstance().parse(reader);
         } catch (Exception e) {
             throw new ProvisioningDescriptionException(Errors.parseXml(specXml), e);
+        }
+    }
+
+    public ConfigModel loadModel(String model) throws ProvisioningException {
+        final Path modelXml;
+            modelXml = getDir().resolve(Constants.CONFIGS).resolve(model).resolve(Constants.MODEL_XML);
+        if (!Files.exists(modelXml)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(modelXml)) {
+            return ConfigXmlParser.getInstance().parse(reader);
+        } catch (Exception e) {
+            throw new ProvisioningDescriptionException(Errors.parseXml(modelXml), e);
         }
     }
 

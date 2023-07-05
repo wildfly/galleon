@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,6 +90,7 @@ public class XmlParsers {
     private XmlParsers() {
         mapper = XMLMapper.Factory.create();
         new ConfigLayerXmlParser10().plugin(this);
+        new ConfigLayerXmlParser20().plugin(this);
         new ConfigXmlParser10().plugin(this);
         new FeatureConfigXmlParser10().plugin(this);
         new FeatureGroupXmlParser10().plugin(this);

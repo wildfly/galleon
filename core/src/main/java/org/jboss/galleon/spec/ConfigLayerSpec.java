@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
 
         private String model;
         private Map<String, ConfigLayerDependency> layerDeps = Collections.emptyMap();
+        private Map<String, String> props = Collections.emptyMap();
 
         protected Builder() {
             super();
@@ -61,6 +62,11 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
             return this;
         }
 
+        public Builder setProperty(String name, String value) {
+            props = CollectionUtils.put(props, name, value);
+            return this;
+        }
+
         public ConfigLayerSpec build() throws ProvisioningDescriptionException {
             return new ConfigLayerSpec(this);
         }
@@ -76,11 +82,12 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
 
     private final ConfigId id;
     private final Map<String, ConfigLayerDependency> layerDeps;
-
+    private final Map<String, String> props;
     protected ConfigLayerSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
         this.id = new ConfigId(builder.model, builder.getName());
         layerDeps = CollectionUtils.unmodifiable(builder.layerDeps);
+        props = CollectionUtils.unmodifiable(builder.props);
     }
 
     @Override
@@ -90,6 +97,10 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
 
     public String getModel() {
         return id.getModel();
+    }
+
+    public Map<String, String> getProperties() {
+        return props;
     }
 
     @Override
