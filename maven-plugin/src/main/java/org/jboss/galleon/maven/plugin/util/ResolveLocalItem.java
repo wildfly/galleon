@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,14 +19,14 @@ package org.jboss.galleon.maven.plugin.util;
 import java.io.File;
 import java.nio.file.Path;
 
-import org.apache.maven.shared.artifact.ArtifactCoordinate;
+import org.jboss.galleon.api.GalleonArtifactCoordinate;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 
 /**
  * Represents the information of each item inside of resolve-locals configuration param for
  * provisioning plugin.
  */
-public class ResolveLocalItem implements ArtifactCoordinate {
+public class ResolveLocalItem implements GalleonArtifactCoordinate {
     private Path path;
 
     private String groupId;

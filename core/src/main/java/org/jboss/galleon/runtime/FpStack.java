@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import org.jboss.galleon.config.ConfigId;
 
 import org.jboss.galleon.config.ConfigCustomizations;
-import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;

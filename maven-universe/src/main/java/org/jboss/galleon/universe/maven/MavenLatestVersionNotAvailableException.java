@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 package org.jboss.galleon.universe.maven;
 
+import org.jboss.galleon.universe.FeaturePackLocation;
+
 /**
  *
  * @author Alexey Loubyansky
@@ -27,10 +29,22 @@ public class MavenLatestVersionNotAvailableException extends MavenUniverseExcept
      */
     private static final long serialVersionUID = 1L;
 
+    private final FeaturePackLocation fpl;
+
     /**
      *
      */
     public MavenLatestVersionNotAvailableException(String message) {
         super(message);
+        fpl = null;
+    }
+
+    public MavenLatestVersionNotAvailableException(String message, FeaturePackLocation fpl) {
+        super(message);
+        this.fpl = fpl;
+    }
+
+    public FeaturePackLocation getLocation() {
+        return fpl;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.Errors;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
@@ -118,7 +118,7 @@ public class FeaturePackDepsConfig extends ConfigCustomizations {
     public FeaturePackConfig getFeaturePackDep(String origin) throws ProvisioningDescriptionException {
         final FeaturePackConfig fpDep = fpDepsByOrigin.get(origin);
         if(fpDep == null) {
-            throw new ProvisioningDescriptionException(Errors.unknownFeaturePackDependencyName(origin));
+            throw new ProvisioningDescriptionException(BaseErrors.unknownFeaturePackDependencyName(origin));
         }
         return fpDep;
     }

@@ -41,7 +41,7 @@
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>galleon-core</artifactId>
+      <artifactId>galleon-common-api</artifactId>
     </dependency>
 
     <dependency>

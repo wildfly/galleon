@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.api.GalleonLayer;
+import org.jboss.galleon.api.GalleonLayerDependency;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.config.FeatureGroupBuilderSupport;
@@ -32,12 +34,12 @@ import org.jboss.galleon.util.StringUtils;
  *
  * @author Alexey Loubyansky
  */
-public class ConfigLayerSpec extends FeatureGroupSupport {
+public class ConfigLayerSpec extends FeatureGroupSupport implements GalleonLayer {
 
     public static class Builder extends FeatureGroupBuilderSupport<Builder> {
 
         private String model;
-        private Map<String, ConfigLayerDependency> layerDeps = Collections.emptyMap();
+        private Map<String, GalleonLayerDependency> layerDeps = Collections.emptyMap();
         private Map<String, String> props = Collections.emptyMap();
 
         protected Builder() {
@@ -81,7 +83,7 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
     }
 
     private final ConfigId id;
-    private final Map<String, ConfigLayerDependency> layerDeps;
+    private final Map<String, GalleonLayerDependency> layerDeps;
     private final Map<String, String> props;
     protected ConfigLayerSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -99,6 +101,7 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
         return id.getModel();
     }
 
+    @Override
     public Map<String, String> getProperties() {
         return props;
     }
@@ -112,7 +115,7 @@ public class ConfigLayerSpec extends FeatureGroupSupport {
         return !layerDeps.isEmpty();
     }
 
-    public Collection<ConfigLayerDependency> getLayerDeps() {
+    public Collection<GalleonLayerDependency> getLayerDeps() {
         return layerDeps.values();
     }
 

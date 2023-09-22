@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -143,7 +144,7 @@ public class FeaturePackCreator extends UniverseResolverBuilder<FeaturePackCreat
         try {
             return Files.createDirectories(getWorkDir().resolve(BUILD));
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.mkdirs(getWorkDir().resolve(BUILD)));
+            throw new ProvisioningException(BaseErrors.mkdirs(getWorkDir().resolve(BUILD)));
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.UnsatisfiedPackageDependencyException;
+import org.jboss.galleon.api.GalleonLayerDependency;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigItem;
 import org.jboss.galleon.config.ConfigItemContainer;
@@ -46,7 +47,6 @@ import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.layout.FeaturePackLayoutFactory;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.layout.ProvisioningLayoutFactory;
-import org.jboss.galleon.spec.ConfigLayerDependency;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureId;
@@ -470,7 +470,7 @@ public class ProvisioningRuntimeBuilder {
         }
         final ConfigModelStack layerStack = resolveConfigLayer(layerId);
         if(layerStack.hasLayerDeps()) {
-            for(ConfigLayerDependency layerDep : layerStack.getLayerDeps()) {
+            for(GalleonLayerDependency layerDep : layerStack.getLayerDeps()) {
                 if(configStack.isLayerExcluded(layerDep.getName())) {
                     if(layerDep.isOptional()) {
                         continue;
@@ -542,7 +542,7 @@ public class ProvisioningRuntimeBuilder {
         }
         final ConfigLayerSpec layer = (ConfigLayerSpec) fg;
         if(layer.hasLayerDeps()) {
-            for(ConfigLayerDependency dep : layer.getLayerDeps()) {
+            for(GalleonLayerDependency dep : layer.getLayerDeps()) {
                 layerStack.addLayerDep(dep);
             }
         }

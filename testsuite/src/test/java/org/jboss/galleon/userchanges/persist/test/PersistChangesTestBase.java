@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.Constants;
-import org.jboss.galleon.Errors;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.state.ProvisionedConfig;
@@ -108,7 +108,7 @@ public abstract class PersistChangesTestBase extends UserChangesTestBase {
         try {
             Files.createDirectories(p.getParent());
         } catch (IOException e1) {
-            throw new ProvisioningException(Errors.mkdirs(p.getParent()), e1);
+            throw new ProvisioningException(BaseErrors.mkdirs(p.getParent()), e1);
         }
         try(BufferedWriter writer = Files.newBufferedWriter(p)) {
             ProvisionedConfigXmlWriter.getInstance().write(config, writer);

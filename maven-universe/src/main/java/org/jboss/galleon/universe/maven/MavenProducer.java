@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,6 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.universe.maven.xml.MavenChannelSpecXmlParser;
 import org.jboss.galleon.universe.maven.xml.MavenParsedProducerCallbackHandler;
@@ -39,6 +38,7 @@ import org.jboss.galleon.universe.maven.xml.MavenProducerXmlParser;
 import org.jboss.galleon.universe.maven.xml.ParsedCallbackHandler;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.BaseErrors;
 
 /**
  *
@@ -213,7 +213,7 @@ public class MavenProducer extends MavenProducerBase {
                 if(channels.size() == 1) {
                     return channels.iterator().next();
                 }
-                throw new MavenUniverseException(Errors.defaultChannelNotConfigured(getName()));
+                throw new MavenUniverseException(BaseErrors.defaultChannelNotConfigured(getName()));
             }
         }
         if(!hasChannel(channelName)) {

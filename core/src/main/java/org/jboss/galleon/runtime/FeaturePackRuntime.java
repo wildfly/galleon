@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +31,14 @@ import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.state.FeaturePack;
+import org.jboss.galleon.api.GalleonFeaturePackRuntime;
+import org.jboss.galleon.api.GalleonPackageRuntime;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack<PackageRuntime> {
+public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack<PackageRuntime>, GalleonFeaturePackRuntime {
 
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
@@ -131,6 +133,21 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
     @Override
     public PackageRuntime getPackage(String name) {
         return packages.get(name);
+    }
+
+    @Override
+    public GalleonPackageRuntime getGalleonPackage(String name) {
+        return packages.get(name);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<GalleonPackageRuntime> getGalleonPackages() {
+        List<GalleonPackageRuntime> lst = new ArrayList<>();
+        for (PackageRuntime rt : packages.values()) {
+            lst.add((GalleonPackageRuntime) rt);
+        }
+        return lst;
     }
 
     public Set<String> getFeatureSpecNames() {

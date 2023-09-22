@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
@@ -92,18 +93,18 @@ public class StateHistoryUtils {
                 writer.write(newStateId);
             }
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.writeFile(stagedHistoryDir.resolve(Constants.HISTORY_LIST)), e);
+            throw new ProvisioningException(BaseErrors.writeFile(stagedHistoryDir.resolve(Constants.HISTORY_LIST)), e);
         }
         final Path stateDir = stagedHistoryDir.resolve(newStateId);
         try {
             Files.createDirectory(stateDir);
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.mkdirs(stateDir));
+            throw new ProvisioningException(BaseErrors.mkdirs(stateDir));
         }
         try {
             IoUtils.copy(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML));
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML)), e);
+            throw new ProvisioningException(BaseErrors.copyFile(installedConfig, stateDir.resolve(Constants.PROVISIONING_XML)), e);
         }
 
         if(!undoTasks.isEmpty()) {
@@ -118,7 +119,7 @@ public class StateHistoryUtils {
                     writer.newLine();
                 }
             } catch (IOException e) {
-                throw new ProvisioningException(Errors.writeFile(stateDir.resolve(Constants.UNDO_TASKS)), e);
+                throw new ProvisioningException(BaseErrors.writeFile(stateDir.resolve(Constants.UNDO_TASKS)), e);
             }
         }
     }
@@ -171,7 +172,7 @@ public class StateHistoryUtils {
                 }
             }
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.writeFile(stagedHistoryDir.resolve(Constants.HISTORY_LIST)), e);
+            throw new ProvisioningException(BaseErrors.writeFile(stagedHistoryDir.resolve(Constants.HISTORY_LIST)), e);
         }
     }
 
@@ -179,7 +180,7 @@ public class StateHistoryUtils {
         try {
             Files.createDirectories(stagedHistoryDir);
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.mkdirs(stagedHistoryDir), e);
+            throw new ProvisioningException(BaseErrors.mkdirs(stagedHistoryDir), e);
         }
     }
 
@@ -349,7 +350,7 @@ public class StateHistoryUtils {
             writer.write(String.valueOf(limit));
             writer.newLine();
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.writeFile(installedHistoryList), e);
+            throw new ProvisioningException(BaseErrors.writeFile(installedHistoryList), e);
         }
         deleteHistoryFiles(installedHistoryDir);
     }
@@ -362,7 +363,7 @@ public class StateHistoryUtils {
                 }
             }
         } catch (IOException ex) {
-            throw new ProvisioningException(Errors.readDirectory(installedHistoryDir), ex);
+            throw new ProvisioningException(BaseErrors.readDirectory(installedHistoryDir), ex);
         }
     }
 }

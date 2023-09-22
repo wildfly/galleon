@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.jboss.galleon.BaseErrors;
 
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -109,7 +109,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
         public Builder excludePackage(String packageName) throws ProvisioningDescriptionException {
             if(includedPackages.contains(packageName)) {
-                throw new ProvisioningDescriptionException(Errors.packageExcludeInclude(packageName));
+                throw new ProvisioningDescriptionException(BaseErrors.packageExcludeInclude(packageName));
             }
             excludedPackages = CollectionUtils.add(excludedPackages, packageName);
             return this;
@@ -143,7 +143,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
         public Builder includePackage(String packageName) throws ProvisioningDescriptionException {
             if(excludedPackages.contains(packageName)) {
-                throw new ProvisioningDescriptionException(Errors.packageExcludeInclude(packageName));
+                throw new ProvisioningDescriptionException(BaseErrors.packageExcludeInclude(packageName));
             }
             includedPackages = CollectionUtils.add(includedPackages, packageName);
             return this;

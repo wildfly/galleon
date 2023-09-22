@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,13 @@ import java.util.Set;
 import org.aesh.command.CommandException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.config.ConfigId;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER2;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER3;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER4;
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER5;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
-import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
@@ -67,7 +67,7 @@ public class AdvancedLayersTestCase {
 
     @AfterClass
     public static void tearDown() {
-        //cli.close();
+        cli.close();
     }
 
     @Test

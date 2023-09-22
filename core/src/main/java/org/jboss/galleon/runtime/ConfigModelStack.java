@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,10 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
+import org.jboss.galleon.api.GalleonLayerDependency;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureGroupSupport;
-import org.jboss.galleon.spec.ConfigLayerDependency;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.util.CollectionUtils;
 
@@ -175,7 +175,7 @@ class ConfigModelStack {
 
     private Set<ConfigId> addedLayers;
     private List<ConfigId> includedLayers;
-    private Map<String, ConfigLayerDependency> layerDeps;
+    private Map<String, GalleonLayerDependency> layerDeps;
 
     // layers that were actually excluded from the top config model
     private final Set<String> topConfigExcludedLayers = new HashSet<>(0);
@@ -198,11 +198,11 @@ class ConfigModelStack {
         return (addedLayers == null ? addedLayers = new LinkedHashSet<>() : addedLayers).add(layerId);
     }
 
-    void addLayerDep(ConfigLayerDependency layerDep) {
+    void addLayerDep(GalleonLayerDependency layerDep) {
         if(layerDeps == null) {
             layerDeps = Collections.singletonMap(layerDep.getName(), layerDep);
         } else {
-            final ConfigLayerDependency existing = layerDeps.get(layerDep.getName());
+            final GalleonLayerDependency existing = layerDeps.get(layerDep.getName());
             if(existing == null || existing.isOptional() && !layerDep.isOptional()) {
                 layerDeps = CollectionUtils.putLinked(layerDeps, layerDep.getName(), layerDep);
             }
@@ -213,7 +213,7 @@ class ConfigModelStack {
         return layerDeps != null;
     }
 
-    Collection<ConfigLayerDependency> getLayerDeps() {
+    Collection<GalleonLayerDependency> getLayerDeps() {
         return layerDeps == null ? Collections.emptyList() : layerDeps.values();
     }
 

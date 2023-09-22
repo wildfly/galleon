@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,17 +21,19 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.jboss.galleon.Errors;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
+import org.jboss.galleon.api.config.GalleonConfigurationWithLayers;
+import org.jboss.galleon.api.config.GalleonConfigurationWithLayersBuilderItf;
 
 /**
  * @author Alexey Loubyansky
  *
  */
-public class ConfigModel extends FeatureGroupSupport {
+public class ConfigModel extends FeatureGroupSupport implements GalleonConfigurationWithLayers {
 
     public static final String BRANCH_PER_SPEC = "config.branch-per-spec";
     public static final String BRANCH_IS_BATCH = "config.branch-is-batch";
@@ -39,7 +41,7 @@ public class ConfigModel extends FeatureGroupSupport {
     public static final String MERGE_INDEPENDENT_BRANCHES = "config.merge-independent-branches";
     public static final String MERGE_SAME_DEPS_BRANCHES = "config.merge-same-deps-branches";
 
-    public static class Builder extends FeatureGroupBuilderSupport<Builder> {
+    public static class Builder extends FeatureGroupBuilderSupport<Builder> implements GalleonConfigurationWithLayersBuilderItf {
 
         private String model;
         private Map<String, String> props = Collections.emptyMap();
@@ -89,7 +91,7 @@ public class ConfigModel extends FeatureGroupSupport {
 
         public Builder includeLayer(String layerName) throws ProvisioningDescriptionException {
             if(excludedLayers.contains(layerName)) {
-                throw new ProvisioningDescriptionException(Errors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));
+                throw new ProvisioningDescriptionException(BaseErrors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));
             }
             includedLayers = CollectionUtils.addLinked(includedLayers, layerName);
             return this;
@@ -107,7 +109,7 @@ public class ConfigModel extends FeatureGroupSupport {
 
         public Builder excludeLayer(String layerName) throws ProvisioningDescriptionException {
             if(includedLayers.contains(layerName)) {
-                throw new ProvisioningDescriptionException(Errors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));
+                throw new ProvisioningDescriptionException(BaseErrors.configLayerCanEitherBeIncludedOrExcluded(model, getName(), layerName));
             }
             excludedLayers = CollectionUtils.addLinked(excludedLayers, layerName);
             return this;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.jboss.galleon.xml;
 
 import java.util.Arrays;
+import org.jboss.galleon.CoreVersion;
 
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.spec.FeaturePackPlugin;
@@ -43,7 +44,7 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
     protected ElementNode toElement(FeaturePackSpec fpSpec) {
         final ElementNode fp = addElement(null, Element.FEATURE_PACK);
         addAttribute(fp, Attribute.LOCATION, fpSpec.getFPID().toString());
-
+        addAttribute(fp, "galleon-min-version", CoreVersion.getVersion());
         ProvisioningXmlWriter.writeUniverseSpecs(fpSpec, fp);
 
         if(fpSpec.isPatch()) {

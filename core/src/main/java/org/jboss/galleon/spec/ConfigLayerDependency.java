@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,13 @@
  */
 package org.jboss.galleon.spec;
 
+import org.jboss.galleon.api.GalleonLayerDependency;
+
 /**
  *
  * @author Alexey Loubyansky
  */
-public class ConfigLayerDependency implements Comparable<ConfigLayerDependency> {
+public class ConfigLayerDependency implements GalleonLayerDependency, Comparable<ConfigLayerDependency> {
 
 
     /**

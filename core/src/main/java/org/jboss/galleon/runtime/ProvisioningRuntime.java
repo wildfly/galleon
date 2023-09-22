@@ -19,12 +19,14 @@ package org.jboss.galleon.runtime;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.Constants;
 
 import org.jboss.galleon.Errors;
@@ -46,6 +48,10 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.util.StringUtils;
 import org.jboss.galleon.layout.SystemPaths;
+import org.jboss.galleon.api.GalleonFeaturePackRuntime;
+import org.jboss.galleon.api.GalleonPackageRuntime;
+import org.jboss.galleon.api.GalleonProvisioningRuntime;
+import org.jboss.galleon.api.config.GalleonProvisionedConfig;
 import org.jboss.galleon.xml.ProvisionedStateXmlWriter;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
@@ -53,7 +59,7 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  *
  * @author Alexey Loubyansky
  */
-public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable {
+public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable, GalleonProvisioningRuntime {
 
     private final long startTime;
     private ProvisioningConfig config;
@@ -101,6 +107,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         this.messageWriter = messageWriter;
     }
 
+    @Override
     public boolean isLogTime() {
         return startTime != -1;
     }
@@ -110,6 +117,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      *
      * @return the staged location
      */
+    @Override
     public Path getStagedDir() {
         return stagedDir;
     }
@@ -147,6 +155,25 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Collection<GalleonFeaturePackRuntime> getGalleonFeaturePacks() {
+        List<GalleonFeaturePackRuntime> lst = new ArrayList<>();
+        for (FeaturePackRuntime rt : layout.getOrderedFeaturePacks()) {
+            lst.add((GalleonFeaturePackRuntime) rt);
+        }
+        return lst;
+    }
+
+    @Override
+    public Collection<GalleonProvisionedConfig> getGalleonConfigs() {
+        List<GalleonProvisionedConfig> lst = new ArrayList<>();
+        for (ProvisionedConfig config : getConfigs()) {
+            lst.add(config);
+        }
+        return lst;
+    }
+
+    @Override
     public FeaturePackRuntime getFeaturePack(ProducerSpec producer) throws ProvisioningException {
         return layout.getFeaturePack(producer);
     }
@@ -167,6 +194,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
      * @return  file-system path for the resource
      * @throws ProvisioningException  in case of a failure
      */
+    @Override
     public Path getResource(String... path) throws ProvisioningException {
         return layout.getResource(path);
     }
@@ -239,6 +267,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         return layout.getSystemPaths();
     }
 
+    @Override
     public void provision() throws ProvisioningException {
 
         layout.visitPlugins(new FeaturePackPluginVisitor<InstallPlugin>() {
@@ -251,7 +280,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         // copy package content
         for(FeaturePackRuntime fp : layout.getOrderedFeaturePacks()) {
             messageWriter.verbose("Installing %s", fp.getFPID());
-            for(PackageRuntime pkg : fp.getPackages()) {
+            for(GalleonPackageRuntime pkg : fp.getPackages()) {
                 final Path pkgSrcDir = pkg.getContentDir();
                 if (Files.exists(pkgSrcDir)) {
                     try {
@@ -277,14 +306,14 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
                         layout.getOriginalConfig() : config;
                 ProvisioningXmlWriter.getInstance().write(cfg, PathsUtils.getProvisioningXml(stagedDir));
             } catch (XMLStreamException | IOException e) {
-                throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisioningXml(stagedDir)), e);
+                throw new FeaturePackInstallException(BaseErrors.writeFile(PathsUtils.getProvisioningXml(stagedDir)), e);
             }
 
             // save the provisioned state
             try {
                 ProvisionedStateXmlWriter.getInstance().write(this, PathsUtils.getProvisionedStateXml(stagedDir));
             } catch (XMLStreamException | IOException e) {
-                throw new FeaturePackInstallException(Errors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
+                throw new FeaturePackInstallException(BaseErrors.writeFile(PathsUtils.getProvisionedStateXml(stagedDir)), e);
             }
 
             boolean exportPath = Boolean.parseBoolean(layout.getOptionValue(Constants.EXPORT_SYSTEM_PATHS));

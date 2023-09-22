@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@ package org.jboss.galleon.util;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Constants;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -50,7 +50,7 @@ public class LayoutUtils {
         }
         fpPath = fpPath.resolve(ensureValidFileName(fpid.getBuild()));
         if (existing && !Files.exists(fpPath)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpPath));
+            throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(fpPath));
         }
         return fpPath;
     }
@@ -67,7 +67,7 @@ public class LayoutUtils {
     public static Path getPackageDir(Path fpDir, String packageName, boolean existing) throws ProvisioningDescriptionException {
         final Path dir = fpDir.resolve(Constants.PACKAGES).resolve(packageName);
         if(existing && !Files.exists(dir)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(dir));
+            throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(dir));
         }
         return dir;
     }

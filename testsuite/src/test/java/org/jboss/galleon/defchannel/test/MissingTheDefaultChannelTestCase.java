@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
  */
 package org.jboss.galleon.defchannel.test;
 
-import org.jboss.galleon.Errors;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeatureConfig;
@@ -73,7 +73,7 @@ public class MissingTheDefaultChannelTestCase extends ProvisionFromUniverseTestB
     @Override
     protected String[] pmErrors() {
         return new String[] {
-                Errors.defaultChannelNotConfigured(prod1.getProducerName())
+                BaseErrors.defaultChannelNotConfigured(prod1.getProducerName())
         };
     }
 }

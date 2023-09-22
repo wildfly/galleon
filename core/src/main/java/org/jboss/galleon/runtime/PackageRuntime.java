@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,13 +24,15 @@ import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.state.ProvisionedPackage;
+import org.jboss.galleon.api.GalleonPackageRuntime;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.util.CollectionUtils;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class PackageRuntime implements ProvisionedPackage {
+public class PackageRuntime implements ProvisionedPackage, GalleonPackageRuntime {
 
     static final int ON_DEP_BRANCH      = 0b000001;
     static final int SCHEDULED          = 0b000010;
@@ -194,6 +196,11 @@ public class PackageRuntime implements ProvisionedPackage {
         return fp;
     }
 
+    @Override
+    public FPID getFeaturePackFPID() {
+        return fp.getFPID();
+    }
+
     public PackageSpec getSpec() {
         return spec;
     }
@@ -210,6 +217,7 @@ public class PackageRuntime implements ProvisionedPackage {
      * @return  file-system path for the resource
      * @throws ProvisioningDescriptionException  in case the feature-pack or package were not found in the layout
      */
+    @Override
     public Path getResource(String... path) throws ProvisioningDescriptionException {
         if(path.length == 0) {
             throw new IllegalArgumentException("Resource path is null");
@@ -224,6 +232,7 @@ public class PackageRuntime implements ProvisionedPackage {
         return p;
     }
 
+    @Override
     public Path getContentDir() {
         return layoutDir.resolve(Constants.CONTENT);
     }

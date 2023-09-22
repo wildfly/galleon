@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         private FPID patchFor;
         private Map<String, FeaturePackPlugin> plugins = Collections.emptyMap();
         private Set<String> systemPaths = Collections.emptySet();
+        private String galleonMinVersion;
 
         protected Builder() {
         }
@@ -49,6 +50,15 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         public Builder setFPID(FPID fpid) {
             this.fpid = fpid;
             return this;
+        }
+
+        public Builder setGalleonMinVersion(String version) {
+            this.galleonMinVersion = version;
+            return this;
+        }
+
+        public String getGalleonMinVersion() {
+            return galleonMinVersion;
         }
 
         public FPID getFPID() {
@@ -123,6 +133,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final Map<String, FeaturePackPlugin> plugins;
     private final FPID patchFor;
     private final Set<String> systemPaths;
+    private final String galleonMinVersion;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -131,6 +142,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.plugins = CollectionUtils.unmodifiable(builder.plugins);
         this.patchFor = builder.patchFor;
         this.systemPaths = CollectionUtils.unmodifiable(builder.systemPaths);
+        this.galleonMinVersion = builder.galleonMinVersion;
+    }
+
+    public String getGalleonMinVersion() {
+        return galleonMinVersion;
     }
 
     public FPID getFPID() {

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jboss.galleon</groupId>
+    <artifactId>galleon-parent</artifactId>
+    <version>5.2.3.Final-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>galleon-api</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Galleon API</name>
+  <url>http://maven.apache.org</url>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-common-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-maven-universe</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.aether</groupId>
+          <artifactId>aether-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.aether</groupId>
+          <artifactId>aether-util</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- to be able to copy the jar as a resource -->
+    <dependency>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-core</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/../core/target/</directory>
+                  <includes>
+                    <include>galleon-core-${project.version}.jar</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

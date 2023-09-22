@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,9 @@ import org.aesh.command.CommandRuntime;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.command.validator.CommandValidatorException;
 import org.aesh.command.validator.OptionValidatorException;
+import org.jboss.galleon.api.APIVersion;
 import org.jboss.galleon.cli.config.Configuration;
+import org.jboss.galleon.cli.core.ProvisioningSession;
 import org.jboss.galleon.universe.UniverseSpec;
 import org.jboss.galleon.util.IoUtils;
 
@@ -40,6 +42,7 @@ import org.jboss.galleon.util.IoUtils;
 public class CliWrapper {
 
     private final PmSession session;
+    private final ProvisioningSession ctx;
     private final String userHome;
     private final File testUserHome;
     private final File mvnRepo;
@@ -62,7 +65,8 @@ public class CliWrapper {
         session.getUniverse().disableBackgroundResolution();
         session.getPmConfiguration().getMavenConfig().enableOffline(true);
         session.throwException();
-        session.enableTrackers(false);
+        ctx = (ProvisioningSession) session.getGalleonContext(APIVersion.getVersion());
+        ctx.enableTrackers(false);
     }
 
     public String getOutput() {
@@ -70,6 +74,7 @@ public class CliWrapper {
     }
 
     public void close() {
+        session.removeCoreContext(APIVersion.getVersion());
         getSession().close();
         System.setProperty("user.home", userHome);
         IoUtils.recursiveDelete(testUserHome.toPath());
@@ -96,6 +101,13 @@ public class CliWrapper {
      */
     public PmSession getSession() {
         return session;
+    }
+
+    /**
+     * @return the ctx
+     */
+    public ProvisioningSession getContext() {
+        return ctx;
     }
 
     /**

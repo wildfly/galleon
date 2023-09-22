@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ package org.jboss.galleon.universe.frequency.test;
 
 import java.util.Arrays;
 
-import org.jboss.galleon.Errors;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackCreator;
@@ -68,7 +68,7 @@ public class UnsupportedFrequencyTestCase extends ProvisionConfigMvnTestBase {
     @Override
     protected String[] pmErrors() throws ProvisioningException {
         return new String[] {
-                Errors.frequencyNotSupported(Arrays.asList(MvnUniverse.frequencies),
+                BaseErrors.frequencyNotSupported(Arrays.asList(MvnUniverse.frequencies),
                         FeaturePackLocation.fromString("producer1@" + MavenUniverseFactory.ID + "(" + universe1Art.getCoordsAsString() + "):1/zeta"))
                 };
     }

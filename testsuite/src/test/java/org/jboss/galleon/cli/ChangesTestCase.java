@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,12 +23,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 import javax.xml.stream.XMLStreamException;
+import org.jboss.galleon.BaseErrors;
 
 import static org.jboss.galleon.cli.CliTestUtils.PRODUCER1;
 import static org.jboss.galleon.cli.CliTestUtils.UNIVERSE_NAME;
 
 import org.jboss.galleon.Constants;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.runtime.ResolvedFeatureId;
@@ -142,7 +142,7 @@ public class ChangesTestCase {
         try {
             Files.createDirectories(p.getParent());
         } catch (IOException e1) {
-            throw new ProvisioningException(Errors.mkdirs(p.getParent()), e1);
+            throw new ProvisioningException(BaseErrors.mkdirs(p.getParent()), e1);
         }
         try(BufferedWriter writer = Files.newBufferedWriter(p)) {
             ProvisionedConfigXmlWriter.getInstance().write(config, writer);
