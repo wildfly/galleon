@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,6 +65,8 @@ import static org.jboss.galleon.Constants.PRINT_ONLY_CONFLICTS;
  * @author Alexey Loubyansky
  */
 public class ProvisioningManager implements AutoCloseable {
+
+    private final boolean useLinuxLineEndings = Boolean.getBoolean(Constants.PROP_LINUX_LINE_ENDINGS);
 
     public static class Builder extends UniverseResolverBuilder<Builder> {
         private Path installationHome;
@@ -874,9 +876,9 @@ public class ProvisioningManager implements AutoCloseable {
                         writer = Files.newBufferedWriter(target.resolve(Constants.HASHES));
                     }
                     writer.write(child.getName());
-                    writer.newLine();
+                    newLine(writer);
                     writer.write(HashUtils.bytesToHexString(child.getHash()));
-                    writer.newLine();
+                    newLine(writer);
                 } else {
                     dirs.add(child);
                     ++dirsTotal;
@@ -896,6 +898,14 @@ public class ProvisioningManager implements AutoCloseable {
         while (dirsTotal > 0) {
             persistDirHashes(hashes, dirs.remove(dirs.size() - 1), dirs);
             --dirsTotal;
+        }
+    }
+
+    private void newLine(BufferedWriter writer) throws IOException {
+        if (useLinuxLineEndings) {
+            writer.write("\n");
+        } else {
+            writer.newLine();
         }
     }
 }
