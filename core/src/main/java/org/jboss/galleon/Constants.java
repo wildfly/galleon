@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,6 +64,7 @@ public interface Constants {
 
     // SYSTEM PROPERTIES
     String PROP_CONFIG_ARRANGER = "galleon.config.arranger";
+    String PROP_LINUX_LINE_ENDINGS = "galleon.config.use_linux_line_endings";
 
     // CONFIG ARRANGERS
     String CONFIG_ARRANGER_SPEC_ONLY = "spec-only";
