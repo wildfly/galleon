@@ -25,8 +25,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -870,7 +872,14 @@ public class ProvisioningManager implements AutoCloseable {
         int dirsTotal = 0;
         BufferedWriter writer = null;
         try {
-            for (FsEntry child : entry.getChildren()) {
+            final TreeSet<FsEntry> sortedChildren = new TreeSet<>(new Comparator<FsEntry>() {
+                @Override
+                public int compare(FsEntry e1, FsEntry e2) {
+                    return e1.getName().compareTo(e2.getName());
+                }
+            });
+            sortedChildren.addAll(entry.getChildren());
+            for (FsEntry child : sortedChildren) {
                 if (!child.isDir()) {
                     if (writer == null) {
                         writer = Files.newBufferedWriter(target.resolve(Constants.HASHES));
