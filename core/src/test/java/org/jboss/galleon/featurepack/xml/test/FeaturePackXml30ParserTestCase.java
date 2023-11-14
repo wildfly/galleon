@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.util.Locale;
 
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.test.util.XmlParserValidator;
+import org.jboss.galleon.util.PropertyUtils;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -47,7 +48,11 @@ public class FeaturePackXml30ParserTestCase {
 
     @Test
     public void readAbsoluteSystemPath() throws Exception {
-        validator.validateAndParse("xml/feature-pack/feature-pack-3.0-absolute-system-path.xml",
+        String path = "xml/feature-pack/feature-pack-3.0-absolute-system-path.xml";
+        if (PropertyUtils.isWindows()) {
+            path = "xml/feature-pack/feature-pack-3.0-absolute-system-path-win.xml";
+        }
+        validator.validateAndParse(path,
                                    null,
                                    "The content of 'system-path' element should be a path relative to installation base.");
     }
