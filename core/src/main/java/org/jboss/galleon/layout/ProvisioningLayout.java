@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,12 +38,14 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
+import org.jboss.galleon.CoreVersion;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -130,7 +132,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 try {
                     IoUtils.copy(fpResources, resourcesDir);
                 } catch (IOException e) {
-                    throw new ProvisioningException(Errors.copyFile(fpResources, resourcesDir), e);
+                    throw new ProvisioningException(BaseErrors.copyFile(fpResources, resourcesDir), e);
                 }
             }
 
@@ -142,7 +144,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 try {
                     IoUtils.copy(fpPlugins, pluginsDir);
                 } catch (IOException e) {
-                    throw new ProvisioningException(Errors.copyFile(fpPlugins, pluginsDir), e);
+                    throw new ProvisioningException(BaseErrors.copyFile(fpPlugins, pluginsDir), e);
                 }
             }
         }
@@ -153,7 +155,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 try {
                     Files.createDirectory(pluginsDir);
                 } catch (IOException e) {
-                    throw new ProvisioningException(Errors.mkdirs(pluginsDir), e);
+                    throw new ProvisioningException(BaseErrors.mkdirs(pluginsDir), e);
                 }
             }
 
@@ -183,7 +185,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 try {
                     Files.createDirectories(stagedDir);
                 } catch (IOException e) {
-                    throw new ProvisioningException(Errors.mkdirs(stagedDir), e);
+                    throw new ProvisioningException(BaseErrors.mkdirs(stagedDir), e);
                 }
             }
             return stagedDir;
@@ -233,7 +235,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                         urls.add(i.next().toUri().toURL());
                     }
                 } catch (IOException e) {
-                    throw new ProvisioningException(Errors.readDirectory(pluginsDir), e);
+                    throw new ProvisioningException(BaseErrors.readDirectory(pluginsDir), e);
                 }
                 if (!urls.isEmpty()) {
                     closePluginsCl = true;
@@ -678,10 +680,10 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
         final F installedFp = featurePacks.get(fpid.getProducer());
         if(installedFp == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpid));
         }
         if(fpid.getBuild() != null && !installedFp.getFPID().getBuild().equals(fpid.getBuild())) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpid));
         }
         final FeaturePackConfig fpConfig = config.getFeaturePackDep(fpid.getProducer());
         if(fpConfig == null) {
@@ -748,7 +750,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     public FeaturePackUpdatePlan getFeaturePackUpdate(ProducerSpec producer) throws ProvisioningException {
         final F f = featurePacks.get(producer);
         if(f == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(producer.getLocation().getFPID()));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(producer.getLocation().getFPID()));
         }
         final FeaturePackLocation fpl = f.getFPID().getLocation();
         final Universe<?> universe = layoutFactory.getUniverseResolver().getUniverse(fpl.getUniverse());
@@ -786,7 +788,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         if(p == null) {
             p = mavenProducers == null ? null : mavenProducers.get(producer);
             if (p == null) {
-                throw new ProvisioningException(Errors.unknownFeaturePack(producer.getLocation().getFPID()));
+                throw new ProvisioningException(BaseErrors.unknownFeaturePack(producer.getLocation().getFPID()));
             }
         }
         return p;
@@ -1058,7 +1060,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         try {
             IoUtils.copy(patchDir, fpDir);
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.copyFile(patchDir, fpDir), e);
+            throw new ProvisioningException(BaseErrors.copyFile(patchDir, fpDir), e);
         }
     }
 
@@ -1150,6 +1152,12 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         if(!queue.isEmpty()) {
             for(F p : queue) {
                 final FeaturePackSpec spec = p.getSpec();
+                if (spec.getGalleonMinVersion() != null && Boolean.getBoolean("org.jboss.galleon.version.check")) {
+                    if (!CoreVersion.isSupportedVersion(spec.getGalleonMinVersion())) {
+                        throw new ProvisioningException("Feature-pack " + spec.getFPID() + " requires minimal Galleon version " + spec.getGalleonMinVersion()
+                                + " You must upgrade your provisioning tooling to a version that depends at least on Galleon " + spec.getGalleonMinVersion());
+                    }
+                }
                 layout(spec, branch, FeaturePackLayout.TRANSITIVE_DEP);
                 if(spec.hasPlugins()) {
                     pluginLocations = CollectionUtils.putAll(pluginLocations, spec.getPlugins());
@@ -1263,6 +1271,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             throws ProvisioningDescriptionException {
         FeaturePackSpec.Builder rebuilder;
         rebuilder = FeaturePackSpec.builder(fpid)
+                .setGalleonMinVersion(fpSpec.getGalleonMinVersion())
                 .initUniverses(fpSpec)
                 .initConfigs(fpSpec);
         rebuilder.addDefaultPackages(fpSpec.getDefaultPackageNames());
@@ -1396,7 +1405,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
 
     private ProgressTracker<ProducerSpec> getUpdatesTracker() {
         return updatesTracker == null
-                ? updatesTracker = layoutFactory.getProgressTracker(ProvisioningLayoutFactory.TRACK_UPDATES)
+                ? updatesTracker = layoutFactory.getProgressTracker(Constants.TRACK_UPDATES)
                 : updatesTracker;
     }
 
@@ -1405,7 +1414,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             return ProvisioningLayoutFactory.getNoOpProgressTracker();
         }
         return buildTracker == null
-                ? buildTracker = layoutFactory.getProgressTracker(ProvisioningLayoutFactory.TRACK_LAYOUT_BUILD)
+                ? buildTracker = layoutFactory.getProgressTracker(Constants.TRACK_LAYOUT_BUILD)
                 : buildTracker;
     }
 

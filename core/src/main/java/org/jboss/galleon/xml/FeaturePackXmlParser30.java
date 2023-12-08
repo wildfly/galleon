@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,6 +131,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
         ID("id"),
         INHERIT("inherit"),
         LOCATION("location"),
+        GALLEON_MIN_VERSION("galleon-min-version"),
         MODEL("model"),
         NAMED_CONFIGS_ONLY("named-configs-only"),
         NAME("name"),
@@ -149,6 +150,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
             attributes.put(ID.getLocalName(), ID);
             attributes.put(INHERIT.getLocalName(), INHERIT);
             attributes.put(LOCATION.getLocalName(), LOCATION);
+            attributes.put(GALLEON_MIN_VERSION.getLocalName(), GALLEON_MIN_VERSION);
             attributes.put(MODEL.getLocalName(), MODEL);
             attributes.put(NAME.getLocalName(), NAME);
             attributes.put(PATH.getLocalName(), PATH);
@@ -190,7 +192,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
 
     @Override
     public void readElement(XMLExtendedStreamReader reader, Builder fpBuilder) throws XMLStreamException {
-        fpBuilder.setFPID(readFpl(reader).getFPID());
+        readRootElement(reader, fpBuilder);
         while (reader.hasNext()) {
             switch (reader.nextTag()) {
                 case XMLStreamConstants.END_ELEMENT: {
@@ -300,8 +302,9 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
         return path;
     }
 
-    private FeaturePackLocation readFpl(XMLExtendedStreamReader reader) throws XMLStreamException {
+    private void readRootElement(XMLExtendedStreamReader reader, Builder builder) throws XMLStreamException {
         FeaturePackLocation location = null;
+        String version = null;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
@@ -313,6 +316,13 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
                         throw new XMLStreamException(ParsingUtils.error("Failed to parse feature-pack location", reader.getLocation()), e);
                     }
                     break;
+                case GALLEON_MIN_VERSION:
+                    try {
+                        version = reader.getAttributeValue(i);
+                    } catch (IllegalArgumentException e) {
+                        throw new XMLStreamException(ParsingUtils.error("Failed to parse feature-pack location", reader.getLocation()), e);
+                    }
+                    break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);
             }
@@ -320,7 +330,8 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
         if (location == null) {
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.LOCATION));
         }
-        return location;
+        builder.setGalleonMinVersion(version);
+        builder.setFPID(location.getFPID());
     }
 
     private static void readFeaturePackDeps(XMLExtendedStreamReader reader, FeaturePackDepsConfigBuilder<?> fpBuilder) throws XMLStreamException {

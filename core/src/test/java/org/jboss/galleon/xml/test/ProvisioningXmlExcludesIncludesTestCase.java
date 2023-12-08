@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +17,9 @@
 package org.jboss.galleon.xml.test;
 
 import java.nio.file.Paths;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.test.util.XmlParserValidator;
@@ -81,7 +81,7 @@ public class ProvisioningXmlExcludesIncludesTestCase {
          */
         validator.validateAndParse("xml/provisioning/exclude-include-same-package.xml",
                 null,
-                Errors.packageExcludeInclude("p1"));
+                BaseErrors.packageExcludeInclude("p1"));
     }
 
     @Test

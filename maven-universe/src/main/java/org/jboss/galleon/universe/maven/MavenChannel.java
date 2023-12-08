@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -29,6 +28,7 @@ import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.maven.repo.MavenArtifactVersion;
 import org.jboss.galleon.util.StringUtils;
+import org.jboss.galleon.BaseErrors;
 
 /**
  *
@@ -113,7 +113,14 @@ public class MavenChannel implements Channel, MavenChannelDescription {
 
         if(fpl.getBuild() == null) {
             artifact.setVersionRange(versionRange);
-            producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl), versionIncludePattern, versionExcludePattern);
+            try {
+                producer.getRepo().resolveLatestVersion(artifact, getFrequency(fpl), versionIncludePattern, versionExcludePattern);
+            } catch (MavenLatestVersionNotAvailableException e) {
+                if (fpl.getFrequency() == null && producer.hasDefaultFrequency()) {
+                    fpl = new FeaturePackLocation(fpl.getUniverse(), fpl.getProducerName(), fpl.getChannelName(), producer.getDefaultFrequency(), null);
+                }
+                throw new MavenLatestVersionNotAvailableException(e.getLocalizedMessage(), fpl);
+            }
         } else {
             artifact.setVersion(fpl.getBuild());
             producer.getRepo().resolve(artifact);
@@ -220,7 +227,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
             return producer.getDefaultFrequency();
         }
         if (!producer.getFrequencies().contains(frequency)) {
-            throw new MavenUniverseException(Errors.frequencyNotSupported(((Producer<?>) producer).getFrequencies(), fpl));
+            throw new MavenUniverseException(BaseErrors.frequencyNotSupported(((Producer<?>) producer).getFrequencies(), fpl));
         }
         return frequency;
     }

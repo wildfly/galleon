@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ package org.jboss.galleon.config;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.jboss.galleon.Errors;
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -115,7 +115,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             }
             if(transitiveDeps.containsKey(producer)) {
                 if(!replaceExistingVersion) {
-                    throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
+                    throw new ProvisioningDescriptionException(BaseErrors.featurePackAlreadyConfigured(producer));
                 }
                 existingOrigin = producerOrigins.get(producer);
             }
@@ -126,7 +126,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             }
             if(fpDeps.containsKey(producer)) {
                 if(!replaceExistingVersion) {
-                    throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(producer));
+                    throw new ProvisioningDescriptionException(BaseErrors.featurePackAlreadyConfigured(producer));
                 }
                 existingOrigin = producerOrigins.get(producer);
             }
@@ -139,7 +139,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
                     producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
                 }
             } else if(fpDepsByOrigin.containsKey(origin)) {
-                throw new ProvisioningDescriptionException(Errors.duplicateDependencyName(origin));
+                throw new ProvisioningDescriptionException(BaseErrors.duplicateDependencyName(origin));
             } else {
                 producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
             }
@@ -170,10 +170,10 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         final ProducerSpec producer = fpl.getProducer();
         final FeaturePackConfig fpDep = fpDeps.get(producer);
         if(fpDep == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpl.getFPID()));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpl.getFPID()));
         }
         if(!fpDep.getLocation().getFPID().equals(fpl.getFPID())) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpl.getFPID()));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpl.getFPID()));
         }
         if(fpDeps.size() == 1) {
             fpDeps = Collections.emptyMap();
@@ -190,10 +190,10 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         final ProducerSpec producer = fpl.getProducer();
         final FeaturePackConfig fpDep = transitiveDeps.get(producer);
         if(fpDep == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpid));
         }
         if(!fpDep.getLocation().equals(fpl)) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpid));
         }
         if(transitiveDeps.size() == 1) {
             transitiveDeps = Collections.emptyMap();
@@ -227,10 +227,10 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
         final ProducerSpec producer = fpl.getProducer();
         final FeaturePackConfig fpDep = fpDeps.get(producer);
         if (fpDep == null) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpl.getFPID()));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpl.getFPID()));
         }
         if (!fpDep.getLocation().equals(fpl)) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpl.getFPID()));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpl.getFPID()));
         }
         int i = 0;
         for (ProducerSpec depProducer : fpDeps.keySet()) {
@@ -255,7 +255,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             dependency = FeaturePackConfig.builder(fpl).init(dependency).build();
         }
         if (fpDeps.containsKey(fpl.getProducer())) {
-            throw new ProvisioningDescriptionException(Errors.featurePackAlreadyConfigured(fpl.getProducer()));
+            throw new ProvisioningDescriptionException(BaseErrors.featurePackAlreadyConfigured(fpl.getProducer()));
         }
         // reconstruct the linkedMap.
         Map<ProducerSpec, FeaturePackConfig> tmp = Collections.emptyMap();

@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-parent</artifactId>
-    <version>5.2.3.Final-SNAPSHOT</version>
+    <version>6.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
   <artifactId>galleon-core</artifactId>
@@ -47,9 +47,19 @@
       <groupId>org.jboss</groupId>
       <artifactId>staxmapper</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-common-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <filtering>true</filtering>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

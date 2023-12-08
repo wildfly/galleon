@@ -28,7 +28,7 @@
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>5.2.3.Final-SNAPSHOT</version>
+  <version>6.0.0.Alpha1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
@@ -42,11 +42,16 @@
   </licenses>
 
   <modules>
+    <module>common-api</module>
+    <module>api</module>
     <module>core</module>
     <module>maven-plugin</module>
+    <module>cli-commands</module>
     <module>cli</module>
+    <module>cli-core-adapter</module>
     <module>maven-universe</module>
     <module>testsuite</module>
+    <module>api-testsuite</module>
     <module>docs</module>
     <module>dist</module>
   </modules>
@@ -68,6 +73,7 @@
     <version.adoc-maven-plugin-descriptor>1.0.0.Alpha3</version.adoc-maven-plugin-descriptor>
     <version.assertj>3.23.1</version.assertj>
     <version.com.io7m.xom>1.2.10</version.com.io7m.xom>
+    <version.com.fasterxml.jackson.core>2.14.2</version.com.fasterxml.jackson.core>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.junit>4.13.1</version.junit>
     <version.maven-aether-provider>3.3.9</version.maven-aether-provider>
@@ -138,10 +144,27 @@
     <dependencies>
 
       <!-- Modules in this project -->
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>galleon-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>galleon-common-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>galleon-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>galleon-cli-core-adapter</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -159,6 +182,12 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
+        <artifactId>galleon-cli-commands</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
         <artifactId>galleon-cli</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -171,6 +200,11 @@
 
       <!-- External Dependencies -->
 
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${version.com.fasterxml.jackson.core}</version>
+      </dependency>
       <dependency>
         <groupId>com.io7m.xom</groupId>
         <artifactId>xom</artifactId>
@@ -192,12 +226,6 @@
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-aether-provider</artifactId>
         <version>${version.maven-aether-provider}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-artifact</artifactId>
-        <version>${version.org.apache.maven}</version>
       </dependency>
 
       <dependency>
@@ -458,6 +486,7 @@ limitations under the License.</inlineHeader>
             <exclude>**/pom.xml.releaseBackup</exclude>
             <exclude>**/pom.xml.tag</exclude>
             <exclude>CODEOWNERS</exclude>
+            <exclude>**/*.properties</exclude>
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>

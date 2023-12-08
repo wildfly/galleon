@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.galleon.universe.maven.MavenChannel;
 import org.jboss.galleon.universe.maven.MavenProducerBase;
-import org.jboss.galleon.xml.XmlParsers;
+import org.jboss.galleon.xml.XmlBaseParsers;
 
 /**
  *
@@ -37,10 +37,10 @@ public class MavenChannelSpecXmlParser {
     }
 
     private MavenChannelSpecXmlParser() {
-        XmlParsers.getInstance().plugin(MavenChannelSpecXmlParser10.ROOT_1_0, new MavenChannelSpecXmlParser10());
+        XmlBaseParsers.getInstance().plugin(MavenChannelSpecXmlParser10.ROOT_1_0, new MavenChannelSpecXmlParser10());
     }
 
     public void parse(final Reader input, final ParsedCallbackHandler<MavenProducerBase, MavenChannel> builder) throws XMLStreamException {
-        XmlParsers.parse(input, builder);
+        XmlBaseParsers.parse(input, builder);
     }
 }

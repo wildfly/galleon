@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
@@ -46,6 +48,7 @@ public class FeaturePackDescription {
         private final FeaturePackLocation.FPID fpid;
         private final FeaturePackSpec.Builder spec;
         private Map<String, PackageSpec> packages = Collections.emptyMap();
+        private Map<String, ConfigLayerSpec> layers = Collections.emptyMap();
 
         private Builder(FeaturePackLocation.FPID fpid, FeaturePackSpec.Builder spec) {
             this.fpid = fpid;
@@ -54,6 +57,11 @@ public class FeaturePackDescription {
 
         public Builder addPackage(PackageSpec pkg) {
             packages = CollectionUtils.put(packages, pkg.getName(), pkg);
+            return this;
+        }
+
+        public Builder addLayer(ConfigLayerSpec layer) {
+            layers = CollectionUtils.put(layers, layer.getName(), layer);
             return this;
         }
 
@@ -77,6 +85,7 @@ public class FeaturePackDescription {
     private final FeaturePackLocation.FPID fpid;
     private final FeaturePackSpec spec;
     private final Map<String, PackageSpec> packages;
+    private final Map<String, ConfigLayerSpec> layers;
     final List<String> unresolvedLocalPkgs;
     final boolean externalPkgDeps;
 
@@ -114,13 +123,14 @@ public class FeaturePackDescription {
                         try {
                             spec.getFeaturePackDep(origin);
                         } catch(ProvisioningDescriptionException e) {
-                            throw new ProvisioningDescriptionException(Errors.unknownFeaturePackDependencyName(fpid, pkg.getName(), origin), e);
+                            throw new ProvisioningDescriptionException(BaseErrors.unknownFeaturePackDependencyName(fpid, pkg.getName(), origin), e);
                         }
                     }
                     externalPkgDeps = true;
                 }
             }
         }
+        this.layers = CollectionUtils.unmodifiable(builder.layers);
         this.externalPkgDeps = externalPkgDeps;
         this.unresolvedLocalPkgs = CollectionUtils.unmodifiable(notFound);
     }
@@ -151,5 +161,8 @@ public class FeaturePackDescription {
 
     public Collection<PackageSpec> getPackages() {
         return packages.values();
+    }
+    public Collection<ConfigLayerSpec> getLayers() {
+        return layers.values();
     }
 }

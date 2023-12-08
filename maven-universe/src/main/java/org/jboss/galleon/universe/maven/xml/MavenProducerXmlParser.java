@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ import java.io.Reader;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.galleon.xml.XmlParsers;
+import org.jboss.galleon.xml.XmlBaseParsers;
 
 /**
  *
@@ -35,10 +35,10 @@ public class MavenProducerXmlParser {
     }
 
     private MavenProducerXmlParser() {
-        XmlParsers.getInstance().plugin(MavenProducerXmlParser10.ROOT, new MavenProducerXmlParser10());
+        XmlBaseParsers.getInstance().plugin(MavenProducerXmlParser10.ROOT, new MavenProducerXmlParser10());
     }
 
     public void parse(final Reader input, final MavenParsedProducerCallbackHandler builder) throws XMLStreamException {
-        XmlParsers.parse(input, builder);
+        XmlBaseParsers.parse(input, builder);
     }
 }

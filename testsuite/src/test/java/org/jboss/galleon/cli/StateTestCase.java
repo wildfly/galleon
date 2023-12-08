@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,7 +291,7 @@ public class StateTestCase {
                 addTransitiveDep(transitive).build();
         Path p = cli.newDir("version_transitive", false);
         //Provision a config with a transitive with version set.
-        ProvisioningManager mgr1 = cli.getSession().newProvisioningManager(p, true);
+        ProvisioningManager mgr1 = cli.getContext().newProvisioningManager(p, true);
         mgr1.provision(config);
         cli.execute("state edit " + p.toFile().getAbsolutePath());
         try {
@@ -322,7 +322,7 @@ public class StateTestCase {
                 addFeaturePackDep(transitiveConfig).build();
         Path p = cli.newDir("transitive_packages", false);
         //Provision a config with a transitive with already excluded package
-        ProvisioningManager mgr1 = cli.getSession().newProvisioningManager(p, true);
+        ProvisioningManager mgr1 = cli.getContext().newProvisioningManager(p, true);
         mgr1.provision(config);
         cli.execute("state edit " + p.toFile().getAbsolutePath());
         try {

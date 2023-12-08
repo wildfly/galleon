@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
@@ -114,7 +115,7 @@ public class FeaturePackRuntimeBuilder extends FeaturePackLayout {
             }
             final Path pkgXml = pkgDir.resolve(Constants.PACKAGE_XML);
             if (!Files.exists(pkgXml)) {
-                throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(pkgXml));
+                throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(pkgXml));
             }
 
             try (BufferedReader reader = Files.newBufferedReader(pkgXml)) {

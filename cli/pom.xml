@@ -23,110 +23,54 @@
   <parent>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-parent</artifactId>
-    <version>5.2.3.Final-SNAPSHOT</version>
+    <version>6.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
   <artifactId>galleon-cli</artifactId>
   <packaging>jar</packaging>
 
-  <name>Galleon CLI</name>
+  <name>Galleon CLI Fat JAR</name>
   <url>http://maven.apache.org</url>
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-aether-provider</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-settings-builder</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-util</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-connector-basic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-transport-file</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.aether</groupId>
-      <artifactId>aether-transport-http</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.aesh</groupId>
-      <artifactId>aesh</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.aesh</groupId>
-      <artifactId>aesh-extensions</artifactId>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-cli-commands</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>galleon-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.galleon</groupId>
-      <artifactId>galleon-maven-universe</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.galleon</groupId>
-      <artifactId>galleon-maven-plugin</artifactId>
-    </dependency>
-
-    <!-- Currently not required by any dependencies. However since aether uses slf4j using the slf4j binding with
-     jboss-logging allows for a binding option to the log manager implementation. -->
-    <dependency>
-      <groupId>org.jboss.logging</groupId>
-      <artifactId>jboss-logging</artifactId>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.jboss.logmanager</groupId>
-      <artifactId>jboss-logmanager</artifactId>
-    </dependency>
-
-    <!-- Overrides the version brought in by aether -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <!-- An slf4j binding which will write to the jboss-logging, this will allow most log managers to be used if the user
-     desires -->
-    <dependency>
-      <groupId>org.jboss.slf4j</groupId>
-      <artifactId>slf4j-jboss-logging</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.io7m.xom</groupId>
-      <artifactId>xom</artifactId>
+      <artifactId>galleon-cli-core-adapter</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-core-commands</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/../cli-core-adapter/target/</directory>
+                  <includes>
+                    <include>galleon-cli-core-adapter-${project.version}.jar</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>

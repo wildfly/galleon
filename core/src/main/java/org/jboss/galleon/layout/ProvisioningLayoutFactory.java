@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.stream.XMLStreamException;
+import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
@@ -180,7 +181,7 @@ public class ProvisioningLayoutFactory implements Closeable {
         final Path fpDir = resolveFeaturePackDir(location);
         final Path fpXml = fpDir.resolve(Constants.FEATURE_PACK_XML);
         if (!Files.exists(fpXml)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(fpXml));
+            throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(fpXml));
         }
         try (BufferedReader reader = Files.newBufferedReader(fpXml)) {
             final FeaturePackSpec fpSpec = FeaturePackXmlParser.getInstance().parse(reader);
@@ -238,7 +239,7 @@ public class ProvisioningLayoutFactory implements Closeable {
             try {
                 fs.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
         checkOpenLayouts();

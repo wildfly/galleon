@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import org.jboss.galleon.universe.LatestVersionNotAvailableException;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.TestConstants;
 import org.jboss.galleon.universe.UniverseSpec;
+import org.jboss.galleon.universe.maven.MavenLatestVersionNotAvailableException;
 import org.jboss.galleon.universe.maven.MavenUniverseFactory;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.userchanges.persist.test.BasicStateDiffPlugin;
@@ -201,6 +202,11 @@ public abstract class CliTestUtils {
                         LatestVersionNotAvailableException lex = (LatestVersionNotAvailableException) ex.getCause().getCause();
                         loc = lex.getLocation();
                     }
+                }
+            } else {
+                if (ex.getCause() instanceof MavenLatestVersionNotAvailableException) {
+                    MavenLatestVersionNotAvailableException mex = (MavenLatestVersionNotAvailableException) ex.getCause();
+                    loc = mex.getLocation();
                 }
             }
         }

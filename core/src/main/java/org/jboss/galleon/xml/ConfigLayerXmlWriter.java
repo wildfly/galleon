@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
  */
 package org.jboss.galleon.xml;
 
-import org.jboss.galleon.spec.ConfigLayerDependency;
+import org.jboss.galleon.api.GalleonLayerDependency;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.xml.ConfigLayerXml.Attribute;
 import org.jboss.galleon.xml.ConfigLayerXml.Element;
@@ -47,7 +47,7 @@ public class ConfigLayerXmlWriter extends BaseXmlWriter<ConfigLayerSpec> {
 
         if(layer.hasLayerDeps()) {
             final ElementNode layers = addElement(configE, Element.DEPENDENCIES.getLocalName(), ns);
-            for(ConfigLayerDependency layerDep : layer.getLayerDeps()) {
+            for(GalleonLayerDependency layerDep : layer.getLayerDeps()) {
                 final ElementNode layerE = addElement(layers, Element.LAYER.getLocalName(), ns);
                 addAttribute(layerE, Attribute.NAME, layerDep.getName());
                 if(layerDep.isOptional()) {

@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-parent</artifactId>
-    <version>5.2.3.Final-SNAPSHOT</version>
+    <version>6.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
   <artifactId>galleon-testsuite</artifactId>
@@ -67,8 +67,20 @@
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <groupId>org.jboss.slf4j</groupId>
-          <artifactId>slf4j-jboss-logging</artifactId>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-cli-core-adapter</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

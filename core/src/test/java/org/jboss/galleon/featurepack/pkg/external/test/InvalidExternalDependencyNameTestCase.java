@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +17,9 @@
 package org.jboss.galleon.featurepack.pkg.external.test;
 
 
+import org.jboss.galleon.BaseErrors;
 import org.jboss.galleon.universe.galleon1.LegacyGalleon1Universe;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
-import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.test.FeaturePackRepoTestBase;
@@ -53,7 +53,7 @@ public class InvalidExternalDependencyNameTestCase extends FeaturePackRepoTestBa
                             .getCreator()
                     .install();
         } catch (ProvisioningDescriptionException e) {
-            Assert.assertEquals(Errors.unknownFeaturePackDependencyName(FP1_GAV, "p1", "fp2-depp"), e.getLocalizedMessage());
+            Assert.assertEquals(BaseErrors.unknownFeaturePackDependencyName(FP1_GAV, "p1", "fp2-depp"), e.getLocalizedMessage());
         }
     }
 }

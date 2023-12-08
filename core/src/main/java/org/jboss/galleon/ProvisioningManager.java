@@ -237,7 +237,7 @@ public class ProvisioningManager implements AutoCloseable {
         try {
             ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(home));
         } catch (Exception e) {
-            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(home)), e);
+            throw new ProvisioningException(BaseErrors.writeFile(PathsUtils.getProvisioningXml(home)), e);
         }
         this.provisioningConfig = config;
     }
@@ -256,7 +256,7 @@ public class ProvisioningManager implements AutoCloseable {
         try {
             ProvisioningXmlWriter.getInstance().write(config, PathsUtils.getProvisioningXml(home));
         } catch (Exception e) {
-            throw new ProvisioningException(Errors.writeFile(PathsUtils.getProvisioningXml(home)), e);
+            throw new ProvisioningException(BaseErrors.writeFile(PathsUtils.getProvisioningXml(home)), e);
         }
         this.provisioningConfig = config;
     }
@@ -379,7 +379,7 @@ public class ProvisioningManager implements AutoCloseable {
     public void uninstall(FeaturePackLocation.FPID fpid, Map<String, String> pluginOptions) throws ProvisioningException {
         ProvisioningConfig config = getProvisioningConfig();
         if(config == null || !config.hasFeaturePackDeps()) {
-            throw new ProvisioningException(Errors.unknownFeaturePack(fpid));
+            throw new ProvisioningException(BaseErrors.unknownFeaturePack(fpid));
         }
         try(ProvisioningLayout<FeaturePackRuntimeBuilder> layout = getLayoutFactory().newConfigLayout(config, ProvisioningRuntimeBuilder.FP_RT_FACTORY, false)) {
             layout.uninstall(resolveUniverseSpec(fpid.getLocation()).getFPID(), pluginOptions);
@@ -664,7 +664,7 @@ public class ProvisioningManager implements AutoCloseable {
                                     try {
                                         IoUtils.copy(homePath, stagedPath);
                                     } catch (IOException e) {
-                                        throw new ProvisioningException(Errors.copyFile(homePath, stagedPath), e);
+                                        throw new ProvisioningException(BaseErrors.copyFile(homePath, stagedPath), e);
                                     }
                                 }
                             } else {
@@ -705,7 +705,7 @@ public class ProvisioningManager implements AutoCloseable {
                             IoUtils.recursiveDelete(p);
                         }
                     } catch (IOException e) {
-                        throw new ProvisioningException(Errors.readDirectory(home), e);
+                        throw new ProvisioningException(BaseErrors.readDirectory(home), e);
                     }
                 } else {
                     IoUtils.recursiveDelete(home);
@@ -714,7 +714,7 @@ public class ProvisioningManager implements AutoCloseable {
             try {
                 IoUtils.copy(stagedDir, home, true);
             } catch (IOException e) {
-                throw new ProvisioningException(Errors.copyFile(stagedDir, home));
+                throw new ProvisioningException(BaseErrors.copyFile(stagedDir, home));
             }
         } finally {
             this.provisioningConfig = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,7 +130,7 @@ public class PackageXmlParser20 implements PlugableXmlParser<PackageSpec.Builder
     }
 
     @Override
-    public void plugin(XmlParsers parsers) {
+    public void plugin(XmlBaseParsers parsers) {
         parsers.plugin(ROOT_2_0, this);
     }
 
