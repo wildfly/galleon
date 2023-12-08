@@ -87,8 +87,9 @@ public class ProvisioningTestCase extends FeaturePackRepoTestBase {
             GalleonProvisioningConfig config2 = p.loadProvisioningConfig(prov1);
             assertEquals(config, config2);
 
-            Provisioning p2 = builder.newProvisioningBuilder().setInstallationHome(installHome).build();
-            assertEquals(p2.getProvisioningConfig(), config);
+            try(Provisioning p2 = builder.newProvisioningBuilder().setInstallationHome(installHome).build()) {
+                assertEquals(p2.getProvisioningConfig(), config);
+            }
         }
 
         assertEquals(APIVersion.getVersion(), builder.getCoreVersion(prov1));

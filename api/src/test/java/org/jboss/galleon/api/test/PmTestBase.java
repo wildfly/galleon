@@ -132,14 +132,18 @@ public abstract class PmTestBase extends FeaturePackRepoTestBase {
                 assertErrors(t, errors);
             }
             if(pm != null) {
-                if(isRecordState()) {
-                    assertProvisioningConfig(pm, initialProvisioningConfig);
-                    assertProvisionedState(mgr, initialProvisionedState);
-                } else if(initialProvisioningConfig != null) {
+                try {
+                    if (isRecordState()) {
+                        assertProvisioningConfig(pm, initialProvisioningConfig);
+                        assertProvisionedState(mgr, initialProvisionedState);
+                    } else if (initialProvisioningConfig != null) {
+                        pm.close();
+                        pm = getPm();
+                        assertProvisioningConfig(pm, initialProvisioningConfig);
+                        assertProvisionedState(mgr, initialProvisionedState);
+                    }
+                } finally {
                     pm.close();
-                    pm = getPm();
-                    assertProvisioningConfig(pm, initialProvisioningConfig);
-                    assertProvisionedState(mgr, initialProvisionedState);
                 }
             }
         } finally {
