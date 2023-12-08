@@ -276,7 +276,6 @@ public class GalleonBuilder extends UniverseResolverBuilder<GalleonBuilder> {
             } else {
                 RepositoryArtifactResolver repoManager = (RepositoryArtifactResolver) universeResolver.getArtifactResolver(MavenRepoManager.REPOSITORY_ID);
                 usage = new ClassLoaderUsage();
-                classLoaders.put(version, usage);
                 String loc = GALLEON_CORE_GROUP_ID + ":" + GALLEON_CORE_ARTIFACT_ID + ":jar:" + version;
                 Path path;
                 try {
@@ -284,7 +283,7 @@ public class GalleonBuilder extends UniverseResolverBuilder<GalleonBuilder> {
                 } catch (MavenUniverseException ex) {
                     throw new ProvisioningException(ex);
                 }
-
+                classLoaders.put(version, usage);
                 URL[] cp = new URL[1];
                 try {
                     cp[0] = path.toFile().toURI().toURL();
