@@ -32,6 +32,10 @@
   <name>Galleon CLI Fat JAR</name>
   <url>http://maven.apache.org</url>
 
+  <properties>
+    <!-- Don't deploy the CLI fat jar -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.jboss.galleon</groupId>
