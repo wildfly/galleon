@@ -149,6 +149,7 @@ public class ZipUtils {
      * @throws IOException  in case of a failure
      */
      public static FileSystem newFileSystem(Path path) throws IOException {
-         return FileSystems.newFileSystem(path, null);
+         // The case here is explicitly done for Java 13+ where there is a newFileSystem(Path, Map) method as well.
+         return FileSystems.newFileSystem(path, (ClassLoader) null);
      }
 }
