@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.Stability;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
@@ -36,6 +37,7 @@ public class FeatureSpec extends PackageDepsSpec {
     public static class Builder extends PackageDepsSpecBuilder<Builder> {
 
         private String name;
+        private Stability stability;
         private Map<String, FeatureAnnotation> annotations = Collections.emptyMap();
         private Map<FeatureId, FeatureDependencySpec> featureDeps = Collections.emptyMap();
         private Map<String, FeatureReferenceSpec> refs = Collections.emptyMap();
@@ -53,6 +55,18 @@ public class FeatureSpec extends PackageDepsSpec {
 
         public Builder setName(String name) {
             this.name = name;
+            return this;
+        }
+
+        public Builder setStability(Stability stability) {
+            this.stability = stability;
+            return this;
+        }
+
+        public Builder setStability(String stability) {
+            if (stability != null) {
+                this.stability = Stability.fromString(stability);
+            }
             return this;
         }
 
@@ -132,6 +146,7 @@ public class FeatureSpec extends PackageDepsSpec {
     }
 
     final String name;
+    final Stability stability;
     final Map<String, FeatureAnnotation> annotations;
     final Map<FeatureId, FeatureDependencySpec> featureDeps;
     final Map<String, FeatureReferenceSpec> featureRefs;
@@ -143,6 +158,7 @@ public class FeatureSpec extends PackageDepsSpec {
     private FeatureSpec(Builder builder) {
         super(builder);
         this.name = builder.name;
+        this.stability = builder.stability;
         this.annotations = CollectionUtils.unmodifiable(builder.annotations);
         this.featureDeps = CollectionUtils.unmodifiable(builder.featureDeps);
         this.featureRefs = CollectionUtils.unmodifiable(builder.refs);
@@ -154,6 +170,10 @@ public class FeatureSpec extends PackageDepsSpec {
 
     public String getName() {
         return name;
+    }
+
+    public Stability getStability() {
+        return stability;
     }
 
     public boolean hasAnnotations() {

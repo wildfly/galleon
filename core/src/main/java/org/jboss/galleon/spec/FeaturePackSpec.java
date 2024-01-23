@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.Stability;
 import org.jboss.galleon.config.FeaturePackDepsConfig;
 import org.jboss.galleon.config.FeaturePackDepsConfigBuilder;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
@@ -43,6 +44,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         private Map<String, FeaturePackPlugin> plugins = Collections.emptyMap();
         private Set<String> systemPaths = Collections.emptySet();
         private String galleonMinVersion;
+        private Stability minStability;
 
         protected Builder() {
         }
@@ -59,6 +61,22 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
         public String getGalleonMinVersion() {
             return galleonMinVersion;
+        }
+
+        public Builder setMinStability(String minLevel) {
+            if (minLevel != null) {
+                this.minStability = Stability.fromString(minLevel);
+            }
+            return this;
+        }
+
+        public Builder setMinStability(Stability minLevel) {
+            this.minStability = minLevel;
+            return this;
+        }
+
+        public Stability getMinStability() {
+            return minStability;
         }
 
         public FPID getFPID() {
@@ -134,6 +152,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final FPID patchFor;
     private final Set<String> systemPaths;
     private final String galleonMinVersion;
+    private final Stability minStability;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -143,10 +162,15 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.patchFor = builder.patchFor;
         this.systemPaths = CollectionUtils.unmodifiable(builder.systemPaths);
         this.galleonMinVersion = builder.galleonMinVersion;
+        this.minStability = builder.minStability == null ? Stability.DEFAULT : builder.minStability;
     }
 
     public String getGalleonMinVersion() {
         return galleonMinVersion;
+    }
+
+    public Stability getMinStability() {
+        return minStability;
     }
 
     public FPID getFPID() {

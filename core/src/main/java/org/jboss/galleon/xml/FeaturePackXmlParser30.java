@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,6 +132,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
         INHERIT("inherit"),
         LOCATION("location"),
         GALLEON_MIN_VERSION("galleon-min-version"),
+        MIN_STABILITY_LEVEL("min-stability-level"),
         MODEL("model"),
         NAMED_CONFIGS_ONLY("named-configs-only"),
         NAME("name"),
@@ -151,6 +152,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
             attributes.put(INHERIT.getLocalName(), INHERIT);
             attributes.put(LOCATION.getLocalName(), LOCATION);
             attributes.put(GALLEON_MIN_VERSION.getLocalName(), GALLEON_MIN_VERSION);
+            attributes.put(MIN_STABILITY_LEVEL.getLocalName(), MIN_STABILITY_LEVEL);
             attributes.put(MODEL.getLocalName(), MODEL);
             attributes.put(NAME.getLocalName(), NAME);
             attributes.put(PATH.getLocalName(), PATH);
@@ -305,6 +307,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
     private void readRootElement(XMLExtendedStreamReader reader, Builder builder) throws XMLStreamException {
         FeaturePackLocation location = null;
         String version = null;
+        String stability = null;
         final int count = reader.getAttributeCount();
         for (int i = 0; i < count; i++) {
             final Attribute attribute = Attribute.of(reader.getAttributeName(i).getLocalPart());
@@ -323,6 +326,13 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
                         throw new XMLStreamException(ParsingUtils.error("Failed to parse feature-pack location", reader.getLocation()), e);
                     }
                     break;
+                case MIN_STABILITY_LEVEL:
+                    try {
+                        stability = reader.getAttributeValue(i);
+                    } catch (IllegalArgumentException e) {
+                        throw new XMLStreamException(ParsingUtils.error("Failed to parse feature-pack location", reader.getLocation()), e);
+                    }
+                    break;
                 default:
                     throw ParsingUtils.unexpectedContent(reader);
             }
@@ -331,6 +341,7 @@ public class FeaturePackXmlParser30 implements PlugableXmlParser<Builder> {
             throw ParsingUtils.missingAttributes(reader.getLocation(), Collections.singleton(Attribute.LOCATION));
         }
         builder.setGalleonMinVersion(version);
+        builder.setMinStability(stability);
         builder.setFPID(location.getFPID());
     }
 

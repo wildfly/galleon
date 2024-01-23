@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -417,5 +417,10 @@ public class FeaturePackBuilder {
         } else if(!Files.isDirectory(dir)) {
             throw new IllegalStateException(dir + " is not a directory.");
         }
+    }
+
+    public FeaturePackBuilder setMinStability(String stability) {
+        fpBuilder.setMinStability(stability);
+        return this;
     }
 }

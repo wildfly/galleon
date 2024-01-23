@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
+import org.jboss.galleon.Stability;
 import org.jboss.galleon.UnsatisfiedPackageDependencyException;
 import org.jboss.galleon.api.GalleonLayerDependency;
 import org.jboss.galleon.config.ConfigId;
@@ -51,6 +53,7 @@ import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureId;
 import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageDepsSpec;
@@ -89,6 +92,9 @@ public class ProvisioningRuntimeBuilder {
     Path stagedDir;
     boolean recordState;
     FsDiff fsDiff;
+    Stability userStability;
+    // Can be needed by Galleon plugins.
+    Stability lowestStability;
     private final MessageWriter messageWriter;
 
     Map<String, ConfigModelStack> nameOnlyConfigs = Collections.emptyMap();
@@ -114,6 +120,10 @@ public class ProvisioningRuntimeBuilder {
 
     private ProvisioningRuntimeBuilder(final MessageWriter messageWriter) {
         this.messageWriter = messageWriter;
+    }
+
+    public MessageWriter getMessageWriter() {
+        return messageWriter;
     }
 
     public ProvisioningRuntimeBuilder setLogTime(boolean logTime) {
@@ -175,6 +185,28 @@ public class ProvisioningRuntimeBuilder {
 
         config = layout.getConfig();
         fpConfigStack = new FpStack(config);
+        String stabilityOption = layout.getOptionValue(ProvisioningOption.STABILITY_LEVEL);
+        if (stabilityOption == null) {
+            Stability stability = Stability.DEFAULT;
+            for (FeaturePackRuntimeBuilder fp : layout.getOrderedFeaturePacks()) {
+                Stability fpStability = fp.getSpec().getMinStability();
+                if (stability == null || (fpStability.ordinal() > stability.ordinal())) {
+                    stability = fpStability;
+                }
+            }
+            lowestStability = stability;
+            if (messageWriter.isVerboseEnabled()) {
+                messageWriter.verbose("No stability level provided, minimum stability of each feature-pack will be used. "
+                        + "The lowest stability is " + lowestStability);
+            }
+        } else {
+            userStability = Stability.fromString(stabilityOption);
+            lowestStability = userStability;
+            if (messageWriter.isVerboseEnabled()) {
+                messageWriter.verbose("Stability level " + userStability + " has been provided. "
+                        + "It constrains all feature-packs. The lowest stability is " + lowestStability);
+            }
+        }
 
         final String optionalPackages = layout.getOptionValue(ProvisioningOption.OPTIONAL_PACKAGES);
         switch(optionalPackages) {
@@ -225,6 +257,24 @@ public class ProvisioningRuntimeBuilder {
         mergeModelOnlyConfigs();
 
         return new ProvisioningRuntime(this, messageWriter);
+    }
+
+    /**
+     * The min stability is constrained by the feature-pack stability that is the minimal for a
+     * given feature-pack. The stability set by the user can only reduce the scope.
+     */
+    public Stability getMinStability(Stability featurePackStability) {
+        Stability minStability= featurePackStability;
+        if (getUserStability() != null) {
+            if (minStability.enables(getUserStability())) {
+                minStability = getUserStability();
+            }
+        }
+        return minStability;
+    }
+
+    public Stability getUserStability() {
+        return userStability;
     }
 
     private void mergeModelOnlyConfigs() throws ProvisioningException {
@@ -869,6 +919,37 @@ public class ProvisioningRuntimeBuilder {
                 if (item.isGroup()) {
                     processFeatureGroup((FeatureGroup) item);
                 } else {
+                    FeatureConfig fconfig = (FeatureConfig) item;
+                    final ResolvedFeatureSpec spec = getFeatureSpec(fconfig.getSpecId().getName(), false);
+                    Stability featureStability = spec.getSpec().getStability() == null ? Stability.DEFAULT : spec.getSpec().getStability();
+                    Stability fpStability = null;
+                    for (FeaturePackRuntimeBuilder fp : layout.getOrderedFeaturePacks()) {
+                        if (fp.producer.equals(spec.getId().getProducer())) {
+                            fpStability = fp.getSpec().getMinStability();
+                        }
+                    }
+                    Stability minStability = getMinStability(fpStability);
+                    if (!minStability.enables(featureStability)) {
+                        if (messageWriter.isVerboseEnabled()) {
+                            messageWriter.verbose(configStack.id + ". Excluding feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + featureStability + "' is lower than the expected '" + minStability +"' stability");
+                        }
+                        continue;
+                    }
+                    // Check for params at the wrong stability level
+                    Set<String> toRemove = new HashSet<>();
+                    for (String p : fconfig.getParams().keySet()) {
+                        FeatureParameterSpec ps = spec.getSpec().getParam(p);
+                        Stability paramStability = ps.getStability() == null ? Stability.DEFAULT : ps.getStability();
+                        if (!minStability.enables(paramStability)) {
+                            if (messageWriter.isVerboseEnabled()) {
+                                messageWriter.verbose(configStack.id + ". Excluding parameter '" + p + "' from feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + paramStability + "' is lower than the expected '" + minStability +"' stability");
+                            }
+                            toRemove.add(p);
+                        }
+                    }
+                    for (String p : toRemove) {
+                        fconfig.removeParam(p);
+                    }
                     resolveFeature(configStack, (FeatureConfig) item);
                 }
             } catch (ProvisioningException e) {

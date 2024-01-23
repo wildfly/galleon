@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,6 +163,17 @@ public class FeatureConfig implements ConfigItem, ConfigItemContainer, ConfigIte
             resetParams = CollectionUtils.remove(resetParams, name);
         }
         return prevValue;
+    }
+
+    // Fully disable a parameter, it is removed from the Feature fully.
+    public void removeParam(String name) {
+        params = CollectionUtils.remove(params, name);
+        if(!unsetParams.isEmpty()) {
+            unsetParams = CollectionUtils.remove(unsetParams, name);
+        }
+        if(!resetParams.isEmpty()) {
+            resetParams = CollectionUtils.remove(resetParams, name);
+        }
     }
 
     public FeatureConfig unsetParam(String name) {

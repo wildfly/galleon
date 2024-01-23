@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.Stability;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
@@ -102,8 +103,20 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
             default:
                 throw new ProvisioningException("Unexpected package dependency mask " + Integer.toBinaryString(rt.includedPkgDeps));
         }
-
-        packages = Collections.unmodifiableMap(tmpPackages);
+        // Filter out the packages that are not at the right stability level
+        final Map<String, PackageRuntime> filteredPackages = new LinkedHashMap<>(tmpPackages.size());
+        Stability minStability= rt.getMinStability(getSpec().getMinStability());
+        for(Map.Entry<String, PackageRuntime> entry : tmpPackages.entrySet()) {
+            Stability stability = entry.getValue().getSpec().getStability() == null ? Stability.DEFAULT : entry.getValue().getSpec().getStability();
+            if (minStability.enables(stability)) {
+                filteredPackages.put(entry.getKey(), entry.getValue());
+            } else {
+                if (rt.getMessageWriter().isVerboseEnabled()) {
+                    rt.getMessageWriter().verbose("Excluding package '" + entry.getKey() + "'. Its stability '" + stability + "' is lower than the expected '" + minStability +"' stability");
+                }
+            }
+        }
+        packages = Collections.unmodifiableMap(filteredPackages);
     }
 
     public Set<String> getSystemPaths() {

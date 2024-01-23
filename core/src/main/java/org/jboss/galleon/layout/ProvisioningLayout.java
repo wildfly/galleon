@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1261,6 +1261,8 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             }
         }
         if(rebuilder != null) {
+            rebuilder.setGalleonMinVersion(fpSpec.getGalleonMinVersion());
+            rebuilder.setMinStability(fpSpec.getMinStability());
             final FeaturePackSpec spec = rebuilder.build();
             fp = fpFactory.newFeaturePack(spec.getFPID().getLocation(), spec, fp.getDir(), fp.getType());
         }

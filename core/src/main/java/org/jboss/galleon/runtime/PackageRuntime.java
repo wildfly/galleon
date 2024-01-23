@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -178,6 +178,11 @@ public class PackageRuntime implements ProvisionedPackage, GalleonPackageRuntime
         isPassiveIncluded = passive
                 && builder.isPassiveWithSatisfiedDeps();
         status = builder.status;
+    }
+
+    @Override
+    public String getStability() {
+        return spec.getStability() == null ? null : spec.getStability().toString();
     }
 
     public boolean isPassive() {

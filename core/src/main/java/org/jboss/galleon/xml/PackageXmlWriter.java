@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ import java.util.Collection;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageDepsSpec;
 import org.jboss.galleon.spec.PackageSpec;
-import org.jboss.galleon.xml.PackageXmlParser20.Attribute;
-import org.jboss.galleon.xml.PackageXmlParser20.Element;
+import org.jboss.galleon.xml.PackageXmlParser30.Attribute;
+import org.jboss.galleon.xml.PackageXmlParser30.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -46,6 +46,9 @@ public class PackageXmlWriter extends BaseXmlWriter<PackageSpec> {
 
         final ElementNode pkg = addElement(null, Element.PACKAGE_SPEC);
         addAttribute(pkg, Attribute.NAME, pkgSpec.getName());
+        if (pkgSpec.getStability() != null) {
+            addAttribute(pkg, Attribute.STABILITY_LEVEL, pkgSpec.getStability().toString());
+        }
         if(pkgSpec.hasPackageDeps()) {
             writePackageDeps(pkgSpec, addElement(pkg, Element.DEPENDENCIES.getLocalName(), Element.DEPENDENCIES.getNamespace()));
         }

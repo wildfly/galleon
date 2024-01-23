@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.jboss.galleon.api;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.api.config.GalleonProvisionedConfig;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
@@ -51,6 +52,8 @@ public interface GalleonProvisioningRuntime extends AutoCloseable {
     Path getResource(String... path) throws ProvisioningException;
 
     void provision() throws ProvisioningException;
+
+    List<GalleonFeatureSpec> getAllFeatures() throws ProvisioningException;
 
     @Override
     void close();
