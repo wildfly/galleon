@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,9 +65,16 @@ public class ProvisioningOption {
            .setBooleanValueSet()
            .build();
 
+    public static final ProvisioningOption STABILITY_LEVEL = ProvisioningOption.builder(Constants.STABILITY_LEVEL)
+            .addToValueSet(Constants.STABILITY_EXPERIMENTAL)
+            .addToValueSet(Constants.STABILITY_PREVIEW)
+            .addToValueSet(Constants.STABILITY_COMMUNITY)
+            .addToValueSet(Constants.STABILITY_DEFAULT)
+            .build();
+
     private static final List<ProvisioningOption> stdOptions = Arrays
             .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE, PRINT_ONLY_CONFLICTS,
-                STORE_INPUT_PROVISIONING_CONFIG, EXPORT_SYSTEM_PATHS});
+                STORE_INPUT_PROVISIONING_CONFIG, EXPORT_SYSTEM_PATHS, STABILITY_LEVEL});
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

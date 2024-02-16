@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ import org.junit.Test;
  * @author Bartosz Spyrko-Smietanko (bspyrkos@redhat.com)
  */
 public class PackageXmlWriterTestCase {
-    private static final String SCHEMA = "schema/galleon-package-2_0.xsd";
+    private static final String SCHEMA = "schema/galleon-package-3_0.xsd";
 
     private static XmlParserValidator<PackageSpec> validator;
     private static Path tmpDir;

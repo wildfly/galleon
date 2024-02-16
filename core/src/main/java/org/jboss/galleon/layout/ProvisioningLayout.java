@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1160,7 +1161,28 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 }
                 layout(spec, branch, FeaturePackLayout.TRANSITIVE_DEP);
                 if(spec.hasPlugins()) {
-                    pluginLocations = CollectionUtils.putAll(pluginLocations, spec.getPlugins());
+                    Map<String, FeaturePackPlugin> map = new HashMap<>();
+                    for(Entry<String, FeaturePackPlugin> pluginEntry : spec.getPlugins().entrySet()) {
+                        if (!pluginLocations.containsKey(pluginEntry.getKey())) {
+                            map.put(pluginEntry.getKey(), pluginEntry.getValue());
+                        } else {
+                            FeaturePackPlugin contained = pluginLocations.get(pluginEntry.getKey());
+                            FeaturePackPlugin newOne = pluginEntry.getValue();
+                            boolean sameRepo = (newOne.getRepoId() == null && contained.getRepoId() == null) ||
+                                    (newOne.getRepoId() != null && newOne.getRepoId().equals(contained.getRepoId()));
+                            // If both plugins come from the same repo (e.g.: the maven case), the greater location wins
+                            // That is in line with always using the greatest Galleon version during provisioning.
+                            if (sameRepo) {
+                                if(newOne.getLocation().compareTo(contained.getLocation()) > 0) {
+                                    map.put(pluginEntry.getKey(), pluginEntry.getValue());
+                                }
+                            } else {
+                                // if not same repo, then the latest plugin overrides the existing one.
+                                map.put(pluginEntry.getKey(), pluginEntry.getValue());
+                            }
+                        }
+                    }
+                    pluginLocations = CollectionUtils.putAll(pluginLocations, map);
                 }
                 handle.copyResources(p.getDir());
                 ordered.add(p);
@@ -1261,6 +1283,8 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             }
         }
         if(rebuilder != null) {
+            rebuilder.setGalleonMinVersion(fpSpec.getGalleonMinVersion());
+            rebuilder.setMinStability(fpSpec.getMinStability());
             final FeaturePackSpec spec = rebuilder.build();
             fp = fpFactory.newFeaturePack(spec.getFPID().getLocation(), spec, fp.getDir(), fp.getType());
         }

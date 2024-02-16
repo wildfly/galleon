@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ import org.jboss.galleon.Errors;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningOption;
+import org.jboss.galleon.Stability;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.layout.FeaturePackLayoutTransformer;
@@ -49,9 +50,13 @@ import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.util.StringUtils;
 import org.jboss.galleon.layout.SystemPaths;
 import org.jboss.galleon.api.GalleonFeaturePackRuntime;
+import org.jboss.galleon.api.GalleonFeatureParamSpec;
+import org.jboss.galleon.api.GalleonFeatureSpec;
 import org.jboss.galleon.api.GalleonPackageRuntime;
 import org.jboss.galleon.api.GalleonProvisioningRuntime;
 import org.jboss.galleon.api.config.GalleonProvisionedConfig;
+import org.jboss.galleon.plugin.ProvisionedConfigHandler;
+import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.xml.ProvisionedStateXmlWriter;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 
@@ -60,7 +65,24 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
  * @author Alexey Loubyansky
  */
 public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, AutoCloseable, GalleonProvisioningRuntime {
+    class DiscoverConfigFeatures implements ProvisionedConfigHandler {
 
+        List<GalleonFeatureSpec> features = new ArrayList<>();
+
+        @Override
+        public void nextSpec(ResolvedFeatureSpec spec) throws ProvisioningException {
+            GalleonFeatureSpec gSpec = new GalleonFeatureSpec(spec.getName(),
+                    spec.getSpec().getStability() == null ? null : spec.getSpec().getStability().toString());
+            for (FeatureParameterSpec p : spec.getSpec().getParams().values()) {
+               gSpec.addParam(new GalleonFeatureParamSpec(p.getName(), p.getStability() == null ? null : p.getStability().toString()));
+            }
+            features.add(gSpec);
+        }
+
+        public List<GalleonFeatureSpec> getDiscoveredFeatures() {
+            return Collections.unmodifiableList(features);
+        }
+    }
     private final long startTime;
     private ProvisioningConfig config;
     private FsDiff fsDiff;
@@ -69,11 +91,13 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final MessageWriter messageWriter;
     private Boolean emptyStagedDir;
     private final boolean recordState;
+    private Stability lowestStability;
     private List<ProvisionedConfig> configs = Collections.emptyList();
 
     ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
         this.config = builder.config;
+        this.lowestStability = builder.lowestStability == null ? null : builder.lowestStability;
         this.layout = builder.layout.transform(new FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
             @Override
             public FeaturePackRuntime transform(FeaturePackRuntimeBuilder other) throws ProvisioningException {
@@ -105,6 +129,10 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
         this.recordState = builder.recordState;
         this.messageWriter = messageWriter;
+    }
+
+    public String getLowestStability() {
+       return lowestStability.toString();
     }
 
     @Override
@@ -265,6 +293,17 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
 
     public SystemPaths getSystemPaths() {
         return layout.getSystemPaths();
+    }
+
+    @Override
+    public List<GalleonFeatureSpec> getAllFeatures() throws ProvisioningException {
+        List<GalleonFeatureSpec> ret = new ArrayList<>();
+        for (ProvisionedConfig config : getConfigs()) {
+            DiscoverConfigFeatures discovery = new DiscoverConfigFeatures();
+            config.handle(discovery);
+            ret.addAll(discovery.getDiscoveredFeatures());
+        }
+        return ret;
     }
 
     @Override

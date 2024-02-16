@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,8 @@ import org.jboss.galleon.spec.FeatureDependencySpec;
 import org.jboss.galleon.spec.FeatureParameterSpec;
 import org.jboss.galleon.spec.FeatureReferenceSpec;
 import org.jboss.galleon.spec.FeatureSpec;
-import org.jboss.galleon.xml.FeatureSpecXmlParser10.Attribute;
-import org.jboss.galleon.xml.FeatureSpecXmlParser10.Element;
+import org.jboss.galleon.xml.FeatureSpecXmlParser20.Attribute;
+import org.jboss.galleon.xml.FeatureSpecXmlParser20.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 
 /**
@@ -52,7 +52,9 @@ public class FeatureSpecXmlWriter extends BaseXmlWriter<FeatureSpec> {
 
         final ElementNode specE = addElement(null, Element.FEATURE_SPEC);
         addAttribute(specE, Attribute.NAME, featureSpec.getName());
-
+        if (featureSpec.getStability() != null) {
+            addAttribute(specE, Attribute.STABILITY, featureSpec.getStability().toString());
+        }
         if(featureSpec.hasAnnotations()) {
             for (FeatureAnnotation fa : featureSpec.getAnnotations()) {
                 final ElementNode annotationE = addElement(specE, Element.ANNOTATION);
@@ -131,6 +133,9 @@ public class FeatureSpecXmlWriter extends BaseXmlWriter<FeatureSpec> {
                 }
                 if(paramSpec.getType() != null && !Constants.BUILT_IN_TYPE_STRING.equals(paramSpec.getType())) {
                     addAttribute(paramE, Attribute.TYPE, paramSpec.getType());
+                }
+                if(paramSpec.getStability()!= null) {
+                    addAttribute(paramE, Attribute.STABILITY, paramSpec.getStability().toString());
                 }
             }
         }

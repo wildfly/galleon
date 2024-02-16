@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.jboss.galleon.spec;
 
+import org.jboss.galleon.Stability;
 
 /**
  * This class describes a package as it appears in a feature-pack specification.
@@ -31,6 +32,7 @@ public class PackageSpec extends PackageDepsSpec {
     public static class Builder extends PackageDepsSpecBuilder<Builder> {
 
         private String name;
+        private Stability stability;
 
         protected Builder() {
             this(null);
@@ -42,6 +44,16 @@ public class PackageSpec extends PackageDepsSpec {
 
         public Builder setName(String name) {
             this.name = name;
+            return this;
+        }
+        public Builder setStability(String stability) {
+            if (stability != null) {
+                this.stability = Stability.fromString(stability);
+            }
+            return this;
+        }
+        public Builder setStability(Stability stability) {
+            this.stability = stability;
             return this;
         }
 
@@ -59,19 +71,26 @@ public class PackageSpec extends PackageDepsSpec {
     }
 
     private final String name;
+    private final Stability stability;
 
     protected PackageSpec(String name) {
         super();
         this.name = name;
+        this.stability = null;
     }
 
     protected PackageSpec(Builder builder) {
         super(builder);
         this.name = builder.name;
+        this.stability = builder.stability;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Stability getStability() {
+        return stability;
     }
 
     @Override
@@ -103,6 +122,9 @@ public class PackageSpec extends PackageDepsSpec {
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append('[').append(name);
+        if(stability != null) {
+            buf.append(" stability=").append(stability);
+        }
         if(!localPkgDeps.isEmpty()) {
             buf.append(" depends on ").append(localPkgDeps);
         }

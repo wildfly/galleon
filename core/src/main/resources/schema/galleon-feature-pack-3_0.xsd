@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
 
-    Copyright 2016-2022 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,20 @@
       <xs:annotation>
         <xs:documentation>
           Feature-pack location expression
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="galleon-min-version" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The Galleon version used to build the feature-pack.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="min-stability-level" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The minimum stability level, can be 'default', 'community', 'preview' or 'experimental'.
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>

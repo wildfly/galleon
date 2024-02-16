@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,6 +81,12 @@ public interface Constants {
     String NONE = "none";
     String PASSIVE = "passive";
     String PASSIVE_PLUS = "passive+";
+
+    String STABILITY_LEVEL = "stability-level";
+    String STABILITY_EXPERIMENTAL = "experimental";
+    String STABILITY_PREVIEW = "preview";
+    String STABILITY_COMMUNITY = "community";
+    String STABILITY_DEFAULT = "default";
 
     String VERSION_CONVERGENCE = "version-convergence";
     String FIRST_PROCESSED = "first-processed";

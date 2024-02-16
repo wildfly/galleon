@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,10 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
     protected ElementNode toElement(FeaturePackSpec fpSpec) {
         final ElementNode fp = addElement(null, Element.FEATURE_PACK);
         addAttribute(fp, Attribute.LOCATION, fpSpec.getFPID().toString());
-        addAttribute(fp, "galleon-min-version", CoreVersion.getVersion());
+        addAttribute(fp, Attribute.GALLEON_MIN_VERSION, CoreVersion.getVersion());
+        if (fpSpec.getMinStability() != null) {
+            addAttribute(fp, Attribute.MIN_STABILITY_LEVEL, fpSpec.getMinStability().toString());
+        }
         ProvisioningXmlWriter.writeUniverseSpecs(fpSpec, fp);
 
         if(fpSpec.isPatch()) {

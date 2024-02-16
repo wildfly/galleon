@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.jboss.galleon.spec;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.Stability;
 
 /**
  *
@@ -32,6 +33,7 @@ public class FeatureParameterSpec {
         private boolean nillable;
         private String defaultValue;
         private String type = Constants.BUILT_IN_TYPE_STRING;
+        private Stability stability;
 
         private Builder() {
         }
@@ -47,6 +49,22 @@ public class FeatureParameterSpec {
         public Builder setName(String name) {
             this.name = name;
             return this;
+        }
+
+        public Builder setStability(Stability stability) {
+            this.stability = stability;
+            return this;
+        }
+
+        public Builder setStability(String stability) {
+            if (stability != null) {
+                this.stability = Stability.fromString(stability);
+            }
+            return this;
+        }
+
+        public Stability getStability() {
+            return stability;
         }
 
         public Builder setFeatureId() {
@@ -96,23 +114,27 @@ public class FeatureParameterSpec {
     }
 
     public static FeatureParameterSpec create(String name) throws ProvisioningDescriptionException {
-        return new FeatureParameterSpec(name, false, false, null);
+        return new FeatureParameterSpec(name, false, false, null, null);
     }
 
     public static FeatureParameterSpec create(String name, String value) throws ProvisioningDescriptionException {
-        return new FeatureParameterSpec(name, false, false, value);
+        return new FeatureParameterSpec(name, false, false, value, null);
     }
 
     public static FeatureParameterSpec create(String name, boolean nillable) throws ProvisioningDescriptionException {
-        return new FeatureParameterSpec(name, false, nillable, null);
+        return new FeatureParameterSpec(name, false, nillable, null, null);
     }
 
     public static FeatureParameterSpec createId(String name) throws ProvisioningDescriptionException {
-        return new FeatureParameterSpec(name, true, false, null);
+        return new FeatureParameterSpec(name, true, false, null, null);
     }
 
     public static FeatureParameterSpec create(String name, boolean featureId, boolean nillable, String defaultValue) throws ProvisioningDescriptionException {
-        return new FeatureParameterSpec(name, featureId, nillable, defaultValue);
+        return new FeatureParameterSpec(name, featureId, nillable, defaultValue, null);
+    }
+
+    public static FeatureParameterSpec create(String name, boolean featureId, boolean nillable, String defaultValue, Stability stability) throws ProvisioningDescriptionException {
+        return new FeatureParameterSpec(name, featureId, nillable, defaultValue, stability);
     }
 
     final String name;
@@ -120,8 +142,9 @@ public class FeatureParameterSpec {
     final boolean nillable;
     final String defaultValue;
     final String type;
+    final Stability stability;
 
-    private FeatureParameterSpec(String name, boolean featureId, boolean nillable, String defaultValue) throws ProvisioningDescriptionException {
+    private FeatureParameterSpec(String name, boolean featureId, boolean nillable, String defaultValue, Stability stability) throws ProvisioningDescriptionException {
         if (featureId && nillable) {
             throw new ProvisioningDescriptionException("ID parameter " + name + " cannot be nillable.");
         }
@@ -130,6 +153,7 @@ public class FeatureParameterSpec {
         this.nillable = nillable;
         this.defaultValue = defaultValue;
         this.type = Constants.BUILT_IN_TYPE_STRING;
+        this.stability = stability;
     }
 
     private FeatureParameterSpec(Builder builder) throws ProvisioningDescriptionException {
@@ -141,10 +165,15 @@ public class FeatureParameterSpec {
         this.nillable = builder.nillable;
         this.defaultValue = builder.defaultValue;
         this.type = builder.type;
+        this.stability = builder.getStability();
     }
 
     public String getName() {
         return name;
+    }
+
+    public Stability getStability() {
+        return stability;
     }
 
     public boolean isFeatureId() {
@@ -176,6 +205,7 @@ public class FeatureParameterSpec {
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + (nillable ? 1231 : 1237);
         result = prime * result + ((type == null) ? 0 : type.hashCode());
+        result = prime * result + ((stability == null) ? 0 : stability.hashCode());
         return result;
     }
 
@@ -216,6 +246,13 @@ public class FeatureParameterSpec {
                 return false;
             }
         } else if (!type.equals(other.type)) {
+            return false;
+        }
+        if (stability == null) {
+            if (other.stability != null) {
+                return false;
+            }
+        } else if (!stability.equals(other.stability)) {
             return false;
         }
         return true;

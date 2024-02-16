@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,6 +57,11 @@ public class PackageBuilder {
 
     public FeaturePackBuilder getFeaturePack() {
         return fp;
+    }
+
+    public PackageBuilder setStability(String stability) {
+        pkg.setStability(stability);
+        return this;
     }
 
     public PackageBuilder setDefault() {

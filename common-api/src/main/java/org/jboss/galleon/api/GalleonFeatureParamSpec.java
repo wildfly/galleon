@@ -16,26 +16,32 @@
  */
 package org.jboss.galleon.api;
 
-import java.nio.file.Path;
-import org.jboss.galleon.ProvisioningDescriptionException;
-import org.jboss.galleon.universe.FeaturePackLocation;
+/**
+ *
+ * @author jdenise
+ */
+public class GalleonFeatureParamSpec {
 
-public interface GalleonPackageRuntime {
+    private final String name;
+    private final String stability;
 
-    String getStability();
-
-    String getName();
+    public GalleonFeatureParamSpec(String name, String stability) {
+        this.name = name;
+        this.stability = stability;
+    }
 
     /**
-     * Returns a resource path for a package.
-     *
-     * @param path  path to the resource relative to the package resources directory
-     * @return  file-system path for the resource
-     * @throws ProvisioningDescriptionException  in case the feature-pack or package were not found in the layout
+     * @return the name
      */
-    Path getResource(String... path) throws ProvisioningDescriptionException;
+    public String getName() {
+        return name;
+    }
 
-    Path getContentDir();
+    /**
+     * @return the stability
+     */
+    public String getStability() {
+        return stability;
+    }
 
-    FeaturePackLocation.FPID getFeaturePackFPID();
 }
