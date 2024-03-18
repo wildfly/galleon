@@ -31,33 +31,28 @@ import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
  *
  * @author jfdenise
  */
-public class FeaturePreviewStabilityTestCase extends AbstractFeatureStabilityTestCase {
+public class FeatureDefaultConfigStabilityCommunityPackageTestCase extends AbstractFeatureStabilityTestCase {
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder().
-                addFeaturePackDep(FeaturePackConfig.forLocation(FP1_GAV.getLocation())).
+                addFeaturePackDep(FeaturePackConfig.builder(FP1_GAV.getLocation()).setInheritPackages(true).build()).
                 addFeaturePackDep(FeaturePackConfig.builder(FP2_GAV.getLocation()).setInheritPackages(true).build()).
-                addOption(Constants.CONFIG_STABILITY_LEVEL, "preview").
-                addOption(Constants.PACKAGE_STABILITY_LEVEL, "preview").build();
+                addOption(Constants.CONFIG_STABILITY_LEVEL, "default").
+                addOption(Constants.PACKAGE_STABILITY_LEVEL, "community").
+                build();
     }
 
     @Override
-    protected ProvisionedState provisionedState() throws ProvisioningDescriptionException {
+    protected ProvisionedState provisionedState() throws ProvisioningDescriptionException  {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV).addPackage("p").addPackage("pDefault").addPackage("pCommunity").addPackage("pPreview").build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV).addPackage("p").addPackage("pDefault").addPackage("pCommunity").build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("configA")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getProducer(),  "specNoStability"), "id", "1")))
                         .addFeature(ProvisionedFeatureBuilder.
-                                builder(ResolvedFeatureId.builder(new ResolvedSpecId(FP1_GAV.getProducer(),  "specPreview")).
-                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").setConfigParam("idCommunity", "1").setConfigParam("idPreview", "1").build())
-                        .addFeature(ProvisionedFeatureBuilder.
-                                builder(ResolvedFeatureId.builder(new ResolvedSpecId(FP1_GAV.getProducer(),  "specCommunity")).
-                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").setConfigParam("idCommunity", "1").setConfigParam("idPreview", "1").build())
-                        .addFeature(ProvisionedFeatureBuilder.
                                 builder(ResolvedFeatureId.builder(new ResolvedSpecId(FP1_GAV.getProducer(),  "specDefault")).
-                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").setConfigParam("idCommunity", "1").build())
+                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").build())
                         .build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV).addPackage("p").addPackage("pDefault").build())
                 .addConfig(ProvisionedConfigBuilder.builder()

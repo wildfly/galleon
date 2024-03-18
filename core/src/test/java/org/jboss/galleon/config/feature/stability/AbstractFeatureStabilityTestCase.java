@@ -38,7 +38,7 @@ public abstract class AbstractFeatureStabilityTestCase extends PmProvisionConfig
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
-            .newFeaturePack(FP1_GAV).setMinStability("experimental")
+            .newFeaturePack(FP1_GAV).setConfigStability("experimental").setPackageStability("experimental")
                 .addFeatureSpec(FeatureSpec.builder("specNoStability")
                         .addParam(FeatureParameterSpec.createId("id"))
                         .build())
@@ -88,7 +88,7 @@ public abstract class AbstractFeatureStabilityTestCase extends PmProvisionConfig
                 .getFeaturePack()
                 .newPackage("pExperimental", true).setStability("experimental")
                 .getFeaturePack().getCreator()
-                .newFeaturePack(FP2_GAV).setMinStability("default")
+                .newFeaturePack(FP2_GAV).setConfigStability("default").setPackageStability("default")
                 .addDependency(FP1_GAV.getLocation())
                 .addFeatureSpec(FeatureSpec.builder("specNoStability")
                         .addParam(FeatureParameterSpec.createId("id"))

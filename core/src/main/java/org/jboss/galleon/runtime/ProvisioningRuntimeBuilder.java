@@ -92,9 +92,10 @@ public class ProvisioningRuntimeBuilder {
     Path stagedDir;
     boolean recordState;
     FsDiff fsDiff;
-    Stability userStability;
+    Stability userConfigStability;
+    Stability userPackageStability;
     // Can be needed by Galleon plugins.
-    Stability lowestStability;
+    Stability lowestConfigStability;
     private final MessageWriter messageWriter;
 
     Map<String, ConfigModelStack> nameOnlyConfigs = Collections.emptyMap();
@@ -186,25 +187,46 @@ public class ProvisioningRuntimeBuilder {
         config = layout.getConfig();
         fpConfigStack = new FpStack(config);
         String stabilityOption = layout.getOptionValue(ProvisioningOption.STABILITY_LEVEL);
-        if (stabilityOption == null) {
+        String configStabilityOption = layout.getOptionValue(ProvisioningOption.CONFIG_STABILITY_LEVEL);
+        String packageStabilityOption = layout.getOptionValue(ProvisioningOption.PACKAGE_STABILITY_LEVEL);
+        if(stabilityOption != null) {
+            if(configStabilityOption != null) {
+                throw new ProvisioningException(ProvisioningOption.STABILITY_LEVEL.getName() + " option can't be set when " +
+                        ProvisioningOption.CONFIG_STABILITY_LEVEL.getName() + " is set.");
+            }
+            if (packageStabilityOption != null) {
+                throw new ProvisioningException(ProvisioningOption.STABILITY_LEVEL.getName() + " option can't be set when "
+                        + ProvisioningOption.PACKAGE_STABILITY_LEVEL.getName() + " is set.");
+            }
+            configStabilityOption = stabilityOption;
+            packageStabilityOption = stabilityOption;
+        }
+        if (configStabilityOption == null) {
             Stability stability = Stability.DEFAULT;
             for (FeaturePackRuntimeBuilder fp : layout.getOrderedFeaturePacks()) {
-                Stability fpStability = fp.getSpec().getMinStability();
+                Stability fpStability = fp.getSpec().getConfigStability();
                 if (stability == null || (fpStability.ordinal() > stability.ordinal())) {
                     stability = fpStability;
                 }
             }
-            lowestStability = stability;
+            lowestConfigStability = stability;
             if (messageWriter.isVerboseEnabled()) {
-                messageWriter.verbose("No stability level provided, minimum stability of each feature-pack will be used. "
-                        + "The lowest stability is " + lowestStability);
+                messageWriter.verbose("No config stability level provided, config stability of each feature-pack will be used. "
+                        + "The lowest stability is " + lowestConfigStability);
             }
         } else {
-            userStability = Stability.fromString(stabilityOption);
-            lowestStability = userStability;
+            userConfigStability = Stability.fromString(configStabilityOption);
+            lowestConfigStability = userConfigStability;
             if (messageWriter.isVerboseEnabled()) {
-                messageWriter.verbose("Stability level " + userStability + " has been provided. "
-                        + "It constrains all feature-packs. The lowest stability is " + lowestStability);
+                messageWriter.verbose("Stability level " + userConfigStability + " has been provided. "
+                        + "It constrains all feature-packs. The lowest config stability is " + lowestConfigStability);
+            }
+        }
+        if (packageStabilityOption != null) {
+            userPackageStability = Stability.fromString(packageStabilityOption);
+            if (messageWriter.isVerboseEnabled()) {
+                messageWriter.verbose("Stability level " + userPackageStability + " has been provided. "
+                        + "It constrains all feature-packs. The lowest package stability is " + lowestConfigStability);
             }
         }
 
@@ -260,21 +282,39 @@ public class ProvisioningRuntimeBuilder {
     }
 
     /**
-     * The min stability is constrained by the feature-pack stability that is the minimal for a
+     * The min config stability is constrained by the feature-pack stability that is the minimal for a
      * given feature-pack. The stability set by the user can only reduce the scope.
      */
-    public Stability getMinStability(Stability featurePackStability) {
+    public Stability getMinConfigStability(Stability featurePackStability) {
         Stability minStability= featurePackStability;
-        if (getUserStability() != null) {
-            if (minStability.enables(getUserStability())) {
-                minStability = getUserStability();
+        if (getUserConfigStability() != null) {
+            if (minStability.enables(getUserConfigStability())) {
+                minStability = getUserConfigStability();
             }
         }
         return minStability;
     }
 
-    public Stability getUserStability() {
-        return userStability;
+    /**
+     * The min package stability is constrained by the feature-pack stability that is the minimal for a
+     * given feature-pack. The stability set by the user can only reduce the scope.
+     */
+    public Stability getMinPackageStability(Stability featurePackStability) {
+        Stability minStability= featurePackStability;
+        if (getUserPackageStability() != null) {
+            if (minStability.enables(getUserPackageStability())) {
+                minStability = getUserPackageStability();
+            }
+        }
+        return minStability;
+    }
+
+    public Stability getUserConfigStability() {
+        return userConfigStability;
+    }
+
+    public Stability getUserPackageStability() {
+        return userPackageStability;
     }
 
     private void mergeModelOnlyConfigs() throws ProvisioningException {
@@ -925,10 +965,10 @@ public class ProvisioningRuntimeBuilder {
                     Stability fpStability = null;
                     for (FeaturePackRuntimeBuilder fp : layout.getOrderedFeaturePacks()) {
                         if (fp.producer.equals(spec.getId().getProducer())) {
-                            fpStability = fp.getSpec().getMinStability();
+                            fpStability = fp.getSpec().getConfigStability();
                         }
                     }
-                    Stability minStability = getMinStability(fpStability);
+                    Stability minStability = getMinConfigStability(fpStability);
                     if (!minStability.enables(featureStability)) {
                         if (messageWriter.isVerboseEnabled()) {
                             messageWriter.verbose(configStack.id + ". Excluding feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + featureStability + "' is lower than the expected '" + minStability +"' stability");

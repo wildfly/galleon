@@ -419,8 +419,13 @@ public class FeaturePackBuilder {
         }
     }
 
-    public FeaturePackBuilder setMinStability(String stability) {
-        fpBuilder.setMinStability(stability);
+    public FeaturePackBuilder setConfigStability(String stability) {
+        fpBuilder.setConfigStability(stability);
+        return this;
+    }
+
+    public FeaturePackBuilder setPackageStability(String stability) {
+        fpBuilder.setPackageStability(stability);
         return this;
     }
 }

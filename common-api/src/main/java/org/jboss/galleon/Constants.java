@@ -83,6 +83,8 @@ public interface Constants {
     String PASSIVE_PLUS = "passive+";
 
     String STABILITY_LEVEL = "stability-level";
+    String CONFIG_STABILITY_LEVEL = "config-stability-level";
+    String PACKAGE_STABILITY_LEVEL = "package-stability-level";
     String STABILITY_EXPERIMENTAL = "experimental";
     String STABILITY_PREVIEW = "preview";
     String STABILITY_COMMUNITY = "community";

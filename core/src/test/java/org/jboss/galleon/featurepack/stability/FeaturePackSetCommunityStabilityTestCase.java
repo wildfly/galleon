@@ -34,7 +34,7 @@ public class FeaturePackSetCommunityStabilityTestCase extends AbstractFpStatibil
         return ProvisioningConfig.builder().
                 addFeaturePackDep(FeaturePackConfig.forLocation(FP1_100_GAV.getLocation())).
                 addFeaturePackDep(FeaturePackConfig.forLocation(FP2_100_GAV.getLocation())).
-                addOption(Constants.STABILITY_LEVEL, "community").build();
+                addOption(Constants.PACKAGE_STABILITY_LEVEL, "community").build();
     }
 
     @Override

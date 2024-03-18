@@ -14,34 +14,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.galleon.featurepack.stability;
+package org.jboss.galleon.config.feature.stability;
 
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningOption;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.state.ProvisionedFeaturePack;
 import org.jboss.galleon.state.ProvisionedState;
 
 /**
  *
  * @author jfdenise
  */
-public class FeaturePackSetPreviewStabilityTestCase extends AbstractFpStatibilityTestCase {
+public class FeatureInvalidPackageStabilityTestCase extends AbstractFeatureStabilityTestCase {
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningDescriptionException {
         return ProvisioningConfig.builder().
-                addFeaturePackDep(FeaturePackConfig.forLocation(FP1_100_GAV.getLocation())).
-                addFeaturePackDep(FeaturePackConfig.forLocation(FP2_100_GAV.getLocation())).
-                addOption(Constants.PACKAGE_STABILITY_LEVEL, "preview").build();
+                addFeaturePackDep(FeaturePackConfig.builder(FP1_GAV.getLocation()).setInheritPackages(true).build()).
+                addFeaturePackDep(FeaturePackConfig.builder(FP2_GAV.getLocation()).setInheritPackages(true).build()).
+                addOption(Constants.PACKAGE_STABILITY_LEVEL, "default").
+                addOption(Constants.STABILITY_LEVEL, "community").
+                build();
+    }
+
+    @Override
+    protected String[] pmErrors() throws ProvisioningException {
+        String[] array = {ProvisioningOption.STABILITY_LEVEL.getName() + " option can't be set when "
+                        + ProvisioningOption.PACKAGE_STABILITY_LEVEL.getName() + " is set."};
+        return array;
     }
 
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningDescriptionException {
-        return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_100_GAV).addPackage("fp1_1default").addPackage("fp1_2noStability").build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP2_100_GAV).addPackage("fp2_1default").addPackage("fp2_2noStability").addPackage("fp2_3community").addPackage("fp2_4preview").build())
-                .build();
+        throw new ProvisioningDescriptionException("Shouldn't be called.");
     }
 }

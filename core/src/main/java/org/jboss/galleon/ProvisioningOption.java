@@ -72,9 +72,23 @@ public class ProvisioningOption {
             .addToValueSet(Constants.STABILITY_DEFAULT)
             .build();
 
+    public static final ProvisioningOption CONFIG_STABILITY_LEVEL = ProvisioningOption.builder(Constants.CONFIG_STABILITY_LEVEL)
+            .addToValueSet(Constants.STABILITY_EXPERIMENTAL)
+            .addToValueSet(Constants.STABILITY_PREVIEW)
+            .addToValueSet(Constants.STABILITY_COMMUNITY)
+            .addToValueSet(Constants.STABILITY_DEFAULT)
+            .build();
+
+    public static final ProvisioningOption PACKAGE_STABILITY_LEVEL = ProvisioningOption.builder(Constants.PACKAGE_STABILITY_LEVEL)
+            .addToValueSet(Constants.STABILITY_EXPERIMENTAL)
+            .addToValueSet(Constants.STABILITY_PREVIEW)
+            .addToValueSet(Constants.STABILITY_COMMUNITY)
+            .addToValueSet(Constants.STABILITY_DEFAULT)
+            .build();
+
     private static final List<ProvisioningOption> stdOptions = Arrays
             .asList(new ProvisioningOption[] { IGNORE_NOT_EXCLUDED_LAYERS, OPTIONAL_PACKAGES, VERSION_CONVERGENCE, PRINT_ONLY_CONFLICTS,
-                STORE_INPUT_PROVISIONING_CONFIG, EXPORT_SYSTEM_PATHS, STABILITY_LEVEL});
+                STORE_INPUT_PROVISIONING_CONFIG, EXPORT_SYSTEM_PATHS, CONFIG_STABILITY_LEVEL, PACKAGE_STABILITY_LEVEL, STABILITY_LEVEL});
 
     public static List<ProvisioningOption> getStandardList() {
         return stdOptions;

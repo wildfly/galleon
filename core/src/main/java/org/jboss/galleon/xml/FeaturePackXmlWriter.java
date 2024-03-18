@@ -45,8 +45,11 @@ public class FeaturePackXmlWriter extends BaseXmlWriter<FeaturePackSpec> {
         final ElementNode fp = addElement(null, Element.FEATURE_PACK);
         addAttribute(fp, Attribute.LOCATION, fpSpec.getFPID().toString());
         addAttribute(fp, Attribute.GALLEON_MIN_VERSION, CoreVersion.getVersion());
-        if (fpSpec.getMinStability() != null) {
-            addAttribute(fp, Attribute.MIN_STABILITY_LEVEL, fpSpec.getMinStability().toString());
+        if (fpSpec.getConfigStability() != null) {
+            addAttribute(fp, Attribute.CONFIG_STABILITY_LEVEL, fpSpec.getConfigStability().toString());
+        }
+        if (fpSpec.getPackageStability() != null) {
+            addAttribute(fp, Attribute.PACKAGE_STABILITY_LEVEL, fpSpec.getPackageStability().toString());
         }
         ProvisioningXmlWriter.writeUniverseSpecs(fpSpec, fp);
 

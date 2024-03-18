@@ -105,7 +105,7 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
         }
         // Filter out the packages that are not at the right stability level
         final Map<String, PackageRuntime> filteredPackages = new LinkedHashMap<>(tmpPackages.size());
-        Stability minStability= rt.getMinStability(getSpec().getMinStability());
+        Stability minStability= rt.getMinPackageStability(getSpec().getPackageStability());
         for(Map.Entry<String, PackageRuntime> entry : tmpPackages.entrySet()) {
             Stability stability = entry.getValue().getSpec().getStability() == null ? Stability.DEFAULT : entry.getValue().getSpec().getStability();
             if (minStability.enables(stability)) {

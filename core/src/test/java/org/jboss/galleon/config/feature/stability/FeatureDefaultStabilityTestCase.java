@@ -38,7 +38,9 @@ public class FeatureDefaultStabilityTestCase extends AbstractFeatureStabilityTes
         return ProvisioningConfig.builder().
                 addFeaturePackDep(FeaturePackConfig.builder(FP1_GAV.getLocation()).setInheritPackages(true).build()).
                 addFeaturePackDep(FeaturePackConfig.builder(FP2_GAV.getLocation()).setInheritPackages(true).build()).
-                addOption(Constants.STABILITY_LEVEL, "default").build();
+                addOption(Constants.CONFIG_STABILITY_LEVEL, "default").
+                addOption(Constants.PACKAGE_STABILITY_LEVEL, "default").
+                build();
     }
 
     @Override

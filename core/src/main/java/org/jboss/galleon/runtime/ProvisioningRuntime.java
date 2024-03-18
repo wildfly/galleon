@@ -91,13 +91,13 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     private final MessageWriter messageWriter;
     private Boolean emptyStagedDir;
     private final boolean recordState;
-    private Stability lowestStability;
+    private Stability lowestConfigStability;
     private List<ProvisionedConfig> configs = Collections.emptyList();
 
     ProvisioningRuntime(final ProvisioningRuntimeBuilder builder, final MessageWriter messageWriter) throws ProvisioningException {
         this.startTime = builder.startTime;
         this.config = builder.config;
-        this.lowestStability = builder.lowestStability == null ? null : builder.lowestStability;
+        this.lowestConfigStability = builder.lowestConfigStability == null ? null : builder.lowestConfigStability;
         this.layout = builder.layout.transform(new FeaturePackLayoutTransformer<FeaturePackRuntime, FeaturePackRuntimeBuilder>() {
             @Override
             public FeaturePackRuntime transform(FeaturePackRuntimeBuilder other) throws ProvisioningException {
@@ -131,8 +131,8 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
         this.messageWriter = messageWriter;
     }
 
-    public String getLowestStability() {
-       return lowestStability.toString();
+    public String getLowestConfigStability() {
+       return lowestConfigStability.toString();
     }
 
     @Override
