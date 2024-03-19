@@ -34,14 +34,14 @@ public abstract class AbstractFpStatibilityTestCase extends PmProvisionConfigTes
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningException {
         creator
-            .newFeaturePack(FP1_100_GAV).setMinStability("default")
+            .newFeaturePack(FP1_100_GAV).setConfigStability("default").setPackageStability("default")
                 .newPackage("fp1_1default", true).setStability("default")
                     .getFeaturePack()
                 .newPackage("fp1_2noStability", true)
                     .getFeaturePack()
                 .newPackage("fp1_3experimental", true).setStability("experimental")
                     .getFeaturePack().getCreator()
-            .newFeaturePack(FP2_100_GAV).setMinStability("experimental")
+            .newFeaturePack(FP2_100_GAV).setConfigStability("experimental").setPackageStability("experimental")
                 .addDependency(FP1_100_GAV.getLocation())
                 .newPackage("fp2_1default", true).setStability("default")
                     .getFeaturePack()

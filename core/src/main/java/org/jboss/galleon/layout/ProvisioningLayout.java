@@ -1284,7 +1284,8 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
         }
         if(rebuilder != null) {
             rebuilder.setGalleonMinVersion(fpSpec.getGalleonMinVersion());
-            rebuilder.setMinStability(fpSpec.getMinStability());
+            rebuilder.setConfigStability(fpSpec.getConfigStability());
+            rebuilder.setPackageStability(fpSpec.getPackageStability());
             final FeaturePackSpec spec = rebuilder.build();
             fp = fpFactory.newFeaturePack(spec.getFPID().getLocation(), spec, fp.getDir(), fp.getType());
         }

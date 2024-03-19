@@ -44,7 +44,8 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         private Map<String, FeaturePackPlugin> plugins = Collections.emptyMap();
         private Set<String> systemPaths = Collections.emptySet();
         private String galleonMinVersion;
-        private Stability minStability;
+        private Stability configStability;
+        private Stability packageStability;
 
         protected Builder() {
         }
@@ -63,20 +64,36 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
             return galleonMinVersion;
         }
 
-        public Builder setMinStability(String minLevel) {
-            if (minLevel != null) {
-                this.minStability = Stability.fromString(minLevel);
+        public Builder setConfigStability(String configLevel) {
+            if (configLevel != null) {
+                this.configStability = Stability.fromString(configLevel);
             }
             return this;
         }
 
-        public Builder setMinStability(Stability minLevel) {
-            this.minStability = minLevel;
+        public Builder setConfigStability(Stability configLevel) {
+            this.configStability = configLevel;
             return this;
         }
 
-        public Stability getMinStability() {
-            return minStability;
+        public Stability getConfigStability() {
+            return configStability;
+        }
+
+        public Builder setPackageStability(String packageLevel) {
+            if (packageLevel != null) {
+                this.packageStability = Stability.fromString(packageLevel);
+            }
+            return this;
+        }
+
+        public Builder setPackageStability(Stability packageLevel) {
+            this.packageStability = packageLevel;
+            return this;
+        }
+
+        public Stability getPackageStability() {
+            return packageStability;
         }
 
         public FPID getFPID() {
@@ -152,7 +169,8 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final FPID patchFor;
     private final Set<String> systemPaths;
     private final String galleonMinVersion;
-    private final Stability minStability;
+    private final Stability configStability;
+    private final Stability packageStability;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -162,15 +180,20 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.patchFor = builder.patchFor;
         this.systemPaths = CollectionUtils.unmodifiable(builder.systemPaths);
         this.galleonMinVersion = builder.galleonMinVersion;
-        this.minStability = builder.minStability == null ? Stability.DEFAULT : builder.minStability;
+        this.configStability = builder.configStability == null ? Stability.DEFAULT : builder.configStability;
+        this.packageStability = builder.packageStability == null ? Stability.DEFAULT : builder.packageStability;
     }
 
     public String getGalleonMinVersion() {
         return galleonMinVersion;
     }
 
-    public Stability getMinStability() {
-        return minStability;
+    public Stability getConfigStability() {
+        return configStability;
+    }
+
+    public Stability getPackageStability() {
+        return packageStability;
     }
 
     public FPID getFPID() {
