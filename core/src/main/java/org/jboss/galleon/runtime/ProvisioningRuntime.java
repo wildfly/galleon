@@ -132,7 +132,7 @@ public class ProvisioningRuntime implements FeaturePackSet<FeaturePackRuntime>, 
     }
 
     public String getLowestConfigStability() {
-       return lowestConfigStability.toString();
+       return lowestConfigStability == null ? null : lowestConfigStability.toString();
     }
 
     @Override

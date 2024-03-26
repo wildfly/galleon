@@ -180,8 +180,8 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.patchFor = builder.patchFor;
         this.systemPaths = CollectionUtils.unmodifiable(builder.systemPaths);
         this.galleonMinVersion = builder.galleonMinVersion;
-        this.configStability = builder.configStability == null ? Stability.DEFAULT : builder.configStability;
-        this.packageStability = builder.packageStability == null ? Stability.DEFAULT : builder.packageStability;
+        this.configStability = builder.configStability == null ? null : builder.configStability;
+        this.packageStability = builder.packageStability == null ? null : builder.packageStability;
     }
 
     public String getGalleonMinVersion() {

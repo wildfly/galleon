@@ -202,10 +202,10 @@ public class ProvisioningRuntimeBuilder {
             packageStabilityOption = stabilityOption;
         }
         if (configStabilityOption == null) {
-            Stability stability = Stability.DEFAULT;
+            Stability stability = null;
             for (FeaturePackRuntimeBuilder fp : layout.getOrderedFeaturePacks()) {
                 Stability fpStability = fp.getSpec().getConfigStability();
-                if (stability == null || (fpStability.ordinal() > stability.ordinal())) {
+                if (stability == null || (fpStability != null && (fpStability.ordinal() > stability.ordinal()))) {
                     stability = fpStability;
                 }
             }
@@ -286,7 +286,7 @@ public class ProvisioningRuntimeBuilder {
      * given feature-pack. The stability set by the user can only reduce the scope.
      */
     public Stability getMinConfigStability(Stability featurePackStability) {
-        Stability minStability= featurePackStability;
+        Stability minStability= featurePackStability == null ? Stability.DEFAULT : featurePackStability;
         if (getUserConfigStability() != null) {
             if (minStability.enables(getUserConfigStability())) {
                 minStability = getUserConfigStability();
@@ -300,7 +300,7 @@ public class ProvisioningRuntimeBuilder {
      * given feature-pack. The stability set by the user can only reduce the scope.
      */
     public Stability getMinPackageStability(Stability featurePackStability) {
-        Stability minStability= featurePackStability;
+        Stability minStability= featurePackStability == null ? Stability.DEFAULT : featurePackStability;
         if (getUserPackageStability() != null) {
             if (minStability.enables(getUserPackageStability())) {
                 minStability = getUserPackageStability();
