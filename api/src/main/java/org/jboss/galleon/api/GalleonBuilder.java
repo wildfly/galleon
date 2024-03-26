@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
 import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.core.builder.LocalFP;
 import org.jboss.galleon.impl.ProvisioningUtil;
+import org.jboss.galleon.impl.VersionMatcher;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.UniverseResolver;
@@ -49,6 +50,7 @@ public class GalleonBuilder extends UniverseResolverBuilder<GalleonBuilder> {
 
     private static final String GALLEON_CORE_GROUP_ID = "org.jboss.galleon";
     private static final String GALLEON_CORE_ARTIFACT_ID = "galleon-core";
+    private static final String GALLEON_CORE_EXTENSION = "jar";
 
     private static class ClassLoaderUsage {
 
@@ -150,10 +152,15 @@ public class GalleonBuilder extends UniverseResolverBuilder<GalleonBuilder> {
             if (repoManager instanceof MavenStreamResolver) {
                 MavenStreamResolver resolver = (MavenStreamResolver) repoManager;
                 try {
-                    coreVersion = resolver.getLatestVersion(GALLEON_CORE_GROUP_ID, GALLEON_CORE_ARTIFACT_ID, null, null, null);
+                    coreVersion = resolver.getLatestVersion(GALLEON_CORE_GROUP_ID, GALLEON_CORE_ARTIFACT_ID, GALLEON_CORE_EXTENSION, null, null);
                 } catch(Exception ex) {
                     // XXX OK, not resolvable.
                 }
+            }
+        }
+        if (coreVersion != null) {
+            if (VersionMatcher.COMPARATOR.compare(APIVersion.getVersion(), coreVersion) > 0) {
+                coreVersion = APIVersion.getVersion();
             }
         }
         return coreVersion;
