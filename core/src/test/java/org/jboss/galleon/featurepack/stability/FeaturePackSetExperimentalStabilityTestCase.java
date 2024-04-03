@@ -40,7 +40,7 @@ public class FeaturePackSetExperimentalStabilityTestCase extends AbstractFpStati
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningDescriptionException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_100_GAV).addPackage("fp1_1default").addPackage("fp1_2noStability").build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_100_GAV).addPackage("fp1_1default").addPackage("fp1_2noStability").addPackage("fp1_3experimental").build())
                 .addFeaturePack(ProvisionedFeaturePack.builder(FP2_100_GAV).addPackage("fp2_1default").addPackage("fp2_2noStability").addPackage("fp2_3community").addPackage("fp2_4preview").addPackage("fp2_5experimental").build())
                 .build();
     }

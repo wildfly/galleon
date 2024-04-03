@@ -105,14 +105,14 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
         }
         // Filter out the packages that are not at the right stability level
         final Map<String, PackageRuntime> filteredPackages = new LinkedHashMap<>(tmpPackages.size());
-        Stability minStability= rt.getMinPackageStability(getSpec().getPackageStability());
+        Stability stability= rt.getPackageStability(getSpec().getPackageStability());
         for(Map.Entry<String, PackageRuntime> entry : tmpPackages.entrySet()) {
-            Stability stability = entry.getValue().getSpec().getStability() == null ? Stability.DEFAULT : entry.getValue().getSpec().getStability();
-            if (minStability.enables(stability)) {
+            Stability packageStability = entry.getValue().getSpec().getStability() == null ? Stability.DEFAULT : entry.getValue().getSpec().getStability();
+            if (stability.enables(packageStability)) {
                 filteredPackages.put(entry.getKey(), entry.getValue());
             } else {
                 if (rt.getMessageWriter().isVerboseEnabled()) {
-                    rt.getMessageWriter().verbose("Excluding package '" + entry.getKey() + "'. Its stability '" + stability + "' is lower than the expected '" + minStability +"' stability");
+                    rt.getMessageWriter().verbose("Excluding package '" + entry.getKey() + "'. Its stability '" + packageStability + "' is lower than the expected '" + stability +"' stability");
                 }
             }
         }

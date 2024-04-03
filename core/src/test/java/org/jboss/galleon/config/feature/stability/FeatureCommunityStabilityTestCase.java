@@ -44,7 +44,7 @@ public class FeatureCommunityStabilityTestCase extends AbstractFeatureStabilityT
     @Override
     protected ProvisionedState provisionedState() throws ProvisioningDescriptionException {
         return ProvisionedState.builder()
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV).addPackage("p").addPackage("pDefault").addPackage("pCommunity").build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP1_GAV).addPackage("p").addPackage("pCommunity").addPackage("pDefault").build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("configA")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP1_GAV.getProducer(),  "specNoStability"), "id", "1")))
@@ -55,13 +55,17 @@ public class FeatureCommunityStabilityTestCase extends AbstractFeatureStabilityT
                                 builder(ResolvedFeatureId.builder(new ResolvedSpecId(FP1_GAV.getProducer(),  "specDefault")).
                                         setParam("id", "1").build()).setConfigParam("idDefault", "1").setConfigParam("idCommunity", "1").build())
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV).addPackage("p").addPackage("pDefault").build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(FP2_GAV).addPackage("p").addPackage("pCommunity").addPackage("pDefault").build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setName("configB")
                         .addFeature(ProvisionedFeatureBuilder.builder(ResolvedFeatureId.create(new ResolvedSpecId(FP2_GAV.getProducer(),  "specNoStability"), "id", "1")))
                         .addFeature(ProvisionedFeatureBuilder.
+                                builder(ResolvedFeatureId.builder(new ResolvedSpecId(FP2_GAV.getProducer(),  "specCommunity")).
+                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").setConfigParam("idCommunity", "1").build())
+                        .addFeature(ProvisionedFeatureBuilder.
                                 builder(ResolvedFeatureId.builder(new ResolvedSpecId(FP2_GAV.getProducer(),  "specDefault")).
-                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").build())
+                                        setParam("id", "1").build()).setConfigParam("idDefault", "1").setConfigParam("idCommunity", "1").build())
+
                         .build())
                 .build();
     }
