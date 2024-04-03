@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.jboss.galleon</groupId>
     <artifactId>galleon-parent</artifactId>
-    <version>6.0.0.Beta6-SNAPSHOT</version>
+    <version>6.0.0.Beta6</version>
   </parent>
 
   <artifactId>galleon-docs</artifactId>
