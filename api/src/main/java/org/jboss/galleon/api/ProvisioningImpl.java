@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
  */
 package org.jboss.galleon.api;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -42,7 +41,6 @@ import org.jboss.galleon.progresstracking.DefaultProgressTracker;
 import org.jboss.galleon.progresstracking.ProgressCallback;
 import org.jboss.galleon.progresstracking.ProgressTracker;
 import org.jboss.galleon.universe.UniverseResolver;
-import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.core.builder.ProvisioningContextBuilder;
 import org.jboss.galleon.diff.FsDiff;
 import org.jboss.galleon.impl.ProvisioningUtil;
@@ -61,7 +59,6 @@ class ProvisioningImpl implements Provisioning {
     private boolean recordState;
     private final Map<String, ProgressTracker<?>> progressTrackers = new HashMap<>();
 
-    private final Path tmp;
     private final Map<FPID, LocalFP> locals;
 
     private final String coreVersion;
@@ -78,12 +75,6 @@ class ProvisioningImpl implements Provisioning {
         this.locals = builder.getLocals();
         this.recordState = builder.isRecordState();
         loader = GalleonBuilder.getCallerClassLoader(coreVersion, universeResolver);
-        try {
-            tmp = Files.createTempDirectory("galleon-tmp");
-        } catch (IOException ex) {
-            throw new ProvisioningException(ex);
-        }
-
     }
 
     /**
@@ -169,7 +160,6 @@ class ProvisioningImpl implements Provisioning {
 
     @Override
     public void close() {
-        IoUtils.recursiveDelete(tmp);
         try {
             for (ProvisioningContext ctx : contexts) {
                 ctx.close();

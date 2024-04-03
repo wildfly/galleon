@@ -282,31 +282,27 @@ public class ProvisioningRuntimeBuilder {
     }
 
     /**
-     * The min config stability is constrained by the feature-pack stability that is the minimal for a
-     * given feature-pack. The stability set by the user can only reduce the scope.
+     * The  config stability is by default the one declared in the feature-pack. if a user specify a config stability,
+     * this level is used.
      */
-    public Stability getMinConfigStability(Stability featurePackStability) {
-        Stability minStability= featurePackStability == null ? Stability.DEFAULT : featurePackStability;
+    public Stability getConfigStability(Stability featurePackStability) {
+        Stability stability= featurePackStability == null ? Stability.DEFAULT : featurePackStability;
         if (getUserConfigStability() != null) {
-            if (minStability.enables(getUserConfigStability())) {
-                minStability = getUserConfigStability();
-            }
+            stability = getUserConfigStability();
         }
-        return minStability;
+        return stability;
     }
 
     /**
-     * The min package stability is constrained by the feature-pack stability that is the minimal for a
-     * given feature-pack. The stability set by the user can only reduce the scope.
+     * The  package stability is by default the one declared in the feature-pack. if a user specify a config stability,
+     * this level is used.
      */
-    public Stability getMinPackageStability(Stability featurePackStability) {
-        Stability minStability= featurePackStability == null ? Stability.DEFAULT : featurePackStability;
+    public Stability getPackageStability(Stability featurePackStability) {
+        Stability stability= featurePackStability == null ? Stability.DEFAULT : featurePackStability;
         if (getUserPackageStability() != null) {
-            if (minStability.enables(getUserPackageStability())) {
-                minStability = getUserPackageStability();
-            }
+            stability = getUserPackageStability();
         }
-        return minStability;
+        return stability;
     }
 
     public Stability getUserConfigStability() {
@@ -968,10 +964,10 @@ public class ProvisioningRuntimeBuilder {
                             fpStability = fp.getSpec().getConfigStability();
                         }
                     }
-                    Stability minStability = getMinConfigStability(fpStability);
-                    if (!minStability.enables(featureStability)) {
+                    Stability stability = getConfigStability(fpStability);
+                    if (!stability.enables(featureStability)) {
                         if (messageWriter.isVerboseEnabled()) {
-                            messageWriter.verbose(configStack.id + ". Excluding feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + featureStability + "' is lower than the expected '" + minStability +"' stability");
+                            messageWriter.verbose(configStack.id + ". Excluding feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + featureStability + "' is lower than the expected '" + stability +"' stability");
                         }
                         continue;
                     }
@@ -980,9 +976,9 @@ public class ProvisioningRuntimeBuilder {
                     for (String p : fconfig.getParams().keySet()) {
                         FeatureParameterSpec ps = spec.getSpec().getParam(p);
                         Stability paramStability = ps.getStability() == null ? Stability.DEFAULT : ps.getStability();
-                        if (!minStability.enables(paramStability)) {
+                        if (!stability.enables(paramStability)) {
                             if (messageWriter.isVerboseEnabled()) {
-                                messageWriter.verbose(configStack.id + ". Excluding parameter '" + p + "' from feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + paramStability + "' is lower than the expected '" + minStability +"' stability");
+                                messageWriter.verbose(configStack.id + ". Excluding parameter '" + p + "' from feature '" + fconfig.getSpecId().getName() + "'. Its stability '" + paramStability + "' is lower than the expected '" + stability +"' stability");
                             }
                             toRemove.add(p);
                         }
