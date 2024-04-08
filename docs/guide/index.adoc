@@ -40,6 +40,8 @@ include::user-managed-content/index.adoc[]
 
 include::provisioning-options/index.adoc[]
 
+include::stability-handling/index.adoc[]
+
 include::maven-plugin/index.adoc[]
 
 include::tool/index.adoc[]
