@@ -28,7 +28,7 @@
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>6.0.0.Beta7-SNAPSHOT</version>
+  <version>6.0.0.Final</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
@@ -552,6 +552,6 @@ limitations under the License.</inlineHeader>
     <connection>scm:git:${galleon.repo.scm.connection}</connection>
     <developerConnection>scm:git:${galleon.repo.scm.connection}</developerConnection>
     <url>${galleon.repo.scm.url}</url>
-    <tag>HEAD</tag>
+    <tag>6.0.0.Final</tag>
   </scm>
 </project>
