@@ -1,0 +1,29 @@
+## Stability Level
+
+A level of stability can be associated to features and packages.
+
+Stability levels are ordered in the following way:
+
+`default` (the higher level of stability) > `community` > `preview` > `experimental` (the lower stability level)
+
+A feature-pack can contain features and packages at different level of stability, allowing to provision installations at different stability levels.
+
+### Default stability levels
+
+When building a feature-pack, the `<feature-pack>` XML element contained in the `feature-pack.xml` descriptor can include attributes to specify 
+the default stability levels that will be enabled when using the feature-pack during provisioning. 
+If no such stability levels exist, `default` level is assumed.
+
+The stability attributes are:
+
+* `config-stability-level="<default|community|preview|experimental>"` attribute is used to declare the default stability level of the features present in the provisioned configurations.
+* `package-stability-level="<default|community|preview|experimental>"` attribute is used to declare the default stability level of the provisioned packages.
+
+### Stability levels can be overridden at provisioning time
+
+It is possible to control the expected level of stability at provisioning time by means of the following Galleon options:
+
+* `config-stability-level=<default|community|preview|experimental>`: To enable a given stability level for the provisioned configurations.
+* `package-stability-level=<default|community|preview|experimental>`: To enable a given stability level for the provisioned packages.
+* `stability-level=<default|community|preview|experimental>`: An option to enable both configs and packages stability levels. It can't be set when `config-stability-level` or `package-stability-level` are set.
+
