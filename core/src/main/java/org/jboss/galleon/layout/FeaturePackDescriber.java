@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 import org.jboss.galleon.BaseErrors;
@@ -32,12 +34,16 @@ import org.jboss.galleon.Constants;
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ConfigLayerSpecXmlParser;
+import org.jboss.galleon.xml.ConfigXmlParser;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
+import org.jboss.galleon.xml.FeatureSpecXmlParser;
 import org.jboss.galleon.xml.PackageXmlParser;
 import org.jboss.galleon.xml.XmlParsers;
 
@@ -103,8 +109,37 @@ public class FeaturePackDescriber {
         if(Files.exists(layersDir)) {
             processLayers(layoutBuilder, layersDir, encoding);
         }
-
+        final Path featuresDir = fpDir.resolve(Constants.FEATURES);
+        if(Files.exists(featuresDir)) {
+            processFeatures(layoutBuilder, featuresDir, encoding);
+        }
+        final Path configsDir = fpDir.resolve(Constants.CONFIGS);
+        if(Files.exists(configsDir)) {
+            processConfigs(layoutBuilder, configsDir, encoding);
+        }
         return layoutBuilder.build();
+    }
+
+    private static void processFeatures(FeaturePackDescription.Builder fpBuilder, Path layersDir, String encoding) throws ProvisioningDescriptionException {
+        assertDirectory(layersDir);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(layersDir)) {
+            for(Path path : stream) {
+                fpBuilder.addFeature(processFeature(path, encoding));
+            }
+        } catch (IOException e) {
+            failedToReadDirectory(layersDir, e);
+        }
+    }
+
+    private static void processConfigs(FeaturePackDescription.Builder fpBuilder, Path configsDir, String encoding) throws ProvisioningDescriptionException {
+        assertDirectory(configsDir);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(configsDir)) {
+            for(Path path : stream) {
+                processConfigModel(path, encoding, fpBuilder);
+            }
+        } catch (IOException e) {
+            failedToReadDirectory(configsDir, e);
+        }
     }
 
     private static void processLayers(FeaturePackDescription.Builder fpBuilder, Path layersDir, String encoding) throws ProvisioningDescriptionException {
@@ -141,6 +176,56 @@ public class FeaturePackDescriber {
         } catch (XMLStreamException e) {
             throw new ProvisioningDescriptionException(Errors.parseXml(layerXml), e);
         }
+    }
+    private static FeatureSpec processFeature(Path featureDir, String encoding) throws ProvisioningDescriptionException {
+        assertDirectory(featureDir);
+        final Path featureXml = featureDir.resolve(Constants.SPEC_XML);
+        if(!Files.exists(featureXml)) {
+            throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(featureXml));
+        }
+        try (Reader in = Files.newBufferedReader(featureXml, Charset.forName(encoding))) {
+            return FeatureSpecXmlParser.getInstance().parse(in);
+        } catch (IOException e) {
+            throw new ProvisioningDescriptionException(Errors.openFile(featureXml), e);
+        } catch (XMLStreamException e) {
+            throw new ProvisioningDescriptionException(Errors.parseXml(featureXml), e);
+        }
+    }
+
+    private static void processConfigModel(Path configDir, String encoding, FeaturePackDescription.Builder fpBuilder) throws ProvisioningDescriptionException {
+        assertDirectory(configDir);
+        ConfigModel model = null;
+        Map<String, ConfigModel> configs = new HashMap<>();
+        String modelName = configDir.getFileName().toString();
+        final Path modelXml = configDir.resolve(Constants.MODEL_XML);
+        if (Files.exists(modelXml)) {
+            try (Reader in = Files.newBufferedReader(modelXml, Charset.forName(encoding))) {
+                model = ConfigXmlParser.getInstance().parse(in);
+            } catch (IOException e) {
+                throw new ProvisioningDescriptionException(Errors.openFile(modelXml), e);
+            } catch (XMLStreamException e) {
+                throw new ProvisioningDescriptionException(Errors.parseXml(modelXml), e);
+            }
+            configs.put(Constants.MODEL_XML, model);
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(configDir)) {
+            for (Path path : stream) {
+                String configName = path.getFileName().toString();
+                final Path configXml = path.resolve(Constants.CONFIG_XML);
+                if (Files.exists(configXml)) {
+                    try (Reader in = Files.newBufferedReader(configXml, Charset.forName(encoding))) {
+                        configs.put(configName, ConfigXmlParser.getInstance().parse(in));
+                    } catch (IOException e) {
+                        throw new ProvisioningDescriptionException(Errors.openFile(modelXml), e);
+                    } catch (XMLStreamException e) {
+                        throw new ProvisioningDescriptionException(Errors.parseXml(modelXml), e);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            failedToReadDirectory(configDir, e);
+        }
+        fpBuilder.addConfigModel(modelName, configs);
     }
 
     private static PackageSpec processPackage(Path pkgDir, String encoding) throws ProvisioningDescriptionException {
