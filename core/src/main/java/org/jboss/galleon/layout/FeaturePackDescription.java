@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,10 @@ import org.jboss.galleon.BaseErrors;
 
 import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageDependencySpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -49,6 +51,8 @@ public class FeaturePackDescription {
         private final FeaturePackSpec.Builder spec;
         private Map<String, PackageSpec> packages = Collections.emptyMap();
         private Map<String, ConfigLayerSpec> layers = Collections.emptyMap();
+        private Map<String, FeatureSpec> features = Collections.emptyMap();
+        private Map<String, Map<String, ConfigModel>> configModels = Collections.emptyMap();
 
         private Builder(FeaturePackLocation.FPID fpid, FeaturePackSpec.Builder spec) {
             this.fpid = fpid;
@@ -65,6 +69,11 @@ public class FeaturePackDescription {
             return this;
         }
 
+        public Builder addFeature(FeatureSpec spec) {
+            features = CollectionUtils.put(features, spec.getName(), spec);
+            return this;
+        }
+
         public boolean hasPackage(String name) {
             return packages.containsKey(name);
         }
@@ -76,6 +85,11 @@ public class FeaturePackDescription {
         public FeaturePackDescription build() throws ProvisioningDescriptionException {
             return new FeaturePackDescription(this);
         }
+
+        public Builder addConfigModel(String modelName, Map<String, ConfigModel> configs) {
+            configModels = CollectionUtils.put(configModels, modelName, configs);
+            return this;
+        }
     }
 
     public static Builder builder(FeaturePackSpec.Builder spec) {
@@ -86,6 +100,8 @@ public class FeaturePackDescription {
     private final FeaturePackSpec spec;
     private final Map<String, PackageSpec> packages;
     private final Map<String, ConfigLayerSpec> layers;
+    private final Map<String, FeatureSpec> features;
+    private final Map<String, Map<String, ConfigModel>> configModels;
     final List<String> unresolvedLocalPkgs;
     final boolean externalPkgDeps;
 
@@ -131,6 +147,8 @@ public class FeaturePackDescription {
             }
         }
         this.layers = CollectionUtils.unmodifiable(builder.layers);
+        this.features = CollectionUtils.unmodifiable(builder.features);
+        this.configModels = CollectionUtils.unmodifiable(builder.configModels);
         this.externalPkgDeps = externalPkgDeps;
         this.unresolvedLocalPkgs = CollectionUtils.unmodifiable(notFound);
     }
@@ -164,5 +182,11 @@ public class FeaturePackDescription {
     }
     public Collection<ConfigLayerSpec> getLayers() {
         return layers.values();
+    }
+    public Collection<FeatureSpec> getFeatures() {
+        return features.values();
+    }
+    public Map<String, Map<String, ConfigModel>> getConfigs() {
+        return configModels;
     }
 }
