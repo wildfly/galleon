@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+# Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
 # and other contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,25 +33,42 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest ]
-        java: ['11']
+        java: ['11', '21']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with: 
           fetch-depth: 0
-      - uses: actions/cache@v1
+      - name: Set up JDK 21 and JDK 11 for JDK21 execution
+        if: matrix.java == 21
+        uses: actions/setup-java@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          java-version: |
+            21
+            11
+          distribution: 'temurin'
+          cache: 'maven'
       - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v1
+        if: matrix.java != 21
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: 'maven'
+      # For JDK 21 tests, build with 11, skipping tests
+      - name: Build with JDK 11 for JDK 21 tests
+        if: matrix.java == 21
+        run: JAVA_HOME=$JAVA_HOME_11_${{ runner.arch }} mvn clean install -DskipTests
+        shell: bash
+        # For JDK 21 tests, we already built, so just run the 'test' goal with the -DnoCompile setting to disable recompile
+      - name: Test with -DnoCompile for JDK 21 tests
+        if: matrix.java == 21
+        run: JAVA_HOME=$JAVA_HOME_${{ matrix.java }}_${{ runner.arch }} mvn test -DnoCompile
+        shell: bash
       - name: Build and Test on ${{ matrix.java }}
+        if: matrix.java != 21
         run: mvn clean install
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: surefire-reports-${{ matrix.os }}-${{ matrix.java }}
