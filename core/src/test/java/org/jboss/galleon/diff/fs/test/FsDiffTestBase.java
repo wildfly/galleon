@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,7 @@ public abstract class FsDiffTestBase {
         IoUtils.recursiveDelete(root);
     }
 
-    protected void createFile(String relativePath, String content) throws IOException {
+    protected Path createFile(String relativePath, String content) throws IOException {
         if(relativePath.charAt(0) == '/') {
             relativePath = relativePath.substring(1);
         }
@@ -64,6 +64,7 @@ public abstract class FsDiffTestBase {
         try(BufferedWriter writer = Files.newBufferedWriter(target)) {
             writer.write(content);
         }
+        return target;
     }
 
     protected void mkdir(String relativePath) throws IOException {
