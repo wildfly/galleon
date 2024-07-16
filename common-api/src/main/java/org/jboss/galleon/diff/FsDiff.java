@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -358,6 +358,11 @@ public class FsDiff {
             removed = CollectionUtils.put(removed, originalEntry.getRelativePath(), originalEntry);
             added = CollectionUtils.put(added, otherEntry.getRelativePath(), otherEntry);
             return;
+        }
+        // if the file is available in both the original and other filesystems, but has been
+        // made un-readable, it means this file can no longer be managed by Galleon, therefore it is an error.
+        if (!Files.isReadable(otherEntry.p)) {
+            throw new ProvisioningException(BaseErrors.readDirectory(otherEntry.p));
         }
         if(originalEntry.dir) {
             if (originalEntry.hasChildren()) {
