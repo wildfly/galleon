@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
      * @return  dependency spec
      */
     public static PackageDependencySpec required(String name) {
-        return new PackageDependencySpec(name, REQUIRED);
+        return new PackageDependencySpec(name, REQUIRED, null);
     }
 
     /**
@@ -51,7 +51,19 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
      * @return  dependency spec
      */
     public static PackageDependencySpec optional(String name) {
-        return new PackageDependencySpec(name, OPTIONAL);
+        return new PackageDependencySpec(name, OPTIONAL, null);
+    }
+
+    /**
+     * Creates an optional dependency on the package for the given stability. At provisioning time,
+     * if the stability level is not met, such dependency should be ignored.
+     *
+     * @param name  target package name
+     * @param validForStability the minimum stability expected for this package dependency to be valid.
+     * @return  dependency spec
+     */
+    public static PackageDependencySpec optional(String name, String validForStability) {
+        return new PackageDependencySpec(name, OPTIONAL, validForStability);
     }
 
     /**
@@ -61,7 +73,19 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
      * @return  dependency spec
      */
     public static PackageDependencySpec passive(String name) {
-        return new PackageDependencySpec(name, PASSIVE);
+        return new PackageDependencySpec(name, PASSIVE, null);
+    }
+
+    /**
+     * Creates a passive dependency on the package. At provisioning time,
+     * if the stability level is not met, such dependency should be ignored.
+     *
+     * @param name  target package name
+     * @param validForStability the minimum stability expected for this package dependency to be valid.
+     * @return  dependency spec
+     */
+    public static PackageDependencySpec passive(String name, String validForStability) {
+        return new PackageDependencySpec(name, PASSIVE, validForStability);
     }
 
     public static PackageDependencySpec newInstance(String packageName, int type) throws ProvisioningDescriptionException {
@@ -78,13 +102,18 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
     }
 
     private final String name;
+    private final String validForStability;
     private final int type;
 
-    protected PackageDependencySpec(String name, int type) {
+    protected PackageDependencySpec(String name, int type, String validForStability) {
         this.name = name;
         this.type = type;
+        this.validForStability = validForStability;
     }
 
+    public String getValidForStability() {
+        return validForStability;
+    }
     public String getName() {
         return name;
     }
@@ -135,6 +164,9 @@ public class PackageDependencySpec implements Comparable<PackageDependencySpec> 
         buf.append('[').append(name);
         if(isOptional()) {
             buf.append(type == OPTIONAL ? " optional" : " passive");
+        }
+        if(validForStability != null) {
+            buf.append( " " + validForStability);
         }
         return buf.append(']').toString();
     }
