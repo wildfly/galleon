@@ -86,6 +86,9 @@ public class PackageXmlWriter extends BaseXmlWriter<PackageSpec> {
             } else {
                 addAttribute(depElement, PackageDepsSpecXmlParser.Attribute.OPTIONAL, TRUE);
             }
+            if (depSpec.getValidForStability() != null) {
+                addAttribute(depElement, PackageDepsSpecXmlParser.Attribute.VALID_FOR_STABILITY, depSpec.getValidForStability());
+            }
         }
     }
 }

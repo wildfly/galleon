@@ -456,7 +456,7 @@ public class ProvisioningRuntimeBuilder {
                         if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, packageName)) {
                             continue;
                         }
-                        resolvePackage(packageName, null, PackageDependencySpec.REQUIRED);
+                        resolvePackage( packageName, null, PackageDependencySpec.REQUIRED, null);
                     }
                 }
             }
@@ -473,7 +473,7 @@ public class ProvisioningRuntimeBuilder {
                     if (fpConfigStack.isPackageFilteredOut(currentOrigin.producer, pkgName)) {
                         continue;
                     }
-                    resolvePackage(pkgName, null, PackageDependencySpec.REQUIRED);
+                    resolvePackage(pkgName, null, PackageDependencySpec.REQUIRED, null);
                 }
             }
 
@@ -1098,7 +1098,7 @@ public class ProvisioningRuntimeBuilder {
         return resolvedDeps;
     }
 
-    private void resolvePackage(final String pkgName, PackageRuntime.Builder parent, int type) throws ProvisioningException {
+    private void resolvePackage(final String pkgName, PackageRuntime.Builder parent, int type, final String dependencyStability) throws ProvisioningException {
         final int offset = resolvedPkgBranch.size();
         boolean resolved = false;
         try {
@@ -1125,11 +1125,22 @@ public class ProvisioningRuntimeBuilder {
                 while (i > 0) {
                     resolvedPkgBranch.remove(offset + --i).clearFlag(PackageRuntime.ON_DEP_BRANCH);
                 }
+                if (dependencyStability != null) {
+                    Stability depStability = Stability.fromString(dependencyStability);
+                    Stability fpStability = getPackageStability(currentOrigin.getSpec().getPackageStability());
+                    // Ignore when a dependency is only valid for a level that is not implied by the expected package stability.
+                    if (!fpStability.enables(depStability)) {
+                        getMessageWriter().verbose(" Ignoring dependency on " + pkgName + " that is only valid for stability " + dependencyStability);
+                        resolved = true;
+                    }
+                }
             }
             clearFlag(FeaturePackRuntimeBuilder.VISIT);
             currentOrigin.clearFlag(FeaturePackRuntimeBuilder.VISIT);
         }
-        throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.producer.getLocation().getFPID(), pkgName));
+        if (!resolved) {
+            throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.producer.getLocation().getFPID(), pkgName));
+        }
     }
 
     private boolean resolvePackage(FeaturePackRuntimeBuilder origin, String name, PackageRuntime.Builder parent, int type) throws ProvisioningException {
@@ -1174,7 +1185,7 @@ public class ProvisioningRuntimeBuilder {
                     continue;
                 }
                 if ((pkgDepMask & dep.getType()) > 0) {
-                    resolvePackage(dep.getName(), parent, dep.getType());
+                    resolvePackage(dep.getName(), parent, dep.getType(), dep.getValidForStability());
                 }
             }
         }
@@ -1192,7 +1203,7 @@ public class ProvisioningRuntimeBuilder {
                         continue;
                     }
                     if ((pkgDepMask & dep.getType()) > 0) {
-                        resolvePackage(dep.getName(), parent, dep.getType());
+                        resolvePackage(dep.getName(), parent, dep.getType(), dep.getValidForStability());
                     }
                 }
             } finally {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -466,6 +466,10 @@ public interface Errors {
 
     static String requiredPassiveDependency(String name) {
         return "Required dependency on " + name + " cannot be passive";
+    }
+
+    static String requiredDependencyWithStability(String name) {
+        return "Required dependency on " + name + " cannot be bound to a stability level";
     }
 
     static String unexpectedPackageDependencyType(String name, int type) {

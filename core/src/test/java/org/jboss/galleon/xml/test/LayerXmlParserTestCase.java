@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import org.junit.Test;
 public class LayerXmlParserTestCase {
 
     private static final XmlParserValidator<ConfigLayerSpec> validator = new XmlParserValidator<>(
-            Paths.get("src/main/resources/schema/galleon-layer-1_0.xsd"), ConfigLayerSpecXmlParser.getInstance());
+            Paths.get("src/main/resources/schema/galleon-layer-2_0.xsd"), ConfigLayerSpecXmlParser.getInstance());
 
     private static final Locale defaultLocale = Locale.getDefault();
 

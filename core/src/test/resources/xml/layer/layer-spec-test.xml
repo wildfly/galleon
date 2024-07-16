@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2016-2021 Red Hat, Inc. and/or its affiliates
+    Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,11 @@
     limitations under the License.
 
 -->
-<layer-spec name="mylayer" xmlns="urn:jboss:galleon:layer-spec:1.0">
+<layer-spec name="mylayer" xmlns="urn:jboss:galleon:layer-spec:2.0">
+  <props>
+    <prop name="org.wildfly.rule.expected-file" value="foo"/>
+    <prop name="org.wildfly.rule.class" value="bar.*"/>
+  </props>
   <dependencies>
     <layer name="foo" optional="true"/>
     <layer name="foo2"/>
@@ -82,5 +86,7 @@
       <package name="p2"/>
       <package name="p3" optional="true"/>
     </origin>
+    <package name="p5" optional="true" valid-for-stability="experimental"/>
+    <package name="p6" passive="true" valid-for-stability="experimental"/>
   </packages>
 </layer-spec>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ public class PackageDepsSpecXmlParser {
         NAME("name"),
         OPTIONAL("optional"),
         PASSIVE("passive"),
+        VALID_FOR_STABILITY("valid-for-stability"),
 
         // default unknown attribute
         UNKNOWN(null);
@@ -60,6 +61,7 @@ public class PackageDepsSpecXmlParser {
             attributes.put(new QName(NAME.name), NAME);
             attributes.put(new QName(OPTIONAL.name), OPTIONAL);
             attributes.put(new QName(PASSIVE.name), PASSIVE);
+            attributes.put(new QName(VALID_FOR_STABILITY.name), VALID_FOR_STABILITY);
             attributes.put(null, UNKNOWN);
         }
 
@@ -129,6 +131,7 @@ public class PackageDepsSpecXmlParser {
 
     private static PackageDependencySpec parsePackageDependency(XMLExtendedStreamReader reader) throws XMLStreamException {
         String name = null;
+        String validForStability = null;
         Boolean optional = null;
         boolean passive = false;
         final int count = reader.getAttributeCount();
@@ -137,6 +140,9 @@ public class PackageDepsSpecXmlParser {
             switch (attribute) {
                 case NAME:
                     name = reader.getAttributeValue(i);
+                    break;
+                case VALID_FOR_STABILITY:
+                    validForStability = reader.getAttributeValue(i);
                     break;
                 case OPTIONAL:
                     optional = Boolean.parseBoolean(reader.getAttributeValue(i));
@@ -156,9 +162,15 @@ public class PackageDepsSpecXmlParser {
             if(optional != null && !optional) {
                 throw new XMLStreamException(Errors.requiredPassiveDependency(name), reader.getLocation());
             }
-            return PackageDependencySpec.passive(name);
+            return PackageDependencySpec.passive(name, validForStability);
         }
-        return optional == null || !optional ? PackageDependencySpec.required(name) : PackageDependencySpec.optional(name);
+        if (optional == null || !optional) {
+            if (validForStability != null) {
+                throw new XMLStreamException(Errors.requiredDependencyWithStability(name), reader.getLocation());
+            }
+            return PackageDependencySpec.required(name);
+        }
+        return PackageDependencySpec.optional(name, validForStability);
     }
 
     private static void parseOrigin(XMLExtendedStreamReader reader, PackageDepsSpecBuilder<?> pkgDeps) throws XMLStreamException {
