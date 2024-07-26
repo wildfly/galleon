@@ -76,9 +76,9 @@ JAVA_OPTS="$JAVA_OPTS $DEFAULT_MODULAR_JVM_OPTIONS"
 if [[ -n $RUN ]]; then
   LOG_CONF=`echo $JAVA_OPTS | grep "logging.configuration"`
   if [ "x$LOG_CONF" = "x" ]; then
-    java $JAVA_OPTS -Dlogging.configuration=file:"./content/bin/galleon-cli-logging.properties" -jar ./cli/target/galleon-cli-5.1.3.Final-SNAPSHOT.jar $ARGS
+    java $JAVA_OPTS -Dlogging.configuration=file:"./content/bin/galleon-cli-logging.properties" -jar ./cli/target/galleon-cli-5.1.3.Final.jar $ARGS
   else
     echo "logging.configuration already set in JAVA_OPTS"
-    java $JAVA_OPTS -jar ./cli/target/galleon-cli-5.1.3.Final-SNAPSHOT.jar $ARGS
+    java $JAVA_OPTS -jar ./cli/target/galleon-cli-5.1.3.Final.jar $ARGS
   fi
 fi
