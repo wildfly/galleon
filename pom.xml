@@ -28,7 +28,7 @@
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>6.0.3.Final</version>
+  <version>6.0.4.Final-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
