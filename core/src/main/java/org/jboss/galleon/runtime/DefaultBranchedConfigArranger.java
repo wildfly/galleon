@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,6 +72,7 @@ class DefaultBranchedConfigArranger {
     private List<ResolvedFeature> orderedFeatures = Collections.emptyList();
     private List<ResolvedFeature> independentBatchBranch = Collections.emptyList();
     private List<ResolvedFeature> independentNonBatchBranch = Collections.emptyList();
+    private final boolean ignoreCapabilities;
 
     DefaultBranchedConfigArranger(ConfigModelStack configStack) {
         this.configStack = configStack;
@@ -83,6 +84,8 @@ class DefaultBranchedConfigArranger {
         branchIsBatch = getBooleanProp(configStack.props, ConfigModel.BRANCH_IS_BATCH, false);
         isolateCircularDeps = getBooleanProp(configStack.props, ConfigModel.ISOLATE_CIRCULAR_DEPS, false);
         mergeIndependentBranches = getBooleanProp(configStack.props, ConfigModel.MERGE_INDEPENDENT_BRANCHES, false);
+        // When analyzing incomplete configuration, capabilities can be missing and capability check be disabled.
+        ignoreCapabilities = Boolean.getBoolean("org.jboss.galleon.internal.ignore.capability.providers");
     }
 
     List<ResolvedFeature> orderFeatures() throws ProvisioningException {
@@ -626,7 +629,7 @@ class DefaultBranchedConfigArranger {
             throws ProvisioningException {
         for (CapabilitySpec capSpec : feature.spec.xmlSpec.getRequiredCapabilities()) {
             final List<String> resolvedCaps = capResolver.resolve(capSpec, feature);
-            if (resolvedCaps.isEmpty()) {
+            if (resolvedCaps.isEmpty() || ignoreCapabilities) {
                 continue;
             }
             for (String resolvedCap : resolvedCaps) {
