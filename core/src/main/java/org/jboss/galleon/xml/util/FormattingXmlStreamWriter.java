@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,7 +115,7 @@ public final class FormattingXmlStreamWriter implements XMLStreamWriter, XMLStre
         // If this is a nested element flush the outer
         nl();
         indent();
-        delegate.writeStartElement(prefix, namespaceURI, localName);
+        delegate.writeStartElement(prefix, localName, namespaceURI);
         level++;
         state = START_ELEMENT;
         indentEndElement = false;
@@ -131,7 +131,7 @@ public final class FormattingXmlStreamWriter implements XMLStreamWriter, XMLStre
     public void writeEmptyElement(final String prefix, final String localName, final String namespaceURI) throws XMLStreamException {
         nl();
         indent();
-        delegate.writeEmptyElement(prefix, namespaceURI, localName);
+        delegate.writeEmptyElement(prefix, localName, namespaceURI);
         state = END_ELEMENT;
     }
 
