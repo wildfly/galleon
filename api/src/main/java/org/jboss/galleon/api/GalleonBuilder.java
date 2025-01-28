@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
 import org.jboss.galleon.api.config.GalleonProvisioningConfig;
@@ -223,13 +225,15 @@ public class GalleonBuilder extends UniverseResolverBuilder<GalleonBuilder> {
         }
     }
 
-    static synchronized void releaseUsage(String version) throws ProvisioningException {
+    static synchronized void releaseUsage(String version, MessageWriter log) throws ProvisioningException {
         ClassLoaderUsage usage = classLoaders.get(version);
         if (usage == null) {
-            throw new ProvisioningException("Releasing usage of core " + version + " although no usage");
+            log.verbose("Releasing usage of core " + version + " although no usage");
+            return;
         }
         if (usage.num <= 0) {
-            throw new ProvisioningException("Releasing usage of core " + version + " although all usages released");
+            log.verbose("Releasing usage of core " + version + " although all usages released");
+            return;
         }
         usage.num -= 1;
         if (usage.num == 0) {
