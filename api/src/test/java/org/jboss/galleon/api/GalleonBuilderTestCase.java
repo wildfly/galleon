@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,11 @@
 package org.jboss.galleon.api;
 
 import java.net.URLClassLoader;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.jboss.galleon.CoreVersion;
+import org.jboss.galleon.DefaultMessageWriter;
+import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.api.test.FeaturePackRepoTestBase;
 import org.jboss.galleon.creator.FeaturePackCreator;
@@ -35,6 +39,7 @@ import org.junit.Test;
 public class GalleonBuilderTestCase extends FeaturePackRepoTestBase {
 
     private static final FeaturePackLocation.FPID FP1_100_GAV = LegacyGalleon1Universe.newFPID("org.jboss.pm.test:fp1", "1", "1.0.0.Final");
+    private final MessageWriter log = new DefaultMessageWriter();
 
     @Override
     protected void doBefore() throws Exception {
@@ -50,12 +55,18 @@ public class GalleonBuilderTestCase extends FeaturePackRepoTestBase {
         GalleonBuilder builder = new GalleonBuilder();
         builder.addArtifactResolver(repo);
         assertEquals(GalleonBuilder.getClassLoaders().size(), 0);
-        try {
-            GalleonBuilder.releaseUsage(CoreVersion.getVersion());
-            throw new Exception("Should have failed");
-        } catch (ProvisioningException ex) {
-            // Ok should have failed.
-        }
+
+        // verify that releasing unused CL is logged
+        AtomicReference<String> msg = new AtomicReference<>(null);
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), new DefaultMessageWriter() {
+            @Override
+            public void verbose(CharSequence message) {
+                msg.set(message.toString());
+            }
+        });
+        assertEquals("Releasing usage of core " + CoreVersion.getVersion() + " although no usage",
+                msg.get());
+
         URLClassLoader l1 = GalleonBuilder.getCallerClassLoader(APIVersion.getVersion(), null);
         assertEquals(GalleonBuilder.getClassLoaders().size(), 1);
         URLClassLoader l2 = GalleonBuilder.getCallerClassLoader(APIVersion.getVersion(), null);
@@ -65,9 +76,9 @@ public class GalleonBuilderTestCase extends FeaturePackRepoTestBase {
         assertEquals(l1, l3);
         assertEquals(GalleonBuilder.getClassLoaders().size(), 1);
         // Release all usages.
-        GalleonBuilder.releaseUsage(CoreVersion.getVersion());
-        GalleonBuilder.releaseUsage(CoreVersion.getVersion());
-        GalleonBuilder.releaseUsage(CoreVersion.getVersion());
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), this.log);
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), this.log);
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), this.log);
         assertEquals(GalleonBuilder.getClassLoaders().size(), 0);
         URLClassLoader l4 = GalleonBuilder.getCallerClassLoader(CoreVersion.getVersion(), null);
         assertNotEquals(l1, l4);
@@ -79,9 +90,9 @@ public class GalleonBuilderTestCase extends FeaturePackRepoTestBase {
         assertEquals(loader, loader2);
         assertEquals(GalleonBuilder.getClassLoaders().size(), 1);
         // Release all usages
-        GalleonBuilder.releaseUsage(CoreVersion.getVersion());
-        GalleonBuilder.releaseUsage(CoreVersion.getVersion());
-        GalleonBuilder.releaseUsage(CoreVersion.getVersion());
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), this.log);
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), this.log);
+        GalleonBuilder.releaseUsage(CoreVersion.getVersion(), this.log);
         try {
             builder.getCoreClassLoader("foo");
             throw new Exception();
