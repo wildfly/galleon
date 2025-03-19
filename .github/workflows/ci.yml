@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+# Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
 # and other contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ jobs:
           cache: 'maven'
       - name: Build and Test on ${{ matrix.java }}
         run: mvn clean install
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: surefire-reports-${{ matrix.os }}-${{ matrix.java }}
