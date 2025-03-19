@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
 package org.jboss.galleon.xml;
 
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -66,7 +68,7 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
                 addAttribute(featureE, Attribute.ID, feature.getId().toString());
             }
             if(feature.hasParams()) {
-                for(String param : feature.getParamNames()) {
+                for(String param : new TreeSet<>(feature.getParamNames())) {
                     final ElementNode paramE = addElement(featureE, Element.PARAM.getLocalName(), parent.getNamespace());
                     addAttribute(paramE, Attribute.NAME, param);
                     addAttribute(paramE, Attribute.VALUE, feature.getConfigParam(param));
@@ -100,7 +102,7 @@ public class ProvisionedConfigXmlWriter extends BaseXmlWriter<ProvisionedConfig>
 
         if(config.hasProperties()) {
             final ElementNode propsE = addElement(configE, Element.PROPS.getLocalName(), ns);
-            for(Map.Entry<String, String> entry : config.getProperties().entrySet()) {
+            for(Map.Entry<String, String> entry : new TreeMap<>(config.getProperties()).entrySet()) {
                 final ElementNode propE = addElement(propsE, Element.PROP.getLocalName(), ns);
                 addAttribute(propE, Attribute.NAME, entry.getKey());
                 addAttribute(propE, Attribute.VALUE, entry.getValue());

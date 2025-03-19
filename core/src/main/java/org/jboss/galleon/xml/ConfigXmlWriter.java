@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
 package org.jboss.galleon.xml;
 
 import java.util.Map;
+import java.util.TreeMap;
+
 import org.jboss.galleon.config.ConfigId;
 
 import org.jboss.galleon.config.ConfigModel;
@@ -51,7 +53,7 @@ public class ConfigXmlWriter extends BaseXmlWriter<ConfigModel> {
 
         if(config.hasProperties()) {
             final ElementNode propsE = addElement(configE, Element.PROPS.getLocalName(), ns);
-            for(Map.Entry<String, String> prop : config.getProperties().entrySet()) {
+            for(Map.Entry<String, String> prop : new TreeMap<>(config.getProperties()).entrySet()) {
                 final ElementNode propE = addElement(propsE, Element.PROP.getLocalName(), ns);
                 addAttribute(propE, Attribute.NAME, prop.getKey());
                 addAttribute(propE, Attribute.VALUE, prop.getValue());
