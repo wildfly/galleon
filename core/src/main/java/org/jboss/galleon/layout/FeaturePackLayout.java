@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import org.jboss.galleon.api.GalleonFeaturePackLayout;
 import org.jboss.galleon.api.GalleonLayer;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.config.FeatureGroup;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackSpec;
@@ -46,6 +47,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.xml.FeaturePackXmlParser;
 import org.jboss.galleon.xml.ConfigLayerSpecXmlParser;
 import org.jboss.galleon.xml.ConfigXmlParser;
+import org.jboss.galleon.xml.FeatureGroupXmlParser;
 import org.jboss.galleon.xml.FeatureSpecXmlParser;
 
 /**
@@ -143,6 +145,10 @@ public abstract class FeaturePackLayout implements GalleonFeaturePackLayout {
         return Files.exists(dir.resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML));
     }
 
+    public boolean hasFeatureGroup(String name) {
+        return Files.exists(dir.resolve(Constants.FEATURE_GROUPS).resolve(name+".xml"));
+    }
+
     public FeatureSpec loadFeatureSpec(String name) throws ProvisioningException {
         final Path specXml = dir.resolve(Constants.FEATURES).resolve(name).resolve(Constants.SPEC_XML);
         if (!Files.exists(specXml)) {
@@ -195,6 +201,18 @@ public abstract class FeaturePackLayout implements GalleonFeaturePackLayout {
         }
         try (BufferedReader reader = Files.newBufferedReader(specXml)) {
             return ConfigLayerSpecXmlParser.getInstance().parse(reader);
+        } catch (Exception e) {
+            throw new ProvisioningDescriptionException(Errors.parseXml(specXml), e);
+        }
+    }
+
+    public FeatureGroup loadFeatureGroupSpec(String name) throws ProvisioningException {
+        final Path specXml = getDir().resolve(Constants.FEATURE_GROUPS).resolve(name+".xml");
+        if (!Files.exists(specXml)) {
+            return null;
+        }
+        try (BufferedReader reader = Files.newBufferedReader(specXml)) {
+            return FeatureGroupXmlParser.getInstance().parse(reader);
         } catch (Exception e) {
             throw new ProvisioningDescriptionException(Errors.parseXml(specXml), e);
         }
