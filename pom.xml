@@ -487,6 +487,7 @@ limitations under the License.</inlineHeader>
             <exclude>**/pom.xml.tag</exclude>
             <exclude>CODEOWNERS</exclude>
             <exclude>**/*.properties</exclude>
+            <exclude>dco.txt</exclude>
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>
