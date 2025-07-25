@@ -30,12 +30,29 @@
   <packaging>pom</packaging>
 
   <name>Galleon Docs</name>
-
+  <description>Galleon Docs</description>
   <properties>
     <ec2-pub-ip-dash>1-2-3-4</ec2-pub-ip-dash>
     <ec2-pub-ip>1.2.3.4</ec2-pub-ip>
   </properties>
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nxrm3-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>nexus-deploy</id>
+            <phase>none</phase>
+          </execution>
+          <execution>
+            <id>nexus-staging.deploy</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
   <profiles>
     <profile>
       <id>release</id>

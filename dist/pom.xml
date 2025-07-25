@@ -29,6 +29,7 @@
   <artifactId>galleon-dist</artifactId>
 
   <name>Galleon Distribution</name>
+  <description>Galleon Distribution</description>
   <packaging>pom</packaging>
 
   <dependencies>

@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <name>Galleon Common API</name>
-  <url>http://maven.apache.org</url>
+  <description>Galleon Common API</description>
 
   <dependencies>
     <dependency>

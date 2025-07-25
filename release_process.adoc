@@ -17,27 +17,32 @@ WARNING: Make sure that you are using JDK 11 to do the release.
 ** `rm -rf foo`
 * Update docs/* content to reference the new released version.
 * Update do.sh script to reference the new released version.
-* Commit the changes with message: `Update doc and script to X.X.X.Final`
-* `mvn release:prepare -Darguments=-Drelease`
-* `mvn release:perform -Darguments=-Drelease`
+* Update the new version
+** `mvn versions:set -DnewVersion=<new released version>`
+** `mvn versions:commit`
+* Commit the changes with message: `Release X.X.X.Final`
+* Deploy in nexus staging repository
+** `mvn -Pjboss-release -Pjboss-staging-deploy deploy -DskipTests -Drelease`
+* Create a Tag with the new release.
+* Check that all is correct in https://repository.jboss.org/nexus/#browse/browse:wildfly-staging
+* Deploy to nexus release repository
+** `mvn -Pjboss-staging-move nxrm3:staging-move`
+* Push the tag previously created
 * Update docs/* content to reference the new SNAPSHOT version.
 * Update do.sh script to reference the new SNAPSHOT version.
-* Commit the changes with message: `Update doc and script to X.X.X.Final-SNAPSHOT`
+* Update to the next release
+** `mvn versions:set -DnewVersion=<new X.X.X.Final-SNAPSHOT version>`
+** `mvn versions:commit`
+* Commit the changes with message: `New development iteration X.X.X.Final-SNAPSHOT`
 * `git push upstream main`
 
-== STEP 2: Release in Nexus
-
-* Log to `https://repository.jboss.org/nexus`
-* Close the staging repository.
-* Release the closed repository.
-
-== STEP 3: Release in github
+== STEP 2: Release in github
 
 * Go to https://github.com/wildfly/galleon/releases
 * Edit the release you just created.
 * Upload dist/target/galleon-X.X.X.Final.zip to the release.
 
-== STEP 4: Release in JIRA
+== STEP 3: Release in JIRA
 
 * Log to `https://issues.jboss.org/projects/GAL`
 * Click on `Releases`

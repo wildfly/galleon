@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <name>Galleon CLI Commands</name>
-  <url>http://maven.apache.org</url>
+  <description>Galleon CLI Commands</description>
 
   <dependencies>
     <dependency>

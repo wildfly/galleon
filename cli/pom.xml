@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <name>Galleon CLI Fat JAR</name>
-  <url>http://maven.apache.org</url>
+  <description>Galleon CLI Fat JAR</description>
 
   <dependencies>
     <dependency>
