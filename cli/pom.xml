@@ -114,6 +114,25 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <includeDependencySources>true</includeDependencySources>
+              <dependencySourceExcludes>
+                <!-- exclude because the galleon-core is not a known dependency -->
+                <dependencySourceExclude>org.jboss.galleon:galleon-cli-core-adapter</dependencySourceExclude>
+              </dependencySourceExcludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

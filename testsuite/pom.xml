@@ -51,7 +51,7 @@
       <groupId>org.jboss.galleon</groupId>
       <artifactId>galleon-core</artifactId>
       <version>${project.version}</version>
-      <type>test-jar</type>
+      <classifier>test</classifier>
       <scope>test</scope>
     </dependency>
 
