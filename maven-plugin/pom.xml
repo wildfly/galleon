@@ -30,7 +30,7 @@
   <packaging>maven-plugin</packaging>
 
   <name>Galleon Maven Plugin</name>
-
+  <description>Galleon Maven Plugin</description>
   <dependencies>
 
     <dependency>

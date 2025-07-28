@@ -29,7 +29,7 @@
   <artifactId>galleon-api-testsuite</artifactId>
 
   <name>Galleon API Testsuite</name>
-
+  <description>Galleon API Testsuite</description>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -51,7 +51,7 @@
       <groupId>org.jboss.galleon</groupId>
       <artifactId>galleon-api</artifactId>
       <version>${project.version}</version>
-      <type>test-jar</type>
+      <classifier>test</classifier>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -60,5 +60,22 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nxrm3-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>nexus-deploy</id>
+            <phase>none</phase>
+          </execution>
+          <execution>
+            <id>nexus-staging.deploy</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

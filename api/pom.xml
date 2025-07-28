@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <name>Galleon API</name>
-  <url>http://maven.apache.org</url>
+  <description>Galleon API</description>
 
   <dependencies>
     <dependency>
@@ -94,6 +94,33 @@
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
+            <configuration>
+              <classifier>test</classifier>
+            </configuration>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-test-sources</id>
+            <goals>
+              <goal>test-jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-test-javadocs</id>
             <goals>
               <goal>test-jar</goal>
             </goals>
