@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,19 +72,23 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
     }
 
     public B addFeaturePackDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
-        return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), false);
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), false, false);
     }
 
     public B updateFeaturePackDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
-        return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), true);
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forLocation(resolveUniverseSpec(fpl)), true, false);
     }
 
     public B addTransitiveDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
-        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)), false);
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)), false, false);
+    }
+
+    public B addTransitiveDep(FeaturePackLocation fpl, String allowedFamily) throws ProvisioningDescriptionException {
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl), allowedFamily), false, false);
     }
 
     public B updateTransitiveDep(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
-        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)), true);
+        return addFeaturePackDepResolved(null, FeaturePackConfig.forTransitiveDep(resolveUniverseSpec(fpl)), true, false);
     }
 
     public B addFeaturePackDep(FeaturePackConfig dependency) throws ProvisioningDescriptionException {
@@ -97,35 +101,42 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
 
     public B addFeaturePackDep(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
         final UniverseSpec configuredUniverse = getConfiguredUniverse(dependency.getLocation());
-        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), false);
+        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), false, false);
+    }
+
+    // This can happen when multiple features were used at build time as dependencies (inheritency), but at provisioning time a single feature-pack
+    // implementing all is used.
+    public B addFeaturePackDepAllowMultiple(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
+        final UniverseSpec configuredUniverse = getConfiguredUniverse(dependency.getLocation());
+        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), false, true);
     }
 
     public B updateFeaturePackDep(String origin, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
         final UniverseSpec configuredUniverse = getConfiguredUniverse(dependency.getLocation());
-        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), true);
+        return addFeaturePackDepResolved(origin, configuredUniverse == null ? dependency : FeaturePackConfig.builder(dependency.getLocation().replaceUniverse(configuredUniverse)).init(dependency).build(), true, true);
     }
 
     @SuppressWarnings("unchecked")
-    private B addFeaturePackDepResolved(String origin, FeaturePackConfig dependency, boolean replaceExistingVersion) throws ProvisioningDescriptionException {
+    private B addFeaturePackDepResolved(String origin, FeaturePackConfig dependency, boolean replaceExistingVersion, boolean allowMultipleOrigins) throws ProvisioningDescriptionException {
         String existingOrigin = null;
         final ProducerSpec producer = dependency.getLocation().getProducer();
         if(dependency.isTransitive()) {
-            if(fpDeps.containsKey(producer)) {
+            if(fpDeps.containsKey(producer) && !allowMultipleOrigins) {
                 throw new ProvisioningDescriptionException(producer + " has been already added as a direct dependency");
             }
             if(transitiveDeps.containsKey(producer)) {
-                if(!replaceExistingVersion) {
+                if(!replaceExistingVersion && !allowMultipleOrigins) {
                     throw new ProvisioningDescriptionException(BaseErrors.featurePackAlreadyConfigured(producer));
                 }
                 existingOrigin = producerOrigins.get(producer);
             }
             transitiveDeps = CollectionUtils.putLinked(transitiveDeps, producer, dependency);
         } else {
-            if(transitiveDeps.containsKey(producer)) {
+            if(transitiveDeps.containsKey(producer) && !allowMultipleOrigins) {
                 throw new ProvisioningDescriptionException(producer + " has been already added as a transitive dependency");
             }
             if(fpDeps.containsKey(producer)) {
-                if(!replaceExistingVersion) {
+                if(!replaceExistingVersion && !allowMultipleOrigins) {
                     throw new ProvisioningDescriptionException(BaseErrors.featurePackAlreadyConfigured(producer));
                 }
                 existingOrigin = producerOrigins.get(producer);
@@ -133,12 +144,14 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             fpDeps = CollectionUtils.putLinked(fpDeps, producer, dependency);
         }
         if(origin != null) {
-            if(existingOrigin != null) {
+            if (existingOrigin != null) {
                 if (!existingOrigin.equals(origin)) {
-                    fpDepsByOrigin = CollectionUtils.remove(fpDepsByOrigin, existingOrigin);
+                    if (!allowMultipleOrigins) {
+                        fpDepsByOrigin = CollectionUtils.remove(fpDepsByOrigin, existingOrigin);
+                    }
                     producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);
                 }
-            } else if(fpDepsByOrigin.containsKey(origin)) {
+            } else if (fpDepsByOrigin.containsKey(origin)) {
                 throw new ProvisioningDescriptionException(BaseErrors.duplicateDependencyName(origin));
             } else {
                 producerOrigins = CollectionUtils.put(producerOrigins, producer, origin);

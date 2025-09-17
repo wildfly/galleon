@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,12 @@
 package org.jboss.galleon.spec;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.Stability;
@@ -36,6 +40,133 @@ import org.jboss.galleon.util.StringUtils;
  */
 public class FeaturePackSpec extends FeaturePackDepsConfig {
 
+    public static class Family {
+
+        public static class Criteria {
+
+            private final String name;
+            private final boolean inherited;
+
+            public Criteria(String name, boolean inherited) {
+                Objects.requireNonNull(name);
+                this.name = name;
+                this.inherited = inherited;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public boolean isInherited() {
+                return inherited;
+            }
+
+            @Override
+            public String toString() {
+                return name + (inherited ? "[inherited]" : "");
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                if (!(other instanceof Criteria)) {
+                    return false;
+                }
+                Criteria otherCriteria = (Criteria) other;
+                return name.equals(otherCriteria.name);
+            }
+
+            @Override
+            public int hashCode() {
+                int hash = 3;
+                hash = 71 * hash + Objects.hashCode(this.name);
+                return hash;
+            }
+
+        }
+        private final String name;
+        private final Set<Criteria> criteria;
+        private final Set<Criteria> localCriteria;
+
+        public Family(String name, Set<Criteria> criteria) throws ProvisioningDescriptionException {
+            Objects.requireNonNull(name);
+            Objects.requireNonNull(criteria);
+            if (criteria.isEmpty()) {
+                throw new ProvisioningDescriptionException("The set of criteria is empty, at least one criteria is expected");
+            }
+            this.name = name;
+            this.criteria = Collections.unmodifiableSet(criteria);
+            localCriteria = criteria.stream().filter((c) -> !c.inherited).
+                    sorted((c1, c2) -> c1.name.compareTo(c2.name)).
+                    collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+
+        public static Family fromString(String dep) throws ProvisioningDescriptionException {
+            dep = dep.trim();
+            int familySeperatorIndex = dep.indexOf(":");
+            if (familySeperatorIndex <= 0) {
+                throw new ProvisioningDescriptionException("Invalid family string, no family name in " + dep);
+            }
+            if (dep.endsWith("+")) {
+                throw new ProvisioningDescriptionException("Invalid family string, empty criteria in " + dep);
+            }
+            String name = dep.substring(0, familySeperatorIndex);
+            String[] split = dep.substring(familySeperatorIndex + 1).split("\\+");
+            if (split.length == 0) {
+                throw new ProvisioningDescriptionException("Invalid family string, no criteria in " + dep);
+            }
+            Set<Criteria> criteria = new HashSet<>();
+            for (int i = 0; i < split.length; i++) {
+                String c = split[i].trim();
+                if(c.isEmpty()) {
+                    throw new ProvisioningDescriptionException("Invalid family string, empty criteria in " + dep);
+                }
+                criteria.add(new Criteria(split[i], false));
+            }
+            return new Family(name, criteria);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Set<Criteria> getCriteria() {
+            return criteria;
+        }
+
+        public Set<Criteria> getLocalCriteria() {
+            return localCriteria;
+        }
+
+        // Return a cannonical form, ignoring inherited criteria
+        public String getMemberFamilyID() {
+            StringBuilder str = new StringBuilder();
+            str.append(name);
+            for (Criteria c : criteria) {
+                if (!str.isEmpty()) {
+                    str.append("+");
+                }
+                str.append(c);
+            }
+            return str.toString();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder str = new StringBuilder();
+            str.append(name);
+            str.append(":");
+            StringBuilder criteriaBuilder = new StringBuilder();
+            for (Criteria c : criteria) {
+                if (!criteriaBuilder.isEmpty()) {
+                    criteriaBuilder.append("+");
+                }
+                criteriaBuilder.append(c);
+            }
+            str.append(criteriaBuilder.toString());
+            return str.toString();
+        }
+    }
+
     public static class Builder extends FeaturePackDepsConfigBuilder<Builder> {
 
         private FPID fpid;
@@ -46,6 +177,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         private String galleonMinVersion;
         private Stability configStability;
         private Stability packageStability;
+        private Family family;
 
         protected Builder() {
         }
@@ -57,6 +189,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
         public Builder setGalleonMinVersion(String version) {
             this.galleonMinVersion = version;
+            return this;
+        }
+
+        public Builder setFamily(Family family) {
+            this.family = family;
             return this;
         }
 
@@ -171,6 +308,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
     private final String galleonMinVersion;
     private final Stability configStability;
     private final Stability packageStability;
+    private final Family family;
 
     protected FeaturePackSpec(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
@@ -182,6 +320,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
         this.galleonMinVersion = builder.galleonMinVersion;
         this.configStability = builder.configStability == null ? null : builder.configStability;
         this.packageStability = builder.packageStability == null ? null : builder.packageStability;
+        this.family = builder.family;
+    }
+
+    public Family getFamily() {
+        return family;
     }
 
     public String getGalleonMinVersion() {
@@ -222,6 +365,10 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
 
     public boolean hasPlugins() {
         return !plugins.isEmpty();
+    }
+
+    public boolean hasFamily() {
+        return family != null;
     }
 
     public Map<String, FeaturePackPlugin> getPlugins() {

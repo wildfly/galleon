@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.StringUtils;
 
 /**
- * This class represents a feature-pack configuration to be installed.
+ * This class represents a feature-pack configuration to be installed and a dependency on a feature-pack
  *
  * @author Alexey Loubyansky
  */
@@ -45,6 +45,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
         protected Set<String> excludedPackages = Collections.emptySet();
         protected Set<String> includedPackages = Collections.emptySet();
         protected Set<FPID> patches = Collections.emptySet();
+        protected String allowedFamily;
 
         protected Builder(FeaturePackLocation fpl) {
             this(fpl, null);
@@ -55,9 +56,14 @@ public class FeaturePackConfig extends ConfigCustomizations {
         }
 
         protected Builder(FeaturePackLocation fpl, Boolean inheritPackages, boolean transitive) {
+           this(fpl, inheritPackages, transitive, null);
+        }
+
+        protected Builder(FeaturePackLocation fpl, Boolean inheritPackages, boolean transitive, String allowedFamily) {
             this.fpl = fpl;
             this.inheritPackages = inheritPackages;
             this.transitive = transitive;
+            this.allowedFamily = allowedFamily;
         }
 
         protected Builder(FeaturePackConfig config) {
@@ -177,6 +183,11 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return super.removeConfig(id);
         }
 
+        public Builder setAllowedFamily(String allowedFamily) {
+            this.allowedFamily = allowedFamily;
+            return this;
+        }
+
         private void transitiveDoesNotDefineConfigs() throws ProvisioningDescriptionException {
             throw new ProvisioningDescriptionException("Transitive dependency does not define configs");
         }
@@ -198,6 +209,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
     public static Builder builder(FeaturePackLocation fpl, boolean inheritPackages) {
         return new Builder(fpl, inheritPackages);
+    }
+
+    public static Builder builder(FeaturePackLocation fpl, boolean inheritPackages, String allowedFamily) {
+        return new Builder(fpl, false, inheritPackages, allowedFamily);
     }
 
     /**
@@ -235,6 +250,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
         return new Builder(fpl, null, true).build();
     }
 
+    public static FeaturePackConfig forTransitiveDep(FeaturePackLocation fpl, String allowedFamily) {
+        return new Builder(fpl, null, true).setAllowedFamily(allowedFamily).build();
+    }
+
     public static String getDefaultOriginName(FeaturePackLocation fpl) {
         return fpl.getProducer().toString();
     }
@@ -245,6 +264,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     protected final Set<String> includedPackages;
     protected final boolean transitive;
     protected final List<FPID> patches;
+    protected String allowedFamily;
 
     protected FeaturePackConfig(Builder builder) {
         super(builder);
@@ -254,6 +274,8 @@ public class FeaturePackConfig extends ConfigCustomizations {
         this.excludedPackages = CollectionUtils.unmodifiable(builder.excludedPackages);
         this.includedPackages = CollectionUtils.unmodifiable(builder.includedPackages);
         this.transitive = builder.transitive;
+        this.allowedFamily = builder.allowedFamily;
+
         switch(builder.patches.size()) {
             case 0:
                 patches = Collections.emptyList();
@@ -316,6 +338,10 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
     public Set<String> getExcludedPackages() {
         return excludedPackages;
+    }
+
+    public String getAllowedFamily() {
+        return allowedFamily;
     }
 
     @Override

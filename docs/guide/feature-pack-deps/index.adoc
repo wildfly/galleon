@@ -8,7 +8,7 @@ Feature-pack may depend on one or more other feature-packs. Feature-pack depende
                 location="fp1@maven(org.jboss.universe:community-universe):1#1.0.0" >
     <dependencies>
         <dependency location="fp2@maven(org.jboss.universe:community-universe):2#2.0.1"/>
-        <dependency location="fp3@maven(org.jboss.universe:community-universe):1#1.0.2"/>
+        <dependency location="fp3@maven(org.jboss.universe:community-universe):1#1.0.2" familyMemberAllowed="true"/>
     </dependencies>
     <default-packages>
         <package name="package1"/>
@@ -17,7 +17,8 @@ Feature-pack may depend on one or more other feature-packs. Feature-pack depende
  </feature-pack>
 ----
 
-In this case feature-pack `fp1` depends on feature-packs `fp2` and `fp3`. And if a user requests to install `fp1`, feature-packs `fp2` and `fp3` will be installed by the mechanism implicitly as dependencies of `fp1`.
+In this case feature-pack `fp1` depends on feature-packs `fp2` and `fp3`. And if a user requests to install `fp1`, feature-packs `fp2` and `fp3` will be installed by the mechanism implicitly as dependencies of `fp1`.\
+Note that the dependency on `fp3` allows that, at provisioning time, a member of the family of `fp3` can be used to replace `fp3`. 
 
 If we further assume that `fp3` depends on feature-pack `fp4` and `fp2` and `fp4` don’t have any further dependencies. The effective package set of the distribution provisioned from `fp1` will consist of:
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,8 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.UniverseSpec;
-import org.jboss.galleon.xml.ProvisioningXmlParser30.Attribute;
-import org.jboss.galleon.xml.ProvisioningXmlParser30.Element;
+import org.jboss.galleon.xml.ProvisioningXmlParser40.Attribute;
+import org.jboss.galleon.xml.ProvisioningXmlParser40.Element;
 import org.jboss.galleon.xml.util.ElementNode;
 import org.jboss.galleon.xml.util.TextNode;
 
@@ -125,6 +125,9 @@ public class ProvisioningXmlWriter extends BaseXmlWriter<ProvisioningConfig> {
 
         final String ns = fp.getNamespace();
         addAttribute(fp, Attribute.LOCATION, location.toString());
+        if (featurePack.getAllowedFamily() != null) {
+            addAttribute(fp, Attribute.ALLOWED_FAMILY, featurePack.getAllowedFamily());
+        }
         if(origin != null) {
             addElement(fp, Element.ORIGIN.getLocalName(), ns).addChild(new TextNode(origin));
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,4 +57,8 @@ public interface Channel {
     }
 
     boolean isDevBuild(FPID fpid);
+
+    default FPID getMavenCoordinatesLocation(FPID original) {
+        return original;
+    }
 }

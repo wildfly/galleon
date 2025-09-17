@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import org.jboss.galleon.universe.Producer;
 import org.jboss.galleon.universe.maven.repo.MavenArtifactVersion;
 import org.jboss.galleon.util.StringUtils;
 import org.jboss.galleon.BaseErrors;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 
 /**
  *
@@ -267,5 +268,13 @@ public class MavenChannel implements Channel, MavenChannelDescription {
     @Override
     public boolean isDevBuild(FeaturePackLocation.FPID fpid) {
         return new MavenArtifactVersion(fpid.getBuild()).isSnapshot();
+    }
+
+    @Override
+    public FPID getMavenCoordinatesLocation(FPID location) {
+        if (!location.getLocation().isMavenCoordinates()) {
+            location = FeaturePackLocation.fromString(getFeaturePackGroupId() + ":" + getFeaturePackArtifactId() + ":" + location.getBuild()).getFPID();
+        }
+        return location;
     }
 }
