@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,11 +151,30 @@ public class IoUtils {
         copy(source, target, false);
     }
 
-    public static void copy(Path source, Path target, boolean skipExistingFiles) throws IOException {
-        if(Files.isDirectory(source)) {
-            Files.createDirectories(target);
+    private static Path replaceSymLinkParent(Path originalPath) throws IOException {
+        Path path = originalPath;
+        while (path != null && !Files.exists(path)) {
+            path = path.getParent();
+        }
+
+        if (path == null || !Files.isSymbolicLink(path)) {
+            // either we couldn't find an existing parent, assuming it's a real path
+            // or it's not a symbolic link and we can use the original path
+            return originalPath;
         } else {
-            Files.createDirectories(target.getParent());
+            // we need to rebuild the path on top of the existing path
+            Path relative = path.relativize(originalPath);
+            return path.toRealPath().resolve(relative);
+        }
+    }
+
+    public static void copy(Path source, Path target, boolean skipExistingFiles) throws IOException {
+        // Files.createDirectories throws FileAlreadyExistsException  if the folder being created (or it's parent) is
+        // a symlink to a directory. To avoid that, replace the symlink with a real path
+        if (Files.isDirectory(source)) {
+            Files.createDirectories(replaceSymLinkParent(target));
+        } else {
+            Files.createDirectories(replaceSymLinkParent(target.getParent()));
         }
         Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
                 new SimpleFileVisitor<Path>() {
