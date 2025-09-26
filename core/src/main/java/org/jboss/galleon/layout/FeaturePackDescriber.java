@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,7 +170,12 @@ public class FeaturePackDescriber {
             throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(layerXml));
         }
         try (Reader in = Files.newBufferedReader(layerXml, Charset.forName(encoding))) {
-            return ConfigLayerSpecXmlParser.getInstance().parse(in);
+            ConfigLayerSpec spec = ConfigLayerSpecXmlParser.getInstance().parse(in);
+            if (!layerDir.getFileName().toString().equals(spec.getName())) {
+                throw new ProvisioningDescriptionException("Layer directory name " +
+                    layerDir.getFileName() + " doesn't match the name " + spec.getName() + " located in the " + Constants.LAYER_SPEC_XML + " file.");
+            }
+            return spec;
         } catch (IOException e) {
             throw new ProvisioningDescriptionException(Errors.openFile(layerXml), e);
         } catch (XMLStreamException e) {
