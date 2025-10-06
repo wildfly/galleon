@@ -170,12 +170,7 @@ public class FeaturePackDescriber {
             throw new ProvisioningDescriptionException(BaseErrors.pathDoesNotExist(layerXml));
         }
         try (Reader in = Files.newBufferedReader(layerXml, Charset.forName(encoding))) {
-            ConfigLayerSpec spec = ConfigLayerSpecXmlParser.getInstance().parse(in);
-            if (!layerDir.getFileName().toString().equals(spec.getName())) {
-                throw new ProvisioningDescriptionException("Layer directory name " +
-                    layerDir.getFileName() + " doesn't match the name " + spec.getName() + " located in the " + Constants.LAYER_SPEC_XML + " file.");
-            }
-            return spec;
+            return ConfigLayerSpecXmlParser.getInstance().parse(in);
         } catch (IOException e) {
             throw new ProvisioningDescriptionException(Errors.openFile(layerXml), e);
         } catch (XMLStreamException e) {
