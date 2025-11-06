@@ -49,30 +49,30 @@ public class Advanced4FeaturePackFamilyTestCase extends LayoutOrderingTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
         ee10 = FeaturePackLocation.fromString("org.jboss.galleon.test:ee10:1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee10.getFPID());
-        builder1.setFamily(Family.fromString("jboss-eap:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
+        builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
 
         ee11 = FeaturePackLocation.fromString("org.jboss.galleon.test:ee11:1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(ee11.getFPID());
-        builder2.setFamily(Family.fromString("jboss-eap:jakarta-ee+jakarta-min-ee-10+jakarta-ee11"));
+        builder2.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee11"));
 
         xpee10 = FeaturePackLocation.fromString("org.jboss.galleon.test:xp-ee10:1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(xpee10.getFPID());
-        builder3.setFamily(Family.fromString("jboss-eap:microprofile+microprofile-7x"));
+        builder3.setFamily(Family.fromString("wildfly:microprofile+microprofile-7x"));
         builder3.addDependency(FeaturePackConfig.builder(ee10, false).build());
 
         xpee11 = FeaturePackLocation.fromString("org.jboss.galleon.test:xp-ee11:1.0.0.Final");
         FeaturePackBuilder builder4 = creator.newFeaturePack(xpee11.getFPID());
-        builder4.setFamily(Family.fromString("jboss-eap:microprofile+microprofile-8x"));
+        builder4.setFamily(Family.fromString("wildfly:microprofile+microprofile-8x"));
         builder4.addDependency(FeaturePackConfig.builder(ee11, false).build());
 
         cloud = FeaturePackLocation.fromString("org.jboss.galleon.test:cloud:1.0.0.Final");
         FeaturePackBuilder builder5 = creator.newFeaturePack(cloud.getFPID());
-        builder5.addDependency(FeaturePackConfig.builder(ee10, false, "jboss-eap:jakarta-ee+jakarta-min-ee-10").build());
+        builder5.addDependency(FeaturePackConfig.builder(ee10, false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
 
         cloudxp = FeaturePackLocation.fromString("org.jboss.galleon.test:xpcloud:1.0.0.Final");
         FeaturePackBuilder builder6 = creator.newFeaturePack(cloudxp.getFPID());
         builder6.addDependency(FeaturePackConfig.builder(cloud, false).build());
-        builder6.addDependency(FeaturePackConfig.builder(xpee10, false, "jboss-eap:microprofile").build());
+        builder6.addDependency(FeaturePackConfig.builder(xpee10, false, "wildfly:microprofile").build());
 
     }
 
