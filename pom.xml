@@ -28,7 +28,7 @@
 
   <groupId>org.jboss.galleon</groupId>
   <artifactId>galleon-parent</artifactId>
-  <version>6.1.2.Final-SNAPSHOT</version>
+  <version>7.0.0.Beta1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Galleon Parent</name>
@@ -59,9 +59,9 @@
   </modules>
 
   <properties>
-    <!-- Require Java 11 -->
-    <maven.compiler.target>11</maven.compiler.target>
-    <maven.compiler.source>11</maven.compiler.source>
+    <!-- Require Java 17 -->
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
     <!--
         Dependency versions. Please keep alphabetical.
 

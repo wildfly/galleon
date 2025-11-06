@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,7 @@ import org.jboss.galleon.plugin.InstallPlugin;
 import org.jboss.galleon.spec.ConfigLayerSpec;
 import org.jboss.galleon.spec.FeaturePackPlugin;
 import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.spec.FeaturePackSpec.Family;
 import org.jboss.galleon.spec.FeatureSpec;
 import org.jboss.galleon.spec.PackageSpec;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -73,6 +74,7 @@ public class FeaturePackBuilder {
     private Map<ConfigId, ConfigModel> configs = Collections.emptyMap();
     private Map<ConfigId, ConfigLayerSpec> layers = Collections.emptyMap();
     private FsTaskList tasks;
+    private String family;
 
     FeaturePackBuilder(FeaturePackCreator creator) {
         this.creator = creator;
@@ -125,6 +127,11 @@ public class FeaturePackBuilder {
 
     public FeaturePackBuilder addTransitiveDependency(FeaturePackLocation fpl) throws ProvisioningDescriptionException {
         fpBuilder.addTransitiveDep(fpl);
+        return this;
+    }
+
+    public FeaturePackBuilder addTransitiveDependency(FeaturePackLocation fpl, String allowedFamily) throws ProvisioningDescriptionException {
+        fpBuilder.addTransitiveDep(fpl, allowedFamily);
         return this;
     }
 
@@ -260,6 +267,16 @@ public class FeaturePackBuilder {
             tasks = FsTaskList.newList();
         }
         tasks.write(content, relativePath, false);
+        return this;
+    }
+
+    public FeaturePackBuilder setFamily(Family family) {
+        fpBuilder.setFamily(family);
+        return this;
+    }
+
+    public FeaturePackBuilder setFamily(String family) throws ProvisioningException {
+        fpBuilder.setFamily(Family.fromString(family));
         return this;
     }
 

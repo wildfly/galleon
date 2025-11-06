@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +70,7 @@ public class XmlParsers extends XmlBaseParsers {
         new FeatureGroupXmlParser10().plugin(this);
         new FeaturePackXmlParser20().plugin(this);
         new FeaturePackXmlParser30().plugin(this);
+        new FeaturePackXmlParser40().plugin(this);
         new FeatureSpecXmlParser10().plugin(this);
         new FeatureSpecXmlParser20().plugin(this);
         new PackageXmlParser10().plugin(this);
@@ -78,5 +79,6 @@ public class XmlParsers extends XmlBaseParsers {
         new ProvisionedStateXmlParser30().plugin(this);
         new ProvisionedConfigXmlParser30().plugin(this);
         new ProvisioningXmlParser30().plugin(this);
+        new ProvisioningXmlParser40().plugin(this);
     }
 }
