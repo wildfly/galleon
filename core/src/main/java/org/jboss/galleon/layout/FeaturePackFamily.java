@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.config.FeaturePackConfig;
@@ -199,12 +200,12 @@ class FeaturePackFamily {
     }
 
     void validateFamilies() throws ProvisioningException {
-        Map<String, Map<String, List<FPID>>> implementors = new HashMap<>();
+        Map<String, Map<String, List<FPID>>> implementors = new TreeMap<>();
         Set<String> families = new TreeSet<>();
         for (FamilyMapping mapping : resolvedFamilyMembers.values()) {
             Map<String, List<FPID>> perFamily = implementors.get(mapping.family.getName());
             if(perFamily == null) {
-                perFamily = new HashMap<>();
+                perFamily = new TreeMap<>();
                 implementors.put(mapping.family.getName(), perFamily);
             }
             families.add(mapping.family.getName());

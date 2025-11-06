@@ -347,7 +347,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private ProgressTracker<ProducerSpec> updatesTracker;
     private ProgressTracker<FPID> buildTracker;
     private final FeaturePackFamily featurePackFamily;
-
+    private final Set<ProducerSpec> transitiveToIgnore = new HashSet<>();
     ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean initPluginOptions)
             throws ProvisioningException {
         this.layoutFactory = layoutFactory;
@@ -967,7 +967,13 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 for(FeaturePackLocation fpl : resolvedVersions.values()) {
                     final FeaturePackConfig existing = builder.getTransitiveFeaturePackDep(fpl.getProducer());
                     if(existing == null) {
-                        builder.addTransitiveDep(fpl);
+                        // We can ignore remaining transitive that are due to a merge of multiple dependencies into a
+                        // single feature-pack. This can occur with family members not having the same structure.
+                        // The build time dep being composed of 2 FP deps (one being transitive), at provisioning time a single
+                        // dep replaces the 2.
+                        if (!transitiveToIgnore.contains(fpl.getProducer())) {
+                            builder.addTransitiveDep(fpl);
+                        }
                     } else if(!existing.getLocation().hasBuild()) {
                         builder.updateFeaturePackDep(FeaturePackConfig.builder(fpl).init(existing).build());
                     }
@@ -1348,6 +1354,9 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                             if (rebuilder.hasFeaturePackDep(dep.getLocation().getProducer()) || rebuilder.hasTransitiveFeaturePackDep(dep.getLocation().getProducer())) {
                                 rebuilder.addFeaturePackDepAllowMultiple(fpSpec.originOf(result.getOriginalDependency().getLocation().getProducer()),
                                     FeaturePackConfig.builder(dep.getLocation()).init(dep).build());
+                                if (rebuilder.hasTransitiveFeaturePackDep(dep.getLocation().getProducer())) {
+                                    transitiveToIgnore.add(fpDep.getFPID().getLocation().getProducer());
+                                }
                             } else {
                                 rebuilder.addFeaturePackDep(fpSpec.originOf(result.getOriginalDependency().getLocation().getProducer()),
                                     FeaturePackConfig.builder(dep.getLocation()).init(dep).build());

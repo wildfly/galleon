@@ -31,7 +31,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
-public class SquashDepsFeaturePackFamilyTestCase extends LayoutOrderingTestBase {
+public class SquashTransitiveDepFeaturePackFamilyTestCase extends LayoutOrderingTestBase {
 
     private FeaturePackLocation grpc;
     private FeaturePackLocation ee;
@@ -55,7 +55,7 @@ public class SquashDepsFeaturePackFamilyTestCase extends LayoutOrderingTestBase 
 
         grpc = FeaturePackLocation.fromString("org.jboss.galleon.test:grpc:1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(grpc.getFPID());
-        builder3.addDependency("orig1", FeaturePackConfig.builder(ee, false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder3.addDependency("orig1", FeaturePackConfig.builder(ee, true, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
         builder3.addDependency("orig2", FeaturePackConfig.builder(full, false, "wildfly:microprofile").build());
 
         preview = FeaturePackLocation.fromString("org.jboss.galleon.test:preview:1.0.0.Final");

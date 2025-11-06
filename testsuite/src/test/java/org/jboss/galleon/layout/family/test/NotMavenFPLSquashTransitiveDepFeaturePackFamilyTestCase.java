@@ -31,7 +31,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
-public class SquashDepsFeaturePackFamilyTestCase extends LayoutOrderingTestBase {
+public class NotMavenFPLSquashTransitiveDepFeaturePackFamilyTestCase extends LayoutOrderingTestBase {
 
     private FeaturePackLocation grpc;
     private FeaturePackLocation ee;
@@ -42,23 +42,29 @@ public class SquashDepsFeaturePackFamilyTestCase extends LayoutOrderingTestBase 
     protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
         return SimplisticMavenRepoManager.getInstance(repoHome);
     }
-
+    @Override
+    protected void createProducers(MvnUniverse universe) throws ProvisioningException {
+        universe.createProducer("ee-gal", 2);
+        universe.createProducer("full-gal", 2);
+        universe.createProducer("grpc-gal", 2);
+        universe.createProducer("preview-gal", 2);
+    }
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
-        ee = FeaturePackLocation.fromString("org.jboss.galleon.test:ee:1.0.0.Final");
+        ee = newFpl("ee-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee.getFPID());
         builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
 
-        full = FeaturePackLocation.fromString("org.jboss.galleon.test:full:1.0.0.Final");
+        full = newFpl("full-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(full.getFPID());
         builder2.setFamily(Family.fromString("wildfly:microprofile"));
 
-        grpc = FeaturePackLocation.fromString("org.jboss.galleon.test:grpc:1.0.0.Final");
+        grpc = newFpl("grpc-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(grpc.getFPID());
-        builder3.addDependency("orig1", FeaturePackConfig.builder(ee, false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
-        builder3.addDependency("orig2", FeaturePackConfig.builder(full, false, "wildfly:microprofile").build());
+        builder3.addDependency("orig1", FeaturePackConfig.builder(toMavenCoordsFpl(ee), true, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder3.addDependency("orig2", FeaturePackConfig.builder(toMavenCoordsFpl(full), false, "wildfly:microprofile").build());
 
-        preview = FeaturePackLocation.fromString("org.jboss.galleon.test:preview:1.0.0.Final");
+        preview = newFpl("preview-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder4 = creator.newFeaturePack(preview.getFPID());
         builder4.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10+microprofile"));
     }
@@ -75,7 +81,4 @@ public class SquashDepsFeaturePackFamilyTestCase extends LayoutOrderingTestBase 
         return new FPID[]{preview.getFPID(), grpc.getFPID()};
     }
 
-    @Override
-    protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-    }
 }

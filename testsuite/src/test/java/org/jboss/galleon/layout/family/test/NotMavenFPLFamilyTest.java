@@ -31,7 +31,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
-public class Advanced2FeaturePackFamilyTestCase extends LayoutOrderingTestBase {
+public class NotMavenFPLFamilyTest extends LayoutOrderingTestBase {
 
     private FeaturePackLocation ee10;
     private FeaturePackLocation ee11;
@@ -44,35 +44,43 @@ public class Advanced2FeaturePackFamilyTestCase extends LayoutOrderingTestBase {
     protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
         return SimplisticMavenRepoManager.getInstance(repoHome);
     }
-
+    @Override
+    protected void createProducers(MvnUniverse universe) throws ProvisioningException {
+        universe.createProducer("ee10-gal", 2);
+        universe.createProducer("ee11-gal", 2);
+        universe.createProducer("xpee10-gal", 2);
+        universe.createProducer("xpee11-gal", 2);
+        universe.createProducer("cloud-gal", 2);
+        universe.createProducer("cloudxp-gal", 2);
+    }
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
-        ee10 = FeaturePackLocation.fromString("org.jboss.galleon.test:ee10:1.0.0.Final");
+        ee10 = newFpl("ee10-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee10.getFPID());
         builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
 
-        ee11 = FeaturePackLocation.fromString("org.jboss.galleon.test:ee11:1.0.0.Final");
+        ee11 = newFpl("ee11-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(ee11.getFPID());
         builder2.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee11"));
 
-        xpee10 = FeaturePackLocation.fromString("org.jboss.galleon.test:xp-ee10:1.0.0.Final");
+        xpee10 = newFpl("xpee10-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(xpee10.getFPID());
         builder3.setFamily(Family.fromString("wildfly:microprofile+microprofile-7x"));
-        builder3.addDependency(FeaturePackConfig.builder(ee10, false).build());
+        builder3.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false).build());
 
-        xpee11 = FeaturePackLocation.fromString("org.jboss.galleon.test:xp-ee11:1.0.0.Final");
+        xpee11 = newFpl("xpee11-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder4 = creator.newFeaturePack(xpee11.getFPID());
         builder4.setFamily(Family.fromString("wildfly:microprofile+microprofile-8x"));
-        builder4.addDependency(FeaturePackConfig.builder(ee11, false).build());
+        builder4.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee11), false).build());
 
-        cloud = FeaturePackLocation.fromString("org.jboss.galleon.test:cloud:1.0.0.Final");
+        cloud = newFpl("cloud-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder5 = creator.newFeaturePack(cloud.getFPID());
-        builder5.addDependency(FeaturePackConfig.builder(ee10, false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder5.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
 
-        cloudxp = FeaturePackLocation.fromString("org.jboss.galleon.test:xpcloud:1.0.0.Final");
+        cloudxp = newFpl("cloudxp-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder6 = creator.newFeaturePack(cloudxp.getFPID());
-        builder6.addDependency(FeaturePackConfig.builder(cloud, false).build());
-        builder6.addDependency(FeaturePackConfig.builder(xpee10, false, "wildfly:microprofile").build());
+        builder6.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(cloud), false).build());
+        builder6.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(xpee10), false, "wildfly:microprofile").build());
 
     }
 
@@ -88,7 +96,4 @@ public class Advanced2FeaturePackFamilyTestCase extends LayoutOrderingTestBase {
         return new FPID[]{ee11.getFPID(), xpee11.getFPID(), cloud.getFPID(), cloudxp.getFPID()};
     }
 
-    @Override
-    protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-    }
 }
