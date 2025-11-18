@@ -40,7 +40,7 @@ import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 import org.jboss.galleon.xml.ProvisionedConfigBuilder;
 import org.jboss.galleon.xml.ProvisionedFeatureBuilder;
 
-public class FeaturePackFamilyOverridesPackagesTestCase extends ProvisionFromUniverseTestBase {
+public class FeaturePackFamilyOverridesPackagesTransitiveTestCase extends ProvisionFromUniverseTestBase {
 
     private FeaturePackLocation fpl1;
     private FeaturePackLocation fpl2;
@@ -87,15 +87,15 @@ public class FeaturePackFamilyOverridesPackagesTestCase extends ProvisionFromUni
 
         fpl3 = FeaturePackLocation.fromString("org.jboss.galleon.test:fp1:1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(fpl3.getFPID());
-        builder3.addDependency("orig1", FeaturePackConfig.builder(fpl1, false, "family1:specific1").build());
-        builder3.newPackage("mypackage", true).addDependency("orig1", "p3");
+        builder3.addDependency("foo-origin", FeaturePackConfig.transitiveBuilder(fpl1).setAllowedFamily("family1:specific1").build());
+        builder3.newPackage("mypackage", true).addDependency("foo-origin", "p2");
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
         return ProvisioningConfig.builder()
                 .addFeaturePackDep(FeaturePackConfig.builder(fpl2).setInheritPackages(true).build())
-                .addFeaturePackDep(FeaturePackConfig.builder(fpl3).setInheritPackages(true).build())
+                .addFeaturePackDep(fpl3)
                 .addConfig(ConfigModel.builder("model1", "name1")
                         .addFeature(new FeatureConfig("specA").setParam("id", "1"))
                         .build()).build();
@@ -111,7 +111,9 @@ public class FeaturePackFamilyOverridesPackagesTestCase extends ProvisionFromUni
                         .addPackage("p4_2")
                         .addPackage("p5_2")
                         .build())
-                .addFeaturePack(ProvisionedFeaturePack.builder(fpl3.getFPID()).addPackage("mypackage").build())
+                .addFeaturePack(ProvisionedFeaturePack.builder(fpl3.getFPID())
+                        .addPackage("mypackage")
+                        .build())
                 .addConfig(ProvisionedConfigBuilder.builder()
                         .setModel("model1")
                         .setName("name1")
