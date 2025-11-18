@@ -1255,6 +1255,9 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                                 if(rebuilder.hasTransitiveFeaturePackDep(dep.getLocation().getProducer())) {
                                     rebuilder.addFeaturePackDepAllowMultiple(fpSpec.originOf(result.getOriginalDependency().getLocation().getProducer()),
                                     FeaturePackConfig.transitiveBuilder(dep.getLocation()).init(dep).build());
+                                } else {
+                                    rebuilder.addFeaturePackDep(fpSpec.originOf(result.getOriginalDependency().getLocation().getProducer()),
+                                    FeaturePackConfig.transitiveBuilder(dep.getLocation()).init(dep).build());
                                 }
                             } else {
                                 rebuilder.addFeaturePackDep(fpSpec.originOf(result.getOriginalDependency().getLocation().getProducer()), dep);
