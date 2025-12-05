@@ -48,7 +48,7 @@ public class SquashTransitiveDepFeaturePackPackagesFamilyTestCase extends Provis
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
         ee = FeaturePackLocation.fromString("org.jboss.galleon.test:ee:1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee.getFPID());
-        builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
+        builder1.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10"));
         builder1.newPackage("p2");
 
         full = FeaturePackLocation.fromString("org.jboss.galleon.test:full:1.0.0.Final");
@@ -58,12 +58,12 @@ public class SquashTransitiveDepFeaturePackPackagesFamilyTestCase extends Provis
 
         grpc = FeaturePackLocation.fromString("org.jboss.galleon.test:grpc:1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(grpc.getFPID());
-        builder3.addDependency("orig1", FeaturePackConfig.transitiveBuilder(ee).setAllowedFamily("wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder3.addDependency("orig1", FeaturePackConfig.transitiveBuilder(ee).setAllowedFamily("wildfly:jakarta-ee,jakarta-min-ee-10").build());
         builder3.addDependency("orig2", FeaturePackConfig.builder(full, false, "wildfly:microprofile").build());
         builder3.newPackage("mypackage", true).addDependency("orig1", "p2").addDependency("orig2", "p3");
         preview = FeaturePackLocation.fromString("org.jboss.galleon.test:preview:1.0.0.Final");
         FeaturePackBuilder builder4 = creator.newFeaturePack(preview.getFPID());
-        builder4.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10+microprofile"));
+        builder4.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10,microprofile"));
         builder4.newPackage("p2");
         builder4.newPackage("p3");
     }

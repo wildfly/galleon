@@ -106,11 +106,11 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
             if (familySeperatorIndex <= 0) {
                 throw new ProvisioningDescriptionException("Invalid family string, no family name in " + dep);
             }
-            if (dep.endsWith("+")) {
+            if (dep.endsWith(",")) {
                 throw new ProvisioningDescriptionException("Invalid family string, empty criteria in " + dep);
             }
             String name = dep.substring(0, familySeperatorIndex);
-            String[] split = dep.substring(familySeperatorIndex + 1).split("\\+");
+            String[] split = dep.substring(familySeperatorIndex + 1).split("\\,");
             if (split.length == 0) {
                 throw new ProvisioningDescriptionException("Invalid family string, no criteria in " + dep);
             }

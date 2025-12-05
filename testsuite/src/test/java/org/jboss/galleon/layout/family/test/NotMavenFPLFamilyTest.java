@@ -57,25 +57,25 @@ public class NotMavenFPLFamilyTest extends LayoutOrderingTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
         ee10 = newFpl("ee10-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee10.getFPID());
-        builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
+        builder1.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10"));
 
         ee11 = newFpl("ee11-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(ee11.getFPID());
-        builder2.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee11"));
+        builder2.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee11"));
 
         xpee10 = newFpl("xpee10-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(xpee10.getFPID());
-        builder3.setFamily(Family.fromString("wildfly:microprofile+microprofile-7x"));
+        builder3.setFamily(Family.fromString("wildfly:microprofile,microprofile-7x"));
         builder3.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false).build());
 
         xpee11 = newFpl("xpee11-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder4 = creator.newFeaturePack(xpee11.getFPID());
-        builder4.setFamily(Family.fromString("wildfly:microprofile+microprofile-8x"));
+        builder4.setFamily(Family.fromString("wildfly:microprofile,microprofile-8x"));
         builder4.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee11), false).build());
 
         cloud = newFpl("cloud-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder5 = creator.newFeaturePack(cloud.getFPID());
-        builder5.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder5.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false, "wildfly:jakarta-ee,jakarta-min-ee-10").build());
 
         cloudxp = newFpl("cloudxp-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder6 = creator.newFeaturePack(cloudxp.getFPID());

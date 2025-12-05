@@ -53,7 +53,7 @@ public class NotMavenFPLSquashDepsFeaturePackFamilyTestCase extends LayoutOrderi
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
         ee = newFpl("ee-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee.getFPID());
-        builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
+        builder1.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10"));
 
         full = newFpl("full-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(full.getFPID());
@@ -61,12 +61,12 @@ public class NotMavenFPLSquashDepsFeaturePackFamilyTestCase extends LayoutOrderi
 
         grpc = newFpl("grpc-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(grpc.getFPID());
-        builder3.addDependency("orig1", FeaturePackConfig.builder(toMavenCoordsFpl(ee), false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder3.addDependency("orig1", FeaturePackConfig.builder(toMavenCoordsFpl(ee), false, "wildfly:jakarta-ee,jakarta-min-ee-10").build());
         builder3.addDependency("orig2", FeaturePackConfig.builder(toMavenCoordsFpl(full), false, "wildfly:microprofile").build());
 
         preview = newFpl("preview-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder4 = creator.newFeaturePack(preview.getFPID());
-        builder4.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10+microprofile"));
+        builder4.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10,microprofile"));
     }
 
     @Override
