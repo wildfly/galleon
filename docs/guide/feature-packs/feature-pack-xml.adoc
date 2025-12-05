@@ -19,11 +19,15 @@ Here is an illustration of how it may look like in a `feature-pack.xml` file:
 [source,xml]
 ----
 <feature-pack xmlns="urn:jboss:galleon:feature-pack:3.0"
-    location="wildfly-servlet@maven(org.jboss.universe:community-universe):current#14.0.0.Beta2" family="fpFamily" > <!--1-->
+    location="wildfly-servlet@maven(org.jboss.universe:community-universe):current#14.0.0.Beta2"> <!--1-->
+    <family name="family1"> <!--2-->
+        <criteria name="crit1" inherited="false"/>
+        <criteria name="crit2" inherited="true"/>
+    </family>
     <dependencies>
-        <dependency location="wildfly-core@maven(org.jboss.universe:community-universe):current#6.0.0.Beta1"/> <!--2-->
+        <dependency location="wildfly-core@maven(org.jboss.universe:community-universe):current#6.0.0.Beta1" allowedFamily="family1:crit2"/> <!--3-->
     </dependencies>
-    <config model="standalone" name="standalone.xml"> <!--3-->
+    <config model="standalone" name="standalone.xml"> <!--4-->
         <feature-group name="standalone"/>
         <feature spec="another-feature">
             <param name="p1" value="v1" />
@@ -36,21 +40,23 @@ Here is an illustration of how it may look like in a `feature-pack.xml` file:
     <config model="host" name="host.xml">
         <feature-group name="host"/>
     </config>
-    <default-packages> <!--4-->
+    <default-packages> <!--5-->
         <package name="docs"/>
         <package name="modules.all"/>
     </default-packages>
-    <plugins> <!--5-->
+    <plugins> <!--6-->
         <plugin location="org.jboss.galleon.example:galleon-example-plugin:1.0.0.Final"/>
     </plugins>
-    <system-paths> <!--6-->
+    <system-paths> <!--7-->
         <system-path path="modules/system/layers/base"/>
     </system-paths>
 </feature-pack>
 ----
-<1> Feature-pack location, build info and optional family (family allows to group compatible feature-packs inside the same family. Family members can then be swapped at provisioning time.
-<2> Dependency on another feature-pack
-<3> Description of the default `standalone.xml` configuration
-<4> List of packages that should be installed by default
-<5> List of provisioning plugins
-<6> List of protected system paths
+<1> Feature-pack location, build info.
+<2> Optional family and criteria. A family allows to group compatible feature-packs inside the same family. Family members can then be swapped at provisioning time. Criteria are
+expressing what are the feature-pack capabilities. Some can be inherited from dependencies, other are implemented by this feature-pack.
+<3> Dependency on another feature-pack. In this case, the `crit2` is inherited.
+<4> Description of the default `standalone.xml` configuration
+<5> List of packages that should be installed by default
+<6> List of provisioning plugins
+<7> List of protected system paths

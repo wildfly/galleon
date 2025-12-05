@@ -50,7 +50,7 @@ public class FeaturePackFamilyFailingDifferentFamiliesTestCase extends LayoutOrd
 
         fpl2 = FeaturePackLocation.fromString("org.jboss.galleon.test:dep-family-fp2:1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(fpl2.getFPID());
-        builder2.setFamily(Family.fromString("family1:specific1+specific2"));
+        builder2.setFamily(Family.fromString("family1:specific1,specific2"));
 
         fpl3 = FeaturePackLocation.fromString("org.jboss.galleon.test:fp1:1.0.0.Final");
         FeaturePackBuilder builder3 = creator.newFeaturePack(fpl3.getFPID());

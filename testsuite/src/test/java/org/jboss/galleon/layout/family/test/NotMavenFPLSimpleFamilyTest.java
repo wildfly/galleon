@@ -54,15 +54,15 @@ public class NotMavenFPLSimpleFamilyTest extends LayoutOrderingTestBase {
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
         ee10 = newFpl("ee10-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder1 = creator.newFeaturePack(ee10.getFPID());
-        builder1.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee10"));
+        builder1.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10"));
 
         ee11 = newFpl("ee11-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder2 = creator.newFeaturePack(ee11.getFPID());
-        builder2.setFamily(Family.fromString("wildfly:jakarta-ee+jakarta-min-ee-10+jakarta-ee11"));
+        builder2.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee11"));
 
         cloud = newFpl("cloud-gal", "1", "1.0.0.Final");
         FeaturePackBuilder builder5 = creator.newFeaturePack(cloud.getFPID());
-        builder5.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false, "wildfly:jakarta-ee+jakarta-min-ee-10").build());
+        builder5.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false, "wildfly:jakarta-ee,jakarta-min-ee-10").build());
 
     }
 
