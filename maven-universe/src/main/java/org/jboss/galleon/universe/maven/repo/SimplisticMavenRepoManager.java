@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -201,11 +203,21 @@ public class SimplisticMavenRepoManager extends LocalArtifactVersionRangeResolve
 
     @Override
     public List<String> getAllVersions(MavenArtifact artifact) throws MavenUniverseException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return getAllVersions(artifact, null, null);
     }
 
     @Override
     public List<String> getAllVersions(MavenArtifact artifact, Pattern includeVersion, Pattern excludeVersion) throws MavenUniverseException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(artifact.getGroupId() == null) {
+            MavenErrors.missingGroupId();
+        }
+        Path p = repoHome;
+        final String[] groupParts = artifact.getGroupId().split("\\.");
+        for (String part : groupParts) {
+            p = p.resolve(part);
+        }
+
+        String[] children = p.resolve(artifact.getArtifactId()).toFile().list();
+        return children == null ? Collections.emptyList() : Arrays.asList(children);
     }
 }
