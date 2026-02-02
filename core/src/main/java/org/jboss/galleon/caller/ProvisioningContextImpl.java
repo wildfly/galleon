@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -134,7 +135,7 @@ public class ProvisioningContextImpl implements ProvisioningContext {
 
     @Override
     public void storeProvisioningConfig(GalleonProvisioningConfig config, Path file) throws XMLStreamException, IOException, ProvisioningException {
-        try (FileWriter writer = new FileWriter(file.toFile())) {
+        try (FileWriter writer = new FileWriter(file.toFile(), StandardCharsets.UTF_8)) {
             ProvisioningXmlWriter.getInstance().write(ProvisioningConfig.toConfig(config), writer);
         }
     }
