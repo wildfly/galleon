@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.jboss.galleon.xml;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -72,7 +73,7 @@ public abstract class BaseXmlWriter<T> {
         final ElementNode root = toElement(t);
         try (FormattingXmlStreamWriter writer = new FormattingXmlStreamWriter(XMLOutputFactory.newInstance()
                 .createXMLStreamWriter(stream))) {
-            writer.writeStartDocument();
+            writer.writeStartDocument(StandardCharsets.UTF_8.name(), null);
             root.marshall(writer);
             writer.writeEndDocument();
         }
