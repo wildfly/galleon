@@ -71,7 +71,7 @@ public abstract class BaseXmlWriter<T> {
 
     public void write(T t, Writer stream) throws XMLStreamException, IOException {
         final ElementNode root = toElement(t);
-        try (FormattingXmlStreamWriter writer = new FormattingXmlStreamWriter(XMLOutputFactory.newInstance()
+        try (FormattingXmlStreamWriter writer = new FormattingXmlStreamWriter(XMLOutputFactory.newDefaultFactory()
                 .createXMLStreamWriter(stream))) {
             writer.writeStartDocument(StandardCharsets.UTF_8.name(), null);
             root.marshall(writer);
