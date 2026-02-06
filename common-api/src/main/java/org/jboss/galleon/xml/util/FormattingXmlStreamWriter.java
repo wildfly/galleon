@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 package org.jboss.galleon.xml.util;
 
+
+import org.jboss.galleon.Constants;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
@@ -35,6 +37,7 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public final class FormattingXmlStreamWriter implements XMLStreamWriter, XMLStreamConstants, AutoCloseable {
     private static final String NO_NAMESPACE = new String();
+    private final boolean useLinuxLineEndings = Boolean.getBoolean(Constants.PROP_LINUX_LINE_ENDINGS);
     private final XMLStreamWriter delegate;
     private int level;
     private int state = START_DOCUMENT;
@@ -48,7 +51,11 @@ public final class FormattingXmlStreamWriter implements XMLStreamWriter, XMLStre
     }
 
     private void nl() throws XMLStreamException {
-        delegate.writeCharacters(System.lineSeparator());
+        if (useLinuxLineEndings) {
+            delegate.writeCharacters("\n");
+        } else {
+            delegate.writeCharacters(System.lineSeparator());
+        }
     }
 
     private void indent() throws XMLStreamException {
