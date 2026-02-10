@@ -20,6 +20,7 @@ WARNING: Make sure that you are using JDK 11 to do the release.
 * Update the new version
 ** `mvn versions:set -DnewVersion=<new released version>`
 ** `mvn versions:commit`
+* `mvn clean install`
 * Commit the changes with message: `Release X.X.X.Final`
 * Deploy in nexus staging repository
 ** `mvn -Pjboss-release -Pjboss-staging-deploy deploy -DskipTests -Drelease`

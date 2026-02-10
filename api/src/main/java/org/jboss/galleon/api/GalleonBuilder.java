@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,6 +258,10 @@ public class GalleonBuilder extends UniverseResolverBuilder<GalleonBuilder> {
             // Handle local core
             File defaultCore = corePath.resolve("galleon-core.jar").toFile();
             try (InputStream input = ProvisioningImpl.class.getClassLoader().getResourceAsStream("galleon-core-" + apiVersion + ".jar")) {
+                if (input == null) {
+                   throw new ProvisioningException("Version mismatch, Galleon common API and Galleon API artifacts are not of version " +
+                           apiVersion + ". Both artifacts must share the same version.");
+                }
                 try (OutputStream output = new FileOutputStream(defaultCore, false)) {
                     input.transferTo(output);
                 }
