@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,12 +43,15 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
 
     private final Map<String, PackageRuntime> packages;
     private final Map<String, ResolvedFeatureSpec> featureSpecs;
+    private final Stability effectivePackageStability;
+    private final Stability effectiveConfigStability;
 
     FeaturePackRuntime(FeaturePackRuntimeBuilder builder, ProvisioningRuntimeBuilder rt) throws ProvisioningException {
         super(builder.producer.getLocation().getFPID(), builder.getDir(), builder.getType());
         this.spec = builder.getSpec();
         this.featureSpecs = builder.featureSpecs == null ? Collections.emptyMap() : builder.featureSpecs;
-
+        this.effectiveConfigStability = rt.getConfigStability(builder.getSpec().getConfigStability());
+        this.effectivePackageStability = rt.getPackageStability(builder.getSpec().getPackageStability());
         final Map<String, PackageRuntime> tmpPackages = new LinkedHashMap<>(builder.pkgOrder.size());
 
         switch(rt.includedPkgDeps) {
@@ -180,5 +183,13 @@ public class FeaturePackRuntime extends FeaturePackLayout implements FeaturePack
 
     public ResolvedFeatureSpec getResolvedFeatureSpec(String name) throws ProvisioningDescriptionException {
         return featureSpecs.get(name);
+    }
+
+    public Stability getPackageStability() {
+        return effectivePackageStability;
+    }
+
+    public Stability getConfigStability() {
+        return effectiveConfigStability;
     }
 }
