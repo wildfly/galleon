@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.jboss.galleon.spec.FeaturePackSpec.Family;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.FPID;
+import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 
 /**
  * Family handling.
@@ -94,7 +95,7 @@ class FeaturePackFamily {
         }
 
         void resolutionDone() throws ProvisioningException {
-            registerFamilyMember(fpSpec.getFamily(), childFPID);
+            registerFamilyMember(fpSpec.getFamily(), childFPID, fpSpec.getFPID().getProducer());
         }
 
         FamilyResolutionResult resolveDependency(FeaturePackConfig originalDependency) throws ProvisioningException {
@@ -137,27 +138,38 @@ class FeaturePackFamily {
                     }
                 }
             }
-            registerFamilyMember(depSpec.getFamily(), memberFPID);
+            registerFamilyMember(depSpec.getFamily(), memberFPID, depSpec.getFPID().getProducer());
             return new FamilyResolutionResult(originalDependency, memberDependency, differentFamilyMember);
         }
 
     }
     private final Map<String, FamilyMapping> resolvedFamilyMembers = new HashMap<>();
     private final ProvisioningLayoutFactory factory;
+    // The mapping from the producer in the spec to the maven in use.
+    private final Map<ProducerSpec, ProducerSpec> specProducerToMaven = new HashMap<>();
 
     FeaturePackFamily(ProvisioningLayoutFactory factory) {
         this.factory = factory;
 
     }
 
-    private void registerFamilyMember(Family family, FPID member) {
+    public ProducerSpec getMemberFPL(FeaturePackLocation maven) {
+        if (!maven.isMavenCoordinates()) {
+            return null;
+        }
+        return specProducerToMaven.get(maven.getProducer());
+    }
+
+    private void registerFamilyMember(Family family, FPID member, ProducerSpec specProducer) {
         if (family != null) {
             String key = family.getMemberFamilyID();
             if (!resolvedFamilyMembers.containsKey(key)) {
-                resolvedFamilyMembers.put(key, new FamilyMapping(family, toMavenLocation(member)));
+                FPID maven = toMavenLocation(member);
+                specProducerToMaven.put(maven.getProducer(), specProducer);
+                resolvedFamilyMembers.put(key, new FamilyMapping(family, maven));
+                }
             }
         }
-    }
 
     private FPID toMavenLocation(FPID original) {
         if (!original.getLocation().isMavenCoordinates()) {

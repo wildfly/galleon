@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -425,6 +425,15 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
             final O otherFp = other.ordered.get(i);
             final F fp = transformer.transform(otherFp);
             registerFeaturePack(fp.getFPID().getProducer(), fp);
+            // Replaced family members are identified with Maven GAV
+            // and must be retrieved.
+            if (other.mavenProducers != null) {
+                for(Entry<ProducerSpec, O> otherEntry : other.mavenProducers.entrySet()) {
+                    if(otherEntry.getValue() == otherFp) {
+                        getMavenProducers().put(otherEntry.getKey(), fp);
+                    }
+                }
+            }
             ordered.add(fp);
         }
         Collections.reverse(ordered);
@@ -792,7 +801,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     public F getFeaturePack(ProducerSpec producer) throws ProvisioningException {
         F p = featurePacks.get(producer);
         if(p == null) {
-            p = mavenProducers == null ? null : mavenProducers.get(producer);
+            p = getMavenProducers().get(producer);
             if (p == null) {
                 throw new ProvisioningException(BaseErrors.unknownFeaturePack(producer.getLocation().getFPID()));
             }
@@ -900,6 +909,9 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private void rebuild(ProvisioningConfig config, boolean cleanupTransitive) throws ProvisioningException {
         final boolean trackProgress = featurePacks.isEmpty();
         featurePacks.clear();
+        if (mavenProducers != null) {
+            mavenProducers.clear();
+        }
         ordered.clear();
         allPatches = Collections.emptyMap();
         fpPatches = Collections.emptyMap();
@@ -1091,7 +1103,17 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 if(transitiveConfig.hasPatches()) {
                     addPatches(transitiveConfig);
                 }
-                final FPID branchId = branch.get(fpl.getProducer());
+                FPID branchId = branch.get(fpl.getProducer());
+                if (branchId == null) {
+                    // Family members are converted to Maven.
+                    if(fpl.isMavenCoordinates()) {
+                        // Do we have a maven producer for it?
+                        ProducerSpec ps = featurePackFamily.getMemberFPL(fpl);
+                        if (ps != null) {
+                            branchId = branch.get(ps);
+                        }
+                    }
+                }
                 if (branchId != null) {
                     if (branchId.getChannel().getName() != null && fpl.getChannel().getName() != null &&
                             !branchId.getChannel().getName().equals(fpl.getChannel().getName())) {
@@ -1213,10 +1235,14 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     private void registerMavenProducer(ProducerSpec producer, F f) {
-        if(mavenProducers == null) {
+        getMavenProducers().putIfAbsent(producer, f);
+    }
+
+    private Map<ProducerSpec, F> getMavenProducers() {
+        if (mavenProducers == null) {
             mavenProducers = new HashMap<>();
         }
-        mavenProducers.put(producer, f);
+        return mavenProducers;
     }
 
     private F resolveFeaturePack(FeaturePackLocation fpl, int type) throws ProvisioningException {
