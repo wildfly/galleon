@@ -31,14 +31,12 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
-public class NotMavenFPLSimpleFamilyTest extends FamilyLayoutOrderingTestBase {
+public class TransitiveDepFeaturePackFamilyTestCase extends FamilyLayoutOrderingTestBase {
 
+    private FeaturePackLocation grpc;
+    private FeaturePackLocation ee;
+    private FeaturePackLocation full;
     private FeaturePackLocation ee10;
-    private FeaturePackLocation ee11;
-    private FeaturePackLocation cloud;
-    private FeaturePackLocation cloudxp;
-    private FeaturePackLocation xpee10;
-    private FeaturePackLocation xpee11;
 
     @Override
     protected RepositoryArtifactResolver initRepoManager(Path repoHome) {
@@ -46,36 +44,42 @@ public class NotMavenFPLSimpleFamilyTest extends FamilyLayoutOrderingTestBase {
     }
     @Override
     protected void createProducers(MvnUniverse universe) throws ProvisioningException {
-        universe.createProducer("ee10-gal", 2);
-        universe.createProducer("ee11-gal", 2);
-        universe.createProducer("cloud-gal", 2);
+        universe.createProducer("ee-gal", 2);
+        universe.createProducer("full-gal", 2);
+        universe.createProducer("grpc-gal", 2);
+        universe.createProducer("ee-10-gal", 2);
     }
     @Override
     protected void createFeaturePacks(FeaturePackCreator creator) throws ProvisioningDescriptionException {
-        ee10 = newFpl("ee10-gal", "1", "1.0.0.Final");
-        FeaturePackBuilder builder1 = creator.newFeaturePack(ee10.getFPID());
+        ee = newFpl("ee-gal", "1", "1.0.0.Final");
+        FeaturePackBuilder builder1 = creator.newFeaturePack(ee.getFPID());
         builder1.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10"));
 
-        ee11 = newFpl("ee11-gal", "1", "1.0.0.Final");
-        FeaturePackBuilder builder2 = creator.newFeaturePack(ee11.getFPID());
-        builder2.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee11"));
+        full = newFpl("full-gal", "1", "1.0.0.Final");
+        FeaturePackBuilder builder2 = creator.newFeaturePack(full.getFPID());
+        builder2.addDependency("orig1", FeaturePackConfig.builder(toMavenCoordsFpl(ee), true, "wildfly:jakarta-ee,jakarta-min-ee-10").build());
+        builder2.setFamily(Family.fromString("wildfly:microprofile"));
 
-        cloud = newFpl("cloud-gal", "1", "1.0.0.Final");
-        FeaturePackBuilder builder5 = creator.newFeaturePack(cloud.getFPID());
-        builder5.addDependency(FeaturePackConfig.builder(toMavenCoordsFpl(ee10), false, "wildfly:jakarta-ee,jakarta-min-ee-10").build());
+        grpc = newFpl("grpc-gal", "1", "1.0.0.Final");
+        FeaturePackBuilder builder3 = creator.newFeaturePack(grpc.getFPID());
+        builder3.addDependency("orig1", FeaturePackConfig.builder(toMavenCoordsFpl(ee), true, "wildfly:jakarta-ee,jakarta-min-ee-10").build());
+        builder3.addDependency("orig2", FeaturePackConfig.builder(toMavenCoordsFpl(full), false, "wildfly:microprofile").build());
 
+        ee10 = newFpl("ee-10-gal", "1", "1.0.0.Final");
+        FeaturePackBuilder builder4 = creator.newFeaturePack(ee10.getFPID());
+        builder4.setFamily(Family.fromString("wildfly:jakarta-ee,jakarta-min-ee-10,jakarta-ee10"));
     }
 
     @Override
     protected ProvisioningConfig provisioningConfig() throws ProvisioningException {
-        return ProvisioningConfig.builder()
-                .addFeaturePackDep(ee11)
-                .addFeaturePackDep(cloud).build();
+        return ProvisioningConfig.builder().addTransitiveDep(ee10)
+                .addFeaturePackDep(full)
+                .addFeaturePackDep(grpc).build();
     }
 
     @Override
     protected FPID[] expectedOrder() {
-        return new FPID[]{ee11.getFPID(), cloud.getFPID()};
+        return new FPID[]{ee10.getFPID(), full.getFPID(), grpc.getFPID()};
     }
 
 }

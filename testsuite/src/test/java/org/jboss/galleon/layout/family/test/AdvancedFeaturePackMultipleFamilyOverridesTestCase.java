@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackBuilder;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.layout.LayoutOrderingTestBase;
+import org.jboss.galleon.layout.FamilyLayoutOrderingTestBase;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.spec.FeaturePackSpec.Family;
 import org.jboss.galleon.spec.FeaturePackSpec.Family.Criteria;
@@ -34,7 +34,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
-public class AdvancedFeaturePackMultipleFamilyOverridesTestCase extends LayoutOrderingTestBase {
+public class AdvancedFeaturePackMultipleFamilyOverridesTestCase extends FamilyLayoutOrderingTestBase {
 
     private FeaturePackLocation fpl0;
     private FeaturePackLocation fpl0_0;

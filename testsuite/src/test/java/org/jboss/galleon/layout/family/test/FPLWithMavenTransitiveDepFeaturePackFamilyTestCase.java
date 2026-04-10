@@ -23,7 +23,7 @@ import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.creator.FeaturePackBuilder;
 import org.jboss.galleon.creator.FeaturePackCreator;
-import org.jboss.galleon.layout.LayoutOrderingTestBase;
+import org.jboss.galleon.layout.FamilyLayoutOrderingTestBase;
 import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.spec.FeaturePackSpec.Family;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -31,7 +31,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.MvnUniverse;
 import org.jboss.galleon.universe.maven.repo.SimplisticMavenRepoManager;
 
-public class FPLWithMavenTransitiveDepFeaturePackFamilyTestCase extends LayoutOrderingTestBase {
+public class FPLWithMavenTransitiveDepFeaturePackFamilyTestCase extends FamilyLayoutOrderingTestBase {
 
     private FeaturePackLocation grpc;
     private FeaturePackLocation ee;

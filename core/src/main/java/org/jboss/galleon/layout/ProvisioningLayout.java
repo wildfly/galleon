@@ -64,6 +64,7 @@ import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.Universe;
 import org.jboss.galleon.universe.UniverseResolver;
+import org.jboss.galleon.universe.galleon1.LegacyGalleon1UniverseFactory;
 import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.LayoutUtils;
@@ -348,6 +349,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     private ProgressTracker<FPID> buildTracker;
     private final FeaturePackFamily featurePackFamily;
     private final Set<ProducerSpec> transitiveToIgnore = new HashSet<>();
+    private final Map<ProducerSpec, ProducerSpec> fplToMaven = new HashMap<>();
     ProvisioningLayout(ProvisioningLayoutFactory layoutFactory, ProvisioningConfig config, FeaturePackLayoutFactory<F> fpFactory, boolean initPluginOptions)
             throws ProvisioningException {
         this.layoutFactory = layoutFactory;
@@ -1124,8 +1126,17 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                 if(fpl.isMavenCoordinates()) {
                     final F f = resolveFeaturePack(fpl, FeaturePackLayout.TRANSITIVE_DEP);
                     fpl = f.getSpec().getFPID().getLocation();
+                    // We only register the version, the feature-pack will be registered when found
+                    // when traversing the actual dependency tree.
                     registerResolvedVersion(transitiveConfig.getLocation().getProducer(), fpl);
-                    registerMavenProducer(transitiveConfig.getLocation().getProducer(), f);
+                } else {
+                    // Resolve FeaturePack in all cases, it will be known by family handling
+                    if (fpl.hasUniverse()) {
+                        // Legacy Galleon 1 kind of Universe is used in tests and are not resolved.
+                        if (!fpl.getUniverse().getFactory().equals(LegacyGalleon1UniverseFactory.ID)) {
+                            resolveFeaturePack(fpl, FeaturePackLayout.TRANSITIVE_DEP);
+                        }
+                    }
                 }
                 transitiveDeps.add(fpl.getProducer());
                 branch.put(fpl.getProducer(), fpl.getFPID());
@@ -1172,6 +1183,7 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
                         registerResolvedVersion(fpl.getProducer(), resolvedFpl);
                     }
                     registerMavenProducer(fpl.getProducer(), fp);
+                    fplToMaven.put(resolvedFpl.getProducer(), fpl.getProducer());
                     fpl = resolvedFpl;
                 }
             }
@@ -1235,10 +1247,20 @@ public class ProvisioningLayout<F extends FeaturePackLayout> implements AutoClos
     }
 
     private void registerMavenProducer(ProducerSpec producer, F f) {
-        getMavenProducers().putIfAbsent(producer, f);
+        getMavenProducers().put(producer, f);
     }
 
-    private Map<ProducerSpec, F> getMavenProducers() {
+    // Used by tests
+    protected Map<ProducerSpec, ProducerSpec> getFPLToMavenMappings() {
+        return fplToMaven;
+    }
+
+    // Used by tests
+    protected Map<ProducerSpec, F> getFeaturePacks() {
+        return featurePacks;
+    }
+
+    protected Map<ProducerSpec, F> getMavenProducers() {
         if (mavenProducers == null) {
             mavenProducers = new HashMap<>();
         }
