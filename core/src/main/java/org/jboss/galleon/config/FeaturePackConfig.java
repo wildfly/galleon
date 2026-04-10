@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -212,7 +212,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     }
 
     public static Builder builder(FeaturePackLocation fpl, boolean inheritPackages, String allowedFamily) {
-        return new Builder(fpl, false, inheritPackages, allowedFamily);
+        return new Builder(fpl, inheritPackages, false, allowedFamily);
     }
 
     /**

@@ -179,7 +179,7 @@ class FeaturePackFamily {
                 original = getMavenCoordinates(channel, original);
                 // System.out.println("Transformed to maven " + original);
             } catch(ProvisioningException ex) {
-                // Ok, no universe available, keep original.
+                throw new RuntimeException("Fail to resolve feature-pack Maven coordinates for " + original, ex);
             }
         }
         return original;
