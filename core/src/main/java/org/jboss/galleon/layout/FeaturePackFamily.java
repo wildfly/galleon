@@ -167,9 +167,9 @@ class FeaturePackFamily {
                 FPID maven = toMavenLocation(member);
                 specProducerToMaven.put(maven.getProducer(), specProducer);
                 resolvedFamilyMembers.put(key, new FamilyMapping(family, maven));
-                }
             }
         }
+    }
 
     private FPID toMavenLocation(FPID original) {
         if (!original.getLocation().isMavenCoordinates()) {
