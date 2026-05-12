@@ -87,8 +87,8 @@ public class AdvancedFeaturePackFamilyFailingTestCase extends FamilyLayoutOrderi
     @Override
     protected String[] pmErrors() throws ProvisioningException {
         String[] errors = {"Some errors have been encountered processing feature-pack families.\n"+
-                           "wildfly:jakarta-ee is provided by more than 1 feature-pack [org.jboss.galleon.test:ee10:1.0.0.Final, org.jboss.galleon.test:ee11:1.0.0.Final].\n" +
-                           "wildfly:jakarta-min-ee-10 is provided by more than 1 feature-pack [org.jboss.galleon.test:ee10:1.0.0.Final, org.jboss.galleon.test:ee11:1.0.0.Final].\n" +
+                           "wildfly:jakarta-ee is provided by more than 1 feature-pack [org.jboss.galleon.test:ee11:1.0.0.Final, org.jboss.galleon.test:ee10:1.0.0.Final].\n" +
+                           "wildfly:jakarta-min-ee-10 is provided by more than 1 feature-pack [org.jboss.galleon.test:ee11:1.0.0.Final, org.jboss.galleon.test:ee10:1.0.0.Final].\n" +
                            "Check the config and remove the conflicting feature-packs."};
         return errors;
     }

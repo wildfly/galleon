@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -137,17 +137,8 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
             return localCriteria;
         }
 
-        // Return a cannonical form, ignoring inherited criteria
         public String getMemberFamilyID() {
-            StringBuilder str = new StringBuilder();
-            str.append(name);
-            for (Criteria c : criteria) {
-                if (!str.isEmpty()) {
-                    str.append("+");
-                }
-                str.append(c);
-            }
-            return str.toString();
+            return toString();
         }
 
         @Override
@@ -158,7 +149,7 @@ public class FeaturePackSpec extends FeaturePackDepsConfig {
             StringBuilder criteriaBuilder = new StringBuilder();
             for (Criteria c : criteria) {
                 if (!criteriaBuilder.isEmpty()) {
-                    criteriaBuilder.append("+");
+                    criteriaBuilder.append(",");
                 }
                 criteriaBuilder.append(c);
             }
