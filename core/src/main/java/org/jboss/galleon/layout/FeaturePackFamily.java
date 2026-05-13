@@ -163,7 +163,23 @@ class FeaturePackFamily {
     private void registerFamilyMember(Family family, FPID member, ProducerSpec specProducer) {
         if (family != null) {
             String key = family.getMemberFamilyID();
-            if (!resolvedFamilyMembers.containsKey(key)) {
+            boolean register = true;
+            // Do not register the same member more than once.
+            // At some point a check on the criteria was made to not register the members
+            // having the same set of criteria. But that is not correct, the producer is the key.
+            // We had some member with same producer with different set of criteria (due to different releases of the same producer being
+            // present in the set of dependencies). Release N having criteria X,Y, release N+1 having criteria X,Z.
+            for (FamilyMapping fm : resolvedFamilyMembers.values()) {
+                ProducerSpec registeredSpec = fm.fpid.getProducer();
+                if (!member.getLocation().isMavenCoordinates()) {
+                    registeredSpec = specProducerToMaven.get(registeredSpec);
+                }
+                if (registeredSpec.equals(member.getProducer())) {
+                    register = false;
+                    break;
+                }
+            }
+            if (register) {
                 FPID maven = toMavenLocation(member);
                 specProducerToMaven.put(maven.getProducer(), specProducer);
                 resolvedFamilyMembers.put(key, new FamilyMapping(family, maven));
