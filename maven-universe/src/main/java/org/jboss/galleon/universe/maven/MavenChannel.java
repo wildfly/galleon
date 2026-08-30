@@ -106,7 +106,7 @@ public class MavenChannel implements Channel, MavenChannelDescription {
     }
 
     @Override
-    public Path resolve(FeaturePackLocation fpl) throws MavenUniverseException {
+    public Path resolve(FeaturePackLocation fpl) throws ProvisioningException {
         final MavenArtifact artifact = new MavenArtifact();
         artifact.setGroupId(producer.getFeaturePackGroupId());
         artifact.setArtifactId(producer.getFeaturePackArtifactId());
@@ -123,7 +123,22 @@ public class MavenChannel implements Channel, MavenChannelDescription {
                 throw new MavenLatestVersionNotAvailableException(e.getLocalizedMessage(), fpl);
             }
         } else {
-            artifact.setVersion(fpl.getBuild());
+            String build = fpl.getBuild();
+
+            // Make sure this build conforms to the specification of this Channel.
+            // Iterating a list isn't great but MavenRepoManager provides a list and other callers of
+            // getAllVersions request a list so converting to a Set would require care
+            // Iterate from the end of the list under the assumption that older versions less likely to be requested
+            boolean valid = false;
+            List<String> allBuilds = getAllBuilds(fpl);
+            for (int i = allBuilds.size() - 1; !valid && i >= 0; i--) {
+                valid = build.equals(allBuilds.get(i));
+            }
+            if (!valid) {
+                throw new MavenUniverseException(String.format("%s is not a valid build for channel %s", build, name));
+            }
+
+            artifact.setVersion(build);
             producer.getRepo().resolve(artifact);
         }
         return artifact.getPath();
