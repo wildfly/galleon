@@ -75,7 +75,7 @@
     <version.adoc-maven-plugin-descriptor>1.0.0.Alpha3</version.adoc-maven-plugin-descriptor>
     <version.assertj>3.27.7</version.assertj>
     <version.com.io7m.xom>1.2.10</version.com.io7m.xom>
-    <version.com.fasterxml.jackson.core>2.21.5</version.com.fasterxml.jackson.core>
+    <version.com.fasterxml.jackson.core>2.21.6</version.com.fasterxml.jackson.core>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.junit>4.13.1</version.junit>
     <version.maven-aether-provider>3.3.9</version.maven-aether-provider>
