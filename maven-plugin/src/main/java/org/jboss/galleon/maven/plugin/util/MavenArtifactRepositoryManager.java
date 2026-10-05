@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.jboss.galleon.maven.plugin.util;
 
 import java.util.List;
 
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -57,6 +58,24 @@ public class MavenArtifactRepositoryManager extends AbstractMavenArtifactReposit
         super(repoSystem);
         this.session = repoSession;
         this.repositories = repositories;
+    }
+
+    /**
+     * Creates an instance that will only resolve artifacts from the Maven local repository, while still providing
+     * the remote repositories to the resolver. Artifacts in the local repository are tracked with the id of
+     * the remote repository they were downloaded from and are only considered available if a repository with
+     * the same id is part of the request. Passing the repositories with an offline session keeps such
+     * artifacts available without accessing the network.
+     *
+     * @param repoSystem The repository system instance, must not be {@code null}.
+     * @param repoSession The repository session, must not be {@code null}.
+     * @param repositories The list of remote repositories the artifacts in the local Maven repository may originate from.
+     * @return an offline repository manager
+     */
+    public static MavenArtifactRepositoryManager offline(final RepositorySystem repoSystem, final RepositorySystemSession repoSession, final List<RemoteRepository> repositories) {
+        final DefaultRepositorySystemSession offlineSession = new DefaultRepositorySystemSession(repoSession);
+        offlineSession.setOffline(true);
+        return new MavenArtifactRepositoryManager(repoSystem, offlineSession, repositories);
     }
 
     @Override
