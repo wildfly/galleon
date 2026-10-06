@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2026 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,7 +130,7 @@ public class ProvisionFileStateMojo extends AbstractMojo {
     }
 
     private void doProvision() throws MojoExecutionException, ProvisioningException {
-        final MavenArtifactRepositoryManager artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
+        final MavenArtifactRepositoryManager artifactResolver = offline ? MavenArtifactRepositoryManager.offline(repoSystem, repoSession, repositories)
                 : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
         final Path home = installDir.toPath();
         if (!recordState) {
