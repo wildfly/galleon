@@ -44,7 +44,7 @@ Then, later, when checking for updates or upgrading _myInstallation_ directory,
 the latest build that is at least of quality alpha will be used to update. 
 If a final release is available then it will be installed when upgrading.
 
-NB: Products being unique inside an installation, some commands (eg: _state update_) 
+NB: Products being unique inside an installation, some commands (eg: _update_) 
 only require the product part (_<product>[@universe]_) of an FPL. For example:
 
 _update --feature-packs=wildfly_
@@ -168,7 +168,7 @@ _install <[FPL|FPID] | [--file=<path to patch zip file>]> [--dir=<installation d
 
 ### Un-installing a patch
 
-Use the _uninstall_ command to remove a given patch or use _state undo_ if the last provisioning command has been a patch installation.
+Use the _uninstall_ command to remove a given patch or use _undo_ if the last provisioning command has been a patch installation.
 
 ### Checking for updates
 
@@ -193,7 +193,7 @@ this can take some time (a matter of few seconds up to minutes if the feature-pa
 needs to be downloaded from a remote location).
 
 You can retrieve the set of feature-pack specific options without relying on completion, to do so call: +
-_installation get-info [--dir=<installation dir>] --type=options_ +
+_get-info [--dir=<installation dir>] --type=options_ +
 You can then use the listed options (if any) to customize your update command.
 
 ### Retrieving changes applied to an installation
@@ -211,7 +211,7 @@ into the provisioning configuration, this operation has no side effect.
 
 ### Observing an installation
 
-_[my-dir]$ installation get-info [--dir=installation] --type=[all|configs|dependencies|layers|optional-packages|options|patches|universes]_
+_[my-dir]$ get-info [--dir=installation] --type=[all|configs|dependencies|layers|optional-packages|options|patches|universes]_
 
 Display the set of installed feature-packs FPID. In addition can display configurations, dependencies layers and patches. + 
 NB: If some patches are applied, the applied patches information is displayed.
@@ -373,7 +373,7 @@ NB: The set of completer exposed commands is dynamic and is adjusted according t
 In edit mode, one can export the provisioning XML file or directly provision from the current state:
 
 _[!edit!/]$ export [<path to generated xml file>]_ +
-_[!edit!/]$ provision <dir of new installation>_
+_[!edit!/]$ provision --dir=<dir of new installation>_
 
 TIP: Use _export_ to validate that what you get in the XML is in sync with the expose state.
 
