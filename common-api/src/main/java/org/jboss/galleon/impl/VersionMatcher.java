@@ -5,8 +5,24 @@
 package org.jboss.galleon.impl;
 
 import java.util.Comparator;
+import static java.util.Objects.requireNonNull;
+import java.util.Optional;
+import java.util.Set;
 
 public class VersionMatcher {
+
+    /**
+     * Determine the latest version among the parameters based on the
+     * {@link #COMPARATOR}.
+     *
+     * @param versions a Set of versions
+     * @return an Optional of the latest version.
+     */
+    static Optional<String> getLatestVersion(Set<String> versions) {
+        requireNonNull(versions);
+        return versions.stream().sorted(COMPARATOR.reversed()).findFirst();
+    }
+
     public static Comparator<String> COMPARATOR = (v1, v2) -> {
         int i1 = 0, i2 = 0;
         final int epoch1;
@@ -44,11 +60,11 @@ public class VersionMatcher {
                 i2 = ei2;
                 if (i1 != i2)
                     return i2 - i1;
-            } else if (c1 == c2) {
+            } else if (Character.toLowerCase(c1) == Character.toLowerCase(c2)) {
                 i1++;
                 i2++;
             } else {
-                return c1 - c2;
+                return Character.toLowerCase(c1) - Character.toLowerCase(c2);
             }
         }
         return lim1 - lim2;
