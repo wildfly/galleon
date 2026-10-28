@@ -4,11 +4,13 @@
  */
 package org.jboss.galleon.maven.plugin.util;
 
+import java.io.File;
 import java.util.List;
 
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 
@@ -54,6 +56,9 @@ public class MavenArtifactRepositoryManager extends AbstractMavenArtifactReposit
      * the remote repository they were downloaded from and are only considered available if a repository with
      * the same id is part of the request. Passing the repositories with an offline session keeps such
      * artifacts available without accessing the network.
+     * By default the local maven cache is seen as a "simple" one in which the remote repositories check is not applied.
+     * To enforce the checks of remote maven repositories, set the system property
+     * {@code org.jboss.galleon.maven.disable.simple.local.repository} to {@code true}.
      *
      * @param repoSystem The repository system instance, must not be {@code null}.
      * @param repoSession The repository session, must not be {@code null}.
@@ -61,9 +66,29 @@ public class MavenArtifactRepositoryManager extends AbstractMavenArtifactReposit
      * @return an offline repository manager
      */
     public static MavenArtifactRepositoryManager offline(final RepositorySystem repoSystem, final RepositorySystemSession repoSession, final List<RemoteRepository> repositories) {
+        final RepositorySystemSession offlineSession = buildOfflineSession(repoSystem, repoSession);
+        return new MavenArtifactRepositoryManager(repoSystem, offlineSession, repositories);
+    }
+
+    /**
+     * Creates an instance that will only resolve artifacts from the Maven local repository.
+     * By default the local maven cache is seen as a "simple" one in which the remote repositories check is not applied.
+     * To enforce the checks of remote maven repositories, set the system property
+     * {@code org.jboss.galleon.maven.disable.simple.local.repository} to {@code true}.
+     *
+     * @param repoSystem The repository system instance, must not be {@code null}.
+     * @param repoSession The repository session, must not be {@code null}.
+     * @return an offline session
+     */
+    public static RepositorySystemSession buildOfflineSession(final RepositorySystem repoSystem, final RepositorySystemSession repoSession) {
         final DefaultRepositorySystemSession offlineSession = new DefaultRepositorySystemSession(repoSession);
         offlineSession.setOffline(true);
-        return new MavenArtifactRepositoryManager(repoSystem, offlineSession, repositories);
+        if (!Boolean.getBoolean("org.jboss.galleon.maven.disable.simple.local.repository")) {
+            File repoPath = repoSession.getLocalRepository().getBasedir();
+            LocalRepository simpleLocalRepo = new LocalRepository(repoPath, "simple");
+            offlineSession.setLocalRepositoryManager(repoSystem.newLocalRepositoryManager(offlineSession, simpleLocalRepo));
+        }
+        return offlineSession;
     }
 
     @Override
